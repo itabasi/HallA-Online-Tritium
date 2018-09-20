@@ -6,8 +6,8 @@
 // 
 TString GetRootFileName(UInt_t runnumber)
 {
-  TString file_path = "ROOTfiles/";
-  TString expID = "ndtest";
+  TString file_path = "ROOTfiles/pass1";
+  TString expID = "tritium_online";
   
   TString filename;
   filename = file_path + expID;
