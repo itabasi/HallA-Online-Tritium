@@ -38,8 +38,8 @@
 //This allows changing the directory in fewer places for ease of portability.
 const char* REPLAY_DIR_PREFIX = "./%s";
 //const char* REPLAY_DIR_PREFIX = "/adaqfs/home/a-onl/tritium_work/itabashi/analyzer-1.6.0/%s";
- const char* ROOTFILE_DIR_PREFIX ="./Rootfiles/%s";
-  //"/adaqfs/home/a-onl/tritium_work/itabashi/Rootfils/%s";
+// const char* ROOTFILE_DIR_PREFIX ="./Rootfiles/%s";
+ const char* ROOTFILE_DIR_PREFIX ="/adaqfs/home/a-onl/tritium_work/itabashi/HallA-Online-Tritium/replay/Rootfiles/%s";
 // "./t2root/%s";
 
 typedef struct _sReplaySetUp
@@ -62,9 +62,10 @@ static const char* PATHS[] = {
 };
 
 static const char* RAW_DATA_FORMAT="%s/triton_%d.dat.%d";
-
-//TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"pass1");	//pass1 auto hack
-TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"./%s");	//pass1 auto hack
+//static const char* RAW_DATA_FORMAT="triton_%d.dat.%d";
+TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"pass1");	//pass1 auto hack
+//TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"./%s");	//pass1 auto hack
+//TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"pass");	//pass1 auto hack
 //TString STD_REPLAY_OUTPUT_DIR= TString::Format("/volatile/halla/triton/Marathon_Rootfiles/pass1_test");	//pass 1 hack
 TString CUSTOM_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"ScratchROOTfiles");
 TString SUMMARY_PHYSICS_FORMAT= TString::Format(REPLAY_DIR_PREFIX,"summaryfiles/summaryphy_%d.log");
