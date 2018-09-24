@@ -36,7 +36,8 @@ TriFadcScin::TriFadcScin( const char* name, const char* description,
     fLTNhit(0), fLT(0), fLT_c(0), fRTNhit(0), fRT(0), fRT_c(0),
     fLANhit(0), fLA(0), fLA_p(0), fLA_c(0), fRANhit(0), fRA(0), fRA_p(0), fRA_c(0),
     fNhit(0), fHitPad(0), fTime(0), fdTime(0), fAmpl(0), fYt(0), fYa(0), 
-    floverflow(0), flunderflow(0),flpedq(0),froverflow(0), frunderflow(0),frpedq(0),fLNhits(0),fRNhits(0)
+    fLPeak(0),fLT_FADC(0),fLT_FADC_c(0),floverflow(0), flunderflow(0),flpedq(0),
+    fRPeak(0),fRT_FADC(0),fRT_FADC_c(0),froverflow(0),frunderflow(0),frpedq(0),fLNhits(0),fRNhits(0)
 {
   // Constructor
   fFADC = NULL;
@@ -48,7 +49,8 @@ TriFadcScin::TriFadcScin()
     fLGain(0), fRGain(0), fTWalkPar(0), fAdcMIP(0), fTrigOff(0),
     fLT(0), fLT_c(0), fRT(0), fRT_c(0), fLA(0), fLA_p(0), fLA_c(0),
     fRA(0), fRA_p(0), fRA_c(0), fHitPad(0), fTime(0), fdTime(0), fAmpl(0),
-    fYt(0), fYa(0),floverflow(0), flunderflow(0),flpedq(0),froverflow(0), frunderflow(0),frpedq(0),
+    fYt(0), fYa(0),fLPeak(0),fLT_FADC(0),fLT_FADC_c(0),floverflow(0), flunderflow(0),flpedq(0),
+    fRPeak(0),fRT_FADC(0),fRT_FADC_c(0),froverflow(0), frunderflow(0),frpedq(0),
     fLNhits(0),fRNhits(0)
 {
   // Default constructor (for ROOT I/O)
@@ -173,10 +175,16 @@ Int_t TriFadcScin::ReadDatabase( const TDatime& date )
     fYt     = new Double_t[ nval ];
     fYa     = new Double_t[ nval ];
 
+    fLPeak      = new Double_t[ nval ];
+    fLT_FADC    = new Double_t[ nval ];
+    fLT_FADC_c  = new Double_t[ nval ];
     floverflow  = new Int_t[ nval ];
     flunderflow = new Int_t[ nval ];
     flpedq      = new Int_t[ nval ];
 
+    fRPeak      = new Double_t[ nval ];
+    fRT_FADC    = new Double_t[ nval ];
+    fRT_FADC_c = new Double_t[ nval ];
     froverflow  = new Int_t[ nval ];
     frunderflow = new Int_t[ nval ];
     frpedq      = new Int_t[ nval ];
@@ -205,7 +213,10 @@ Int_t TriFadcScin::ReadDatabase( const TDatime& date )
   memset( fTrigOff, 0, nval*sizeof(fTrigOff[0]) );
 
   fNPED = 1; //number of samples included in FADC pedestal sum
-  fWin = 1;  //number of samples included in FADC integration
+  fNSA = 1;  //number of integrated samples after threshold crossing
+  fNSB = 1;  //number of integrated samples before threshold crossing
+  fWin = 1;  //total number of sample in FADC window
+  fTFlag = 1;  //Threshold On: 1, Off: 0
 
   // Default TDC offsets (0), ADC pedestals (0) and ADC gains (1)
   memset( fLOff, 0, nval*sizeof(fLOff[0]) );
@@ -229,7 +240,10 @@ Int_t TriFadcScin::ReadDatabase( const TDatime& date )
     { "avgres",           &fResolution,  kDouble, 0, 1 },
     { "atten",            &fAttenuation, kDouble, 0, 1 },
     { "NPED",             &fNPED,        kInt},
+    { "NSA",              &fNSA,         kInt},
+    { "NSB",              &fNSB,         kInt},
     { "Win",              &fWin,         kInt},
+    { "TFlag",            &fTFlag,       kInt},
     { 0 }
   };
   err = LoadDB( file, date, calib_request, fPrefix );
@@ -265,7 +279,7 @@ Int_t TriFadcScin::DefineVariables( EMode mode )
 
   if( mode == kDefine && fIsSetup ) return kOK;
   fIsSetup = ( mode == kDefine );
-
+ 
   // Register variables in global list
 
   RVarDef vars[] = {
@@ -297,6 +311,12 @@ Int_t TriFadcScin::DefineVariables( EMode mode )
     { "trpath", "TRCS pathlen of track to det plane","fTrackProj.THaTrackProj.fPathl" },
     { "trdx",   "track deviation in x-position (m)", "fTrackProj.THaTrackProj.fdX" },
     { "trpad",  "paddle-hit associated with track",  "fTrackProj.THaTrackProj.fChannel" },
+    { "lpeak",   "FADC ADC peak values left side",   "fLPeak" },
+    { "rpeak",   "FADC ADC peak values right side",  "fRPeak" },
+    { "lt_fadc",   "FADC TDC values left side",      "fLT_FADC" },
+    { "ltc_fadc",  "FADC Corrected times left side", "fLT_FADC_c" },
+    { "rt_fadc",   "FADC TDC values right side",      "fRT_FADC" },
+    { "rtc_fadc",  "FADC Corrected times right side", "fRT_FADC_c" },
     { "loverflow",  "overflow bit of FADC pulse",    "floverflow" },
     { "lunderflow",  "underflow bit of FADC pulse",  "flunderflow" },
     { "lbadped",  "pedestal quality bit of FADC pulse",   "flpedq" },
@@ -353,6 +373,12 @@ void TriFadcScin::DeleteArrays()
   delete [] fYt;      fYt      = NULL;
   delete [] fYa;      fYa      = NULL;
 
+  delete [] fLPeak;  fLPeak = NULL;
+  delete [] fRPeak;  fRPeak = NULL;
+  delete [] fLT_FADC_c;  fLT_FADC_c  = NULL;
+  delete [] fLT_FADC;    fLT_FADC    = NULL;
+  delete [] fRT_FADC_c;  fRT_FADC_c  = NULL;
+  delete [] fRT_FADC;    fRT_FADC    = NULL;
   delete [] floverflow;  floverflow  = NULL;
   delete [] flunderflow; flunderflow = NULL;
   delete [] flpedq;      flpedq      = NULL;
@@ -372,6 +398,8 @@ void TriFadcScin::Clear( Option_t* opt )
   assert(fIsInit);
   for( Int_t i=0; i<fNelem; ++i ) {
     fLT[i] = fLT_c[i] = fRT[i] = fRT_c[i] = 0;
+    fLT_FADC[i] = fLT_FADC_c[i] = fRT_FADC[i] = fRT_FADC_c[i] = 0;
+    fLPeak[i] = fRPeak[i] = 0;
     fLA[i] = fLA_p[i] = fLA_c[i] = fRA[i] = fRA_p[i] = fRA_c[i] = 0;
     fTime[i] = fdTime[i] = fAmpl[i] = fYt[i] = fYa[i] = 0;
   }
@@ -437,8 +465,12 @@ Int_t TriFadcScin::Decode( const THaEvData& evdata )
       int jj=k/fNelem; 
       k = k % fNelem; 
 
-      Int_t data;
-      if(adc)data = evdata.GetData(kPulseIntegral,d->crate,d->slot,chan,0);
+      Int_t data,ftime=0,fpeak=0;
+      if(adc){
+         data = evdata.GetData(kPulseIntegral,d->crate,d->slot,chan,0);
+         ftime = evdata.GetData(kPulseTime,d->crate,d->slot,chan,0);
+         fpeak = evdata.GetData(kPulsePeak,d->crate,d->slot,chan,0);
+      }
       else {
 	     if(jj==0){
                  fRNhits[k]=evdata.GetNumHits(d->crate, d->slot, chan);
@@ -457,19 +489,31 @@ Int_t TriFadcScin::Decode( const THaEvData& evdata )
                   floverflow[k] = fFADC->GetOverflowBit(chan,0);
                   flunderflow[k] = fFADC->GetUnderflowBit(chan,0);
                   flpedq[k] = fFADC->GetPedestalQuality(chan,0);
+                  fLPeak[k]=static_cast<Double_t>(fpeak);
+                  fLT_FADC[k]=static_cast<Double_t>(ftime);
+		  fLT_FADC_c[k]=fLT_FADC[k]*0.0625;
               }
              else {
                   froverflow[k]=fFADC->GetOverflowBit(chan,0);
                   frunderflow[k]=fFADC->GetUnderflowBit(chan,0);
                   frpedq[k]=fFADC->GetPedestalQuality(chan,0);
+                  fRPeak[k]=static_cast<Double_t>(fpeak);
+                  fRT_FADC[k]=static_cast<Double_t>(ftime);
+		  fRT_FADC_c[k]=fRT_FADC[k]*0.0625;
              }
           }
 
-         if(jj==1 && flpedq[k]==0)
-           dest->ped[k]=fWin*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
-        
-         if(jj==0 && frpedq[k]==0)
-           dest->ped[k]=fWin*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
+         if( (jj==1 && flpedq[k]==0) || (jj==0 && frpedq[k]==0) )
+         {
+           if(fTFlag == 1)
+           {
+             dest->ped[k]=(fNSA+fNSB)*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
+           }
+           else
+           {
+             dest->ped[k]=fWin*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
+           }
+         }
       }
 
       if( adc ) {

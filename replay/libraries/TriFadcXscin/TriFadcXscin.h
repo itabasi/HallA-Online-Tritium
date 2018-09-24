@@ -67,7 +67,10 @@ protected:
   Double_t    fResolution;  // average time resolution per PMT (s)
 
   Int_t    fNPED;        //number of samples included in FADC pedestal sum
-  Int_t    fWin;         //number of samples that FADC make integration
+  Int_t    fNSA;         //number of integrated samples after threshold crossing
+  Int_t    fNSB;         //number of integrated samples before threshold crossing
+  Int_t    fWin;         //total number of samples in FADC window
+  Int_t    fTFlag;       //flag for FADC threshold on vs FADC threshold off
 
   // Per-event data
   Int_t       fLTNhit;     // Number of Left paddles TDC times
@@ -102,10 +105,16 @@ protected:
   Int_t*     fHitPad;     // [fNhit] list of paddles with complete TDC hits
 
   //FADC
+  Double_t*   fLPeak;        // [fNelem] Array of Left paddles FADC ADC peak value
+  Double_t*   fLT_FADC;      // [fNelem] Array of Left paddles FADC TDC times (channels)
+  Double_t*   fLT_FADC_c;    // [fNelem] Array of Left PMT corrected FADC TDC times (s)
   Int_t* floverflow;         //[fNelem] FADC overflowbit
   Int_t* flunderflow;        //[fNelem] FADC underflowbit
   Int_t* flpedq;             //[fNelem] FADC pedestal quality bit
 
+  Double_t*   fRPeak;        // [fNelem] Array of right paddles FADC ADC peak value
+  Double_t*   fRT_FADC;      // [fNelem] Array of right paddles FADC TDC times (channels)
+  Double_t*   fRT_FADC_c;    // [fNelem] Array of right PMT corrected FADC TDC times (s)
   Int_t* froverflow;         //[fNelem] FADC overflowbit
   Int_t* frunderflow;        //[fNelem] FADC underflowbit
   Int_t* frpedq;             //[fNelem] FADC pedestal quality bit

@@ -62,10 +62,15 @@ static const char* PATHS[] = {
 };
 
 static const char* RAW_DATA_FORMAT="%s/triton_%d.dat.%d";
+<<<<<<< HEAD
 //static const char* RAW_DATA_FORMAT="triton_%d.dat.%d";
 TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"pass1");	//pass1 auto hack
 //TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"./%s");	//pass1 auto hack
 //TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"pass");	//pass1 auto hack
+=======
+
+TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"Rootfiles");	//pass1 auto hack
+>>>>>>> upstream/master
 //TString STD_REPLAY_OUTPUT_DIR= TString::Format("/volatile/halla/triton/Marathon_Rootfiles/pass1_test");	//pass 1 hack
 TString CUSTOM_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"ScratchROOTfiles");
 TString SUMMARY_PHYSICS_FORMAT= TString::Format(REPLAY_DIR_PREFIX,"summaryfiles/summaryphy_%d.log");
