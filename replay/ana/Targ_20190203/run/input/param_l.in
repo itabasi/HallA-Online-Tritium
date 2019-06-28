@@ -1,0 +1,79 @@
+(1)OutputROOTFile:      ../analysis/root/scate2.218GeVc_left.root
+(2)SeedFile:            ./seed/LHe7gs_z.seed 0
+(3)BeamMomentum[GeV/c]: 2.218 0.10
+(4)Theta[rad]:          0.23 0.2
+(5)Phi[rad]:            0.0 1.0
+(6)Target[cm]:          H2 1.0
+(7)MinMomentum[MeV/c]:  0.0
+(8)MaxMomentum[MeV/c]:  5000.0
+(9)MinTheta[mrad]:      -0.1
+(10)MaxTheta[mrad]:     3500.0
+(11)PositronAnalFlag:   0
+(12)EMFlag:             1
+(13)DecayFlag:          0
+(14)HadronFlag:         0
+(15)ParticleGeneration: 2
+(16)Raster[cm]:         0.2 0.2 25.0
+(17)BeamOffset[cm]:     0.0 0.0 0.0
+(18)Particle(e-/e+/pi-/pi+/mu-/): 0
+
+
+oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO
+oOoOoOoOoOoO Comments oOoOoOoOoOoOoOoOoOoOoOoOoO	
+oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO
+~~~~~~~~ (2) ~~~~~~~~~~~
+Seed file and Seed file flag
+Flag=0: without the seed file
+Flag=1: with the seed file (for HES-HKS coin study) 
+Flag=2: not defined yet
+
+lambda_raster.seed
+sigma_raster.seed
+LHe7gs_z.seed
+LBe10gs_z.seed
+LB12gs_z.seed
+LV52gs_z.seed
+
+~~~~~~~~ (3) ~~~~~~~~~~~
+Momentum in GeV
+central , width
+2.218 0.100 (T2 kinematics)
+2.100 0.095 (H2 kinematics)
+
+~~~~~~~~ (4) ~~~~~~~~~~~
+Theta in rad
+central , width
+0.2 0.2
+
+~~~~~~~~ (5) ~~~~~~~~~~~
+Phi in rad
+central , width
+3.14159 3.14159
+
+~~~~~~~~ (6) ~~~~~~~~~~~
+Target and target thickness in cm
+Tritium 25.0
+Carbon 0.0500
+Carbon 0.057142857
+ch2 0.4847
+Lithium 0.3446
+Berylium 0.1018
+Boron 0.0240
+Water 0.5000(without foils)
+Chromium 0.0215
+Lead 0.1
+Tungsten 0.1
+
+~~~~~~~~ (15) ~~~~~~~~~~~
+Particle generation flag 
+2: uniform random with rastering
+others: (z: 2+offset)*cm upstream of the target 
+
+~~~~~~~~ (18) ~~~~~~~~~~~
+Particle species-->
+0:e-
+1:e+
+2:pi-
+3:pi+
+4:mu-
+5:proton
