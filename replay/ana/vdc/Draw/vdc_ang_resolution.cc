@@ -4,6 +4,8 @@
 double mean_th(int i);
 double mean_ph(int i);
 
+const   int nmax=100;
+
 void vdc_ang_resolution(){
 
   
@@ -12,12 +14,9 @@ void vdc_ang_resolution(){
   if(rarm)arm="R";
   else arm="L";
 
-
-  TFile*f2=new TFile(Form("../../rootfiles/angcalib/ang_%sHRS_sieve.root",arm.c_str()));
+  TFile*f2=new TFile(Form("../../rootfiles/angcalib/ang_%sHRS_721.root",arm.c_str()));
+  //  TFile*f2=new TFile(Form("../../rootfiles/angcalib/ang_%sHRS_sieve.root",arm.c_str()));
   TTree* t2=(TTree*)f2->Get("T");
-
-
-  int nmax=100;
   
   double runnum;
   double hallap;
