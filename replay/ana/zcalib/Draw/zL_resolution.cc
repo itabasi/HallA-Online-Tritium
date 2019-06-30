@@ -8,9 +8,9 @@ void zL_resolution(){
   if(rarm)arm="R";
   else arm="L";
   
-  //  TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_132.root"));
+   TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_132.root"));
   //  TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_sieve.root"));
-     TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_sieve_woRas.root"));
+   //    TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_sieve_woRas.root"));
   
   TTree* t1=(TTree*)f1->Get("T");
   double rvz[100],lvz[100],rvz_c[100],lvz_c[100],cer_c;
@@ -240,6 +240,18 @@ void zL_resolution(){
   gz_mean->Draw("AP");
   gz_mean_c->Draw("P");  
 
+  TCanvas* c3=new TCanvas("c3","c3");
+  c3->cd();
+  hz->Draw();
+  TLine* lfoil[nfoil];
+  for(int i=0;i<nfoil;i++){
+    lfoil[i]=new TLine();
+  lfoil[i]->SetLineColor(kRed);
+  lfoil[i]->SetLineStyle(3);  
+  lfoil[i]->DrawLine(z_foil[i],0,z_foil[i],hz->GetBinContent(hz->GetMaximumBin()));
+  }
+
+  
   //=======================//
   //===== COMMENT =========//
   //=======================//
