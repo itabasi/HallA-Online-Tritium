@@ -1,16 +1,16 @@
 
   int  nfoil=10;
 
-void zL_resolution(){
+void zR_resolution(){
 
   char* arm;
-  bool rarm=false;
+  bool rarm=true;
   if(rarm)arm="R";
   else arm="L";
   
   //  TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_132.root"));
   //  TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_sieve.root"));
-     TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_sieve_woRas.root"));
+     TFile*f1=new TFile("../../rootfiles/zcalib/zt_RHRS_sieve_woRas.root");
   
   TTree* t1=(TTree*)f1->Get("T");
   double rvz[100],lvz[100],rvz_c[100],lvz_c[100],cer_c;
@@ -48,6 +48,7 @@ void zL_resolution(){
     else {zt=lvz[0]; zt_c=lvz_c[0];}
 
     if(rarm==0 && cer_c>2000)PID=true;
+    if(rarm)PID=true;
     if(PID){
     hz->Fill(zt);
     hz_c->Fill(zt_c);
@@ -60,14 +61,12 @@ void zL_resolution(){
 
   double z_foil[10]= {-0.125, -0.100, -0.075, -0.050, -0.025,
 		       0.00, 0.025, 0.05, 0.10, 0.125};
-  double zL_foil[10]= {-0.125, -0.100, -0.075, -0.050, -0.025,
-		       0.00, 0.025, 0.05, 0.10, 0.125};  
-  //  double zL_foil[10]= { -0.095, -0.0765, -0.0572, -0.0383, -0.0183, 0.00053, 0.0188, 0.0385, 0.079, 0.0975}; //zt_LHRS_132.root
-  //  double zL_foil[10]= { -0.095, -0.071, -0.0525, -0.0383, -0.0183, 0.00053, 0.0188, 0.0385, 0.0767, 0.095};//zt_LHRS_sieve.root
+  double zL_foil[10]= {-0.116, -0.0914, -0.0658, -0.0412, -0.0155, 0.0089, 0.0344, 0.060, 0.113, 0.139};  
+
   //  double z_width=0.0125;
     double z_width=0.0125;  
   double z_sig=0.005;
-  double zL_sig=0.007;  
+  double zL_sig=0.01;  
   double zL_width=0.01;
   double p0_zc[nfoil],p1_zc[nfoil],p2_zc[nfoil],p0_z[nfoil],p1_z[nfoil],p2_z[nfoil];
   double p0_zc_err[nfoil],p1_zc_err[nfoil],p2_zc_err[nfoil],p0_z_err[nfoil],p1_z_err[nfoil],p2_z_err[nfoil];  
@@ -175,7 +174,7 @@ void zL_resolution(){
   for(int i=0;i<nfoil;i++){
     gz_sig->SetPoint(i,i+1,p2_z[i]*1000);
     gz_sig->SetPointError(i,0.0,p2_z_err[i]*1000);
-    gz_mean->SetPoint(i,i+1,p1_z[i]*1000-zL_foil[i]*1000);
+    gz_mean->SetPoint(i,i+1,p1_z[i]*1000-z_foil[i]*1000);
     gz_mean->SetPointError(i,0.0,p1_z_err[i]*1000);}  
 
 
@@ -222,12 +221,8 @@ void zL_resolution(){
   gz_sig->GetYaxis()->CenterTitle();
   gz_sig->GetYaxis()->SetTitleSize(0.04);      
   gz_sig->GetYaxis()->SetRangeUser(4.0,10.);
-  TLine* lsig=new TLine(0,6.4,11,6.4);
-  lsig->SetLineColor(kBlue);
-
   gz_sig->Draw("AP");
   gz_sig_c->Draw("P");
-  lsig->Draw("same");
   //  gz_sig_sc->Draw("P");
   
   TCanvas* c2=new TCanvas("c2","c2");  
@@ -236,7 +231,7 @@ void zL_resolution(){
   gz_mean->GetYaxis()->CenterTitle();
   gz_mean->GetXaxis()->SetTitleSize(0.04);  
   gz_mean->GetYaxis()->SetTitleSize(0.04);  
-  gz_mean->GetYaxis()->SetRangeUser(-5.0,5.0);  
+  gz_mean->GetYaxis()->SetRangeUser(0.0,15.0);  
   gz_mean->Draw("AP");
   gz_mean_c->Draw("P");  
 
