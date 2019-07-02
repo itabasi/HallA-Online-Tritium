@@ -94,7 +94,8 @@ class angcalib
   double Rvz[max];
   double Lvz[max];
   double Rth[max], Rph[max];
-  double Lth[max], Lph[max];  
+  double Lth[max], Lph[max];
+
   //-------- NewBranch ------------// 
   TFile* fnew;
   TTree* tnew;
@@ -106,7 +107,7 @@ class angcalib
   double Zt_tuned[max];
   double XFP[max],  YFP[max];
   double XpFP[max], YpFP[max];
-
+  double ss_x,ss_y;
   
   //------ Make Hist -----------//
   TH2F* h1;
@@ -271,7 +272,8 @@ void angcalib::NewBranch(string ofname, bool rarm){
   tnew->Branch("R.tr.tg_ph", &Rph,"R.tr.th_ph[100]/D");
   tnew->Branch("L.tr.tg_th", &Lth,"L.tr.tg_th[100]/D");
   tnew->Branch("L.tr.tg_ph", &Lph,"L.tr.tg_ph[100]/D");
-
+  tnew->Branch("ss_x",&ss_x,"ss_x/D " );
+  tnew->Branch("ss_y",&ss_y,"ss_y/D " );
   if(rarm==true){
     tnew->Branch("R.tr.vz_opt",ztR_opt, "R.tr.vz_opt[100]/D" );
     tnew->Branch("R.tr.tg_th_opt",Xpt,"R.tr.tg_th_opt[100]/D " );
@@ -279,6 +281,8 @@ void angcalib::NewBranch(string ofname, bool rarm){
     tnew->Branch("R.tr.vz_tuned",Zt,"R.tr.vz_tuned[100]/D" );
     tnew->Branch("R.tr.tg_th_tuned",Xpt_tuned,"R.tr.tg_th_tuned[100]/D " );
     tnew->Branch("R.tr.tg_ph_tuned",Ypt_tuned,"R.tr.tg_ph_tuned[100]/D " );
+    
+
   }else{
     tnew->Branch("L.tr.vz_opt",ztR_opt, "L.tr.vz_opt[100]/D" );
     tnew->Branch("L.tr.th_tg_opt",Xpt,"L.tr.tg_th_opt[100]/D " );
@@ -711,7 +715,7 @@ void angcalib::Fill(bool rarm){
     // ----- Initialization ------- //
   for (int i=0 ; i< ent ; i++){
 
-    if(i<nmax)foil_flag[i] = -1; 
+    //    if(i<nmax)foil_flag[i] = -1; 
    for(int j=0 ; j<max ; j++){
       Xpt[j]=-2222.0;
       Ypt[j]=-2222.0;
@@ -744,17 +748,17 @@ void angcalib::Fill(bool rarm){
     trig5 = 0.0;
 
 
+    holethrough = false;
+    filled = false;
+    rtrig = false;
+    ltrig = false;
+
     
       t2->GetEntry(i);
     // if(i+evshift<ent) t2->GetEntry(i+evshift); 
    //      else t2->GetEntry(i-ent+evshift);
 
       
-    holethrough = false;
-    filled = false;
-    rtrig = false;
-    ltrig = false;
-
 
     if(trig4>1.0) rtrig = true;
     else rtrig = false;
@@ -836,6 +840,8 @@ void angcalib::Fill(bool rarm){
     	    ssx = -Xpt_tuned[0]*l[j]*projectf[j];
 	    ssy = -Ypt_tuned[0]*l[j]*projectf[j];
 	    h3_c  ->Fill(ssy,ssx);
+	    ss_x=ssx;
+	    ss_y=ssy;
 	}
       }
 
@@ -876,7 +882,8 @@ void angcalib::Write(){
     h2_new[i]->Write();
     h3[i]->Write();
   } 
- 
+
+
   
 };
 

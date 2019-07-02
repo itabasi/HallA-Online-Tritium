@@ -10,7 +10,7 @@ void zR_resolution(){
   
   //  TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_132.root"));
   //  TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_sieve.root"));
-     TFile*f1=new TFile("../../rootfiles/zcalib/zt_RHRS_sieve_woRas.root");
+     TFile*f1=new TFile("../../rootfiles/zcalib/zt_RHRS_multi_woRas.root");
   
   TTree* t1=(TTree*)f1->Get("T");
   double rvz[100],lvz[100],rvz_c[100],lvz_c[100],cer_c;
@@ -216,6 +216,8 @@ void zR_resolution(){
   
   TCanvas* c1=new TCanvas("c1","c1");  
   c1->cd();
+  TLine* lsig=new TLine(0,6.4,11,6.4);
+  lsig->SetLineColor(kBlue);  
   gz_sig->GetXaxis()->CenterTitle();
   gz_sig->GetXaxis()->SetTitleSize(0.04);    
   gz_sig->GetYaxis()->CenterTitle();
@@ -223,6 +225,7 @@ void zR_resolution(){
   gz_sig->GetYaxis()->SetRangeUser(4.0,10.);
   gz_sig->Draw("AP");
   gz_sig_c->Draw("P");
+  lsig->Draw("same");  
   //  gz_sig_sc->Draw("P");
   
   TCanvas* c2=new TCanvas("c2","c2");  

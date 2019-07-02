@@ -27,6 +27,7 @@ void replay_coinc_new(Int_t runnumber=0,Int_t numevents=0,Int_t fstEvt=0,Bool_t 
 	Bool_t bBeam     = kTRUE  ;
 	Bool_t bPhysics  = kTRUE  ;
 	Bool_t bOldTrack = kFALSE ;
+	//Bool_t bOldTrack = kTRUE ;	
 	Bool_t bEloss    = kFALSE  ;
 	// ---------------------------
 	TString rootname;
@@ -51,8 +52,8 @@ void replay_coinc_new(Int_t runnumber=0,Int_t numevents=0,Int_t fstEvt=0,Bool_t 
 	HRSL->AddDetector( new THaVDC          ("vdc" , "Vertical Drift Chamber" ));
 	HRSL->AddDetector( new TriFadcCherenkov("cer" , "Gas Cherenkov counter"  ));
 	HRSL->AddDetector( new TriFadcScin     ("s2"  , "S2 Scintillator"        ));
-	//	HRSL->AddDetector( new THaShower       ("prl1", "Pre-shower pion rej."   ));
-	//	HRSL->AddDetector( new THaShower       ("prl2", "Show pion rej."         )); 
+	//       	HRSL->AddDetector( new THaShower       ("prl1", "Pre-shower pion rej."   ));
+	//       	HRSL->AddDetector( new THaShower       ("prl2", "Show pion rej."         )); 
 	HRSL->AddDetector( new TriFadcShower("prl1", "Pre-shower pion rej." ));
 	HRSL->AddDetector( new TriFadcShower("prl2", "Shower pion rej." )); 
 

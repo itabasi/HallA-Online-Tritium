@@ -8,9 +8,9 @@ void zL_resolution(){
   if(rarm)arm="R";
   else arm="L";
   
-   TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_132.root"));
+  //   TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_132.root"));
   //  TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_sieve.root"));
-   //    TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_sieve_woRas.root"));
+     TFile*f1=new TFile(Form("../../rootfiles/zcalib/zt_LHRS_multi_woRas.root"));
   
   TTree* t1=(TTree*)f1->Get("T");
   double rvz[100],lvz[100],rvz_c[100],lvz_c[100],cer_c;
