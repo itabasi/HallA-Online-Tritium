@@ -37,8 +37,14 @@
 //Used for setting paths. %s is necessary so that it can be used to Form the paths.
 //This allows changing the directory in fewer places for ease of portability.
 const char* REPLAY_DIR_PREFIX = "./%s";
-const char* ROOTFILE_DIR_PREFIX ="/data/test";
-  //"./Rootfiles/%s";
+//const char* ROOTFILE_DIR_PREFIX = "/data1/rootfiles/%s";
+//const char* ROOTFILE_DIR_PREFIX = "/data1/root";
+const char* ROOTFILE_DIR_PREFIX = "/data/test";
+//const char* ROOTFILE_DIR_PREFIX = "/data/rootfiles";
+//const char* ROOTFILE_DIR_PREFIX = "/t2root/%s";
+//const char* ROOTFILE_DIR_PREFIX = "./t2root/%s"; 
+//const char* ROOTFILE_DIR_PREFIX = "./rootfiles/";
+
   //"/volatile/halla/triton/eep_Rootfiles/%s";
 
 typedef struct _sReplaySetUp
@@ -55,17 +61,24 @@ typedef struct _sReplaySetUp
 //////////////////////////////////////////////////////////////////
 
 static const char* PATHS[] = {
-
-  "/data1/raw"
+  //  "/adaq1/data1",
+  // "/cache/halla/triton/raw",
+  // "/w/cache/halla/triton/raw",
   //"/w/mss/halla/triton/raw",
+  // "/w/halla-scifs17exp/triton/itabashi/raw_files"
+  //  "/data/raw" //Itabashi Desktop
+  "/data1/raw" //Itabashi Desktop
 };
 
 static const char* RAW_DATA_FORMAT="%s/triton_%d.dat.%d";
 
-TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"/%s");	//pass1 auto hack
-//TString STD_REPLAY_OUTPUT_DIR= TString::Format("/volatile/halla/triton/Marathon_Rootfiles/pass1_test");	//pass 1 hack
+//TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"pass1");	//pass1 auto hack
+//TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"Rootfiles");
+//TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"/data1/rootfiles"); // Ita PC
+TString STD_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"/%s"); // Ita PC
 TString CUSTOM_REPLAY_OUTPUT_DIR= TString::Format(ROOTFILE_DIR_PREFIX,"ScratchROOTfiles");
 TString SUMMARY_PHYSICS_FORMAT= TString::Format(REPLAY_DIR_PREFIX,"summaryfiles/summaryphy_%d.log");
+
 
 //Previously used:
 //static const char* STD_REPLAY_OUTPUT_DIR=Form(ROOTFILE_DIR_PREFIX,"Rootfiles");

@@ -37,7 +37,7 @@ ARCH          = linuxegcs
 
 #ANALYZER=/adaqfs/home/a-onl/bob/src
 #ANALYZER=/adaqfs/apps/analyzer
-
+#ANALYZER=/usr/local/jlab/analyzer #added by itabashi
 ifndef ANALYZER
   $(error $$ANALYZER environment variable not defined)
 endif

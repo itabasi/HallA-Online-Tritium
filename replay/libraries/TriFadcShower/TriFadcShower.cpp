@@ -39,7 +39,8 @@ TriFadcShower::TriFadcShower( const char* name, const char* description,
 		      THaApparatus* apparatus ) :
   THaPidDetector(name,description,apparatus),
   fNclublk(0), fNrows(0), fBlockX(0), fBlockY(0), fPed(0), fGain(0),
-  fNhits(0), fA(0), fA_p(0), fA_c(0), fNblk(0), fEblk(0), foverflow(0), funderflow(0), fpedq(0)
+  fNhits(0), fA(0), fA_p(0), fA_c(0), fNblk(0), fEblk(0), foverflow(0), funderflow(0), fpedq(0),
+  fPeak(0),fT(0),fT_c(0)
 {
   // Constructor
 }
@@ -48,7 +49,7 @@ TriFadcShower::TriFadcShower( const char* name, const char* description,
 TriFadcShower::TriFadcShower() :
   THaPidDetector(),
   fNclublk(0), fNrows(0), fBlockX(0), fBlockY(0), fPed(0), fGain(0),
-  fNhits(0), fA(0), fA_p(0), fA_c(0), fNblk(0), fEblk(0)
+  fNhits(0), fA(0), fA_p(0), fA_c(0), fNblk(0), fEblk(0), fPeak(0),fT(0),fT_c(0)
 {
   // Default constructor (for ROOT I/O)
 }
@@ -65,6 +66,7 @@ Int_t TriFadcShower::ReadDatabase( const TDatime& date )
 
   FILE* file = OpenFile( date );
   if( !file ) return kFileError;
+ 
 
   // Read fOrigin and fSize (required!)
   Int_t err = ReadGeometry( file, date, true );
@@ -80,7 +82,8 @@ Int_t TriFadcShower::ReadDatabase( const TDatime& date )
   // Read mapping/geometry/configuration parameters
 
   fNPED = 1;
-  fWin  = 1;
+  fNSA  = 1;
+  fNSB  = 1;
   DBRequest config_request[] = {
     { "detmap",       &detmap,  kIntV },
     { "chanmap",      &chanmap, kIntV,    0, 1 },
@@ -90,11 +93,12 @@ Int_t TriFadcShower::ReadDatabase( const TDatime& date )
     { "dxdy",         &dxy,     kDoubleV, 2 },  // dx and dy block spacings
     { "emin",         &fEmin,   kDouble },
     { "NPED",         &fNPED,   kInt},
-    { "Win",          &fWin,    kInt},
- 
+    { "NSA",          &fNSA,    kInt},
+    { "NSB",          &fNSB,    kInt},
     { 0 }
   };
   err = LoadDB( file, date, config_request, fPrefix );
+ 
 
   // Sanity checks
   if( !err && (nrows <= 0 || ncols <= 0) ) {
@@ -119,6 +123,7 @@ Int_t TriFadcShower::ReadDatabase( const TDatime& date )
       fNclublk = nclbl;
     }
   }
+ 
 
   if( !err ) {
     // Clear out the old channel map before reading a new one
@@ -164,6 +169,7 @@ Int_t TriFadcShower::ReadDatabase( const TDatime& date )
       }
     }
   }
+ 
 
   if( err ) {
     fclose(file);
@@ -188,9 +194,16 @@ Int_t TriFadcShower::ReadDatabase( const TDatime& date )
     fA_c  = new Float_t[ nval ];
     fNblk = new Int_t[ fNclublk ];
     fEblk = new Float_t[ fNclublk ];
+    fPeak = new Float_t[ nval ];
+    fT    = new Float_t[ nval ];
+    fT_c  = new Float_t[ nval ];
+    foverflow  = new Int_t[ nval ]; 
+    funderflow = new Int_t[ nval ];
+    fpedq      = new Int_t[ nval ];
 
     fIsInit = true;
   }
+ 
 
   // Compute block positions
   for( int c=0; c<ncols; c++ ) {
@@ -219,6 +232,7 @@ Int_t TriFadcShower::ReadDatabase( const TDatime& date )
   fclose(file);
   if( err )
     return err;
+ 
 
 #ifdef WITH_DEBUG
   // Debug printout
@@ -262,6 +276,9 @@ Int_t TriFadcShower::DefineVariables( EMode mode )
     { "a_c",    "Calibrated ADC amplitudes",          "fA_c" },
     { "asum_p", "Sum of ped-subtracted ADCs",         "fAsum_p" },
     { "asum_c", "Sum of calibrated ADCs",             "fAsum_c" },
+    { "peak",   "FADC ADC peak values",               "fPeak" },
+    { "t",      "FADC TDC values",                    "fT" },
+    { "t_c",    "FADC corrected TDC values",          "fT_c" },
     { "nclust", "Number of clusters",                 "fNclust" },
     { "e",      "Energy (MeV) of largest cluster",    "fE" },
     { "x",      "x-position (cm) of largest cluster", "fX" },
@@ -295,6 +312,7 @@ TriFadcShower::~TriFadcShower()
 void TriFadcShower::DeleteArrays()
 {
   // Delete member arrays. Internal function used by destructor.
+ 
 
   fChanMap.clear();
   delete [] fBlockX;  fBlockX  = 0;
@@ -304,6 +322,9 @@ void TriFadcShower::DeleteArrays()
   delete [] fA;       fA       = 0;
   delete [] fA_p;     fA_p     = 0;
   delete [] fA_c;     fA_c     = 0;
+  delete [] fPeak;    fPeak    = 0;
+  delete [] fT;       fT       = 0;
+  delete [] fT_c;     fT_c     = 0;
   delete [] fNblk;    fNblk    = 0;
   delete [] fEblk;    fEblk    = 0;
   delete [] foverflow; foverflow = 0;
@@ -321,18 +342,26 @@ void TriFadcShower::Clear( Option_t* opt )
   assert(fIsInit);
   for( Int_t i=0; i<fNelem; ++i ) {
     fA[i] = fA_p[i] = fA_c[i] = kBig;
+    fPeak[i] = fT[i] = fT_c[i] = kBig;
   }
+ 
+
   fAsum_p = fAsum_c = 0.0;
   fE = fX = fY = kBig;
   memset( fNblk, 0, fNclublk*sizeof(fNblk[0]) );
   for( Int_t i=0; i<fNclublk; ++i ) {
     fEblk[i] = kBig;
   }
-  for( Int_t i=0; i<fNelem; ++i ) {
-    foverflow[i]  = 1;
-    funderflow[i] = 1;
-    fpedq[i]      = 1;
-  } 
+  if( !strchr(opt,'I') ) {
+    memset( foverflow, 0, fNelem*sizeof(foverflow[0]) );
+    memset( funderflow, 0, fNelem*sizeof(funderflow[0]) );
+    memset( fpedq, 0, fNelem*sizeof(fpedq[0]) );
+  }
+  // for( Int_t i=0; i<fNelem; ++i ) {
+  //   foverflow[i]  = 1;
+  //   funderflow[i] = 1;
+  //   fpedq[i]      = 1;
+  // } 
 
 }
 
@@ -350,6 +379,7 @@ Int_t TriFadcShower::Decode( const THaEvData& evdata )
   // fAsum_c          -  Sum of shower blocks corrected ADC values;
 
   const char* const here = "Decode";
+ 
 
   // Loop over all modules defined for shower detector
   bool has_warning = false;
@@ -372,6 +402,7 @@ Int_t TriFadcShower::Decode( const THaEvData& evdata )
 	ostringstream msg;
 	msg << nhit << " hits on " << "ADC channel "
 	    << d->crate << "/" << d->slot << "/" << chan;
+	
 	++fMessages[msg.str()];
 	has_warning = true;
 	if( nhit == 0 ) {
@@ -406,22 +437,33 @@ Int_t TriFadcShower::Decode( const THaEvData& evdata )
 	       "invalid. Data skipped.", k );
 	continue;
       }
+ 
 
-      // Copy the data and apply calibrations
-      fA[k]   = data;                   // ADC value
-      fA_p[k] = data    - fPed[k];      // ADC minus ped
-      fA_c[k] = fA_p[k] * fGain[k];     // ADC corrected
-      if( fA_p[k] > 0.0 )
-	fAsum_p += fA_p[k];             // Sum of ADC minus ped
-      if( fA_c[k] > 0.0 )
-	fAsum_c += fA_c[k];             // Sum of ADC corrected
+      Float_t tempPed = fPed[k];
+      Int_t ftime=0,fpeak=0;
+      ftime = evdata.GetData(kPulseTime,d->crate,d->slot,chan,0);
+      fpeak = evdata.GetData(kPulsePeak,d->crate,d->slot,chan,0);
+
       if(fFADC!=NULL){
         foverflow[k]  = fFADC->GetOverflowBit(chan,0);
         funderflow[k] = fFADC->GetUnderflowBit(chan,0);
         fpedq[k]      = fFADC->GetPedestalQuality(chan,0);
       }
       if(fpedq[k]==0) // good quality
-        fPed[k]       = fWin*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
+        tempPed    = (fNSA+fNSB)*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
+
+      // Copy the data and apply calibrations
+      fA[k]   = data;                   // ADC value
+      fA_p[k] = data    - tempPed;      // ADC minus ped
+      fA_c[k] = fA_p[k] * fGain[k];     // ADC corrected
+      if( fA_p[k] > 0.0 )
+	fAsum_p += fA_p[k];             // Sum of ADC minus ped
+      if( fA_c[k] > 0.0 )
+	fAsum_c += fA_c[k];             // Sum of ADC corrected
+
+      fPeak[k] = static_cast<Float_t>(fpeak);
+      fT[k]=static_cast<Float_t>(ftime);
+      fT_c[k]=fT[k]*0.0625;
 
       fNhits++;
     }
@@ -438,6 +480,7 @@ Int_t TriFadcShower::Decode( const THaEvData& evdata )
       cout << "  Block  ADC  ADC_p  ";
     }
     cout << endl;
+ 
 
     for (int i=0; i<(fNelem+ncol-1)/ncol; i++ ) {
       for (int c=0; c<ncol; c++) {
@@ -523,6 +566,7 @@ Int_t TriFadcShower::CoarseProcess( TClonesArray& tracks )
   }
 
   // Calculate track projections onto shower plane
+ 
 
   CalcTrackProj( tracks );
 
