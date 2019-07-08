@@ -47,9 +47,10 @@ class tree{
   double Lpssum;
   double Lshsum;
   //----- at target ----------//
-  double Rp[Max],Rpx[Max],Rpy[Max],Lp[Max],Lpx[Max],Lpy[Max];
+  double Rp[Max],Rpx[Max],Rpy[Max],Rpz[Max],Lp[Max],Lpx[Max],Lpy[Max],Lpz[Max];
   double Rth[Max],Rph[Max],Rx[Max],Ry[Max],Rz[Max];
   double Lth[Max],Lph[Max],Lx[Max],Ly[Max],Lz[Max];
+  double R_Ras_x,L_Ras_x;
   //----- at FP -------------//
   double Rth_fp[Max],Rph_fp[Max],Rx_fp[Max],Ry_fp[Max];
   double Lth_fp[Max],Lph_fp[Max],Lx_fp[Max],Ly_fp[Max];

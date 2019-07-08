@@ -109,6 +109,8 @@ class tuningAC{
   double hallap;
   double Rs2tpads[100],Ls2tpads[100];
   double Rs2trpad[100],Ls2trpad[100];
+  double Ru1_time[100];
+  int NRu1_time;
   //---- Gogami root ---------//
   double ctime[100];
   double DRT5;
@@ -151,6 +153,8 @@ class tuningAC{
  TH1F* hmm;
  TH1F* hmm_acc;
  TH1F* hmm_p;
+ TH1F* hRu1_time_c;
+ TH1F* hRu1_time_s; 
  TH2F* hcoin_ac1[100];
  TH2F* hcoin_ac2[100];
  TH2F* hcoin_ac1_acc[100];
@@ -550,7 +554,11 @@ void tuningAC::SetBranch(){
  T->SetBranchAddress("R.a1.asum_c",&Ra1sum);
  T->SetBranchStatus("R.a2.asum_c",1);
  T->SetBranchAddress("R.a2.asum_c",&Ra2sum);
-  // path length//
+ T->SetBranchStatus("R.vdc.u1.time",1);
+ T->SetBranchAddress("R.vdc.u1.time",Ru1_time);
+ T->SetBranchStatus("Ndata.R.vdc.u1.time",1);
+ T->SetBranchAddress("Ndata.R.vdc.u1.time",&NRu1_time);
+ // path length//
  T->SetBranchStatus("R.s2.trpath",1); 
  T->SetBranchAddress("R.s2.trpath",rs2pathl); 
  T->SetBranchStatus("R.tr.pathl",1);  
@@ -561,7 +569,7 @@ void tuningAC::SetBranch(){
  T->SetBranchStatus("R.tr.vz",1);    
  T->SetBranchAddress("R.tr.vz",Rvz); 
 
- //------ Left Arm ---------------//
+ //------ Left Arm a---------------//
  T->SetBranchStatus("LTDC.F1FirstHit",1);
  T->SetBranchAddress("LTDC.F1FirstHit",LF1); 
  T->SetBranchStatus("L.s2.t_pads",1);
@@ -1146,8 +1154,16 @@ void tuningAC::MakeHist(){
       fk_fom->SetLineColor(4);
       fk_fom->SetFillColor(4);
       fk_fom->SetFillStyle(3001);
+
+
+      hRu1_time_c=new TH1F("hRu1_time_c","RHRS VDC U1 TDC coin trigger w/ PID & Path length & z cut ",400,-0.1e-6,0.5e-6);
+      set->SetTH1(hRu1_time_c,"RHRS VDC U1 TDC coin trigger w/ PID & Path length & z cut","TDC [sec]","Counts");
+      hRu1_time_s=new TH1F("hRu1_time_s","RHRS VDC U1 TDC T4 trigger w/ PID & Path length & z cut ",400,-0.1e-6,0.5e-6);
+      set->SetTH1(hRu1_time_s,"RHRS VDC U1 TDC T4 trigger w/ PID & Path length & z cut","TDC [sec]","Counts");      
       
 }
+
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1413,8 +1429,15 @@ void tuningAC::Fill(){
     && ac2_kcut_min<Ra2sum && Ra2sum<ac2_kcut_max)hcoin_k->Fill(coin_tc);
    //--------- Pion Cut Hist ---------------//
  if(coin_trig && cut_vz && cut_lpathl && cut_rpathl && cut_track && Ra1sum>ac1_kcut 
-    && Ra2sum>ac2_kcut_max)hcoin_pi->Fill(coin_tc);
-   //-------- Proton Cut Hist --------------//
+    && Ra2sum>ac2_kcut_max){
+   hcoin_pi->Fill(coin_tc);
+   if(NRu1_time==5)hRu1_time_c->Fill(Ru1_time[2]);
+   
+ }
+  if(cut_Rs2 && cut_vz && cut_lpathl && cut_rpathl && cut_track && Ra1sum>ac1_kcut 
+    && Ra2sum>ac2_kcut_max && NRu1_time==5)hRu1_time_s->Fill(Ru1_time[2]);
+
+  //-------- Proton Cut Hist --------------//
  if(coin_trig && cut_vz && cut_lpathl && cut_rpathl && cut_track && Ra1sum<ac1_kcut 
     && Ra2sum<ac2_kcut_min)hcoin_p->Fill(coin_tc);
 
@@ -2927,6 +2950,10 @@ void tuningAC::Write(){
  hAC2->Write(); 
  hcoin_tc->Write();
  hcoin_fom->Write();
+ hRu1_time_s->Write(); 
+ hRu1_time_c->Write();
+
+ 
  fnew->Close();
 }
 

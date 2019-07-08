@@ -1,8 +1,8 @@
 #! /bin/sh
 
 	    
-init=111160
-end=111200
+init=111500
+end=111510
 
 i=`expr $init`
 j=`expr $end`
@@ -13,11 +13,11 @@ j=`expr $end`
     while [ $i -le $j ]
     do
 	echo run number: $i
-	copy="./bin/copy -f /data1/root/tritium\_$i.root -w /data/nnL_smallroot/tritium\_$i.root"
+	copy="./bin/copy_VDC -f /data/VDC/root/20190704/tritium\_$i.root -w /data/VDC/small/20190704/tritium\_$i.root"
 	eval $copy
 	for((k=1;k<7;k++))
 	do
-	    copy_sub="./bin/copy -f /data1/root/tritium\_$i\_$k.root -w /data/nnL_smallroot/tritium\_$i\_$k.root"
+	    copy_sub="./bin/copy_VDC -f /data/VDC/root/20190704/tritium\_$i\_$k.root -w /data/VDC/small/20190704/tritium\_$i\_$k.root"
 	    eval $copy_sub
 	done
 	i=$((i+1));

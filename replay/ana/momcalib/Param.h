@@ -7,21 +7,37 @@
 // =================================================== //
 const double  XFPm=-0.7,  XpFPm=-0.15; 
 const double  YFPm=-0.05, YpFPm=-0.18;
-const double  Xptm=-0.07, Yptm=-0.2, Momm=1.74; 
 const double  XFPr=1.3,   XpFPr=0.27; 
-const double  YFPr=0.1,   YpFPr=0.10; 
+const double  YFPr=0.1,   YpFPr=0.10;
+
+const double  Xptm=-0.07, Yptm=-0.2, Momm=1.74; 
 const double  Xptr=0.15,  Yptr=0.08, Momr=0.18; 
+const double  Ztm = -0.15,Ztr=0.35;
+//==== momentum scaled  parameters =====//
 const double  PLm = 25.4, PLr=0.7; 
-const double  Ztm = -0.15,Ztr=0.35; 
+const double  PRm =0.0   ,PRr=0.0;
+
+
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
 
-const int nn = 4; // 4th order matrix using xf, xpf, y, ypf, and zt
+const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
 const int nParamT = 126;  // Number of parameters
+const int nnz =3;
+const int nParamTz=35;
+const int nParamT_ras=4;
 
-  double Pxpt[nParamT];
-  double Pypt[nParamT];
-
+const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
+const int nParamTp=126;
+///==== MTtuning =====//
+double Pras[nParamT_ras];
+double Pras_L[nParamT_ras];
+double Pzt[nParamTz],Pzt_L[nParamTz];
+double Pxpt[nParamT],Pxpt_L[nParamT];
+double Pypt[nParamT],Pypt_L[nParamT];
+double Prp[nParamTp],Plp[nParamTp];
+double Opt_par_R[nParamTp],Opt_par_L[nParamTp];
+double Opt_par[nParamTp*2];
 
 //const int nmax = 1000; // Number of events used for tuning
 const int nmax=10000;// Number of events used for tuning;
@@ -35,7 +51,7 @@ double fcent_real[nfoil] = {-0.125, -0.100, -0.075, -0.050, -0.025,
 //double selection_width = 0.0125; 
 double selection_width = 0.008; // event selection width for z
 
-
+ double RasterCor, RasterCor_L;
 const double step = 0.492 * 2.54;
 const int nrow = 11; // the number of row in SS pattern
 const int ncol = 7;  // the number of column in SS pattern
@@ -53,13 +69,19 @@ int ntune_event;
 double x[nmax], y[nmax];
 double xp[nmax], yp[nmax];
 double z_recon[nmax]; // reconstructed z position
+double Rras_x[nmax],Lras_x[nmax];
 int foil_flag[nmax];  
 int holegroup[nmax];
-
+int mass_flag[nmax];
+double mass_ref[nmax];
+double MM[nmax],rx_fp[nmax],rth_fp[nmax],ry_fp[nmax],rph_fp[nmax],lx_fp[nmax],lth_fp[nmax],ly_fp[nmax],lph_fp[nmax];
+double rx[nmax],ry[nmax],rth[nmax],rph[nmax],rz[nmax],lx[nmax],ly[nmax],lth[nmax],lph[nmax],lz[nmax];
+double beam_p[nmax];
 double l[nfoil];
 double projectf[nfoil];
 double OptPar1[nParamT];
 double OptPar2[nParamT];
+
 
 //const int nParamT2 = 4; 
 //double parRaster[nParamT2];

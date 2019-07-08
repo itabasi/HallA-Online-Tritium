@@ -67,8 +67,16 @@ void tree::SetBranch(){
  T->SetBranchStatus("R.tr.pathl",1);  
  T->SetBranchAddress("R.tr.pathl",rtrpathl);
  // target positon information //
+ T->SetBranchAddress("Rrb.Raster2.rawcur.x", &R_Ras_x); // raster current
+ T->SetBranchAddress("Lrb.Raster2.rawcur.x", &L_Ras_x); // raster current 
  T->SetBranchStatus("R.tr.p",1);
  T->SetBranchAddress("R.tr.p",Rp);
+ T->SetBranchStatus("R.tr.px",1);
+ T->SetBranchAddress("R.tr.px",Rpx);
+ T->SetBranchStatus("R.tr.py",1);
+ T->SetBranchAddress("R.tr.py",Rpy);
+ T->SetBranchStatus("R.tr.pz",1);
+ T->SetBranchAddress("R.tr.pz",Rpz); 
  T->SetBranchStatus("R.tr.vz",1);    
  T->SetBranchAddress("R.tr.vz",Rz); 
  T->SetBranchStatus("R.tr.tg_x",1);    
@@ -116,6 +124,12 @@ void tree::SetBranch(){
  // target positon information //
  T->SetBranchStatus("L.tr.p",1);
  T->SetBranchAddress("L.tr.p",Lp);
+ T->SetBranchStatus("L.tr.px",1);
+ T->SetBranchAddress("L.tr.px",Lpx);
+ T->SetBranchStatus("L.tr.py",1);
+ T->SetBranchAddress("L.tr.py",Lpy);
+ T->SetBranchStatus("L.tr.pz",1);
+ T->SetBranchAddress("L.tr.pz",Lpz); 
  T->SetBranchStatus("L.tr.vz",1);    
  T->SetBranchAddress("L.tr.vz",Lz); 
  T->SetBranchStatus("L.tr.tg_x",1);    

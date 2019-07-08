@@ -38,6 +38,8 @@ using namespace std;
 const   int nmax=400;
 const   int nwire=368;
 
+bool tuned_flag;
+
 
 class VDCt0{
 
@@ -54,6 +56,7 @@ class VDCt0{
   void MakeHist();
   void Fill();
   double Findt0(bool rarm,char* plane, int wire);
+  void Deft0(string ifname);
   void Write(string ofname);
   void MakeRoot(string ofname);
   void Draw();
@@ -93,6 +96,14 @@ class VDCt0{
   TH2F* hLu2;
   TH2F* hLv1;
   TH2F* hLv2;
+  TGraphErrors* gRu1;
+  TGraphErrors* gRu2;
+  TGraphErrors* gRv1;
+  TGraphErrors* gRv2;
+  TGraphErrors* gLu1;
+  TGraphErrors* gLu2;
+  TGraphErrors* gLv1;
+  TGraphErrors* gLv2;    
   TH1D* hRu1_rtime[nwire];
   TH1D* hRu2_rtime[nwire];
   TH1D* hRv1_rtime[nwire];
@@ -155,14 +166,15 @@ class VDCt0{
   //  TCanvas* c14= new TCanvas("c14","c14");
   //  TCanvas* c15= new TCanvas("c15","c15");  
 
-  
-
+  //=== Def param ====//
+  double  Ru1t0_def[nwire],Ru2t0_def[nwire],Rv1t0_def[nwire],Rv2t0_def[nwire];
+  double  Lu1t0_def[nwire],Lu2t0_def[nwire],Lv1t0_def[nwire],Lv2t0_def[nwire];  
+  double T0_def[nwire][4];
   //==== Write ====//
   double Ru1t0[nwire],Ru2t0[nwire],Rv1t0[nwire],Rv2t0[nwire];
   double Lu1t0[nwire],Lu2t0[nwire],Lv1t0[nwire],Lv2t0[nwire];
   double Ru1t0_err[nwire],Ru2t0_err[nwire],Rv1t0_err[nwire],Rv2t0_err[nwire];
   double Lu1t0_err[nwire],Lu2t0_err[nwire],Lv1t0_err[nwire],Lv2t0_err[nwire];  
-
   double Ru1t0_min[nwire],Ru1t0_max[nwire],Ru2t0_min[nwire],Ru2t0_max[nwire],Rv1t0_min[nwire],Rv1t0_max[nwire],Rv2t0_min[nwire],Rv2t0_max[nwire];
   double Lu1t0_min[nwire],Lu1t0_max[nwire],Lu2t0_min[nwire],Lu2t0_max[nwire],Lv1t0_min[nwire],Lv1t0_max[nwire],Lv2t0_min[nwire],Lv2t0_max[nwire];
   
@@ -221,7 +233,8 @@ void VDCt0::SetRun(int runnum){
   int sum_run=10;
   cout<<"TChain run number : "<<runnum<<" - "<<runnum+sum_run-1<<endl;
 
-  const string ROOTfilePath="/data/opt_small/VDC_tuning/";
+  //  const string ROOTfilePath="/data/opt_small/VDC/initial";
+  const string ROOTfilePath="/data/opt_small/VDC/t0tuned/";  
   const string root =".root";
   ostringstream str;
   int run;
@@ -414,6 +427,7 @@ void VDCt0::MakeHist(){
   min_rtime=1500.;
   max_rtime=3000.;
   bin_rtime=1500;
+  bin_rtime=375;
   double min_wire=0;
   double max_wire=(double)nwire;
   int bin_wire=nwire;
@@ -454,6 +468,40 @@ void VDCt0::MakeHist(){
     set->SetTH1(hLv2_rtime[i],Form("LVDC V2 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");    
   }
 
+  gRu1=new TGraphErrors();
+  gRu1->SetTitle("RVDC U1 Offset; #wire ; T0 [ch ]");
+  gRu1->SetMarkerSize(1.0);
+  gRu1->SetMarkerColor(2);
+  gRu1->SetMarkerStyle(20);  
+  gRu2=new TGraphErrors();
+  gRu2->SetMarkerSize(1.0);
+  gRu2->SetMarkerColor(2);
+  gRu2->SetMarkerStyle(20);
+  gRv1=new TGraphErrors();
+  gRv1->SetMarkerSize(1.0);
+  gRv1->SetMarkerColor(2);
+  gRv1->SetMarkerStyle(20);
+  gRv2=new TGraphErrors();
+  gRv2->SetMarkerSize(1.0);
+  gRv2->SetMarkerColor(2);
+  gRv2->SetMarkerStyle(20);    
+  gLu1=new TGraphErrors();
+  gLu1->SetMarkerSize(1.0);
+  gLu1->SetMarkerColor(2);
+  gLu1->SetMarkerStyle(20);    
+  gLu2=new TGraphErrors();
+  gLu2->SetMarkerSize(1.0);
+  gLu2->SetMarkerColor(2);
+  gLu2->SetMarkerStyle(20);      
+  gLv1=new TGraphErrors();
+  gLv1->SetMarkerSize(1.0);
+  gLv1->SetMarkerColor(2);
+  gLv1->SetMarkerStyle(20);      
+  gLv2=new TGraphErrors();
+  gLv2->SetMarkerSize(1.0);
+  gLv2->SetMarkerColor(2);
+  gLv2->SetMarkerStyle(20);
+  
 }
 
 ///////////////////////////////////////////////////
@@ -599,6 +647,35 @@ void VDCt0::Fill(){
 
 /////////////////////////////////////////////////////
 
+void VDCt0::Deft0(string ifname){
+
+  ifstream ifparam(ifname.c_str());
+  if (ifparam.fail()){ cerr << "failed open files " <<ifname<<endl;}
+  cout<<"def file : "<<ifname<<endl;
+
+  
+  int plane=-1;
+  int i=0;
+  string buf;
+  
+  while( getline(ifparam,buf) ){
+ 
+    if( buf[0]=='#' ){ i=0; plane++;}
+    
+    if( ifparam.eof() || i>nwire-1)continue;
+    ifparam >> T0_def[i][plane] >> T0_def[i+1][plane] >> T0_def[i+2][plane] >> T0_def[i+3][plane] >> T0_def[i+4][plane] >> T0_def[i+5][plane] >> T0_def[i+6][plane] >> T0_def[i+7][plane];
+    //    cout<<"T0: "<<"i " <<i<<" "<< T0_def[i][plane] <<" "<< T0_def[i+1][plane] <<" "<< T0_def[i+2][plane] <<" "<< T0_def[i+3][plane] <<" "<< T0_def[i+4][plane] <<" "<< T0_def[i+5][plane] <<" "<< T0_def[i+6][plane] <<" "<< T0_def[i+7][plane]<<endl;    
+    i=i+8;
+
+
+    
+  }//end while dat file
+
+  
+
+}
+
+////////////////////////////////////////////////////
 
   double VDCt0::Findt0(bool rarm,char* plane,int wire){
       double dy,y,yb,ya;
@@ -633,13 +710,35 @@ void VDCt0::Fill(){
     Int_t nbins = hnew->GetNbinsX();
     Int_t maxbin = hnew->GetMaximumBin();
     Double_t maxcont = hnew->GetBinContent(maxbin);
+    int kmax=5;
+    int jmax=3;
+    int nelement=kmax*jmax;    
+    double slope_el[kmax];
+    double slope_av;
+    double slopes[nbins];
+    double n[nwire];
 
-    for (Int_t i=maxbin+1; i<=nbins; i++) {
+    for (Int_t i=maxbin+5; i<=nbins; i++) {
         if (hnew->GetBinContent(i)>0.5*maxcont) continue;
+        if (hnew->GetBinContent(i-1)>0.5*maxcont) continue;
 	
         if (i>1 && i<nbins) {
             slope = (hnew->GetBinContent(i+1)-hnew->GetBinContent(i-1))/(2.*dx);
 
+	    
+	    //========= Average of slope ====================//
+	    if(i>kmax && i<nbins-kmax){
+	      slope_av=0.0;
+	      for(int k=0;k<kmax;k++){
+
+	      slope_el[k]=(hnew->GetBinContent(i+1)-hnew->GetBinContent(i-k+1))/(2.*dx);
+	      slope_av += slope_el[k]/kmax;
+
+
+		    }
+	    }
+	    //================================================//
+	    
         } else if (i==1) {
             slope = (hnew->GetBinContent(i+1)-hnew->GetBinContent(i))/dx;
         } else if (i==nbins) {
@@ -648,13 +747,16 @@ void VDCt0::Fill(){
 
         if (TMath::Abs(slope)<1.e-4) slope = 0.;
 
+	slopes[i]=slope;
 
-	
-        if (slope<slope_min) {
+          if (slope<slope_min) {
+	//      if (slope_av<slope_min) {
+	    
+	  if(i>3 && i<nbins-3){
             slope_min = slope;
             sdbin = i;
-        }
-
+	  }
+	}
     }
 
     Double_t t0 = 0.;
@@ -671,30 +773,15 @@ void VDCt0::Fill(){
 	yb = hnew->GetBinContent(sdbin-1);
 	ya = hnew->GetBinContent(sdbin+1);
 	slope = (ya-yb)/(2.*dx);
-
+	//      cout<<"slope_min : "<<slope_min<<" sbin : "<<sdbin<<endl;
+	//      cout<<"yb : "<<yb <<" ya "<<ya<<endl;
+	
 	if(ya==0 || yb==0 || slope_min==0 || y==0 || dt0<-1.0)dt0=100.0;
 	else{dt0=(t0-x)*(sqrt(y)/y+(sqrt(yb)+sqrt(ya))/fabs(ya-yb));	}
-	//       	cout<<"dt0 : "<<dt0 <<" t0 "<<t0 << " y "<<y<<" yb "<<yb <<" ya "<<ya<<" slope_min "<<slope_min<<" slope "<<slope<<endl;
-
-
-	/*
-	slope_0 = (ya-yb)/(2.*dx);
-	slope_1 = ((ya-sqrt(ya))-(yb+sqrt(yb)))/2.*dx; 
-	slope_2 = ((ya+sqrt(ya))-(yb-sqrt(yb)))/2.*dx;
-	t0_1 = x-sqrt(x) -y/(slope_1); // minimum 
-	t0_2 = x+sqrt(x) -y/(slope_2);  // maximum
-
-	cout<<endl;
-	cout<<"ya: "<<ya <<" y "<<y <<" yb "<<yb<<endl;
-	cout<<"slope_1 "<<slope_1<<" slope "<<slope_0<<" slope_2 "<<slope_2<<endl;
-	cout<<"t0_1: "<<t0_1<<" t0: "<<t0<<" t0_2 "<<t0_2<<endl;
-	*/
-
-	//	if(t0_1>t0_2){t0_max=t0_1; t0_min=t0_2;}
-	//	else {t0_min=t0_1; t0_max=t0_2;}
 
     }
 
+    
     
     return t0;
 }
@@ -708,47 +795,66 @@ void VDCt0::Write(string ofname){
 
   string ofname_main = ofname.substr(0,21);
   string ofname_err =ofname_main + "_err.dat";
-  //  string ofname_min  = ofname_main + "_min.dat";
-  //  string ofname_max  = ofname_main + "_max.dat";
-
+  string ofname_def="./param/def_t0.dat";
   ofstream ofs(ofname.c_str());
   ofstream ofs_err(ofname_err.c_str());
-  
-  //  ofstream ofs_min(ofname_min.c_str());
-  //  ofstream ofs_max(ofname_max.c_str());  
-  
+    
   double T0,T0_min,T0_max;
   double dT0;
   string vdc_name;
-
   
   //==== Fill ====//
   
     for(int i=0;i<nwire;i++){
      Ru1t0[i]=Findt0(true,"U1",i);
-     //     Ru1t0_min[i]=t0_min; Ru1t0_max[i]=t0_max;
+     if(Ru1t0[i]==0)Ru1t0[i]=T0_def[i][0];
      Ru1t0_err[i]=dt0;
-     Ru2t0[i]=Findt0(true,"U2",i);
+     gRu1->SetPoint(i,i,Ru1t0[i]);
+     gRu1->SetPointError(i,0,Ru1t0_err[i]);     
+
+     Ru2t0[i]=Findt0(true,"U2",i);     
+     if(Ru2t0[i]==0)Ru2t0[i]=T0_def[i][1];
      Ru2t0_err[i]=dt0;     
-     //     Ru2t0_min[i]=t0_min; Ru2t0_max[i]=t0_max;     
+     gRu2->SetPoint(i,i,Ru2t0[i]);
+     gRu2->SetPointError(i,0,Ru2t0_err[i]);     
+
      Rv1t0[i]=Findt0(true,"V1",i);
-     Rv1t0_err[i]=dt0;     
-     //     Rv1t0_min[i]=t0_min; Rv1t0_max[i]=t0_max;     
+     if(Rv1t0[i]==0)Rv1t0[i]=T0_def[i][2];
+     Rv1t0_err[i]=dt0;
+     gRv1->SetPoint(i,i,Rv1t0[i]);
+     gRv1->SetPointError(i,0,Rv1t0_err[i]);     
+     
      Rv2t0[i]=Findt0(true,"V2",i);
-     Rv2t0_err[i]=dt0;     
-     //     Rv2t0_min[i]=t0_min; Rv2t0_max[i]=t0_max;     
+     if(Rv2t0[i]==0)Rv2t0[i]=T0_def[i][3];
+     Rv2t0_err[i]=dt0;
+     Rv1t0_err[i]=dt0;
+     gRv2->SetPoint(i,i,Rv2t0[i]);
+     gRv2->SetPointError(i,0,Rv2t0_err[i]);     
+     
      Lu1t0[i]=Findt0(false,"U1",i);
-     Lu1t0_err[i]=dt0;     
-     //     Lu1t0_min[i]=t0_min; Lu1t0_max[i]=t0_max;
+     if(Lu1t0[i]==0)Lu1t0[i]=T0_def[i][4];
+     Lu1t0_err[i]=dt0;
+     Rv1t0_err[i]=dt0;
+     gLu1->SetPoint(i,i,Lu1t0[i]);
+     gLu1->SetPointError(i,0,Lu1t0_err[i]);     
+     
      Lu2t0[i]=Findt0(false,"U2",i);
-     Lu2t0_err[i]=dt0;     
-     //     Lu2t0_min[i]=t0_min; Lu2t0_max[i]=t0_max;     
+     if(Lu2t0[i]==0)Lu2t0[i]=T0_def[i][5];     
+     Lu2t0_err[i]=dt0;
+     gLu2->SetPoint(i,i,Lu2t0[i]);
+     gLu2->SetPointError(i,0,Lu2t0_err[i]);     
+     
      Lv1t0[i]=Findt0(false,"V1",i);
+     if(Lv1t0[i]==0)Lv1t0[i]=T0_def[i][6];
      Lv1t0_err[i]=dt0;          
-     //     Lv1t0_min[i]=t0_min; Lv1t0_max[i]=t0_max;          
+     gLv1->SetPoint(i,i,Lv1t0[i]);
+     gLv1->SetPointError(i,0,Lv1t0_err[i]);     
+
      Lv2t0[i]=Findt0(false,"V2",i);
+     if(Lv2t0[i]==0)Lv2t0[i]=T0_def[i][7];     
      Lv2t0_err[i]=dt0;     
-     //     Lv2t0_min[i]=t0_min; Lv2t0_max[i]=t0_max;
+     gLv2->SetPoint(i,i,Lv2t0[i]);
+     gLv2->SetPointError(i,0,Lv2t0_err[i]);     
 
     }
   
@@ -763,10 +869,8 @@ void VDCt0::Write(string ofname){
     else if(j==6)vdc_name="# LVDC V1 t0 parameters ";
     else if(j==7)vdc_name="# LVDC V2 t0 parameters ";
     else {cout<<"faled to write"<<endl; break;}
-    ofs << vdc_name  <<endl;
-    ofs_err << vdc_name <<"T0 Error "<<endl;    
-    //    ofs_min << vdc_name <<"T0 min error "<<endl;
-    //    ofs_max << vdc_name <<"T0 max error "<<endl;
+         ofs << vdc_name  <<endl;
+	 ofs_err << vdc_name <<"T0 Error "<<endl;    
     for(int i=0;i<nwire;i++){
       if(j==0){T0= Ru1t0[i]; dT0=Ru1t0_err[i];}
       else if(j==1){T0= Ru2t0[i]; dT0=Ru2t0_err[i];}
@@ -777,32 +881,15 @@ void VDCt0::Write(string ofname){
       else if(j==6){T0= Lv1t0[i]; dT0=Lv1t0_err[i];}
       else if(j==7){T0= Lv2t0[i]; dT0=Lv2t0_err[i];}
       else {cout<<"faled to write"<<endl; break;}      
-      /*
-      if(j==0){T0= Ru1t0[i]; T0_min=Ru1t0_min[i];  T0_max=Ru1t0_max[i];}
-      else if(j==1){T0= Ru2t0[i]; T0_min=Ru2t0_min[i];  T0_max=Ru2t0_max[i];}
-      else if(j==2){T0= Rv1t0[i]; T0_min=Rv1t0_min[i];  T0_max=Rv1t0_max[i];}
-      else if(j==3){T0= Rv2t0[i]; T0_min=Rv2t0_min[i];  T0_max=Rv2t0_max[i];}
-      else if(j==4){T0= Lu1t0[i]; T0_min=Lu1t0_min[i];  T0_max=Lu1t0_max[i];}
-      else if(j==5){T0= Lu2t0[i]; T0_min=Lu2t0_min[i];  T0_max=Lu2t0_max[i];}
-      else if(j==6){T0= Lv1t0[i]; T0_min=Lv1t0_min[i];  T0_max=Lv1t0_max[i];}
-      else if(j==7){T0= Lv2t0[i]; T0_min=Lv2t0_min[i];  T0_max=Lv2t0_max[i];}
-      else {cout<<"faled to write"<<endl; break;}      
-      */
       
       if(fabs(T0)<10000) ofs << T0 <<" ";
       else ofs << 0.0 <<" ";
       if(fabs(T0_min)<1000)  ofs_err << dT0 <<" ";    
       else ofs_err << 0.0 <<" ";          
-      //      if(fabs(T0_min)<10000)  ofs_min << T0_min <<" ";    
-      //      else ofs_min << 0.0 <<" ";    
-      //      if(fabs(T0_max)<10000)   ofs_max << T0_max <<" ";
-      //      else  ofs_max << 0.0 <<" ";    
    
     if((i+1)%8==0){
       ofs << endl;
       ofs_err << endl;}
-      //      ofs_min << endl;
-      //      ofs_max << endl;}
     
     }
   }
@@ -811,8 +898,6 @@ void VDCt0::Write(string ofname){
   
   ofs.close();
   ofs_err.close();
-  //  ofs_min.close();
-  //  ofs_max.close();  
   
 }
 
@@ -914,7 +999,23 @@ void VDCt0::MakeRoot(string ofname){
   hRu1->Write();
   hRu2->Write();  
   hRv1->Write();  
-  hRv2->Write();  
+  hRv2->Write();
+    gRu1->SetName("gRu1");
+    gRu1->Write();
+    gRu2->SetName("gRu2");
+    gRu2->Write();
+    gRv1->SetName("gRv1");
+    gRv1->Write();
+    gRv2->SetName("gRv2");
+    gRv2->Write();
+    gLu1->SetName("gLu1");
+    gLu1->Write();
+    gLu2->SetName("gLu2");
+    gLu2->Write();
+    gLv1->SetName("gLv1");
+    gLv1->Write();
+    gLv2->SetName("gLv2");
+    gLv2->Write();  
 
   for(int i=0;i<nwire;i++){
 
