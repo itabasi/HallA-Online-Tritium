@@ -1,6 +1,5 @@
 #ifndef angcalib_h
 #define angcalib_h 1
-
 #include <cstdio>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,14 +13,15 @@
   int nite=0;
 
 
-//extern double calcf2t_4th_2(double*,
-//			    double, double, 
-//			    double, double,
-//			    double);
+
 extern double calcf2t_4th_2(double* P,
 			    double xf, double xpf, 
 			    double yf, double fpf,
 			    double z);
+extern double calcf2t_zt(double* P, 
+			 double xf, double xpf,
+			 double yf, double ypf);
+
 extern double tune(double* pa, int j, int angflag);
 extern void fcn1(int &nPar, double* /*grad*/, 
 		 double &fval, double* param, int /*iflag*/);
@@ -119,6 +119,8 @@ class angcalib
   TH2F* h3_a;
   TH2F* h3_b;
   TH2F* h3_c;
+  TH1F* hth;
+  TH1F* hth_c;  
   char tempc[500];
   char tempc2[500];
   const double l0 = 100.3;
@@ -349,6 +351,8 @@ void angcalib::MakeHist(){
   gchi_yp->SetFillStyle(3005);
   gchi_yp->SetMarkerSize(1.0);
 
+  hth=new TH1F("hth","",1000,-0.1,0.1);
+  hth_c=new TH1F("hth_c","",1000,-0.1,0.1);  
 
 };
 
@@ -515,6 +519,7 @@ void angcalib::EventSelect(bool rarm){
     YpFP[0] = (YpFP[0]-YpFPm)/YpFPr;
     Zt[0]   = (Zt[0]-Ztm)/Ztr;
 
+    
     Xpt[0]  = calcf2t_4th_2(Pxpt,
 			   XFP[0], XpFP[0],
 			   YFP[0], YpFP[0],
@@ -783,6 +788,9 @@ void angcalib::Fill(bool rarm){
     }
 
     h1->Fill(Ypt[0],Xpt[0]);
+    hth->Fill(Xpt[0]);
+
+
     
     XFP[0]  = (XFP[0]-XFPm)/XFPr;
     XpFP[0] = (XpFP[0]-XpFPm)/XpFPr;
@@ -818,6 +826,7 @@ void angcalib::Fill(bool rarm){
     Xpt_tuned[0]  = Xpt_tuned[0]*Xptr +Xptm; // scaled   
     Ypt_tuned[0]  = Ypt_tuned[0]*Yptr +Yptm; // scaled
 
+    hth_c->Fill(Xpt[0]);
 
      Zt[0]   = Zt[0]*Ztr +Ztm; //scaled
     
@@ -883,7 +892,8 @@ void angcalib::Write(){
     h3[i]->Write();
   } 
 
-
+  hth->Write();
+  hth_c->Write();
   
 };
 
@@ -916,14 +926,6 @@ double calcf2t_4th_2(double* P, double xf, double xpf,
   // ------------------------------------------------ //
   // ----- 4rd order using xf, xpf, yf, ypf, zt ----- //
   // ------------------------------------------------ //
-  /*
-  const int nMatT=4;  
-  const int nXf=4;
-  const int nXpf=4;
-  const int nYf=4;
-  const int nYpf=4;
-  const int nZt=4;
-  */
 
   const int nMatT=nn;  
   const int nXf=nn;
@@ -966,6 +968,52 @@ double calcf2t_4th_2(double* P, double xf, double xpf,
   return Y; 
   
 }
+
+
+// ######################################################
+double calcf2t_zt(double* P, double xf, double xpf, 
+                 double yf, double ypf){
+// ######################################################
+  const int nMatT=nnz; 
+  const int nXf=nnz;
+  const int nXpf=nnz;
+  const int nYf=nnz;
+  const int nYpf=nnz;
+
+  
+  double Y=0.;
+  double x=1.; 
+  int npar=0;
+  int a=0,b=0,c=0,d=0;
+  
+  for (int n=0;n<nMatT+1;n++){
+  	for (d=0;d<n+1;d++){
+	  for (c=0;c<n+1;c++){
+	    for (b=0;b<n+1;b++){
+	      for (a=0;a<n+1;a++){
+		
+		if (a+b+c+d==n){
+		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf){
+		    x = pow(xf,double(a))*pow(xpf,double(b))*
+		      pow(yf,double(c))*pow(ypf,double(d));
+		  }
+		  else{
+		    x = 0.;
+		  }
+		  Y += x*P[npar];
+		  npar++;
+		}
+		
+	      }
+	    }
+	  }
+  	}
+  }
+  
+  return Y;
+}
+
+
 
 // #############################################################
 double tune(double* pa, int j, int angflag) 

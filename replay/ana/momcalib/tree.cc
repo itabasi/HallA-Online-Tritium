@@ -12,6 +12,14 @@ using namespace std;
 tree::tree(){   T=new TChain("T");};
 tree::~tree(){};
 
+void tree::SetRun(string ifname){
+  T->Add(ifname.c_str());
+  ENum =T->GetEntries();
+  cout<<"Get Entries: "<<ENum<<endl;
+  
+}
+
+
 void tree::ChainTree(string ifname){
 
   ifstream ifp(Form("%s",ifname.c_str()),ios::in);
@@ -24,20 +32,22 @@ void tree::ChainTree(string ifname){
     stringstream sbuf(buf);
     sbuf >> runname;
     T->Add(runname.c_str());
-    cout<<buf<<endl;
+    //    cout<<buf<<endl;
   }
   ENum =T->GetEntries();
   cout<<"Get Entries: "<<ENum<<endl;
 
 };
+
+
 void tree::SetBranch(){
 
   
  T->SetBranchStatus("*",0);  
  T->SetBranchStatus("DR.evtype",1);
  T->SetBranchAddress("DR.evtype",&DRevtype); 
- T->SetBranchStatus("fEvtHdr.fRun",1);
- T->SetBranchAddress("fEvtHdr.fRun",&runnum); 
+ // T->SetBranchStatus("fEvtHdr.fRun",1);
+ // T->SetBranchAddress("fEvtHdr.fRun",&runnum); 
  T->SetBranchStatus("HALLA_p",1);
  T->SetBranchAddress("HALLA_p",&hallap); 
  
@@ -79,10 +89,10 @@ void tree::SetBranch(){
  T->SetBranchAddress("R.tr.pz",Rpz); 
  T->SetBranchStatus("R.tr.vz",1);    
  T->SetBranchAddress("R.tr.vz",Rz); 
- T->SetBranchStatus("R.tr.tg_x",1);    
- T->SetBranchAddress("R.tr.tg_x",Rx);
- T->SetBranchStatus("R.tr.tg_y",1);    
- T->SetBranchAddress("R.tr.tg_y",Ry);
+ T->SetBranchStatus("R.tr.vx",1);    
+ T->SetBranchAddress("R.tr.vx",Rx);
+ T->SetBranchStatus("R.tr.vy",1);    
+ T->SetBranchAddress("R.tr.vy",Ry);
  T->SetBranchStatus("R.tr.tg_th",1);    
  T->SetBranchAddress("R.tr.tg_th",Rth);
  T->SetBranchStatus("R.tr.tg_ph",1);    
@@ -110,10 +120,12 @@ void tree::SetBranch(){
  T->SetBranchStatus("L.tr.n",1);
  T->SetBranchAddress("L.tr.n",&Ltrn);
  // PID //
- T->SetBranchStatus("L.sh.asum_c",1);
- T->SetBranchAddress("L.sh.asum_c",&Lshsum);
- T->SetBranchStatus("L.ps.asum_c",1);
- T->SetBranchAddress("L.ps.asum_c",&Lpssum); 
+ // T->SetBranchStatus("L.sh.asum_c",1);
+ // T->SetBranchAddress("L.sh.asum_c",&Lshsum);
+ // T->SetBranchStatus("L.ps.asum_c",1);
+ // T->SetBranchAddress("L.ps.asum_c",&Lpssum);
+ T->SetBranchStatus("L.cer.asum_c",1);
+ T->SetBranchAddress("L.cer.asum_c",&Lcersum);  
  // path length//
  T->SetBranchStatus("L.s2.trpath",1); 
  T->SetBranchAddress("L.s2.trpath",ls2pathl); 
@@ -132,10 +144,10 @@ void tree::SetBranch(){
  T->SetBranchAddress("L.tr.pz",Lpz); 
  T->SetBranchStatus("L.tr.vz",1);    
  T->SetBranchAddress("L.tr.vz",Lz); 
- T->SetBranchStatus("L.tr.tg_x",1);    
- T->SetBranchAddress("L.tr.tg_x",Lx);
- T->SetBranchStatus("L.tr.tg_y",1);    
- T->SetBranchAddress("L.tr.tg_y",Ly);
+ T->SetBranchStatus("L.tr.vx",1);    
+ T->SetBranchAddress("L.tr.vx",Lx);
+ T->SetBranchStatus("L.tr.vy",1);    
+ T->SetBranchAddress("L.tr.vy",Ly);
  T->SetBranchStatus("L.tr.tg_th",1);    
  T->SetBranchAddress("L.tr.tg_th",Lth);
  T->SetBranchStatus("L.tr.tg_ph",1);    

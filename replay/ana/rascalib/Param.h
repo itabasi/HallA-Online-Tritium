@@ -24,13 +24,21 @@ const int nParamTz =35;   //Number of z parameters
 const int nParamTx=4;
 const int nParamTy=4;
 const int nParamT_ras=4;  //Nunmber of Raster parameters
+
+
+  double Pzt_opt[nParamTz];
+  double Pzt[nParamTz];
+  double Pzt_L[nParamTz];
+  double Pzt_tuned[nParamTz][10];
+  double pzt_tuned[nParamTz];
   double Pxpt[nParamT];
   double Pypt[nParamT];
   double Pras[nParamT_ras];
   double Pras_L[nParamT_ras];
+  double Opt_Par_x[nParamTx],Opt_Par_y[nParamTy];
 
 //const int nmax = 1000; // Number of events used for tuning
-const int nmax=10000;// Number of events used for tuning;
+const int nmax=1000000;// Number of events used for tuning;
 const int MAX=10;
 //const int nmax = 50000; // Number of events used for tuning
 const int nfoil = 10;
@@ -58,9 +66,10 @@ int ntune_event;
 
 double x[nmax], y[nmax];
 double xp[nmax], yp[nmax];
-double z_recon[nmax]; // reconstructed z position
+double Zrecon[nmax]; // reconstructed z position
 int foil_flag[nmax];  
 int holegroup[nmax];
+double Zt_wRC[nmax];
 
 double l[nfoil];
 double projectf[nfoil];

@@ -20,9 +20,12 @@ TARGET1= VDCt0
 OBJS1=   VDCt0.o Setting.o
 TARGET2= VDCt0_plot
 OBJS2=   VDCt0_plot.o Setting.o
+TARGET3= VDCt0_raw
+OBJS3=   VDCt0_raw.o Setting.o
 .PHONY: all
 all:$(TARGET1)\
-    $(TARGET2)
+    $(TARGET2)\
+    $(TARGET3)	
 
 
 $(LIBDIR)/%.o : %.cc
@@ -31,6 +34,8 @@ $(LIBDIR)/%.o : %.cc
 $(TARGET1): $(patsubst %,$(LIBDIR)/%,$(OBJS1))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 $(TARGET2): $(patsubst %,$(LIBDIR)/%,$(OBJS2))
+	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
+$(TARGET3): $(patsubst %,$(LIBDIR)/%,$(OBJS3))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 .PHONY: clean
 clean:

@@ -27,11 +27,10 @@ void Tree::pack_tree()
 
   //  tree->SetBranchStatus("fEvtHdr.fRun"               ,1);  tree->SetBranchAddress("fEvtHdr.fRun", &runnum    );
   //  tree->SetBranchStatus("fEvtHdr.fEvtNu"               ,1);   tree->SetBranchAddress("fEvtHdr.fEvtNum", &evid    );
-  //  tree->SetBranchStatus("HALLA_p"               ,1);  tree->SetBranchAddress("HALLA_p", &HALLA_p );
-
+  tree->SetBranchStatus("HALLA_p"               ,1);  tree->SetBranchAddress("HALLA_p", &HALLA_p );
   tree->SetBranchStatus("L.tr.n"               ,1);  tree->SetBranchAddress("L.tr.n"               ,&L_tr_n              );
   tree->SetBranchStatus("R.tr.n"               ,1);  tree->SetBranchAddress("R.tr.n"               ,&R_tr_n              );
-  //tree->SetBranchStatus("DR.evtypebits"        ,1);  tree->SetBranchAddress("DR.evtypebits",&DR_evtypebits);
+  //  tree->SetBranchStatus("DR.evtypebits"        ,1);  tree->SetBranchAddress("DR.evtypebits",&DR_evtypebits);
   //tree->SetBranchStatus("DR.T1"                ,1);  tree->SetBranchAddress("DR.T1",&DR_T1);
   //tree->SetBranchStatus("DR.T2"                ,1);  tree->SetBranchAddress("DR.T2",&DR_T2);
   //tree->SetBranchStatus("DR.T3"                ,1);  tree->SetBranchAddress("DR.T3",&DR_T3);

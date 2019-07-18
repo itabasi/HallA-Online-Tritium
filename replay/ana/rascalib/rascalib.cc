@@ -61,22 +61,22 @@ int main(int argc, char** argv){
   bool output_tree_flag = false;
   bool draw_flag = false;
   bool root_flag=false;
-  bool calib_x=false;
+  bool calib_x=true;
   bool calib_y=false;
   // bool RHRS_flag=true;
   bool RHRS_flag=false; 
   string pngname;
   extern char *optarg;
   //  char *root_init="/w/halla-scifs17exp/triton/itabashi/rootfiles/calib_root/";//ifarm
-  string root_init="../rootfiles/";
+  string root_init="../rootfiles/rascalib/";
   
   string root_end=".root";
-  string dat_init="../matrix/";
+  string dat_init="./matrix/";
   string dat_end=".dat";
   string matrix="matrix/zt_RHRS_2.dat";
   string itel;
-  
-  while((ch=getopt(argc,argv,"h:f:x:y:o:r:i:RLbcop"))!=-1){
+  string MTname="matrix/rascalib_Rmatrix.list";
+  while((ch=getopt(argc,argv,"h:f:x:y:o:r:m:i:RLbcop"))!=-1){
     switch(ch){
     case 'f':
       ifname = optarg;
@@ -88,11 +88,14 @@ int main(int argc, char** argv){
       cout<<"output new parameter filename : "<<ofMTPname<<endl;      
       break;
 
-    case 'i':
+    case 'm':
+      MTname= optarg;
+      cout<<"input matrix file "<<MTname<<endl;
+      break;
 
+    case 'i':
       itel= optarg;
       nite= atoi(itel.c_str());
-      //  cout<<"nite: "<<nite<<endl;
       break;
 
 
@@ -105,7 +108,6 @@ int main(int argc, char** argv){
       
     case 'o':
       root_flag = true;
-      //      cout<<"root flag: "<<root_flag<<endl;
       draw_flag = false;
       ofname = optarg;
       ofname =root_init+ ofname+ root_end;
@@ -118,40 +120,32 @@ int main(int argc, char** argv){
       break;
 
     case 'x':
-    matrix_x=optarg;
     calib_x=true;
-    cout<<"input X matrix filename: "<<matrix_x<<endl;
     break;
 
     case 'y':
-    matrix_y=optarg;
     calib_y=true;
-    cout<<"input Y matrix filename: "<<matrix_y<<endl;
     break;
 
-      
     case 'b':
       draw_flag = false;
       cout<<"BACH MODE!"<<endl;
       break;
   
-
     case 'R':
       RHRS_flag = true;
-      //     matrix_name = optarg;   
      cout<<"R-HRS analysis"<<endl;
       break;
 
     case 'L':
       RHRS_flag =false;
-      //      matrix_name = optarg;
       cout<<"L-HRS analysis"<<endl;
       break;
 
 
     case 'h':
       cout<<"-f : input root filename"<<endl;
-      cout<<"-w : output pdf filename"<<endl;
+      cout<<"-m : intput tuning matrix parameter name"<<endl;      
       cout<<"-RL: input HRS R or L Matrix Parameter name"<<endl;
       cout<<"-r : output root filename"<<endl;
       cout<<"-t : output tuning matrix parameter name"<<endl;
@@ -181,18 +175,22 @@ int main(int argc, char** argv){
   Ras->SetRoot(ifname,RHRS_flag);
   Ras->MakeHist();
   Ras->NewRoot(ofname);
-  if(calib_x)Ras->MTParam_x(matrix_x,RHRS_flag);
-  if(calib_y)Ras->MTParam_y(matrix_y,RHRS_flag);
-  Ras-> EventSelection(RHRS_flag, calib_x);
-  Ras->Tuning(ofMTPname);
+  Ras->MTRead(MTname,RHRS_flag);
+  //  if(calib_x)Ras->MTParam_x(matrix_x,RHRS_flag);
+  //  if(calib_y)Ras->MTParam_y(matrix_y,RHRS_flag);
+  if(nite>0)Ras-> EventSelection(RHRS_flag, calib_x);
+  if(nite>0)Ras->Tuning(ofMTPname);
   Ras->Fill(RHRS_flag, calib_x);
   if(root_flag)Ras->Close();
 
    gSystem->Exit(1);
    theApp->Run();
 
-
-  
+   cout<<endl;
+   cout<<"============ Oputput files =============="<<endl;
+   cout<<"Rootfile : "<<ofname<<endl;
+   if(nite>0) cout<<"matrix file : "<<ofMTPname<<endl;
+   
   return 0;
 
 }//end main

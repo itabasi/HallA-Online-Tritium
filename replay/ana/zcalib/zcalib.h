@@ -1,6 +1,5 @@
 #ifndef zcalib_h
 #define zcalib_h 1
-
 using namespace std;
 #include "Setting.h"
 #include "tree.h"
@@ -49,6 +48,7 @@ class zcalib : public tree{
   void Mzt(string matrix_name, bool rarm);  
   void Mzt_L(string matrix_name, bool rarm);
   //  void SetBranch(string ifname);
+  void ZCorr();
   void NewBranch(string ofname, bool rarm);
   void MakeHist();
   void GetEvent();
@@ -262,6 +262,25 @@ void zcalib::Mzt_L(string matrix_name,bool rarm){
 
 }
 
+//=====================================================//
+
+void zcalib::ZCorr(){
+
+      XFP  = (XFP-XFPm)/XFPr;
+      XpFP = (XpFP-XpFPm)/XpFPr;
+      YFP  = (YFP-YFPm)/YFPr;
+      YpFP = (YpFP-YpFPm)/YpFPr;
+      //----- Offset tuning ----------//
+      ztR[0] = calcf2t_zt(Pzt, XFP, XpFP, YFP, YpFP);
+      ztR[0] = ztR[0] * Ztr + Ztm;
+      
+      XFP = XFP * XFPr + XFPm;
+      XpFP = XpFP * XpFPr + XpFPm;
+      YFP = YFP * YFPr + YFPm;
+      YpFP = YpFP * YpFPr + YpFPm;
+
+     
+}
 
 //================ Event Selection Branch ============//
 void zcalib::EventSelection(bool rarm){
@@ -362,8 +381,6 @@ void zcalib::EventSelection(bool rarm){
       YFP = YFP * YFPr + YFPm;
       YpFP = YpFP * YpFPr + YpFPm;
 
-
-
   
       for(int j=0 ; j<nfoil ; j++){
 	if(fcent[j]-selection_width<ztR[0] 
@@ -456,6 +473,7 @@ void zcalib:: Fill(bool rarm){
 
       ztR_opt[0] = calcf2t_zt(Pzt_opt, XFP, XpFP, YFP, YpFP);
       ztR_opt[0] = ztR_opt[0] * Ztr + Ztm;
+      
       hz_tuned->Fill(ztR_opt[0]);
 
 

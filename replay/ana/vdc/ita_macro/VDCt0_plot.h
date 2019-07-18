@@ -63,6 +63,16 @@ class VDCt0_plot : public VDCt0{
   TGraph* gRv1[nwire];
   TGraph* gRv2[nwire];
 
+  TGraph* gLu1_c[nwire];
+  TGraph* gLu2_c[nwire];
+  TGraph* gLv1_c[nwire];
+  TGraph* gLv2_c[nwire];
+  TGraph* gRu1_c[nwire];
+  TGraph* gRu2_c[nwire];
+  TGraph* gRv1_c[nwire];
+  TGraph* gRv2_c[nwire];
+
+
   TGraphAsymmErrors* gLu1_ac[nwire];
   TGraphAsymmErrors* gLu2_ac[nwire];
   TGraphAsymmErrors* gLv1_ac[nwire];

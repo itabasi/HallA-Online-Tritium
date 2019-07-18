@@ -56,12 +56,17 @@ class VDCt0{
   void MakeHist();
   void Fill();
   double Findt0(bool rarm,char* plane, int wire);
+  double Findt0_time(bool rarm, char* plane, int wire);
   void Deft0(string ifname);
+  void SetRawt0();
+  void Sett0();
   void Write(string ofname);
   void MakeRoot(string ofname);
+  void MakeRoot_c(string ofname);  
   void Draw();
   void Print(string ofname);
-
+  void Print_c(string ofname);
+  
   Setting* set;
   //== SetRunList ====//
     int ENum;
@@ -96,6 +101,16 @@ class VDCt0{
   TH2F* hLu2;
   TH2F* hLv1;
   TH2F* hLv2;
+
+  TH2F* hRu1_c;
+  TH2F* hRu2_c;
+  TH2F* hRv1_c;
+  TH2F* hRv2_c;
+  TH2F* hLu1_c;
+  TH2F* hLu2_c;
+  TH2F* hLv1_c;
+  TH2F* hLv2_c;  
+  
   TGraphErrors* gRu1;
   TGraphErrors* gRu2;
   TGraphErrors* gRv1;
@@ -103,7 +118,17 @@ class VDCt0{
   TGraphErrors* gLu1;
   TGraphErrors* gLu2;
   TGraphErrors* gLv1;
-  TGraphErrors* gLv2;    
+  TGraphErrors* gLv2;
+
+  TGraphErrors* gRu1_c;
+  TGraphErrors* gRu2_c;
+  TGraphErrors* gRv1_c;
+  TGraphErrors* gRv2_c;
+  TGraphErrors* gLu1_c;
+  TGraphErrors* gLu2_c;
+  TGraphErrors* gLv1_c;
+  TGraphErrors* gLv2_c;  
+  
   TH1D* hRu1_rtime[nwire];
   TH1D* hRu2_rtime[nwire];
   TH1D* hRv1_rtime[nwire];
@@ -111,21 +136,50 @@ class VDCt0{
   TH1D* hLu1_rtime[nwire];
   TH1D* hLu2_rtime[nwire];
   TH1D* hLv1_rtime[nwire];
-  TH1D* hLv2_rtime[nwire];  
+  TH1D* hLv2_rtime[nwire];
+
+  TH1D* hRu1_time[nwire];
+  TH1D* hRu2_time[nwire];
+  TH1D* hRv1_time[nwire];
+  TH1D* hRv2_time[nwire];
+  TH1D* hLu1_time[nwire];
+  TH1D* hLu2_time[nwire];
+  TH1D* hLv1_time[nwire];
+  TH1D* hLv2_time[nwire];    
+
+
+  TF1* fLu1_t0[nwire];
+  TF1* fLu2_t0[nwire];
+  TF1* fLv1_t0[nwire];
+  TF1* fLv2_t0[nwire];  
+  TF1* fRu1_t0[nwire];
+  TF1* fRu2_t0[nwire];
+  TF1* fRv1_t0[nwire];
+  TF1* fRv2_t0[nwire];
+
+  TF1* fLu1_rt0[nwire];
+  TF1* fLu2_rt0[nwire];
+  TF1* fLv1_rt0[nwire];
+  TF1* fLv2_rt0[nwire];  
+  TF1* fRu1_rt0[nwire];
+  TF1* fRu2_rt0[nwire];
+  TF1* fRv1_rt0[nwire];
+  TF1* fRv2_rt0[nwire];    
 
   
   double min_rtime,max_rtime;
   int bin_rtime;
-
+  double min_time,max_time;
+  int bin_time;
 
   //==== FIndT0 ======//
   //    double dy,y,yb,ya;
     double a_min,a_max,slope_1,slope_2;
     double t0_min,t0_max,t0_1,t0_2;  
-    double dt0;  
+    double dt0;
+    double t0offset;    
   //==== Draw =====//
 
-  TLine* line; 
   TCanvas* c0[11];// = new TCanvas("c0","c0");
   //c0->Divide(4,8);
   TCanvas* c1[11];// = new TCanvas("c1","c1");
@@ -134,14 +188,15 @@ class VDCt0{
   //  c2->Divide(4,8);  
   TCanvas* c3[11];// = new TCanvas("c3","c3");
   //  c3->Divide(4,8);
-  TCanvas* c4[11];// = new TCanvas("c0","c0");
+   TCanvas* c4[11];// = new TCanvas("c0","c0");
   //c0->Divide(4,8);
   TCanvas* c5[11];// = new TCanvas("c1","c1");
   //  c1->Divide(4,8);
   TCanvas* c6[11];// = new TCanvas("c2","c2");
   //  c2->Divide(4,8);  
   TCanvas* c7[11];// = new TCanvas("c3","c3");
-  //  c3->Divide(4,8);    
+  //  c3->Divide(4,8);
+  TCanvas* c10;
   /*
   TCanvas* c4 = new TCanvas("c4","c4");
   c4->Divide(4,8);  
@@ -160,7 +215,9 @@ class VDCt0{
   TCanvas* c11= new TCanvas("c11","c11");
   c11->Divide(4,8);
   */
-  
+
+  TLine* line_time[nwire];
+  TLine* line_rtime[nwire];   
   //  TCanvas* c12= new TCanvas("c12","c12");
   //  TCanvas* c13= new TCanvas("c13","c13");
   //  TCanvas* c14= new TCanvas("c14","c14");
@@ -174,7 +231,13 @@ class VDCt0{
   double Ru1t0[nwire],Ru2t0[nwire],Rv1t0[nwire],Rv2t0[nwire];
   double Lu1t0[nwire],Lu2t0[nwire],Lv1t0[nwire],Lv2t0[nwire];
   double Ru1t0_err[nwire],Ru2t0_err[nwire],Rv1t0_err[nwire],Rv2t0_err[nwire];
-  double Lu1t0_err[nwire],Lu2t0_err[nwire],Lv1t0_err[nwire],Lv2t0_err[nwire];  
+  double Lu1t0_err[nwire],Lu2t0_err[nwire],Lv1t0_err[nwire],Lv2t0_err[nwire];
+  double Ru1t0_c[nwire],Ru2t0_c[nwire],Rv1t0_c[nwire],Rv2t0_c[nwire];
+  double Lu1t0_c[nwire],Lu2t0_c[nwire],Lv1t0_c[nwire],Lv2t0_c[nwire];
+  double Ru1t0_err_c[nwire],Ru2t0_err_c[nwire],Rv1t0_err_c[nwire],Rv2t0_err_c[nwire];
+  double Lu1t0_err_c[nwire],Lu2t0_err_c[nwire],Lv1t0_err_c[nwire],Lv2t0_err_c[nwire];
+
+  
   double Ru1t0_min[nwire],Ru1t0_max[nwire],Ru2t0_min[nwire],Ru2t0_max[nwire],Rv1t0_min[nwire],Rv1t0_max[nwire],Rv2t0_min[nwire],Rv2t0_max[nwire];
   double Lu1t0_min[nwire],Lu1t0_max[nwire],Lu2t0_min[nwire],Lu2t0_max[nwire],Lv1t0_min[nwire],Lv1t0_max[nwire],Lv2t0_min[nwire],Lv2t0_max[nwire];
   
@@ -182,6 +245,13 @@ class VDCt0{
   //==== MakeRoot =====//
   TFile* fnew;
   TTree* tnew;
+
+
+  //==== Findt0 =====//
+  double  Lu1_p0[nwire],Lu1_p1[nwire],Lu2_p0[nwire],Lu2_p1[nwire],Lv1_p0[nwire],Lv1_p1[nwire],Lv2_p0[nwire],Lv2_p1[nwire];
+ double  Ru1_p0[nwire],Ru1_p1[nwire],Ru2_p0[nwire],Ru2_p1[nwire],Rv1_p0[nwire],Rv1_p1[nwire],Rv2_p0[nwire],Rv2_p1[nwire];
+
+  
 };
 
 
@@ -234,13 +304,14 @@ void VDCt0::SetRun(int runnum){
   cout<<"TChain run number : "<<runnum<<" - "<<runnum+sum_run-1<<endl;
 
   //  const string ROOTfilePath="/data/opt_small/VDC/initial";
-  const string ROOTfilePath="/data/opt_small/VDC/t0tuned/";  
+  const string ROOTfilePath="/data/opt_small/VDC/initial/";  
   const string root =".root";
   ostringstream str;
   int run;
   for(int i=0;i<sum_run;i++){
     //==== Initialization of string =======//
     str.str("");
+    
     str.clear(ostringstream::goodbit);
     //=====================================//
   run=runnum+i;
@@ -427,10 +498,19 @@ void VDCt0::MakeHist(){
   min_rtime=1500.;
   max_rtime=3000.;
   bin_rtime=1500;
-  bin_rtime=375;
+  double bin_rtdc=1.0;
+  bin_rtime=(int )((max_rtime - min_rtime)/bin_rtdc);
+
+  min_time=-100.0;
+  max_time=500.0;
+  double conv_tdc=0.5; //[ns/bin]
+  bin_time=(int)((max_time-min_time)/conv_tdc); //0.5 [ns/bin]
+  // bin_time=(int)(max_time-min_time); //1.0 [ns/bin]
+  
   double min_wire=0;
   double max_wire=(double)nwire;
   int bin_wire=nwire;
+
   hRu1=new TH2F("hRu1","",bin_wire,min_wire,max_wire,bin_rtime,min_rtime,max_rtime);
   set->SetTH2(hRu1,"RHRS U1 Wire vs Raw TDC hist","#wire","raw time [ch]");  
   hRu2=new TH2F("hRu2","",nwire+1,0,nwire,bin_rtime,min_rtime,max_rtime);
@@ -447,8 +527,31 @@ void VDCt0::MakeHist(){
   set->SetTH2(hLv1,"LHRS V1 Wire vs Raw TDC hist","#wire","raw time [ch]");  
   hLv2=new TH2F("hLv2","",nwire+1,0,nwire,bin_rtime,min_rtime,max_rtime);  
   set->SetTH2(hLv2,"LHRS V2 Wire vs Raw TDC hist","#wire","raw time [ch]");
+
+
+
+  hRu1_c=new TH2F("hRu1_c","",bin_wire,min_wire,max_wire,bin_time,min_time,max_time);
+  set->SetTH2(hRu1_c,"RHRS U1 Wire vs Raw TDC hist","#wire","time [ns]");  
+  hRu2_c=new TH2F("hRu2_c","",nwire+1,0,nwire,bin_time,min_time,max_time);
+  set->SetTH2(hRu2_c,"RHRS U2 Wire vs Raw TDC hist","#wire"," time [ns]");    
+  hRv1_c=new TH2F("hRv1_c","",nwire+1,0,nwire,bin_time,min_time,max_time);
+  set->SetTH2(hRv1_c,"RHRS V1 Wire vs Raw TDC hist","#wire","time [ns]");      
+  hRv2_c=new TH2F("hRv2_c","",nwire+1,0,nwire,bin_time,min_time,max_time);
+  set->SetTH2(hRv2_c,"RHRS V2 Wire vs Raw TDC hist","#wire","time [ns]");        
+  hLu1_c=new TH2F("hLu1_c","",nwire+1,0,nwire,bin_time,min_time,max_time);
+  set->SetTH2(hLu1_c,"LHRS U1 Wire vs Raw TDC hist","#wire","time [ns]");  
+  hLu2_c=new TH2F("hLu2_c","",nwire+1,0,nwire,bin_time,min_time,max_time);
+  set->SetTH2(hLu2_c,"LHRS U2 Wire vs Raw TDC hist","#wire","time [ns]");  
+  hLv1_c=new TH2F("hLv1_c","",nwire+1,0,nwire,bin_time,min_time,max_time);
+  set->SetTH2(hLv1_c,"LHRS V1 Wire vs Raw TDC hist","#wire","time [ns]");  
+  hLv2_c=new TH2F("hLv2_c","",nwire+1,0,nwire,bin_time,min_time,max_time);  
+  set->SetTH2(hLv2_c,"LHRS V2 Wire vs Raw TDC hist","#wire"," time [ns]");
+
+
+
   
   for(int i=0;i<nwire;i++){
+    //======== raw time hist =======================//
     hRu1_rtime[i]=new TH1D(Form("hRu1_rtime_%d",i),"",bin_rtime,min_rtime,max_rtime);
     set->SetTH1(hRu1_rtime[i],Form("RVDC U1 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");
     hRu2_rtime[i]=new TH1D(Form("hRu2_rtime_%d",i),"",bin_rtime,min_rtime,max_rtime);
@@ -456,8 +559,7 @@ void VDCt0::MakeHist(){
     hRv1_rtime[i]=new TH1D(Form("hRv1_rtime_%d",i),"",bin_rtime,min_rtime,max_rtime);
     set->SetTH1(hRv1_rtime[i],Form("RVDC V1 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");    
     hRv2_rtime[i]=new TH1D(Form("hRv2_rtime_%d",i),"",bin_rtime,min_rtime,max_rtime);
-    set->SetTH1(hRv2_rtime[i],Form("RVDC V2 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");
-    
+    set->SetTH1(hRv2_rtime[i],Form("RVDC V2 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");    
     hLu1_rtime[i]=new TH1D(Form("hLu1_rtime_%d",i),"",bin_rtime,min_rtime,max_rtime);
     set->SetTH1(hLu1_rtime[i],Form("LVDC U1 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");
     hLu2_rtime[i]=new TH1D(Form("hLu2_rtime_%d",i),"",bin_rtime,min_rtime,max_rtime);
@@ -465,42 +567,173 @@ void VDCt0::MakeHist(){
     hLv1_rtime[i]=new TH1D(Form("hLv1_rtime_%d",i),"",bin_rtime,min_rtime,max_rtime);
     set->SetTH1(hLv1_rtime[i],Form("LVDC V1 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");
     hLv2_rtime[i]=new TH1D(Form("hLv2_rtime_%d",i),"",bin_rtime,min_rtime,max_rtime);
-    set->SetTH1(hLv2_rtime[i],Form("LVDC V2 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");    
+    set->SetTH1(hLv2_rtime[i],Form("LVDC V2 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");
+
+    //======== time hist =======================//
+    hRu1_time[i]=new TH1D(Form("hRu1_time_%d",i),"",bin_time,min_time,max_time);
+    set->SetTH1(hRu1_time[i],Form("RVDC U1 wire-%d  tdc hist ",i),"time [ns]","Counts");
+    hRu2_time[i]=new TH1D(Form("hRu2_time_%d",i),"",bin_time,min_time,max_time);
+    set->SetTH1(hRu2_time[i],Form("RVDC U2 wire-%d  tdc hist ",i),"time [ns]","Counts");
+    hRv1_time[i]=new TH1D(Form("hRv1_time_%d",i),"",bin_time,min_time,max_time);
+    set->SetTH1(hRv1_time[i],Form("RVDC V1 wire-%d  tdc hist ",i),"time [ns]","Counts");    
+    hRv2_time[i]=new TH1D(Form("hRv2_time_%d",i),"",bin_time,min_time,max_time);
+    set->SetTH1(hRv2_time[i],Form("RVDC V2 wire-%d  tdc hist ",i),"time [ns]","Counts");    
+    hLu1_time[i]=new TH1D(Form("hLu1_time_%d",i),"",bin_time,min_time,max_time);
+    set->SetTH1(hLu1_time[i],Form("LVDC U1 wire-%d  tdc hist ",i),"time [ns]","Counts");
+    hLu2_time[i]=new TH1D(Form("hLu2_time_%d",i),"",bin_time,min_time,max_time);
+    set->SetTH1(hLu2_time[i],Form("LVDC U2 wire-%d  tdc hist ",i),"time [ns]","Counts");    
+    hLv1_time[i]=new TH1D(Form("hLv1_time_%d",i),"",bin_time,min_time,max_time);
+    set->SetTH1(hLv1_time[i],Form("LVDC V1 wire-%d  tdc hist ",i),"time [ns]","Counts");
+    hLv2_time[i]=new TH1D(Form("hLv2_time_%d",i),"",bin_time,min_time,max_time);
+    set->SetTH1(hLv2_time[i],Form("LVDC V2 wire-%d  tdc hist ",i),"time [ns]","Counts");    
+    
   }
 
+
+  
+  //=============== raw time hist ==================//
   gRu1=new TGraphErrors();
-  gRu1->SetTitle("RVDC U1 Offset; #wire ; T0 [ch ]");
+  gRu1->SetTitle("RVDC U1 raw time Offset; #wire ; T0 [ch ]");
   gRu1->SetMarkerSize(1.0);
   gRu1->SetMarkerColor(2);
   gRu1->SetMarkerStyle(20);  
   gRu2=new TGraphErrors();
+  gRu2->SetTitle("RVDC U2 raw time Offset; #wire ; T0 [ch ]");  
   gRu2->SetMarkerSize(1.0);
   gRu2->SetMarkerColor(2);
   gRu2->SetMarkerStyle(20);
   gRv1=new TGraphErrors();
+  gRv1->SetTitle("RVDC V1 raw time Offset; #wire ; T0 [ch ]");  
   gRv1->SetMarkerSize(1.0);
   gRv1->SetMarkerColor(2);
   gRv1->SetMarkerStyle(20);
   gRv2=new TGraphErrors();
+  gRv2->SetTitle("RVDC V2 raw time Offset; #wire ; T0 [ch ]");
   gRv2->SetMarkerSize(1.0);
   gRv2->SetMarkerColor(2);
   gRv2->SetMarkerStyle(20);    
   gLu1=new TGraphErrors();
+  gLu1->SetTitle("LVDC U1 raw time Offset; #wire ; T0 [ch ]");  
   gLu1->SetMarkerSize(1.0);
   gLu1->SetMarkerColor(2);
   gLu1->SetMarkerStyle(20);    
   gLu2=new TGraphErrors();
+  gLu2->SetTitle("LVDC U2 raw time Offset; #wire ; T0 [ch ]");    
   gLu2->SetMarkerSize(1.0);
   gLu2->SetMarkerColor(2);
   gLu2->SetMarkerStyle(20);      
   gLv1=new TGraphErrors();
+  gLv1->SetTitle("LVDC V1 raw time Offset; #wire ; T0 [ch ]");  
   gLv1->SetMarkerSize(1.0);
   gLv1->SetMarkerColor(2);
   gLv1->SetMarkerStyle(20);      
   gLv2=new TGraphErrors();
+  gLv2->SetTitle("LVDC V2 raw time Offset; #wire ; T0 [ch ]");  
   gLv2->SetMarkerSize(1.0);
   gLv2->SetMarkerColor(2);
   gLv2->SetMarkerStyle(20);
+
+  //=========== time ====================//
+  
+  gRu1_c=new TGraphErrors();
+  gRu1_c->SetTitle("RVDC U1 Offset; #wire ; T0 [ns]");
+  gRu1_c->SetMarkerSize(1.0);
+  gRu1_c->SetMarkerColor(2);
+  gRu1_c->SetMarkerStyle(20);  
+  gRu2_c=new TGraphErrors();
+  gRu2_c->SetTitle("RVDC U2 Offset; #wire ; T0 [ns]");  
+  gRu2_c->SetMarkerSize(1.0);
+  gRu2_c->SetMarkerColor(2);
+  gRu2_c->SetMarkerStyle(20);
+  gRv1_c=new TGraphErrors();
+  gRv1_c->SetTitle("RVDC V1 Offset; #wire ; T0 [ns]");  
+  gRv1_c->SetMarkerSize(1.0);
+  gRv1_c->SetMarkerColor(2);
+  gRv1_c->SetMarkerStyle(20);
+  gRv2_c=new TGraphErrors();
+  gRv2_c->SetTitle("RVDC V2 Offset; #wire ; T0 [ns]");
+  gRv2_c->SetMarkerSize(1.0);
+  gRv2_c->SetMarkerColor(2);
+  gRv2_c->SetMarkerStyle(20);    
+  gLu1_c=new TGraphErrors();
+  gLu1_c->SetTitle("LVDC U1 Offset; #wire ; T0 [ns]");  
+  gLu1_c->SetMarkerSize(1.0);
+  gLu1_c->SetMarkerColor(2);
+  gLu1_c->SetMarkerStyle(20);    
+  gLu2_c=new TGraphErrors();
+  gLu2_c->SetTitle("LVDC U2 Offset; #wire ; T0 [ns]");    
+  gLu2_c->SetMarkerSize(1.0);
+  gLu2_c->SetMarkerColor(2);
+  gLu2_c->SetMarkerStyle(20);      
+  gLv1_c=new TGraphErrors();
+  gLv1_c->SetTitle("LVDC V1 Offset; #wire ; T0 [ns]");  
+  gLv1_c->SetMarkerSize(1.0);
+  gLv1_c->SetMarkerColor(2);
+  gLv1_c->SetMarkerStyle(20);      
+  gLv2_c=new TGraphErrors();
+  gLv2_c->SetTitle("LVDC V2 Offset; #wire ; T0 [ns]");  
+  gLv2_c->SetMarkerSize(1.0);
+  gLv2_c->SetMarkerColor(2);
+  gLv2_c->SetMarkerStyle(20);  
+  
+
+  //------ T0 fitting function ----//
+
+
+  for(int i=0; i<nwire;i++){
+
+    fLu1_t0[i]=new TF1(Form("fLu1_t0_%d",i),"[0]*x+[1]",min_time,max_time);
+    fLu1_t0[i]->SetLineColor(2);
+    fLu1_t0[i]->SetNpx(2000);    
+    fLu2_t0[i]=new TF1(Form("fLu2_t0_%d",i),"[0]*x+[1]",min_time,max_time);
+    fLu2_t0[i]->SetLineColor(2);
+    fLu2_t0[i]->SetNpx(2000);        
+    fLv1_t0[i]=new TF1(Form("fLv1_t0_%d",i),"[0]*x+[1]",min_time,max_time);
+    fLv1_t0[i]->SetLineColor(2);
+    fLv1_t0[i]->SetNpx(2000);        
+    fLv2_t0[i]=new TF1(Form("fLv2_t0_%d",i),"[0]*x+[1]",min_time,max_time);
+    fLv2_t0[i]->SetLineColor(2);    
+    fLv2_t0[i]->SetNpx(2000);    
+    fRu1_t0[i]=new TF1(Form("fRu1_t0_%d",i),"[0]*x+[1]",min_time,max_time);
+    fRu1_t0[i]->SetLineColor(2);
+    fRu1_t0[i]->SetNpx(2000);    
+    fRu2_t0[i]=new TF1(Form("fRu2_t0_%d",i),"[0]*x+[1]",min_time,max_time);
+    fRu2_t0[i]->SetLineColor(2);
+    fRu2_t0[i]->SetNpx(2000);        
+    fRv1_t0[i]=new TF1(Form("fRv1_t0_%d",i),"[0]*x+[1]",min_time,max_time);
+    fRv1_t0[i]->SetLineColor(2);
+    fRv1_t0[i]->SetNpx(2000);        
+    fRv2_t0[i]=new TF1(Form("fRv2_t0_%d",i),"[0]*x+[1]",min_time,max_time);
+    fRv2_t0[i]->SetLineColor(2);
+    fRv2_t0[i]->SetNpx(2000);
+    
+    fLu1_rt0[i]=new TF1(Form("fLu1_rt0_%d",i),"[0]*x+[1]",min_rtime,max_rtime);
+    fLu1_rt0[i]->SetLineColor(2);
+    fLu1_rt0[i]->SetNpx(2000);    
+    fLu2_rt0[i]=new TF1(Form("fLu2_rt0_%d",i),"[0]*x+[1]",min_rtime,max_rtime);
+    fLu2_rt0[i]->SetLineColor(2);
+    fLu2_rt0[i]->SetNpx(2000);        
+    fLv1_rt0[i]=new TF1(Form("fLv1_rt0_%d",i),"[0]*x+[1]",min_rtime,max_rtime);
+    fLv1_rt0[i]->SetLineColor(2);
+    fLv1_rt0[i]->SetNpx(2000);        
+    fLv2_rt0[i]=new TF1(Form("fLv2_rt0_%d",i),"[0]*x+[1]",min_rtime,max_rtime);
+    fLv2_rt0[i]->SetLineColor(2);
+    fLv2_rt0[i]->SetNpx(2000);            
+    fRu1_rt0[i]=new TF1(Form("fRu1_rt0_%d",i),"[0]*x+[1]",min_rtime,max_rtime);
+    fRu1_rt0[i]->SetLineColor(2);
+    fRu1_rt0[i]->SetNpx(2000);         
+    fRu2_rt0[i]=new TF1(Form("fRu2_rt0_%d",i),"[0]*x+[1]",min_rtime,max_rtime);
+    fRu2_rt0[i]->SetLineColor(2);
+    fRu2_rt0[i]->SetNpx(2000);             
+    fRv1_rt0[i]=new TF1(Form("fRv1_rt0_%d",i),"[0]*x+[1]",min_rtime,max_rtime);
+    fRv1_rt0[i]->SetLineColor(2);
+    fRv1_rt0[i]->SetNpx(2000);             
+    fRv2_rt0[i]=new TF1(Form("fRv2_rt0_%d",i),"[0]*x+[1]",min_rtime,max_rtime);            
+    fRv2_rt0[i]->SetLineColor(2);
+    fRv2_rt0[i]->SetNpx(2000);         
+  }
+
+  
   
 }
 
@@ -514,7 +747,6 @@ void VDCt0::Fill(){
 
   int Ru1_nwire,Ru2_nwire,Rv1_nwire,Rv2_nwire;
   int Lu1_nwire,Lu2_nwire,Lv1_nwire,Lv2_nwire;
-
 
   
   ///===== FIll =======//
@@ -552,12 +784,6 @@ void VDCt0::Fill(){
     T4=false;
     T5=false;
     T->GetEntry(k);
-    //    cout<<"evtype: "<<evtype<<endl;
-    //    if(evtype==16)for(int i=0;i<nmax;i++)cout<<Form("R.vdc.u1.rawtime[%d]: ",i)<<Ru1_rtime[i]<<endl;
-    //    cout<<"R.vdc.u1.rawtime[0]: "<<Ru1_rtime[0]<<endl;
-    //    cout<<"R.vdc.u1.rawtime[1]: "<<Ru1_rtime[1]<<endl;
-    //    cout<<"R.vdc.u1.rawtime[2]: "<<Ru1_rtime[2]<<endl;
-    //    cout<<"R.vdc.u1.rawtime[3]: "<<Ru1_rtime[3]<<endl;
     
     if(evtype==2.0)T1=true;
     if(evtype==16.0)T4=true;
@@ -574,19 +800,16 @@ void VDCt0::Fill(){
 
     
 
-    if(T5){
-      /*
-    cout<<"Light VDC : "<<k<<"  T1: "<<T1<<endl;
-    cout<<"U1 wire: "<<Lu1_wire[0]<<"  U1 Nhits :"<<NLu1_wire<<endl;
-    cout<<"U2 wire: "<<Lu2_wire[0]<<"  U2 Nhits :"<<NLu2_wire<<endl;
-    cout<<"V1 wire: "<<Lv1_wire[0]<<"  V1 Nhits :"<<NLv1_wire<<endl;
-    cout<<"V2 wire: "<<Lv2_wire[0]<<"  V2 Nhits :"<<NLv2_wire<<endl;    
-      */
-      
+    if(T1){
     if(NLu1_wire>0 && 100>NLu1_wire)for(int i=0;i<NLu1_wire;i++){hLu1->Fill(Lu1_wire[i],Lu1_rtime[i]);}
     if(NLu2_wire>0 && 100>NLu2_wire)for(int i=0;i<NLu2_wire;i++){hLu2->Fill(Lu2_wire[i],Lu2_rtime[i]);}
     if(NLv1_wire>0 && 100>NLv1_wire)for(int i=0;i<NLv1_wire;i++){hLv1->Fill(Lv1_wire[i],Lv1_rtime[i]);}
     if(NLv2_wire>0 && 100>NLv2_wire)for(int i=0;i<NLv2_wire;i++){hLv2->Fill(Lv2_wire[i],Lv2_rtime[i]);}
+    if(NLu1_wire>0 && 100>NLu1_wire)for(int i=0;i<NLu1_wire;i++){hLu1_c->Fill(Lu1_wire[i],Lu1_time[i]*1.0e9);}
+    if(NLu2_wire>0 && 100>NLu2_wire)for(int i=0;i<NLu2_wire;i++){hLu2_c->Fill(Lu2_wire[i],Lu2_time[i]*1.0e9);}
+    if(NLv1_wire>0 && 100>NLv1_wire)for(int i=0;i<NLv1_wire;i++){hLv1_c->Fill(Lv1_wire[i],Lv1_time[i]*1.0e9);}
+    if(NLv2_wire>0 && 100>NLv2_wire)for(int i=0;i<NLv2_wire;i++){hLv2_c->Fill(Lv2_wire[i],Lv2_time[i]*1.0e9);}
+    
 
     }
 
@@ -594,20 +817,16 @@ void VDCt0::Fill(){
   
     if(T4){
 
-
-      /*
-    cout<<"Right VDC : "<<k<<endl;
-    cout<<"U1 wire: "<<Ru1_wire[0]<<"  U1 Nhits :"<<NRu1_wire<<" TDC : "<<Ru1_rtime[0]<< endl;
-    cout<<"U2 wire: "<<Ru2_wire[0]<<"  U2 Nhits :"<<NRu2_wire<<" TDC : "<<Ru2_rtime[0]<< endl;
-    cout<<"V1 wire: "<<Rv1_wire[0]<<"  V1 Nhits :"<<NRv1_wire<<" TDC : "<<Rv1_rtime[0]<< endl;
-    cout<<"V2 wire: "<<Rv2_wire[0]<<"  V2 Nhits :"<<NRv2_wire<<" TDC : "<<Rv2_rtime[0]<< endl;    
-      */
-
     if(NRu1_wire>0 && 100>NRu1_wire)for(int i=0;i<NRu1_wire;i++){hRu1->Fill(Ru1_wire[i],Ru1_rtime[i]);}
     if(NRu2_wire>0 && 100>NRu2_wire)for(int i=0;i<NRu2_wire;i++){hRu2->Fill(Ru2_wire[i],Ru2_rtime[i]);}
     if(NRv1_wire>0 && 100>NRv1_wire)for(int i=0;i<NRv1_wire;i++){hRv1->Fill(Rv1_wire[i],Rv1_rtime[i]);}
     if(NRv2_wire>0 && 100>NRv2_wire)for(int i=0;i<NRv2_wire;i++){hRv2->Fill(Rv2_wire[i],Rv2_rtime[i]);}
     
+    if(NRu1_wire>0 && 100>NRu1_wire)for(int i=0;i<NRu1_wire;i++){hRu1_c->Fill(Ru1_wire[i],Ru1_time[i]*1.0e9);}
+    if(NRu2_wire>0 && 100>NRu2_wire)for(int i=0;i<NRu2_wire;i++){hRu2_c->Fill(Ru2_wire[i],Ru2_time[i]*1.0e9);}
+    if(NRv1_wire>0 && 100>NRv1_wire)for(int i=0;i<NRv1_wire;i++){hRv1_c->Fill(Rv1_wire[i],Rv1_time[i]*1.0e9);}
+    if(NRv2_wire>0 && 100>NRv2_wire)for(int i=0;i<NRv2_wire;i++){hRv2_c->Fill(Rv2_wire[i],Rv2_time[i]*1.0e9);}
+   
     }
 
 
@@ -621,6 +840,7 @@ void VDCt0::Fill(){
  ///===== Project =======//
 
   for(int i=0;i<nwire;i++){
+    //========= raw time hist======================================//
     hRu1_rtime[i]=hRu1->ProjectionY(Form("hRu1_rtime_%d",i),i+1,i+1);
     set->SetTH1(hRu1_rtime[i],Form("RVDC U1 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");    
     hRu2_rtime[i]=hRu2->ProjectionY(Form("hRu2_rtime_%d",i),i+1,i+1);
@@ -636,11 +856,31 @@ void VDCt0::Fill(){
     hLv1_rtime[i]=hLv1->ProjectionY(Form("hLv1_rtime_%d",i),i+1,i+1);
     set->SetTH1(hLv1_rtime[i],Form("LVDC V1 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");
     hLv2_rtime[i]=hLv2->ProjectionY(Form("hLv2_rtime_%d",i),i+1,i+1);
-    set->SetTH1(hLv2_rtime[i],Form("LVDC V2 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");            
+    set->SetTH1(hLv2_rtime[i],Form("LVDC V2 wire-%d raw tdc hist ",i),"rawtime [ch]","Counts");
+
+
+    //=========  time hist======================================//
+    hRu1_time[i]=hRu1_c->ProjectionY(Form("hRu1_time_%d",i),i+1,i+1);
+    set->SetTH1(hRu1_time[i],Form("RVDC U1 wire-%d  tdc hist ",i),"time [ns]","Counts");    
+    hRu2_time[i]=hRu2_c->ProjectionY(Form("hRu2_time_%d",i),i+1,i+1);
+    set->SetTH1(hRu2_time[i],Form("RVDC U2 wire-%d  tdc hist ",i),"time [ns]","Counts");        
+    hRv1_time[i]=hRv1_c->ProjectionY(Form("hRv1_time_%d",i),i+1,i+1);
+    set->SetTH1(hRv1_time[i],Form("RVDC V1 wire-%d  tdc hist ",i),"time [ns]","Counts");        
+    hRv2_time[i]=hRv2_c->ProjectionY(Form("hRv2_time_%d",i),i+1,i+1);
+    set->SetTH1(hRv2_time[i],Form("RVDC V2 wire-%d  tdc hist ",i),"time [ns]","Counts");        
+    hLu1_time[i]=hLu1_c->ProjectionY(Form("hLu1_time_%d",i),i+1,i+1);
+    set->SetTH1(hLu1_time[i],Form("LVDC U1 wire-%d  tdc hist ",i),"time [ns]","Counts");        
+    hLu2_time[i]=hLu2_c->ProjectionY(Form("hLu2_time_%d",i),i+1,i+1);
+    set->SetTH1(hLu2_time[i],Form("LVDC U2 wire-%d  tdc hist ",i),"time [ns]","Counts");        
+    hLv1_time[i]=hLv1_c->ProjectionY(Form("hLv1_time_%d",i),i+1,i+1);
+    set->SetTH1(hLv1_time[i],Form("LVDC V1 wire-%d  tdc hist ",i),"time [ns]","Counts");
+    hLv2_time[i]=hLv2_c->ProjectionY(Form("hLv2_time_%d",i),i+1,i+1);
+    set->SetTH1(hLv2_time[i],Form("LVDC V2 wire-%d  tdc hist ",i),"time [ns]","Counts");            
+    
   }
 
   
-  cout<<"Have Done !! "<<endl;
+  cout<<"Filled !! "<<endl;
   
   }
 
@@ -703,6 +943,7 @@ void VDCt0::Deft0(string ifname){
         return 0;
     }
     double x;
+    double y0=0.0;
     Double_t dx = hnew->GetBinWidth(1);
     Double_t slope_min = 0.0, slope = 0.0;
     Double_t sdbin = -1; // Bin number with steepest descent
@@ -773,36 +1014,161 @@ void VDCt0::Deft0(string ifname){
 	yb = hnew->GetBinContent(sdbin-1);
 	ya = hnew->GetBinContent(sdbin+1);
 	slope = (ya-yb)/(2.*dx);
-	//      cout<<"slope_min : "<<slope_min<<" sbin : "<<sdbin<<endl;
-	//      cout<<"yb : "<<yb <<" ya "<<ya<<endl;
-	
-	if(ya==0 || yb==0 || slope_min==0 || y==0 || dt0<-1.0)dt0=100.0;
+	y0= y - slope_min*x;	
+       	if(ya==0 || yb==0 || slope_min==0 || y==0 || dt0<-1.0)dt0=100.0;
 	else{dt0=(t0-x)*(sqrt(y)/y+(sqrt(yb)+sqrt(ya))/fabs(ya-yb));	}
 
     }
+
+
+  if(rarm && plane=="U1")fRu1_rt0[wire]->SetParameters(slope_min,y0);
+  else if(rarm && plane=="U2")fRu2_rt0[wire]->SetParameters(slope_min,y0);
+  else if(rarm && plane=="V1")fRv1_rt0[wire]->SetParameters(slope_min,y0);
+  else if(rarm && plane=="V2")fRv2_rt0[wire]->SetParameters(slope_min,y0);
+  else if(rarm==0 && plane=="U1")fLu1_rt0[wire]->SetParameters(slope_min,y0);
+  else if(rarm==0 && plane=="U2")fLu2_rt0[wire]->SetParameters(slope_min,y0);
+  else if(rarm==0 && plane=="V1")fLv1_rt0[wire]->SetParameters(slope_min,y0);
+  else if(rarm==0 && plane=="V2")fLv2_rt0[wire]->SetParameters(slope_min,y0);
 
     
     
     return t0;
 }
 
-
 //////////////////////////////////////////////////////
 
-void VDCt0::Write(string ofname){
+
+  double VDCt0::Findt0_time(bool rarm,char* plane,int wire){
+      double dy,y,yb,ya;
 
 
+    t0_min=0.0; t0_max=0.0;
+    t0_1=0.0; t0_2=0.0;
+    slope_1=0.0; slope_2=0.0;
+    dt0=0.0;
 
-  string ofname_main = ofname.substr(0,21);
-  string ofname_err =ofname_main + "_err.dat";
-  string ofname_def="./param/def_t0.dat";
-  ofstream ofs(ofname.c_str());
-  ofstream ofs_err(ofname_err.c_str());
-    
-  double T0,T0_min,T0_max;
-  double dT0;
-  string vdc_name;
+    TH1D* hnew;
+  if(rarm && plane=="U1")hnew=(TH1D*)hRu1_time[wire]->Clone();
+  else if(rarm && plane=="U2")hnew=(TH1D*)hRu2_time[wire]->Clone();
+  else if(rarm && plane=="V1")hnew=(TH1D*)hRv1_time[wire]->Clone();
+  else if(rarm && plane=="V2")hnew=(TH1D*)hRv2_time[wire]->Clone();
+  else if(rarm==0 && plane=="U1")hnew=(TH1D*)hLu1_time[wire]->Clone();
+  else if(rarm==0 && plane=="U2")hnew=(TH1D*)hLu2_time[wire]->Clone();
+  else if(rarm==0 && plane=="V1")hnew=(TH1D*)hLv1_time[wire]->Clone();
+  else if(rarm==0 && plane=="V2")hnew=(TH1D*)hLv2_time[wire]->Clone();
+  else {cout<<"Failed to call hist "<<endl;}
   
+  hnew->SetName("hnew");
+  
+    if (!hnew) {
+        Error("Findt0","Empty time spectrum to calibrate???");
+        return 0;
+    }
+    double x=0.0;
+    double y0=0.0;
+    Double_t dx =(double)hnew->GetBinWidth(1);
+    Double_t slope_max = 0.0;
+    Double_t  slope = 0.0;
+    Double_t sdbin = -1; // Bin number with steepest descent
+    double slope_0=0.0;
+    Int_t nbins = hnew->GetNbinsX();
+    Int_t maxbin = hnew->GetMaximumBin();
+    Double_t maxcont = hnew->GetBinContent(maxbin);
+    int kmax=5;
+    int jmax=3;
+    int nelement=kmax*jmax;    
+    double slope_el[kmax];
+    double slope_av;
+    double slopes[nbins];
+    double n[nwire];
+
+    for (Int_t i=0; i<=maxbin; i++) {
+        if (hnew->GetBinContent(i)>0.5*maxcont) continue;
+        if (hnew->GetBinContent(i+1)>0.5*maxcont) continue;
+	
+        if (i>1 && i<maxbin) {
+            slope = (hnew->GetBinContent(i+1)-hnew->GetBinContent(i-1))/(2.*dx);
+	    
+        } else if (i==1) {
+            slope = (hnew->GetBinContent(i+1)-hnew->GetBinContent(i))/dx;
+        } else if (i==maxbin) {
+            slope = (hnew->GetBinContent(i)-hnew->GetBinContent(i-1))/dx;
+        }
+
+        if (TMath::Abs(slope)<1.e-4) slope = 0.;
+
+          if (slope>slope_max) {
+
+            slope_max = slope;
+            sdbin = i;
+
+	  }
+    }
+
+    
+    Double_t t0 = 0.;
+    if (slope_max>+1.0 && hnew->GetEntries()>1000.) {
+
+      t0 = hnew->GetBinCenter(sdbin) -
+	hnew->GetBinContent(sdbin)/slope_max;
+
+	
+      x =  (double)hnew->GetBinCenter(sdbin);
+      y  = (double)hnew->GetBinContent(sdbin);
+      yb = (double)hnew->GetBinContent(sdbin-1);
+      ya = (double)hnew->GetBinContent(sdbin+1);
+      slope = (ya-yb)/(2.*dx);
+      
+	y0= y - slope_max*x;
+	dt0=fabs((t0-x)*(sqrt(y)/y+(sqrt(yb)+sqrt(ya))/fabs(ya-yb)));
+	
+    }
+
+    
+    
+    if(rarm && plane=="U1"){
+      Ru1_p0[wire]=slope_max;
+      Ru1_p1[wire]=y0;
+      fRu1_t0[wire]->SetParameters(slope_max,y0);
+    } else if(rarm && plane=="U2"){
+      Ru2_p0[wire]=slope_max;
+      Ru2_p1[wire]=y0;
+      fRu2_t0[wire]->SetParameters(slope_max,y0);
+    } else if(rarm && plane=="V1"){
+      Rv1_p0[wire]=slope_max;
+      Rv1_p1[wire]=y0;
+      fRv1_t0[wire]->SetParameters(slope_max,y0);
+    }else if(rarm && plane=="V2"){
+      Rv2_p0[wire]=slope_max;
+      Rv2_p1[wire]=y0;
+      fRv2_t0[wire]->SetParameters(slope_max,y0);
+    }else if(rarm==0 && plane=="U1"){
+      Lu1_p0[wire]=slope_max;
+      Lu1_p1[wire]=y0;
+      fLu1_t0[wire]->SetParameters(slope_max,y0);
+    }else if(rarm==0 && plane=="U2"){
+      Lu2_p0[wire]=slope_max;
+      Lu2_p1[wire]=y0;
+      fLu2_t0[wire]->SetParameters(slope_max,y0);
+    }else if(rarm==0 && plane=="V1"){
+      Lv1_p0[wire]=slope_max;
+      Lv1_p1[wire]=y0;
+      fLv1_t0[wire]->SetParameters(slope_max,y0);
+    }else if(rarm==0 && plane=="V2"){
+      Lv2_p0[wire]=slope_max;
+      Lv2_p1[wire]=y0;      
+      fLv2_t0[wire]->SetParameters(slope_max,y0);}
+  
+   t0offset=t0;
+  
+      return t0;
+  }
+
+
+/////////////////////////////////////////////////////
+
+void VDCt0::SetRawt0(){
+
   //==== Fill ====//
   
     for(int i=0;i<nwire;i++){
@@ -827,14 +1193,12 @@ void VDCt0::Write(string ofname){
      Rv2t0[i]=Findt0(true,"V2",i);
      if(Rv2t0[i]==0)Rv2t0[i]=T0_def[i][3];
      Rv2t0_err[i]=dt0;
-     Rv1t0_err[i]=dt0;
      gRv2->SetPoint(i,i,Rv2t0[i]);
      gRv2->SetPointError(i,0,Rv2t0_err[i]);     
      
      Lu1t0[i]=Findt0(false,"U1",i);
      if(Lu1t0[i]==0)Lu1t0[i]=T0_def[i][4];
      Lu1t0_err[i]=dt0;
-     Rv1t0_err[i]=dt0;
      gLu1->SetPoint(i,i,Lu1t0[i]);
      gLu1->SetPointError(i,0,Lu1t0_err[i]);     
      
@@ -857,6 +1221,104 @@ void VDCt0::Write(string ofname){
      gLv2->SetPointError(i,0,Lv2t0_err[i]);     
 
     }
+
+
+
+}
+
+/////////////////////////////////////////////////////
+
+void VDCt0::Sett0(){
+
+  //==== Fill ====//
+
+    for(int i=0;i<nwire;i++){
+      Ru1t0_c[i]=0.0;
+      Ru2t0_c[i]=0.0;      
+      Rv1t0_c[i]=0.0;
+      Rv2t0_c[i]=0.0;
+      Lu1t0_c[i]=0.0;
+      Lu2t0_c[i]=0.0;      
+      Lv1t0_c[i]=0.0;
+      Lv2t0_c[i]=0.0;      
+    }
+  
+    for(int i=0;i<nwire;i++){
+     Ru1t0_c[i]=Findt0_time(true,"U1",i);
+     if(Ru1t0_c[i]==0)Ru1t0_c[i]=100.;
+     Ru1t0_err_c[i]=dt0;
+     gRu1_c->SetPoint(i,i,Ru1t0_c[i]);
+     gRu1_c->SetPointError(i,0,Ru1t0_err_c[i]);     
+
+     Ru2t0_c[i]=Findt0_time(true,"U2",i);     
+     if(Ru2t0_c[i]==0)Ru2t0_c[i]=100.;
+     Ru2t0_err_c[i]=dt0;     
+     gRu2_c->SetPoint(i,i,Ru2t0_c[i]);
+     gRu2_c->SetPointError(i,0,Ru2t0_err_c[i]);     
+
+     Rv1t0_c[i]=Findt0_time(true,"V1",i);
+     if(Rv1t0_c[i]==0)Rv1t0_c[i]=100.;
+     Rv1t0_err_c[i]=dt0;
+     gRv1_c->SetPoint(i,i,Rv1t0_c[i]);
+     gRv1_c->SetPointError(i,0,Rv1t0_err_c[i]);     
+     
+     Rv2t0_c[i]=Findt0_time(true,"V2",i);
+     if(Rv2t0_c[i]==0)Rv2t0_c[i]=100.;
+     Rv2t0_err_c[i]=dt0;
+     gRv2_c->SetPoint(i,i,Rv2t0_c[i]);
+     gRv2_c->SetPointError(i,0,Rv2t0_err_c[i]);     
+     
+     Lu1t0_c[i]=Findt0_time(false,"U1",i);
+     if(Lu1t0_c[i]==0)Lu1t0_c[i]=100.;
+     Lu1t0_err_c[i]=dt0;
+     gLu1_c->SetPoint(i,i,Lu1t0_c[i]);
+     gLu1_c->SetPointError(i,0,Lu1t0_err_c[i]);     
+     
+     Lu2t0_c[i]=Findt0_time(false,"U2",i);
+     if(Lu2t0_c[i]==0)Lu2t0_c[i]=100.;     
+     Lu2t0_err_c[i]=dt0;
+     gLu2_c->SetPoint(i,i,Lu2t0_c[i]);
+     gLu2_c->SetPointError(i,0,Lu2t0_err_c[i]);     
+     
+     Lv1t0_c[i]=Findt0_time(false,"V1",i);
+     if(Lv1t0_c[i]==0)Lv1t0_c[i]=100.;
+     Lv1t0_err_c[i]=dt0;          
+     gLv1_c->SetPoint(i,i,Lv1t0_c[i]);
+     gLv1_c->SetPointError(i,0,Lv1t0_err_c[i]);     
+
+     Lv2t0_c[i]=Findt0_time(false,"V2",i);
+     if(Lv2t0_c[i]==0)Lv2t0_c[i]=100.;     
+     Lv2t0_err_c[i]=dt0;     
+     gLv2_c->SetPoint(i,i,Lv2t0_c[i]);
+     gLv2_c->SetPointError(i,0,Lv2t0_err_c[i]);     
+
+    }
+
+}
+
+//////////////////////////////////////////////////////
+
+void VDCt0::Write(string ofname){
+
+
+
+  //  string ofname_main = ofname.substr(0,21);
+  //  
+
+  string ofname_main=ofname;
+  ofname= ofname_main + ".dat"; 
+  string ofname_err =ofname_main + "_err.dat";
+  string ofname_def="./param/def_t0.dat";
+  ofstream ofs(ofname.c_str());
+  ofstream ofs_err(ofname_err.c_str());
+
+  cout<<"Pram file : "<<ofname<<endl;
+  cout<<"Param Error : "<<ofname_err<<endl;
+  
+  double T0,T0_min,T0_max;
+  double dT0;
+  string vdc_name;
+  
   
   
   for(int j=0;j<8;j++){
@@ -925,28 +1387,72 @@ void VDCt0::Draw(){
     for(int i=0;i<32;i++){
     c0[j]->cd(i+1);
     hLu1_rtime[32*j+i]->Draw();
-    line= new TLine(Lu1t0[32*j+i],0,Lu1t0[32*j+i],hLu1_rtime[32*j+i]->GetMaximum());
-    line->SetLineColor(kRed);
-    line->SetLineWidth(2);
-    line->Draw("same");        
+    line_rtime[32*j+i]= new TLine(Lu1t0[32*j+i],0,Lu1t0[32*j+i],hLu1_rtime[32*j+i]->GetMaximum());
+    line_rtime[32*j+i]->SetLineColor(kRed);
+    line_rtime[32*j+i]->SetLineWidth(2);
+    line_rtime[32*j+i]->Draw("same");        
     c1[j]->cd(i+1);
     hLu2_rtime[32*j+i]->Draw();
-    line= new TLine(Lu2t0[32*j+i],0,Lu2t0[32*j+i],hLu2_rtime[32*j+i]->GetMaximum());
-    line->SetLineColor(kRed);
-    line->SetLineWidth(2);
-    line->Draw("same");        
+    line_rtime[32*j+i]= new TLine(Lu2t0[32*j+i],0,Lu2t0[32*j+i],hLu2_rtime[32*j+i]->GetMaximum());
+    line_rtime[32*j+i]->SetLineColor(kRed);
+    line_rtime[32*j+i]->SetLineWidth(2);
+    line_rtime[32*j+i]->Draw("same");        
     c2[j]->cd(i+1);
     hLv1_rtime[32*j+i]->Draw();
-    line= new TLine(Lv1t0[32*j+i],0,Lv1t0[32*j+i],hLv1_rtime[32*j+i]->GetMaximum());
-    line->SetLineColor(kRed);
-    line->SetLineWidth(2);
-    line->Draw("same");    
+    line_rtime[32*j+i]= new TLine(Lv1t0[32*j+i],0,Lv1t0[32*j+i],hLv1_rtime[32*j+i]->GetMaximum());
+    line_rtime[32*j+i]->SetLineColor(kRed);
+    line_rtime[32*j+i]->SetLineWidth(2);
+    line_rtime[32*j+i]->Draw("same");    
     c3[j]->cd(i+1);
     hLv2_rtime[32*j+i]->Draw();
-    line= new TLine(Lv2t0[32*j+i],0,Lv2t0[32*j+i],hLv2_rtime[32*j+i]->GetMaximum());
-    line->SetLineColor(kRed);
-    line->SetLineWidth(2);
-    line->Draw("same");        
+    line_rtime[32*j+i]= new TLine(Lv2t0[32*j+i],0,Lv2t0[32*j+i],hLv2_rtime[32*j+i]->GetMaximum());
+    line_rtime[32*j+i]->SetLineColor(kRed);
+    line_rtime[32*j+i]->SetLineWidth(2);
+    line_rtime[32*j+i]->Draw("same");        
+    
+
+    }
+  }
+  
+
+  //================ time hist Draw ==============================//
+
+  for(int j=0;j<11;j++){
+    c4[j] =new TCanvas(Form("c4_%d",j),Form("LVDC-U1_%d",j));
+    c4[j]->Divide(4,8);
+    c5[j] =new TCanvas(Form("c5_%d",j),Form("LVDC-U2_%d",j));
+    c5[j]->Divide(4,8);
+    c6[j] =new TCanvas(Form("c6_%d",j),Form("LVDC-V1_%d",j));
+    c6[j]->Divide(4,8);
+    c7[j] =new TCanvas(Form("c7_%d",j),Form("LVDC-V2_%d",j));
+    c7[j]->Divide(4,8);
+
+    
+    for(int i=0;i<32;i++){
+    c4[j]->cd(i+1);
+    hLu1_time[32*j+i]->Draw();
+    line_time[32*j+i]= new TLine(Lu1t0_c[32*j+i],0,Lu1t0_c[32*j+i],hLu1_time[32*j+i]->GetMaximum());
+    line_time[32*j+i]->SetLineColor(kRed);
+    line_time[32*j+i]->SetLineWidth(2);
+    line_time[32*j+i]->Draw("same");        
+    c5[j]->cd(i+1);
+    hLu2_time[32*j+i]->Draw();
+    line_time[32*j+i]= new TLine(Lu2t0_c[32*j+i],0,Lu2t0_c[32*j+i],hLu2_time[32*j+i]->GetMaximum());
+    line_time[32*j+i]->SetLineColor(kRed);
+    line_time[32*j+i]->SetLineWidth(2);
+    line_time[32*j+i]->Draw("same");        
+    c6[j]->cd(i+1);
+    hLv1_time[32*j+i]->Draw();
+    line_time[32*j+i]= new TLine(Lv1t0_c[32*j+i],0,Lv1t0_c[32*j+i],hLv1_time[32*j+i]->GetMaximum());
+    line_time[32*j+i]->SetLineColor(kRed);
+    line_time[32*j+i]->SetLineWidth(2);
+    line_time[32*j+i]->Draw("same");    
+    c7[j]->cd(i+1);
+    hLv2_time[32*j+i]->Draw();
+    line_time[32*j+i]= new TLine(Lv2t0_c[32*j+i],0,Lv2t0_c[32*j+i],hLv2_time[32*j+i]->GetMaximum());
+    line_time[32*j+i]->SetLineColor(kRed);
+    line_time[32*j+i]->SetLineWidth(2);
+    line_time[32*j+i]->Draw("same");        
     
 
     }
@@ -957,7 +1463,17 @@ void VDCt0::Draw(){
 
 
   
- 
+  c10=new TCanvas("c10","c10");  
+  c10->Divide(2,2);
+  c10->cd(1);
+  gLu1->Draw("AP");
+  c10->cd(2);
+  gLu2->Draw("AP");  
+  c10->cd(3);
+  gLv1->Draw("AP");
+  c10->cd(4);
+  gLv2->Draw("AP");
+  
   cout<<" Drawn Pictures "<<endl;
   
 }
@@ -976,14 +1492,40 @@ void VDCt0::Print(string ofname){
     if(j==1)c1[i]->Print(Form("%s",ofname.c_str()));
     if(j==2)c2[i]->Print(Form("%s",ofname.c_str()));
     if(j==3)c3[i]->Print(Form("%s",ofname.c_str()));    
-    if(i==10 && j==3)c3[i]->Print(Form("%s]",ofname.c_str()));
+    //    if(i==10 && j==3)c3[i]->Print(Form("%s]",ofname.c_str()));
   }
   }
+  c10->Print(Form("%s",ofname.c_str()));      
+  c10->Print(Form("%s]",ofname.c_str()));
   cout<<"Print is done !"<<endl;
 
 }
 
 /////////////////////////////////////////////////////
+
+void VDCt0::Print_c(string ofname){
+
+  cout<<"Print is starting "<<endl;
+  cout<<"pdf name : "<<ofname<<endl;
+
+  for(int j=0;j<4;j++){
+  for(int i=0;i<11;i++){
+    if(i==0 && j==0)c4[i]->Print(Form("%s[",ofname.c_str()));
+    if(j==0)c4[i]->Print(Form("%s",ofname.c_str()));
+    if(j==1)c5[i]->Print(Form("%s",ofname.c_str()));
+    if(j==2)c6[i]->Print(Form("%s",ofname.c_str()));
+    if(j==3)c7[i]->Print(Form("%s",ofname.c_str()));    
+   if(i==10 && j==3)c7[i]->Print(Form("%s]",ofname.c_str()));
+  }
+  }
+  //  c10->Print(Form("%s",ofname.c_str()));      
+  //  c10->Print(Form("%s]",ofname.c_str()));
+  cout<<"Print is done !"<<endl;
+
+}
+
+/////////////////////////////////////////////////////
+
 
 void VDCt0::MakeRoot(string ofname){
 
@@ -992,6 +1534,27 @@ void VDCt0::MakeRoot(string ofname){
 
   //======= Write ========//
 
+
+  for(int i=0;i<nwire;i++){
+
+    hRu1_rtime[i]->Write();
+    hRu2_rtime[i]->Write();
+    hRv1_rtime[i]->Write();
+    hRv2_rtime[i]->Write();
+    hLu1_rtime[i]->Write();
+    hLu2_rtime[i]->Write();
+    hLv1_rtime[i]->Write();
+    hLv2_rtime[i]->Write();
+    fLu1_rt0[i]->Write();
+    fLu2_rt0[i]->Write();
+    fLv1_rt0[i]->Write();
+    fLv2_rt0[i]->Write();    
+    fRu1_rt0[i]->Write();
+    fRu2_rt0[i]->Write();
+    fRv1_rt0[i]->Write();
+    fRv2_rt0[i]->Write();    
+  }
+  
   hLu1->Write();
   hLu2->Write();  
   hLv1->Write();  
@@ -1017,18 +1580,71 @@ void VDCt0::MakeRoot(string ofname){
     gLv2->SetName("gLv2");
     gLv2->Write();  
 
+   fnew->Close();
+}
+
+/////////////////////////////////////////////////////
+
+
+void VDCt0::MakeRoot_c(string ofname){
+
+  fnew = new TFile(Form("%s",ofname.c_str()),"recreate");
+  tnew =new TTree("T",ofname.c_str());
+
+  //======= Write ========//
+
+
+
   for(int i=0;i<nwire;i++){
 
-    hRu1_rtime[i]->Write();
-    hRu2_rtime[i]->Write();
-    hRv1_rtime[i]->Write();
-    hRv2_rtime[i]->Write();
-    hLu1_rtime[i]->Write();
-    hLu2_rtime[i]->Write();
-    hLv1_rtime[i]->Write();
-    hLv2_rtime[i]->Write();
+    hRu1_time[i]->Write();
+    hRu2_time[i]->Write();
+    hRv1_time[i]->Write();
+    hRv2_time[i]->Write();
+    hLu1_time[i]->Write();
+    hLu2_time[i]->Write();
+    hLv1_time[i]->Write();
+    hLv2_time[i]->Write();
+    fLu1_t0[i]->SetTitle(Form("%lf * x + %lf",Lu1_p0[i],Lu1_p1[i]));
+    fLu1_t0[i]->Write();
+    fLu2_t0[i]->SetTitle(Form("%lf * x + %lf",Lu2_p0[i],Lu2_p1[i]));    
+    fLu2_t0[i]->Write();
+    fLv1_t0[i]->SetTitle(Form("%lf * x + %lf",Lv1_p0[i],Lv1_p1[i]));
+    fLv1_t0[i]->Write();
+    fLv2_t0[i]->SetTitle(Form("%lf * x + %lf",Lv2_p0[i],Lv2_p1[i]));    
+    fLv2_t0[i]->Write();    
+    fRu1_t0[i]->Write();
+    fRu2_t0[i]->Write();
+    fRv1_t0[i]->Write();
+    fRv2_t0[i]->Write();
     
   }
+  
+  hLu1_c->Write();
+  hLu2_c->Write();  
+  hLv1_c->Write();  
+  hLv2_c->Write();
+  hRu1_c->Write();
+  hRu2_c->Write();  
+  hRv1_c->Write();  
+  hRv2_c->Write();
+    gRu1_c->SetName("gRu1");
+    gRu1_c->Write();
+    gRu2_c->SetName("gRu2");
+    gRu2_c->Write();
+    gRv1_c->SetName("gRv1");
+    gRv1_c->Write();
+    gRv2_c->SetName("gRv2");
+    gRv2_c->Write();
+    gLu1_c->SetName("gLu1");
+    gLu1_c->Write();
+    gLu2_c->SetName("gLu2");
+    gLu2_c->Write();
+    gLv1_c->SetName("gLv1");
+    gLv1_c->Write();
+    gLv2_c->SetName("gLv2");
+    gLv2_c->Write();  
+
    fnew->Close();
 }
 

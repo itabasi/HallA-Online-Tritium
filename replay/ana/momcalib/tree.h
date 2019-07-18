@@ -15,7 +15,7 @@ class tree{
   ~tree();
  public:
 
-  
+  void SetRun(string ifname);  
   void ChainTree(string ifname);
   void SetBranch();
   void NewBranch(string ofname, bool rarm);
@@ -46,6 +46,7 @@ class tree{
   double Rgssum;
   double Lpssum;
   double Lshsum;
+  double Lcersum;
   //----- at target ----------//
   double Rp[Max],Rpx[Max],Rpy[Max],Rpz[Max],Lp[Max],Lpx[Max],Lpy[Max],Lpz[Max];
   double Rth[Max],Rph[Max],Rx[Max],Ry[Max],Rz[Max];

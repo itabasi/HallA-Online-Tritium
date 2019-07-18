@@ -46,7 +46,7 @@ public:
   double rbax, rbay, rbbx, rbby;  // BPM
   double rbx, rby;  // from raster
   double bpmaws, bpmbws;  // Sum of BPM raw cur
-  
+  double HALLA_p; //beam momentum  
 
 
 ///////////////////

@@ -25,6 +25,9 @@ struct TreeBranch{
   double RXt,RYt,RXpt,RYpt;
   double LXFP,LYFP,LXpFP,LYpFP;
   double LXt,LYt,LXpt,LYpt;
+  double Lp[100],Rp[100],Bp;
+  double Lp_c[100],Rp_c[100],Bp_c;  
+  double dpe,dpe_[10],dpk[10];  
 };
 static TreeBranch tr;
 
@@ -53,6 +56,7 @@ class ana : public Tree
     void SetRunList(string ifname);
     void SetMaxEvent( int N )  { ENumMax = N; }
     void Draw_mm();
+    double Eloss(double xp,double z,char* arm);
  private:
     int ENumMax;
     int ENum;

@@ -46,6 +46,8 @@ int main(int argc, char** argv){
   string   print_name, root_name;
   bool sigle_flag=false;
   bool runlist_flag=false;
+  bool root_flag=false;
+  bool print_flag=false;
   //  istringstream runnum;
    int runnum; 
   
@@ -57,6 +59,9 @@ int main(int argc, char** argv){
     case 'i':
       runnum=atoi(optarg);
       cout<<"Run num : "<<runnum<<endl;
+      root_flag=true;
+      print_flag=true;
+      runlist_flag=false;
       break;      
       
     case 'f':
@@ -64,8 +69,24 @@ int main(int argc, char** argv){
       cout<<"input filename : "<<ifname<<endl;
       runlist_flag=true;
       break;
+
+    case 'r':
+      root_name = optarg;
+      root_flag=true;
+      print_flag=false;
+      cout<<"output rootname : "<<root_name<<endl;
+      break;
+
+    case 'w':
+      print_name = optarg;
+      print_flag=true;
+      cout<<"output pdfname : "<<print_name<<endl;
+      break;      
+      
     case 'o':
       ofname = optarg;
+      print_flag=true;
+      root_flag=true;
       root_name="./../../rootfiles/VDC/t0tuned/" + ofname + ".root";
       print_name="./../../pdf/VDC/ita_mac/t0tuned/" +ofname + ".pdf";
       break;
@@ -90,41 +111,60 @@ int main(int argc, char** argv){
   string print_end;
   string root_init;
   string root_end;
-  param_init="./param/t0tuned/";
-  print_init="../../pdf/VDC/ita_mac/t0tuned";
-  root_init="../../rootfiles/VDC/t0tuned";
+  
+  //  param_init="./param/t0tuned/";
+  //  print_init="../../pdf/VDC/ita_mac/t0tuned";
+  //  root_init="../../rootfiles/VDC/t0tuned";
+  param_init="./param/initial/";
+  print_init="../../pdf/VDC/ita_mac/initial/";
+  root_init="../../rootfiles/VDC/initial/";  
   print_end=".pdf";
   param_end=".dat";
   root_end=".root";
+
+  
   ostringstream run;
   run<<runnum<<"-"<<runnum+9;
   string def_param = "./param/def_t0.dat";
-  string param_name = param_init + run.str() + param_end;
+  //  string param_name = param_init + run.str() + param_end;
 
+
+  
   if(runlist_flag==0){
   print_name = print_init + run.str() + print_end;
   root_name = root_init + run.str() + root_end;
 
   cout<<"print file: "<<print_name<<endl;
-  cout<<"param file: "<<param_name<<endl;
+  //  cout<<"param file: "<<param_name<<endl;
   }
- TApplication *theApp =new TApplication("App",&argc,argv);  
+
   
+ TApplication *theApp =new TApplication("App",&argc,argv);  
+
+ gStyle->SetOptStat(000001111);
    VDCt0* vdct0= new VDCt0();
+    gROOT->SetBatch(1);
    vdct0->Deft0(def_param);   
    if(runlist_flag) vdct0->SetRunList(ifname);
    else   vdct0->SetRun(runnum);
    vdct0->SetBranch();
    vdct0->MakeHist();
    vdct0->Fill();
-   vdct0->Write(param_name);
+   vdct0->Sett0();   
+   //   vdct0->Write(param_name);
    vdct0->Draw();
-   vdct0->Print(print_name);
-   vdct0->MakeRoot(root_name);
-   gROOT->SetBatch(1);
+   if(print_flag)vdct0->Print_c(print_name);
+   if(root_flag)vdct0->MakeRoot_c(root_name);
+
+   cout<<"======= Output File ========"<<endl;
+   if(root_flag)   cout<<"root files : "<<root_name<<endl;
+   if(print_flag)   cout<<"pdf name : "<<print_name<<endl;
+
+
    gSystem->Exit(1);
    theApp->Run();
 
+   
  
  return 0;
 

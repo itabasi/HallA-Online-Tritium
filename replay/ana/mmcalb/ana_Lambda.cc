@@ -54,6 +54,49 @@ void ana::SetRunList(string ifname){
 }
 ////////////////////////////////////////////////////////////////////////////
 
+double ana::Eloss(double xp,double z,char* arm){
+
+  double hrs_ang=13.2*3.14159/180.;
+  double x = - tan(hrs_ang-xp); //xp : theta [rad]
+  double ph[3],pl[2];
+  double dEloss;
+  bool high;
+  
+  if(z>0.08)high=false;
+  else high=true;
+  
+    //==== thickness 0.400 mm ========//
+
+  if(arm=="R"){
+    ph[0] = -1.3175;
+    ph[1] = -4.6151;
+    ph[2] = 2.0369;
+    pl[0] = 3.158e-2;
+    pl[1] = 4.058e-1;
+  }else if(arm=="L"){
+    ph[0] = -1.3576;
+    ph[1] = -4.5957;
+    ph[2] = 2.0909;
+    pl[0] = 6.2341e-3;
+    pl[1] = 4.0336e-1;
+  }
+
+  double dEloss_h = ph[0]*sin(ph[1]*x)+ph[2];
+  double dEloss_l = pl[0]*x +pl[1];
+
+  
+  if(high)dEloss = dEloss_h;
+  else dEloss = dEloss_l;
+  //==== thickness 0.4 mm in beam energy loss ======//
+  if(arm=="0")dEloss=0.23; //[MeV/c]
+  dEloss=dEloss/1000.; // [GeV/c]
+  return dEloss;
+
+  
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
 void ana::Loop(){
   time_t start, end;
@@ -83,10 +126,12 @@ void ana::Loop(){
     //h_rbay_rbax->Fill( rbax, rbay );
     //h_rbby_rbbx->Fill( rbbx, rbby );
     //h_rby_rbx  ->Fill( rbx , rby );
+
+    
 //////////////
 //// LHRS ////
 //////////////
-
+    
     if(LHRS){
       int NLtr = (int)L_tr_n;  if(NLtr>MAX) NLtr = MAX;
       h_L_trig->Fill( L_evtype);
@@ -119,7 +164,6 @@ void ana::Loop(){
     tr.LYt=L_tr_vy[0];
     tr.LXpt=L_tr_tg_th[0];
     tr.LYpt=L_tr_tg_ph[0];
-
 
 	int s2pad = (int)L_s2_trpad[t];
         double p    = L_tr_p[t];
@@ -318,13 +362,33 @@ void ana::Loop(){
 
           if( L_Tr && L_FP && R_Tr && R_FP ){
 
-            int L_s2pad = (int)L_s2_trpad[lt];
+	    double B_p     = HALLA_p/1000.0;// [GeV/c]	    
             double L_p     = L_tr_p[lt];
+            double R_p     = R_tr_p[rt];
+
+	    tr.Lp[lt] = L_p;
+	    tr.Rp[rt] = R_p;
+	    tr.Bp     = B_p;
+	    
+	    //==== Energy Loss calibration ======//
+	    tr.dpe     = Eloss(0.0,R_tr_vz[0],"0");
+	    tr.dpk[rt] = Eloss(R_tr_tg_th[rt],R_tr_vz[rt],"R");
+	    tr.dpe_[lt]= Eloss(L_tr_tg_th[lt],L_tr_vz[lt],"L");
+	    
+	    R_p = R_p + tr.dpk[rt];
+	    L_p = L_p + tr.dpe_[lt];
+	    B_p = B_p - tr.dpe;
+
+	    tr.Lp_c[lt] = L_p;
+	    tr.Rp_c[rt] = R_p;
+	    tr.Bp_c     = B_p;
+	    
+	    //===================================//	    
+	    double B_E     = sqrt( Me*Me + B_p*B_p );
+            int L_s2pad = (int)L_s2_trpad[lt];
             double L_E     = sqrt( Me*Me + L_p*L_p );
             double L_betae = L_p / sqrt(Me*Me + L_p*L_p);
-
             int R_s2pad    = (int)R_s2_trpad[rt];
-            double R_p     = R_tr_p[rt];
             double R_E     = sqrt( MK*MK + R_p*R_p );
 	    double R_Epi   = sqrt( Mpi*Mpi + R_p*R_p );
             double R_betaK = R_p / sqrt(MK*MK + R_p*R_p);
@@ -347,11 +411,13 @@ void ana::Loop(){
             h_a2sum_ct->Fill( ct, R_a2_asum_c );
 
             TVector3 L_v, R_v, B_v;
-            double Ee = 4.3185;
+	    //         double Ee = 4.3185;
+            double Ee= B_E;	    
 	    //========== Before Tuned Parameters =========//
             L_v.SetMagThetaPhi( L_p, L_tr_tg_th[lt], L_tr_tg_ph[lt] );
             R_v.SetMagThetaPhi( R_p, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
-            B_v.SetMagThetaPhi( sqrt(Ee*Ee-Me*Me), 0, 0 );
+            B_v.SetMagThetaPhi( B_p, 0, 0 );	    
+	    //            B_v.SetMagThetaPhi( sqrt(Ee*Ee-Me*Me), 0, 0 );
 
 	    
             double mass, mm,mass_L,mass_nnL,mm_L,mm_nnL,mm_Al,mass_Al,mass2,mm2;
@@ -384,7 +450,7 @@ void ana::Loop(){
 	    //====================================//
 	    //========= 1st order tuning =========//
 	    //====================================//
-
+	    /*
             mm -= (-0.2390 * L_tr_ph[lt]) + 0.0325474;
             mm -= ( 0.0371 * R_tr_y[rt]);
             mm -= ( 0.0261 * L_tr_p[lt] - 0.0567315);
@@ -401,7 +467,7 @@ void ana::Loop(){
             mm_Al -= ( 0.0371 * R_tr_y[rt]);
             mm_Al -= ( 0.0261 * L_tr_p[lt] - 0.0567315);
 
-
+	    */
 	    
 	    
 	    if( Kaon && (fabs(ct-30.)<10. || fabs(ct+30.)<10.) ){
@@ -839,8 +905,21 @@ void ana::MakeHist(){
   tree_out ->Branch("ct"   ,&tr.coin_time ,"coin_time/D");
   tree_out ->Branch("Rp"        ,&tr.momR      ,"momR/D"     );
   tree_out ->Branch("Lp"        ,&tr.momL      ,"momL/D"     );
+
+
+  
+  tree_out ->Branch("Rth"          ,&tr.RXpt        ,"RXpt/D"       );  
+  tree_out ->Branch("Lth"          ,&tr.LXpt        ,"LXpt/D"       );  
+  tree_out ->Branch("Rph"          ,&tr.RYpt        ,"RYpt/D"       );  
+  tree_out ->Branch("Lph"          ,&tr.LYpt        ,"LYpt/D"       );
+
+  tree_out ->Branch("Rx"          ,&tr.RXt        ,"RXt/D"       );
+  tree_out ->Branch("Lx"          ,&tr.LXt        ,"LXt/D"       );  
+  tree_out ->Branch("Ry"          ,&tr.RYt        ,"RYt/D"       );  
+  tree_out ->Branch("Ly"          ,&tr.LYt        ,"LYt/D"       );    
   tree_out ->Branch("Rz"          ,&tr.zR        ,"zR/D"       );
   tree_out ->Branch("Lz"          ,&tr.zL        ,"zL/D"       );
+
   tree_out ->Branch("ac1_sum"     ,&tr.AC1_sum   ,"AC1_sum/D"  );
   tree_out ->Branch("ac2_sum"     ,&tr.AC2_sum   ,"AC2_sum/D"  );
   tree_out ->Branch("ct_acc"     ,&tr.ct_acc   ,"ct_acc/D"  );
@@ -848,9 +927,17 @@ void ana::MakeHist(){
   tree_out ->Branch("Rs0la_p"     ,&tr.Rs0la_p   ,"Rs0la_p/D"  );
   tree_out ->Branch("Rs2ra_p"     ,tr.Rs2ra_p   ,"Rs2ra_p/D"  );
   tree_out ->Branch("Rs2la_p"     ,tr.Rs2la_p   ,"Rs2la_p/D"  );
+  tree_out->Branch("Bp"     ,&tr.Bp   ,"Bp/D"  );
+  //  tree_out->Branch("Lp"     ,tr.Lp   ,"Lp[100]/D"  );
+  //  tree_out->Branch("Rp"     ,tr.Rp   ,"Rp[100]/D"  );
+  tree_out->Branch("Bp_c"     ,&tr.Bp_c   ,"Bp_c/D"  );
+  tree_out->Branch("Lp_c"     ,tr.Lp_c   ,"Lp_c[100]/D"  );
+  tree_out->Branch("Rp_c"     ,tr.Rp_c   ,"Rp_c[100]/D"  );
   tree_out ->Branch("trig"     ,&tr.trig   ,"trig/D"  );
-
-
+  tree_out->Branch("dpe"     ,&tr.dpe   ,"dpe/D"  );
+  tree_out->Branch("dpe_"     ,tr.dpe_   ,"dpe_[10]/D"  );
+  tree_out->Branch("dpk"     ,tr.dpk   ,"dpk[10]/D"  );
+  
 // Hist name is defined by "h + LorR + variable" for TH1.
 //                         "h + LorR + variableY + variableX" for TH2.
 /////////////
@@ -1319,7 +1406,7 @@ int main(int argc, char** argv){
   else Ana-> SetRunList(runlistname);
 
   Ana->Loop();
-  Ana->Draw();               // save histograms to pdf file
+  if(pdf_out)  Ana->Draw();               // save histograms to pdf file
   if( root_out ){ Ana->Close(); }
 
   

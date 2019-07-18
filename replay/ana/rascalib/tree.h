@@ -137,7 +137,7 @@ void tree::Chain_Tree(string ifname)
 
 void tree::SetBranch(){
 
-  t1->SetBranchAddress("fEvtHdr.fRun", &runnum);
+  //  t1->SetBranchAddress("fEvtHdr.fRun", &runnum);
   t1->SetBranchAddress("HALLA_p", &hallap);
   t1->SetBranchAddress("DR.T1", &trig1);
   t1->SetBranchAddress("DR.T4", &trig4);

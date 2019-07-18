@@ -47,17 +47,19 @@ int main(int argc, char** argv){
   double tdc_time=58.0e-3;//[ns]
   string ifname = "/data1/rootfiles/tritium_111721.root";
   string ofname = "ang_rhrs.root";
-  string matrix_name="./matrix /zt_RHRS_opt.dat";
-  string ofMTPname="./matrix/zt_RHRS_opt_new.dat";
-  string matrix_xp="sample_matrix/newpar_xpt_2.dat";
-  string matrix_yp="sample_matrix/newpar_ypt_2.dat";
+  string matrix_name="./matrix /momcalib_matrix.dat";
+  string ofMTPname="./matrix/momcalib_test.dat";
   string opt_file="./scale_offset_20190210.dat";  
+  string iteration;
   bool output_flag = false;
   bool output_tree_flag = false;
   bool draw_flag = false;
   bool root_flag=false;
+  bool matrix_flag=false;
   // bool RHRS_flag=true;
+  bool single=false;
   bool RHRS_flag=false; 
+  bool tuning_flag=false;
   string pngname;
   extern char *optarg;
   //  char *root_init="/w/halla-scifs17exp/triton/itabashi/rootfiles/calib_root/";//ifarm
@@ -68,76 +70,75 @@ int main(int argc, char** argv){
   string dat_end=".dat";
   string matrix="matrix/zt_RHRS_2.dat";
   
-  while((ch=getopt(argc,argv,"h:f:x:r:y:o:RLbcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:s:t:f:x:r:y:m:o:i:RLbcop"))!=-1){
     switch(ch){
+
+      
     case 'f':
       ifname = optarg;
       cout<<"input filename : "<<ifname<<endl;
       break;
 
+    case 's':
+      root_flag = true;
+      draw_flag = false;
+      single=true;
+      ifname = optarg;
+      cout<<"output root filename : "<<ofname<<endl;      
+      break;      
+
+      
     case 'r':
       root_flag = true;
       draw_flag = false;
       ofname = optarg;
       cout<<"output root filename : "<<ofname<<endl;      
       break;
+
       
     case 't':
-      ofMTPname = optarg;
+      ofMTPname  = optarg;
       cout<<"output new parameter filename : "<<ofMTPname<<endl;      
+      matrix_flag=true;
       break;
 
-
+    case 'i':
+      iteration =optarg;
+      tuning_flag=true;
+      nite=atoi(iteration.c_str());
+      cout<<"#iteration : "<<nite<<endl;
+      break;
+      
     case 'o':
       root_flag = true;
-      //      cout<<"root flag: "<<root_flag<<endl;
       draw_flag = false;
+      matrix_flag=true;
       ofname = optarg;
       ofname =root_init+ ofname+ root_end;
       ofMTPname=optarg;
       ofMTPname = dat_init + ofMTPname;//+ dat_end;
 
-
       cout<<"output root filename : "<<ofname<<endl;      
-      cout<<"output new parameter filename : "<<ofMTPname<<endl;      
+      cout<<"output new parameter filename : "<<ofMTPname + ".dat"<<endl;      
       break;
-
-    case 'x':
-    matrix_xp=optarg;
-    cout<<"input Xp matrix filename: "<<matrix_xp<<endl;
-    break;
-
-    case 'y':
-    matrix_yp=optarg;
-    cout<<"input Yp matrix filename: "<<matrix_yp<<endl;
-    break;
-
       
     case 'b':
       draw_flag = false;
       cout<<"BACH MODE!"<<endl;
       break;
-  
 
-    case 'R':
-      RHRS_flag = true;
-      //     matrix_name = optarg;   
-     cout<<"R-HRS analysis"<<endl;
+    case 'm':
+      matrix_name =optarg;
       break;
-
-    case 'L':
-      RHRS_flag =false;
-      //      matrix_name = optarg;
-      cout<<"L-HRS analysis"<<endl;
-      break;
+      
 
 
     case 'h':
       cout<<"-f : input root filename"<<endl;
-      cout<<"-w : output pdf filename"<<endl;
-      cout<<"-RL: input HRS R or L Matrix Parameter name"<<endl;
+      cout<<"-o : input matrix filename"<<endl;      
+      //      cout<<"-w : output pdf filename"<<endl;
       cout<<"-r : output root filename"<<endl;
-      cout<<"-t : output tuning matrix parameter name"<<endl;
+      //      cout<<"-t : output tuning matrix parameter name"<<endl;
       cout<<"-o : output root & tuning file name "<<endl;
       return 0;
       break;
@@ -160,21 +161,37 @@ int main(int argc, char** argv){
   gSystem->Load("libMinuit");
 
   momcalib* Mom=new momcalib();
-
-  Mom->SetRoot(ifname);
+  Mom->mode("C");//Coincidence mode
+  //  Mom->mode("L");//LHRS mode  
+  if(single)Mom->SingleRoot(ifname);
+  else   Mom->SetRoot(ifname);
   if(root_flag)Mom->NewRoot(ofname);
-  Mom->Fill();
-  //Mom->EventSelection();
-  if(root_flag)Mom->Close();  
+  Mom->MakeHist();
+  Mom->MTParam(matrix_name);
+  Mom->EventSelection();
+  if(tuning_flag)Mom->MomTuning(ofMTPname);
+  //  if(root_flag && tuning_flag) Mom->Fill();  
+  if(root_flag) Mom->Close();  
+
+
+  cout<<endl;
+  cout<<"============== Input files ==============="<<endl;
+  cout<<"root files   : "<<ifname<<endl;
+  cout<<"matrix param : "<<matrix_name<<endl;
+  cout<<"analysis mode : "<<"Coincidence mode "<<endl;
+  cout<<endl;
+  cout<<"============== Output files ==============="<<endl;
+  if(root_flag)cout<<"Root file   : "<<ofname<<endl;
+  if(matrix_flag)cout<<"New matrix file : "<<ofMTPname<<endl;
+  cout<<"==========================================="<<endl;
+  cout<<endl;
+
+
   
    gSystem->Exit(1);
    theApp->Run();
 
  
-  
-  
-
-
   return 0;
 
 }//end main

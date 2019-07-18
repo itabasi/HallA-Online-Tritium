@@ -16,7 +16,8 @@ const double  Ztm = -0.15,Ztr=0.35;
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
 #define max 100
-const int nn = 4; // 4th order matrix using xf, xpf, y, ypf, and zt
+const int nn =  4; // 4th order matrix using xf, xpf, y, ypf, and zt
+const int nnz = 3; // 3th order matrix using zt
 const int nParamT = 126;  // Number of parameters
 
   double Pxpt[nParamT];
@@ -32,8 +33,8 @@ double fcent[nfoil] = {-0.125, -0.100, -0.075, -0.050, -0.025,
 		       0.00, 0.025, 0.05, 0.10, 0.125}; 
 double fcent_real[nfoil] = {-0.125, -0.100, -0.075, -0.050, -0.025,
 			    0.000, 0.025, 0.050, 0.100, 0.125};
-//double selection_width = 0.0125; 
-double selection_width = 0.008; // event selection width for z
+double selection_width = 0.0125; 
+//double selection_width = 0.008; // event selection width for z
 
 
 const double step = 0.492 * 2.54;
