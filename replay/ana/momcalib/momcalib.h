@@ -12,10 +12,11 @@ bool RHRS;
 bool LHRS;
 const int MAX=1000;
 int nite=0;
-
+int MODE=0;
 
 extern double s2f1_off(int i,char* ARM,char* MODE, int KINE);
 extern void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/);
+extern void fcn_test(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/);
 //extern double tune(double* pa, int j, int angflag); 
 extern  double Calc_ras(double a,double b,double c){return  a *b + c;};  
 extern double calcf2t_ang(double* P,double xf, double xpf, double yf, double fpf,double z);
@@ -24,6 +25,7 @@ extern double calcf2t_mom(double* P, double xf, double xpf, double yf, double yp
 
 extern double calcf2t_mom_RL( double* RP, double Rxf, double Rxpf, double Ryf, double Rypf, double Rzt,
 			      double* LP, double Lxf, double Lxpf, double Lyf, double Lypf, double Lzt	     );
+
 
 
 
@@ -66,7 +68,6 @@ class momcalib : public tree
   void Fill();
   void Close();
 
-  int MODE=5;
 
    Setting *set = new Setting();
 
@@ -554,7 +555,17 @@ void momcalib::MakeHist(){
     }
   
 
-  
+  gchi_p->SetMarkerSize(1.0);
+  gchi_p->SetMarkerColor(2);  
+  gchi_p->SetMarkerStyle(20);
+
+  gchi_Rp->SetMarkerSize(1.0);
+  gchi_Rp->SetMarkerColor(2);  
+  gchi_Rp->SetMarkerStyle(20);    
+
+  gchi_Lp->SetMarkerSize(1.0);
+  gchi_Lp->SetMarkerColor(2);  
+  gchi_Lp->SetMarkerStyle(20);    
   
 }
 
@@ -598,8 +609,8 @@ void momcalib::MTParam(string mtparam){
   MT[6] = true;  // LHRS theta correction
   MT[7] = true;  // LHRS phi correction
   //-------- momentum calibration ---------//
-  //  MT[8] = true; // RHRS momentum correction  
-  //  MT[9] = true; // LHRS momentum correction  
+  MT[8] = true; // RHRS momentum correction  
+  MT[9] = true; // LHRS momentum correction  
   ploss = true;  // Energy Loss
   //================================================//
 
@@ -1218,7 +1229,7 @@ void momcalib::EventSelection(){
   int nSig=0;
   
   ENum= T->GetEntries();
-  ENum=1000000;
+  ENum=1000000; //test event (TE)
   cout<<"Select Events : "<<ENum<<endl;
   d=div(ENum,100);
   int nd=0;
@@ -1343,7 +1354,7 @@ void momcalib::EventSelection(){
     rssy_c=SSy(Rz[0],Rph[0]);        
     hRss_c->Fill(rssy_c,rssx_c);
 
-    momCorr(MT[8],MT[9]);
+    //    momCorr(MT[8],MT[9]);
     hRp_c->Fill(Rp[0]);
     hLp_c->Fill(Lp[0]);    
     //    plossCorr(ploss);
@@ -1558,7 +1569,7 @@ void momcalib::MomTuning(string ofname){
     chi_sq[i] = tune(Opt_par,i,0);
     }
 
-    cout << " Tuning# = " << i << ": chisq = ";
+    cout << " Tuning# = " << i+1 << ": chisq = ";
 
     if(MODE==-1){
       cout  << chi_sq1[i] << endl;
@@ -1596,6 +1607,7 @@ void momcalib::MomTuning(string ofname){
 			<< " " << c
 			<< " " << d
 			<< " " << e << endl;
+		  cout<<"Rparam ["<<nppp<<"] "<<Opt_par_R[nppp]<<" "<<a<<" "<<b<<" "<<c<<" "<<d<<" "<<e<<endl;		  		  
 		  }else if(MODE==1){
 		  *ofs2 << Opt_par_L[nppp] 
 			<< " " << a 
@@ -1603,6 +1615,7 @@ void momcalib::MomTuning(string ofname){
 			<< " " << c
 			<< " " << d
 			<< " " << e << endl;
+		  cout<<"Lparam ["<<nppp<<"] "<<Opt_par_L[nppp]<<" "<<a<<" "<<b<<" "<<c<<" "<<d<<" "<<e<<endl;		  
 		  }else if(MODE==0){
 		  *ofs1 << Opt_par_R[nppp] 
 			<< " " << a 
@@ -1610,7 +1623,7 @@ void momcalib::MomTuning(string ofname){
 			<< " " << c
 			<< " " << d
 			<< " " << e << endl;
-		  *ofs2 << Opt_par_L[nppp+nParamTp] 
+		  *ofs2 << Opt_par_L[nppp] 
 			<< " " << a 
 			<< " " << b
 			<< " " << c
@@ -1660,6 +1673,10 @@ double momcalib::Eloss(double xp, double z,char* arm){
   double ph[3],pl[2];
   double dEloss;
   bool high;
+
+  double dEloss_h = 0.0;
+  double dEloss_l = 0.0;
+
   
   if(z>0.08)high=false;
   else high=true;
@@ -1680,8 +1697,8 @@ double momcalib::Eloss(double xp, double z,char* arm){
     pl[1] = 4.0336e-1;
   }
 
-  double dEloss_h = ph[0]*sin(ph[1]*x)+ph[2];
-  double dEloss_l = pl[0]*x +pl[1];
+  dEloss_h = ph[0]*sin(ph[1]*x)+ph[2];
+  dEloss_l = pl[0]*x +pl[1];
 
   
   if(high)dEloss = dEloss_h;
@@ -1918,7 +1935,11 @@ void momcalib::Close(){
    hmm_L->Write();
    hmm_S->Write();
    hmm_cut->Write();
-   
+
+   if(MODE==0)gchi_p->SetName("gchi_p");
+   else if(MODE==-1)gchi_Rp->SetName("gchi_p");
+   else if(MODE== 1)gchi_Lp->SetName("gchi_p");
+   gchi_p->Write();
    ofp->Close();
 
 }
@@ -1967,7 +1988,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 // #############################################################
 {
   
-  const double sigma = 0.01;//[GeV/c^2]
+  const double sigma = 0.1;//[GeV/c^2]
   double ztR      = 0.0;
   double refpos   = 0.0;
   double residual = 0.0;
@@ -1981,6 +2002,18 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
   //  double rp,lp;
   double chi2=0.0;
   double rx_c,ry_c,rth_c,rph_c,rz_c,lx_c,ly_c,lth_c,lph_c;
+
+
+
+  if(MODE==0){
+    for(int i=0 ; i<nParamTp ; i++){
+      Opt_par_R[i]=param[i];
+      Opt_par_L[i]=param[i+nParamTp];
+      //      cout<<"i "<<i<<" Rparam "<<param[i]<<" Lparam "<<param[i+nParamTp]<<endl;
+    }
+  }
+
+
   for(int i=0 ; i<ntune_event ; i++){
 
     //====== Initialization ========//
@@ -2051,10 +2084,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
     //=============================//
    
-    
-
-    
-
+   
 
     
  //------ Set Physics value --------//
@@ -2074,28 +2104,27 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
  L_v.RotateZ( -13.2 / 180. * PI );
  R_v.RotateZ(  13.2 / 180. * PI );
 
+
  mass = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
                   - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 
-    
+ // if((Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)- (B_v - L_v - R_v)*(B_v - L_v - R_v) <0.0)mass=0.0;
+ double Ehyp=(Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek);
+ double Phyp=(B_v - L_v - R_v)*(B_v - L_v - R_v);
+
+ if(Ehyp<Phyp)mass=0.0;
+
+ 
     //======================//
     //====== Residual ======//
     //======================//
 
-    
-    residual = mass - mass_ref[i];
-    chi2=chi2 + pow(residual/sigma,2.0);
-
-
-    cout<<"i : "<<i<<endl;
-
-    cout<<" Rp w/ tuning : "<<RP<<" Lp w/  tuning : "<<LP<<endl;
-    cout<<"mass: "<<mass<<" ref:"<<mass_ref[i]<<" chi2 "<<chi2<<endl;
+ residual = mass - mass_ref[i];
+ // residual = mass - 1.0; 
+ chi2=chi2 + pow(residual/sigma,2.0)/ntune_event;
   }
-
- 
+  
 }//end fcn
-
 
 
 // #############################################################
@@ -2113,21 +2142,10 @@ double momcalib::tune(double* pa, int j, int MODE)
   }
 
 
-  //======= Coincidence analysis ========//
-  if(MODE==0){
-    for(int i=0;i<nParamTp;i++){
-      Opt_par_R[i]=pa[i];
-      Opt_par_L[i]=pa[i+nParamTp];
-    }
-  }
-  //======================================//
-
-
 
   TMinuit* minuit= new TMinuit(allparam);
   minuit->SetFCN(fcn); // fcn Chi-square function
-
-
+  // minuit->SetFCN(fcn_test); // fcn Chi-square function as a test
   double start[allparam];
   double step[allparam];
   const int nMatT =nnp;  
@@ -2149,7 +2167,7 @@ double momcalib::tune(double* pa, int j, int MODE)
 		if (a+b+c+d+e==n){
 		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt){
 		    start[npar] = pa[npar];
-		     step[npar] = 1.0e-3;
+		    step[npar] = 1.0e-3;
 		  }
 		  else{
 		    start[npar] = 0.0;
@@ -2170,53 +2188,51 @@ double momcalib::tune(double* pa, int j, int MODE)
   arglist[0] = 1.0;
   minuit -> mnexcm("SET ERR",arglist,1,ierflg);
   minuit -> SetPrintLevel(-1);
-  
+  //  minuit -> SetPrintLevel(0);  
+  // minuit -> SetPrintLevel(1);  
   double LLim[allparam];// Lower limit for all of the parameter
   double ULim[allparam];// Upper limit for all of the parameter
   char pname[500];
   for(int i=0 ; i<allparam ; i++){
     sprintf(pname,"param_%d",i+1);
-    start[i] = pa[i]; 
-    step[i] = 1.0;
 
     //          LLim[i] = pa[i] - pa[i]*0.8;
     //          ULim[i] = pa[i] + pa[i]*0.8;
-           LLim[i] = pa[i] - 0.5; // temp
-           ULim[i] = pa[i] + 0.5; // temp
-	   //          LLim[i] = pa[i] - 1000.0; // temp
-	   //          ULim[i] = pa[i] + 1000.0; // temp
-	  minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
+    LLim[i] = pa[i] - 0.5; // temp
+    ULim[i] = pa[i] + 0.5; // temp
+
+	   minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
   }
+
 
   
   // ~~~~ Strategy ~~~~
-  arglist[0] = 2.0; // original
-  //arglist[0] = 1.0; // test
+  //  arglist[0] = 2.0; // original
+  arglist[0] = 1.0; // test
   //arglist[0] = 0.0;   // test
   minuit->mnexcm("SET STR",arglist,1,ierflg);
  
   // ~~~~ Migrad + Simplex  ~~~~ 
-  //  arglist[0] = 20000;
-  //  arglist[1] = 0.01;
+  arglist[0] = 20000;
+  arglist[1] = 0.01;
   minuit -> mnexcm("MINImize",arglist,2,ierflg); // Chi-square minimization
+
   
   double amin,edm,errdef;
   int nvpar,nparx,icstat;
   double er;
-  
+  amin=0.0;  
   minuit -> mnstat(amin,edm,errdef,nvpar,nparx,icstat);
   minuit -> mnprin(0,amin);
-
-  cout<<endl;
-  cout<<"amin: "<<amin<<" edm: "<<edm<<" errdef: "<<errdef<<" nvpar: "<<nvpar<<endl;
-  cout<<endl;
-  if(amin>0) chi2=amin;
-
   
+  if(amin>0) chi2=amin;
+ 
   for(int i=0 ; i<allparam ; i++){
-    if(MODE==0){minuit -> GetParameter(i,Opt_par[i],er);
-      if(i<allparam/2){minuit -> GetParameter(i,Opt_par_R[i],er);}// RHRS momentum parameters
-      else {minuit -> GetParameter(i,Opt_par_L[i],er);}// RHRS momentum parameters
+    if(MODE==0){
+      minuit -> GetParameter(i,Opt_par[i],er);
+      if(i<allparam/2){minuit -> GetParameter(i,Opt_par_R[i],er);}
+      else {minuit -> GetParameter(i,Opt_par_L[i-allparam/2],er);}
+      
     }else if(MODE==-1){minuit -> GetParameter(i,Opt_par_R[i],er);// RHRS momentum parameters
     }else if(MODE==1)minuit -> GetParameter(i,Opt_par_L[i],er); // LHRS momentum parameters
 
@@ -2377,8 +2393,14 @@ double calcf2t_zt(double* P, double xf, double xpf,
 }
 
 
-
-
+// #############################################################
+void fcn_test(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/)
+// #############################################################
+{
+  double f;
+  f = param[0]*param[0] + param[0] + 1;
+  
+}
 
 
 

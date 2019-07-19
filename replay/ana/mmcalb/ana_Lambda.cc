@@ -61,7 +61,9 @@ double ana::Eloss(double xp,double z,char* arm){
   double ph[3],pl[2];
   double dEloss;
   bool high;
-  
+
+  double dEloss_h = 0.0;
+  double dEloss_l = 0.0;
   if(z>0.08)high=false;
   else high=true;
   
@@ -81,8 +83,8 @@ double ana::Eloss(double xp,double z,char* arm){
     pl[1] = 4.0336e-1;
   }
 
-  double dEloss_h = ph[0]*sin(ph[1]*x)+ph[2];
-  double dEloss_l = pl[0]*x +pl[1];
+  dEloss_h = ph[0]*sin(ph[1]*x)+ph[2];
+  dEloss_l = pl[0]*x +pl[1];
 
   
   if(high)dEloss = dEloss_h;
@@ -366,22 +368,26 @@ void ana::Loop(){
             double L_p     = L_tr_p[lt];
             double R_p     = R_tr_p[rt];
 
+
 	    tr.Lp[lt] = L_p;
 	    tr.Rp[rt] = R_p;
 	    tr.Bp     = B_p;
 	    
 	    //==== Energy Loss calibration ======//
+
+	    double B_pc,R_pc,L_pc;
+
 	    tr.dpe     = Eloss(0.0,R_tr_vz[0],"0");
 	    tr.dpk[rt] = Eloss(R_tr_tg_th[rt],R_tr_vz[rt],"R");
 	    tr.dpe_[lt]= Eloss(L_tr_tg_th[lt],L_tr_vz[lt],"L");
 	    
-	    R_p = R_p + tr.dpk[rt];
-	    L_p = L_p + tr.dpe_[lt];
-	    B_p = B_p - tr.dpe;
+	    R_pc = R_p + tr.dpk[rt];
+	    L_pc = L_p + tr.dpe_[lt];
+	    B_pc = B_p - tr.dpe;
 
-	    tr.Lp_c[lt] = L_p;
-	    tr.Rp_c[rt] = R_p;
-	    tr.Bp_c     = B_p;
+	    tr.Lp_c[lt] = L_pc;
+	    tr.Rp_c[rt] = R_pc;
+	    tr.Bp_c     = B_pc;
 	    
 	    //===================================//	    
 	    double B_E     = sqrt( Me*Me + B_p*B_p );
@@ -411,16 +417,27 @@ void ana::Loop(){
             h_a2sum_ct->Fill( ct, R_a2_asum_c );
 
             TVector3 L_v, R_v, B_v;
+
 	    //         double Ee = 4.3185;
-            double Ee= B_E;	    
+            double Ee= B_E;
 	    //========== Before Tuned Parameters =========//
             L_v.SetMagThetaPhi( L_p, L_tr_tg_th[lt], L_tr_tg_ph[lt] );
             R_v.SetMagThetaPhi( R_p, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
             B_v.SetMagThetaPhi( B_p, 0, 0 );	    
 	    //            B_v.SetMagThetaPhi( sqrt(Ee*Ee-Me*Me), 0, 0 );
 
+
+	    //======== w/ Energy Loss correction ============//
+            TVector3 L_vc, R_vc, B_vc; // Energy loss correction
+	    double Ee_c = sqrt( Me*Me + B_pc*B_pc );
+	    double L_Ec = sqrt( Me*Me + L_pc*L_pc );
+	    double R_Ec = sqrt( MK*MK + R_pc*R_pc );
+            L_vc.SetMagThetaPhi( L_pc, L_tr_tg_th[lt], L_tr_tg_ph[lt] );
+            R_vc.SetMagThetaPhi( R_pc, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
+            B_vc.SetMagThetaPhi( B_pc, 0, 0 );	    	    
 	    
             double mass, mm,mass_L,mass_nnL,mm_L,mm_nnL,mm_Al,mass_Al,mass2,mm2;
+	    double mass_pc;
 
 	    
 
@@ -428,8 +445,14 @@ void ana::Loop(){
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
             mass2= sqrt( (Ee + mt - L_E - R_Epi)*(Ee + mt - L_E - R_Epi)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
-            mm=mass;
+
+            mass_pc = sqrt( (Ee_c + mt - L_Ec - R_Ec)*(Ee_c + mt - L_Ec - R_Ec)
+                              - (B_vc - L_vc - R_vc)*(B_vc - L_vc - R_vc) );
+
+	    mm=mass;
             mm2=mass2;
+
+
 
 	    
 	    // Lambda Mass //
@@ -447,6 +470,10 @@ void ana::Loop(){
 	    mm_Al=mass_Al;
 
 
+
+
+
+	    
 	    //====================================//
 	    //========= 1st order tuning =========//
 	    //====================================//
@@ -521,6 +548,7 @@ void ana::Loop(){
               if( fabs( L_tr_vz[lt] - 0.01 ) < 0.1 && fabs( R_tr_vz[rt] - 0.01 ) < 0.1 ){
 		//                h_mm      ->Fill( mm );
                 h_mm_L    ->Fill( mm_L );
+                h_mm_L_ec    ->Fill( mass_pc);		
                 h_mm_nnL  ->Fill( mm_nnL );
                 h_ct_wK_z->Fill( ct );                
          
@@ -1182,6 +1210,7 @@ void ana::MakeHist(){
   h_peak_Al      = new TH1D("h_peak_Al","h_peak_Al",bin_mm,min_mm,max_mm); //Alminium mass bin=4 MeV
 
   h_mm_L       = new TH1D("h_mm_L"      ,"h_mm_L"      , 500,0.5,1.5); //Lambda mass range bin=2 MeV
+  h_mm_L_ec       = new TH1D("h_mm_L_ec"      ,"h_mm_L_ec"      , 500,0.5,1.5); //Lambda mass range bin=2 MeV  
   h_mm_nnL       = new TH1D("h_mm_nnL"      ,"h_mm_nnL"      , 500,2.5,3.5); //nnL mass range bin=2 MeV
   h_acc_L       = new TH1D("h_acc_L"      ,"h_acc_L"      , 500,0.5,1.5); //Lambda mass ACC  bin=2 MeV
   h_acc_nnL       = new TH1D("h_acc_nnL"      ,"h_acc_nnL"      , 500,2.5,3.5); //nnL mass ACC bin=2 MeV

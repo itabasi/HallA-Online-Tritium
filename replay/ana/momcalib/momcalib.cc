@@ -162,7 +162,7 @@ int main(int argc, char** argv){
 
   momcalib* Mom=new momcalib();
   Mom->mode("C");//Coincidence mode
-  //  Mom->mode("L");//LHRS mode  
+  // Mom->mode("L");//LHRS mode  
   if(single)Mom->SingleRoot(ifname);
   else   Mom->SetRoot(ifname);
   if(root_flag)Mom->NewRoot(ofname);
@@ -193,6 +193,6 @@ int main(int argc, char** argv){
 
  
   return 0;
-
+  
 }//end main
 

@@ -143,6 +143,7 @@ class ana : public Tree
     TH2D *h_Rx_mm, *h_Ry_mm, *h_Rth_mm, *h_Rph_mm;
     TH2D *h_Rp_Lp;
     TH1D *h_mm_L;
+    TH1D *h_mm_L_ec;
     TH1D *h_mm_nnL;
     TH1D *h_acc_L;
     TH1D *h_acc_nnL;
