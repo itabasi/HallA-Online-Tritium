@@ -505,7 +505,11 @@ void VDCt0::MakeHist(){
   max_time=500.0;
   double conv_tdc=0.5; //[ns/bin]
   bin_time=(int)((max_time-min_time)/conv_tdc); //0.5 [ns/bin]
-  // bin_time=(int)(max_time-min_time); //1.0 [ns/bin]
+  bin_time=(int)((max_time-min_time)/conv_tdc*2); //1.0 [ns/bin]
+
+  cout<<endl;
+  cout<<"bin_time : "<<bin_time<<endl;
+  cout<<endl;
   
   double min_wire=0;
   double max_wire=(double)nwire;

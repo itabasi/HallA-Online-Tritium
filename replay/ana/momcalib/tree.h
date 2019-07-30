@@ -1,6 +1,5 @@
 #ifndef tree_h
 #define tree_h 1
-
 #include <iostream>
 #include <fstream>
 #include "Setting.h"
@@ -30,7 +29,6 @@ class tree{
   double runnum;
   double hallap;
   double DRevtype;
-  
   //----- Scintillation Triger Counters -------// 
   double RF1[Max],LF1[Max];
   double Rs0r_ac[Max],Rs0l_ac[Max],Ls0r_ac[Max],Ls0l_ac[Max];

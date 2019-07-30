@@ -1,7 +1,7 @@
 void hrsAC_npe(){
 
   gStyle->SetOptLogy(1);
-  TFile* f1= new TFile("/adaqfs/home/a-onl/tritium_work/itabashi/ita_macro/rootfiles/tritium_new93403.root");
+  //  TFile* f1= new TFile("/adaqfs/home/a-onl/tritium_work/itabashi/ita_macro/rootfiles/tritium_new93403.root");
   TTree* t1 =(TTree*)f1->Get("tree");
 
   TH1F *hac1a[100]; //AC1 Ch24 Right &Left ADC

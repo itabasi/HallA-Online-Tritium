@@ -44,6 +44,7 @@ int main(int argc, char** argv){
   string ifname="";
   string ofname = "./param/test.dat";
   string   print_name, root_name;
+  string param_name ;
   bool sigle_flag=false;
   bool runlist_flag=false;
   bool root_flag=false;
@@ -115,9 +116,15 @@ int main(int argc, char** argv){
   //  param_init="./param/t0tuned/";
   //  print_init="../../pdf/VDC/ita_mac/t0tuned";
   //  root_init="../../rootfiles/VDC/t0tuned";
-  param_init="./param/initial/";
-  print_init="../../pdf/VDC/ita_mac/initial/";
-  root_init="../../rootfiles/VDC/initial/";  
+  
+  //  param_init="./param/initial/";
+  //  print_init="../../pdf/VDC/ita_mac/initial/";
+  //  root_init="../../rootfiles/VDC/initial/";
+
+  param_init="./param/t0tuned_1ns/";
+  print_init="../../pdf/VDC/ita_mac/t0tuned_1ns/";
+  root_init="../../rootfiles/VDC/t0tuned_1ns/";
+  
   print_end=".pdf";
   param_end=".dat";
   root_end=".root";
@@ -126,16 +133,18 @@ int main(int argc, char** argv){
   ostringstream run;
   run<<runnum<<"-"<<runnum+9;
   string def_param = "./param/def_t0.dat";
-  //  string param_name = param_init + run.str() + param_end;
+ 
 
 
   
   if(runlist_flag==0){
   print_name = print_init + run.str() + print_end;
   root_name = root_init + run.str() + root_end;
-
+  param_name = param_init + run.str() + param_end;
+  cout<<"root file: "<<root_name<<endl;
   cout<<"print file: "<<print_name<<endl;
-  //  cout<<"param file: "<<param_name<<endl;
+  cout<<"param file: "<<param_name<<endl;
+  
   }
 
   

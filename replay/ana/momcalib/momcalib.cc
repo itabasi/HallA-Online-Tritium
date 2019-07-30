@@ -43,7 +43,7 @@ int main(int argc, char** argv){
 
 
   gStyle->SetOptFit(111111111);
-  int ch; char* mode;
+  int ch; char* mode="C";
   double tdc_time=58.0e-3;//[ns]
   string ifname = "/data1/rootfiles/tritium_111721.root";
   string ofname = "ang_rhrs.root";
@@ -62,17 +62,18 @@ int main(int argc, char** argv){
   bool tuning_flag=false;
   string pngname;
   extern char *optarg;
+  char* Target="H";
+  char* F1tdc="1";
   //  char *root_init="/w/halla-scifs17exp/triton/itabashi/rootfiles/calib_root/";//ifarm
   string root_init="../rootfiles/";
-  
   string root_end=".root";
   string dat_init="../matrix/";
   string dat_end=".dat";
   string matrix="matrix/zt_RHRS_2.dat";
   
-  while((ch=getopt(argc,argv,"h:s:t:f:x:r:y:m:o:i:RLbcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:s:w:t:p:f:x:r:y:m:o:O:i:RLbcop"))!=-1){
     switch(ch){
-
+      
       
     case 'f':
       ifname = optarg;
@@ -95,8 +96,32 @@ int main(int argc, char** argv){
       cout<<"output root filename : "<<ofname<<endl;      
       break;
 
-      
+
     case 't':
+      Target  = optarg;
+      if(Target=="H")cout<<"Target : Hydrogen "<<endl;
+      if(Target=="T")cout<<"Target : Tritium "<<endl;      
+      break;
+
+      
+    case 'm':
+      mode  = optarg;
+      if(mode=="C")cout<<"Both arm momentum tuning "<<endl;
+      if(Target=="L")cout<<"LHRS momentum tuning "<<endl;
+      if(Target=="R")cout<<"RHRS momentum tuning "<<endl;
+      if(mode=="CA")cout<<"Both arm momentum & RHRS angle tuning "<<endl;
+      if(mode=="A")cout<<"RHRS angle tuning"<<endl;
+      break;
+      
+
+    case 'O':
+      F1tdc  = optarg;
+      cout<<"F1 resolution mode : "<<F1tdc<<endl;      
+      break;
+
+
+      
+    case 'w':
       ofMTPname  = optarg;
       cout<<"output new parameter filename : "<<ofMTPname<<endl;      
       matrix_flag=true;
@@ -127,18 +152,19 @@ int main(int argc, char** argv){
       cout<<"BACH MODE!"<<endl;
       break;
 
-    case 'm':
+    case 'p':
       matrix_name =optarg;
       break;
       
 
 
     case 'h':
-      cout<<"-f : input root filename"<<endl;
-      cout<<"-o : input matrix filename"<<endl;      
-      //      cout<<"-w : output pdf filename"<<endl;
+      cout<<"-f : input root  filename"<<endl;
+      cout<<"-p : input matrix filename"<<endl;      
+      cout<<"-w : output matrix filename"<<endl;
       cout<<"-r : output root filename"<<endl;
-      //      cout<<"-t : output tuning matrix parameter name"<<endl;
+      cout<<"-t : target mode H:hydrogen T:trititum"<<endl;
+      cout<<"-m : tuning mode C:R&L-HRS, L:L-HRS, R:R-HRS "<<endl;      
       cout<<"-o : output root & tuning file name "<<endl;
       return 0;
       break;
@@ -161,16 +187,15 @@ int main(int argc, char** argv){
   gSystem->Load("libMinuit");
 
   momcalib* Mom=new momcalib();
-  Mom->mode("C");//Coincidence mode
-  // Mom->mode("L");//LHRS mode  
+  Mom->mode(mode,Target,F1tdc);
   if(single)Mom->SingleRoot(ifname);
   else   Mom->SetRoot(ifname);
   if(root_flag)Mom->NewRoot(ofname);
   Mom->MakeHist();
   Mom->MTParam(matrix_name);
-  Mom->EventSelection();
+  if(tuning_flag)Mom->EventSelection();
   if(tuning_flag)Mom->MomTuning(ofMTPname);
-  //  if(root_flag && tuning_flag) Mom->Fill();  
+  if(root_flag) Mom->Fill();  
   if(root_flag) Mom->Close();  
 
 

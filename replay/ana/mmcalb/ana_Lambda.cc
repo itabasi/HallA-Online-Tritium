@@ -59,7 +59,7 @@ double ana::Eloss(double xp,double z,char* arm){
   double hrs_ang=13.2*3.14159/180.;
   double x = - tan(hrs_ang-xp); //xp : theta [rad]
   double ph[3],pl[2];
-  double dEloss;
+  double dEloss=0.0;
   bool high;
 
   double dEloss_h = 0.0;
@@ -83,12 +83,16 @@ double ana::Eloss(double xp,double z,char* arm){
     pl[1] = 4.0336e-1;
   }
 
-  dEloss_h = ph[0]*sin(ph[1]*x)+ph[2];
-  dEloss_l = pl[0]*x +pl[1];
+
+
 
   
-  if(high)dEloss = dEloss_h;
-  else dEloss = dEloss_l;
+  if(high){
+    dEloss_h = ph[0]*sin(ph[1]*x)+ph[2];    
+    dEloss = dEloss_h;
+  }else{
+    dEloss_l = pl[0]*x +pl[1];    
+    dEloss = dEloss_l;}
   //==== thickness 0.4 mm in beam energy loss ======//
   if(arm=="0")dEloss=0.23; //[MeV/c]
   dEloss=dEloss/1000.; // [GeV/c]

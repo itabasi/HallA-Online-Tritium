@@ -50,7 +50,6 @@ void tree::SetBranch(){
  // T->SetBranchAddress("fEvtHdr.fRun",&runnum); 
  T->SetBranchStatus("HALLA_p",1);
  T->SetBranchAddress("HALLA_p",&hallap); 
- 
  //------------------------------// 
  //------ Right Arm -------------//
  //------------------------------//

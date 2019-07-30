@@ -70,9 +70,14 @@ int main(int argc, char** argv){
       break;
     case 'o':
       ofname = optarg;
-      root_name="./../../rootfiles/VDC/initial/" + ofname + ".root";
-      print_name="./../../pdf/VDC/ita_mac/initial/" +ofname + ".pdf";
-      param_name="./param/initial/" + ofname;
+
+      root_name="./../../rootfiles/VDC/t0ttuned_1ns/" + ofname + ".root";
+      print_name="./../../pdf/VDC/ita_mac/t0tuned_1ns/" +ofname + ".pdf";
+      param_name="./param/t0tuned_1ns/" + ofname;
+      
+      //      root_name="./../../rootfiles/VDC/initial/" + ofname + ".root";
+      //      print_name="./../../pdf/VDC/ita_mac/initial/" +ofname + ".pdf";
+      //      param_name="./param/initial/" + ofname;
       outname=false;
       break;
       
@@ -103,9 +108,12 @@ int main(int argc, char** argv){
   //  param_init="./param/t0tuned/";
   //  print_init="../../pdf/VDC/ita_mac/t0tuned";
   //  root_init="../../rootfiles/VDC/t0tuned";
-  param_init="./param/";
-  print_init="../../pdf/VDC/ita_mac/initial/";
-  root_init="../../rootfiles/VDC/initial/";  
+  //  param_init="./param/";
+  //  print_init="../../pdf/VDC/ita_mac/initial/";
+  //  root_init="../../rootfiles/VDC/initial/";
+  param_init="./param/t0tuned_1ns/";
+  print_init="../../pdf/VDC/ita_mac/t0tuned_1ns/";
+  root_init="../../rootfiles/VDC/t0tuned_1ns/";    
   print_end=".pdf";
   param_end=".dat";
   root_end=".root";

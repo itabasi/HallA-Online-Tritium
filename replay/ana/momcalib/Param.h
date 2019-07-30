@@ -40,7 +40,7 @@ double Pxpt[nParamT],Pxpt_L[nParamT];
 double Pypt[nParamT],Pypt_L[nParamT];
 double Prp[nParamTp],Plp[nParamTp];
 double Opt_par_R[nParamTp],Opt_par_L[nParamTp];
-double Opt_par[nParamTp*2];
+double Opt_par[nParamTp*2+nParamT*2];
 
 //const int nmax = 1000; // Number of events used for tuning
 const int nmax=10000;// Number of events used for tuning;
@@ -95,12 +95,16 @@ double OptPar2[nParamT];
 //double Ras_cury[nmax];
 
 const double hrs_ang = 13.2 * 3.14159 / 180.;
-const double tdc_time =56.0e-3;//[ns]
+//const double tdc_time =56.0e-3;//[ns]
 
 //======= Coincidence Offset Paramters ===========//
 
 const double  RS2_off_H1[16]={-16828.7,-16863,-16894,-16893.3,-16870.9,-16867.2,-16900.3,-16876.8,17554.1,-16861.6,-16895,-16890.7,-16854.6,-16852.9,-16850.5,-16861.9};
 const double  LS2_off_H1[16]={-25335,-25385.6,-25367,-25392.1,-25391.7,-25386.4,-25422.1,-25428.9,-25414.9,-25424.7,-25436.9, -25381.2,-25390,-25413.4,-25428.7,-26640.8};
+
+const double  RS2_off_H2[16]={-16911.4,-16864.3,-16900,-16897,-16873.8,-16868.4,-16901.1,-16876.8,-16895.4,-16860.9,-16893.1,-16884.4,-16847.3,-16842.7,-16836.9,-16882.6};
+const double  LS2_off_H2[16]={-25336.9,-25386.6,-25367.5,-25392.3,-25391.1,-25386.2,-25422,-25428.9,-25417.3,-25426.8,-25438.7,-25383.4,-25396,-25418.5,-25436.4,-26082.1};
+
 
 const  double pathl_off=-470.5;
 const  double s2_offset=-499.75;
