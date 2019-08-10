@@ -44,7 +44,7 @@ int main(int argc, char** argv){
 
   gStyle->SetOptFit(111111111);
   int ch; char* mode="C";
-  double tdc_time=58.0e-3;//[ns]
+  //  double tdc_time=58.0e-3;//[ns]
   string ifname = "/data1/rootfiles/tritium_111721.root";
   string ofname = "ang_rhrs.root";
   string matrix_name="./matrix /momcalib_matrix.dat";
@@ -63,7 +63,8 @@ int main(int argc, char** argv){
   string pngname;
   extern char *optarg;
   char* Target="H";
-  char* F1tdc="1";
+  string F1tdc="1";
+  int f1tdc=1;
   //  char *root_init="/w/halla-scifs17exp/triton/itabashi/rootfiles/calib_root/";//ifarm
   string root_init="../rootfiles/";
   string root_end=".root";
@@ -115,8 +116,9 @@ int main(int argc, char** argv){
       
 
     case 'O':
-      F1tdc  = optarg;
-      cout<<"F1 resolution mode : "<<F1tdc<<endl;      
+      F1tdc= optarg;
+      f1tdc=atoi(F1tdc.c_str());
+      cout<<"F1 resolution mode : "<<f1tdc<<endl;      
       break;
 
 
@@ -187,7 +189,7 @@ int main(int argc, char** argv){
   gSystem->Load("libMinuit");
 
   momcalib* Mom=new momcalib();
-  Mom->mode(mode,Target,F1tdc);
+  Mom->mode(mode,Target,f1tdc);
   if(single)Mom->SingleRoot(ifname);
   else   Mom->SetRoot(ifname);
   if(root_flag)Mom->NewRoot(ofname);
@@ -201,11 +203,12 @@ int main(int argc, char** argv){
 
   cout<<endl;
   cout<<"============== Input files ==============="<<endl;
-  cout<<"root files   : "<<ifname<<endl;
+  cout<<"run files   : "<<ifname<<endl;
   cout<<"matrix param : "<<matrix_name<<endl;
   cout<<"analysis mode : "<<"Coincidence mode "<<endl;
   cout<<endl;
   cout<<"============== Output files ==============="<<endl;
+  cout<<"root_flag "<<root_flag<<endl;
   if(root_flag)cout<<"Root file   : "<<ofname<<endl;
   if(matrix_flag)cout<<"New matrix file : "<<ofMTPname<<endl;
   cout<<"==========================================="<<endl;
