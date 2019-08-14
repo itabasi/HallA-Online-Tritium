@@ -17,9 +17,9 @@ CXXLIBS = $(ROOTLIBS)
 #OBJS1=   hrs_tof_twcorr.o 
 
 TARGET1= hrsAC_eff
-OBJS1=   hrsAC_eff.o  
+OBJS1=   hrsAC_eff.o  Setting.o
 TARGET2= hrs_conv_npe
-OBJS2=   hrs_conv_npe.o  
+OBJS2=   hrs_conv_npe.o  Setting.o
 .PHONY: all
 all: $(TARGET1)\
      $(TARGET2)

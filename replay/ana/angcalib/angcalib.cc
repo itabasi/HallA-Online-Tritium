@@ -76,8 +76,9 @@ int main(int argc, char** argv){
   string dat_end=".dat";
   string matrix="matrix/zt_RHRS_2.dat";
   
-  while((ch=getopt(argc,argv,"h:f:i:r:x:y:o:s:RLbcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:f:i:r:x:y:t:o:s:RLdbcop"))!=-1){
     switch(ch){
+
     case 'f':
       ifname = optarg;
       cout<<"input filename : "<<ifname<<endl;
@@ -150,6 +151,11 @@ int main(int argc, char** argv){
       cout<<"L-HRS analysis"<<endl;
       break;
 
+    case 'd':
+      draw_flag =true;
+      cout<<"Draw analysis"<<endl;
+      break;
+      
 
     case 'h':
       cout<<"-f : input root filename"<<endl;
@@ -178,7 +184,7 @@ int main(int argc, char** argv){
   TApplication *theApp =new TApplication("App",&argc,argv);
   gSystem->Load("libMinuit");
   angcalib * Ang=new angcalib();
- 
+  cout<<"root flag "<<root_flag<<endl;
    Ang->SetBranch(ifname,RHRS_flag);
    if(root_flag)Ang->NewBranch(ofname,RHRS_flag);
    Ang->HolePosi();
@@ -186,16 +192,18 @@ int main(int argc, char** argv){
    Ang->Scale_corr(opt_file);
    Ang->Mxpt(matrix_xp);
    Ang->Mypt(matrix_yp);
-   if(nite>0)Ang->EventSelect(RHRS_flag);
-   Ang->Tuning(ofMTPname);
-   Ang->Fill(RHRS_flag);
+   //   if(nite>0)Ang->EventSelect(RHRS_flag);
+   Ang->EventSelect(RHRS_flag);
+   if(nite>0 && draw_flag==0)Ang->Tuning(ofMTPname);
+   if(nite>0 && draw_flag==0) Ang->Fill(RHRS_flag);
+   //Ang->Fill(RHRS_flag);
    if(draw_flag)Ang->Draw();
-   if (root_flag)Ang->Write();
-   Ang->Close_tree();
+   //Ang->Draw();
+   if (root_flag && draw_flag==0)Ang->Write();
+   if(draw_flag==0)Ang->Close_tree();
    cout<<"input root: "<<ifname<<endl;
    cout<<"output root: "<<ofname<<endl;
-   
-   gSystem->Exit(1);
+   if(draw_flag==0)gSystem->Exit(1);
    theApp->Run();
 
  

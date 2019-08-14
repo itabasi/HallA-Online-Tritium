@@ -7,7 +7,7 @@ using namespace std;
 #include "Tree.h"
 #include "ParamMan.h"
 #include "define.h"
-
+//#include "momcalib.h"
 
 struct TreeBranch{
   double missing_mass, coin_time;
@@ -42,7 +42,7 @@ class ana : public Tree
     Setting *set;
     ParamMan *param;
     TFile *ofp;
-
+    //    momcalib* mom;
     int GetMaxEvent()     { return ENumMax; }
 
   public:
@@ -56,7 +56,14 @@ class ana : public Tree
     void SetRunList(string ifname);
     void SetMaxEvent( int N )  { ENumMax = N; }
     void Draw_mm();
+    void matrix(string mtparam);
+    void MTParam_R();
+    void MTParam_L();
+    void MTP_mom();
+    void Calib(int rt, int lt);
+
     double Eloss(double xp,double z,char* arm);
+    
  private:
     int ENumMax;
     int ENum;
@@ -158,7 +165,27 @@ class ana : public Tree
     TH1D *h_mm_pi;
     TH1D* h_ct_wK_z_all;
     TH1D* h_ct_acc;
-  private:
+
+    /// Added by itabashi ///
+    TH1D*h_Rz;
+    TH1D*h_Rth;
+    TH1D*h_Rph;
+    TH1D*h_Rp;
+    TH1D*h_Lz;
+    TH1D*h_Lth;
+    TH1D*h_Lph;
+    TH1D*h_Lp;
+    TH1D*h_Rz_c;
+    TH1D*h_Rth_c;
+    TH1D*h_Rph_c;
+    TH1D*h_Rp_c;
+    TH1D*h_Lz_c;
+    TH1D*h_Lth_c;
+    TH1D*h_Lph_c;
+    TH1D*h_Lp_c;    
+    
+
+ private:
     double L_s0l_toff    , L_s0r_toff;
     double L_s2l_toff[16], L_s2r_toff[16];
     double R_s0l_toff    , R_s0r_toff;
@@ -168,7 +195,7 @@ class ana : public Tree
     double L_s2l_t[16], L_s2r_t[16], L_s2_t[16];
     double R_s0l_t    , R_s0r_t    , R_s0_t;
     double R_s2l_t[16], R_s2r_t[16], R_s2_t[16];
-
+    double R_p, L_p, B_p;
  public:
     double min_mm,max_mm;
     double min_Lp,max_Lp;
@@ -176,7 +203,9 @@ class ana : public Tree
     int bin_mm;
     int bin_Lp=200;
 
-   
+    string param_mt[10];
+    bool MT_p[10];
+    bool ploss;
 
     
 };

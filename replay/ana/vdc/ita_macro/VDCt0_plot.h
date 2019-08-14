@@ -244,11 +244,14 @@ void VDCt0_plot::SetPointError(string ifname){
     if( ifp.eof() ) break;
     istringstream sbuf(buf);
     sbuf >> runname;
-    //    cout<<"param file : "<<runname<<endl;
+   cout<<"param file : "<<runname<<endl;
 
     //===== Param file ======//
-
-    string main = runname.substr(0,95);
+   // ita_macro/param/ = 101
+   int num_end=103;
+   num_end=108;
+    string main = runname.substr(0,num_end);
+    int num_start=num_end-13;
     string ifname_err = main + "_err.dat";
     //  string ifname_min  = main + "_min.dat";
     //  string ifname_max  = main + "_max.dat";
@@ -265,9 +268,10 @@ void VDCt0_plot::SetPointError(string ifname){
   if (ifparam_err.fail()){ cerr << "failed open dT0 files " <<ifname_err.c_str()<<endl; break;}  
   //  if (ifparam_min.fail()){ cerr << "failed open T0min files " <<ifname_min.c_str()<<endl; break;}
   //  if (ifparam_max.fail()){ cerr << "failed open T0max files " <<ifname_max.c_str()<<endl; break;}  
-  run=runname.substr(82,6);
-  runnum[j]=atoi(run.c_str());
-
+  //  run=runname.substr(82,6);
+ run=runname.substr(num_start,6);
+ runnum[j]=atoi(run.c_str());
+    cout<<"run num "<<runnum[j]<<endl;
   int plane=-1;
   int i=0;
 

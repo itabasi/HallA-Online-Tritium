@@ -16,15 +16,31 @@ const double  Ztm = -0.15,Ztr=0.35;
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
 #define max 100
+
+
+//const int nn =  2; // 4th order matrix using xf, xpf, y, ypf, and zt
+//const int nnz = 2; // 3th order matrix using zt
+//const int nParamT = 21;  // Number of parameters
+
+//const int nn =  3; // 4th order matrix using xf, xpf, y, ypf, and zt
+//const int nnz = 3; // 3th order matrix using zt
+//const int nParamT = 56;  // Number of parameters
+
 const int nn =  4; // 4th order matrix using xf, xpf, y, ypf, and zt
-const int nnz = 3; // 3th order matrix using zt
+const int nnz = 2; // 3th order matrix using zt
 const int nParamT = 126;  // Number of parameters
+
+//const int nn =  5; // 4th order matrix using xf, xpf, y, ypf, and zt
+//const int nnz = 2; // 3th order matrix using zt
+//const int nParamT = 252;  // Number of parameters
+
+
 
   double Pxpt[nParamT];
   double Pypt[nParamT];
 
 
-//const int nmax = 1000; // Number of events used for tuning
+//const int nmax = 3000; // Number of events used for tuning
 const int nmax=10000;// Number of events used for tuning;
 //const int nmax = 50000; // Number of events used for tuning
 //const int nite =0;
@@ -33,8 +49,8 @@ double fcent[nfoil] = {-0.125, -0.100, -0.075, -0.050, -0.025,
 		       0.00, 0.025, 0.05, 0.10, 0.125}; 
 double fcent_real[nfoil] = {-0.125, -0.100, -0.075, -0.050, -0.025,
 			    0.000, 0.025, 0.050, 0.100, 0.125};
-double selection_width = 0.0125; 
-//double selection_width = 0.008; // event selection width for z
+//double selection_width = 0.0125; 
+double selection_width = 0.01; // event selection width for z
 
 
 const double step = 0.492 * 2.54;
@@ -43,8 +59,15 @@ const int ncol = 7;  // the number of column in SS pattern
 const int nsshole = nrow*ncol; // the number of holes to consider 
 double refx[nsshole];
 double refy[nsshole];
-double selec_widthx = 0.60; // selection width in x (dispersive plane)
-double selec_widthy = 0.45; // selection width in y 
+double refx_real[nsshole];
+double refy_real[nsshole];
+double ssy_off[nsshole];
+double ssx_off[nsshole];
+bool TFlag[nsshole];
+//double selec_widthx = 0.60; // selection width in x (dispersive plane)
+//double selec_widthy = 0.45; // selection width in y
+double selec_widthx = 0.60; // selection width in x (dispersive plane) initial
+double selec_widthy = 0.45; // selection width in y initial
 int ntune_event;
 
 
@@ -53,6 +76,7 @@ int ntune_event;
 
 double x[nmax], y[nmax];
 double xp[nmax], yp[nmax];
+double th[nmax], ph[nmax];
 double z_recon[nmax]; // reconstructed z position
 int foil_flag[nmax];  
 int holegroup[nmax];

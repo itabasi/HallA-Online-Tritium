@@ -1,0 +1,11 @@
+### memo
+### 2019/08/12
+input matrix parameters matrix2/momcalib_matirx_3rd.list
+condition
+Event Selection :
+applied momcalib parameters in Eventselection
+
+
+fcn limited
+limited dRp<0.1 GeV/c && dLp<0.1 GeV/c
+

@@ -1,4 +1,3 @@
-const double c=299792458e-9;// [m/ns]
 const double mk=493.7e-3;// Kaon mass [GeV/c^2]
 const double me=0.511e-3;// electron mass [GeV/c^2] 
 const double ml=1115.7e-3;//Lambda mass [GeV/c^2]
@@ -37,9 +36,10 @@ using namespace std;
 #include "TColor.h"
 #include "TPaveText.h"
 #include "TRandom.h"
-
-
-
+#include "Setting.h"
+#include "Param.h"
+#include "define.h"
+extern double ac1_offset(int ch);
 
 //===================================================================//
 //============================= Main ================================//
@@ -216,7 +216,8 @@ int main(int argc, char** argv){
 
 
   double Ra1a_p[100],Ra2a_p[100],Ra1sum,Ra2sum,Ra1a[100],Ra2a[100],trig,Ra1sum_p,Ra2sum_p;
-  double Ra1a_c[100],Ra2a_c[100];
+  double Ra1a_c[100],Ra2a_c[100],Trig,a1_nahit,a2_nahit,a1_nthit,a2_nthit;
+
  T->SetBranchStatus("*",0);
  T->SetBranchStatus("R.a1.a",1);
  T->SetBranchAddress("R.a1.a",Ra1a);
@@ -230,6 +231,12 @@ int main(int argc, char** argv){
  T->SetBranchAddress("R.a1.a_c",Ra1a_c);
  T->SetBranchStatus("R.a2.a_c",1);
  T->SetBranchAddress("R.a2.a_c",Ra2a_c); 
+
+
+ T->SetBranchStatus("R.a1.nahit",1);
+ T->SetBranchAddress("R.a1.nahit",&a1_nahit);
+ T->SetBranchStatus("R.a2.nahit",1);
+ T->SetBranchAddress("R.a2.nahit",&a2_nahit);
  
  T->SetBranchStatus("R.a1.asum_c",1);
  T->SetBranchAddress("R.a1.asum_c",&Ra1sum);
@@ -239,8 +246,35 @@ int main(int argc, char** argv){
  T->SetBranchAddress("R.a2.asum_p",&Ra2sum_p); 
  T->SetBranchStatus("R.a2.asum_p",1);
  T->SetBranchAddress("R.a2.asum_p",&Ra2sum_p);
- // T->SetBranchStatus("DR.evtypebits",1);
- // T->SetBranchAddress("DR.evtypebits",&trig);
+ T->SetBranchStatus("DR.evtype",1);
+ T->SetBranchAddress("DR.evtype",&Trig);
+
+ //------- coincidence time ---------------//
+ double RF1[100],LF1[100],Rs2tpads[100],Ls2tpads[100];
+ double rs2pathl[100],rtrpathl[100],ls2pathl[100],ltrpathl[100];
+ double Rp[100],Lp[100];
+ T->SetBranchStatus("RTDC.F1FirstHit",1);
+ T->SetBranchAddress("RTDC.F1FirstHit",RF1);
+ T->SetBranchStatus("LTDC.F1FirstHit",1);
+ T->SetBranchAddress("LTDC.F1FirstHit",LF1);
+ T->SetBranchStatus("R.s2.trpad",1);
+ T->SetBranchAddress("R.s2.trpad",Rs2tpads);
+ T->SetBranchStatus("L.s2.trpad",1);
+ T->SetBranchAddress("L.s2.trpad",Ls2tpads);
+ // path length//
+ T->SetBranchStatus("R.s2.trpath",1); 
+ T->SetBranchAddress("R.s2.trpath",rs2pathl); 
+ T->SetBranchStatus("R.tr.pathl",1);  
+ T->SetBranchAddress("R.tr.pathl",rtrpathl);
+ T->SetBranchStatus("L.s2.trpath",1); 
+ T->SetBranchAddress("L.s2.trpath",ls2pathl); 
+ T->SetBranchStatus("L.tr.pathl",1);   
+ T->SetBranchAddress("L.tr.pathl",ltrpathl); 
+ T->SetBranchStatus("R.tr.p",1);
+ T->SetBranchAddress("R.tr.p",Rp);
+ T->SetBranchStatus("L.tr.p",1);
+ T->SetBranchAddress("L.tr.p",Lp);  
+
  
  TH1F *ha1_adc[24];
  TH1F *ha2_adc[26];
@@ -250,6 +284,9 @@ int main(int argc, char** argv){
  TH1F *ha2_adc_scaled[26];
  TF1 *fconv_a1[24];
  TF1 *fconv_a2[26];
+
+ Setting* set=new Setting();
+  set->Initialize();
  
  double bin_ac1,min_ac1,max_ac1,bin_ac2,min_ac2,max_ac2;
  min_ac1=-100.0;
@@ -272,22 +309,31 @@ int main(int argc, char** argv){
  bin_npe2=(int)bin_npe2;
 
  TH1F *ha1_adc_sum=new TH1F("ha1_adc_sum","AC1 ADC SUM HIST",bin_ac1,min_ac1,max_ac1);
+ set->SetTH1(ha1_adc_sum,"AC1 ADC SUM HIST","ADC [ch]","Counts");   
  TH1F *ha2_adc_sum=new TH1F("ha2_adc_sum","AC2 ADC SUM HIST",bin_ac2,min_ac2,max_ac2);
+ set->SetTH1(ha2_adc_sum,"AC2 ADC SUM HIST","ADC [ch]","Counts");   
  TH1F *ha1_npe_sum=new TH1F("ha1_npe_sum","AC1 NPE SUM HIST",bin_npe1,min_npe1,max_npe1);
+ set->SetTH1(ha1_npe_sum,"AC1 NPE SUM HIST","ADC [Pes]","Counts");
  TH1F *ha2_npe_sum=new TH1F("ha2_npe_sum","AC2 NPE SUM HIST",bin_npe2,min_npe2,max_npe2);
+ set->SetTH1(ha2_npe_sum,"AC2 NPE SUM HIST","ADC [Pes]","Counts");
  
  for(int i=0;i<24;i++){
-   ha1_adc[i]=new TH1F(Form("ha1_adc[%d]",i),"AC1 ADC HIST",bin_ac1,min_ac1,max_ac1);
-   ha1_adc_scaled[i]=new TH1F(Form("ha1_adc_scaled[%d]",i),"AC1 ADC HIST",bin_npe1,min_npe1,max_npe1);   
-   ha1_npe[i]=new TH1F(Form("ha1_npe[%d]",i),"AC1 NPE HIST",bin_npe1,min_npe1,max_npe1);
-
+   ha1_adc[i]=new TH1F(Form("ha1_adc_%d",i),"AC1 ADC HIST",bin_ac1,min_ac1,max_ac1);
+   set->SetTH1(ha1_adc[i],"AC1 ADC HIST","ADC [ch]","Counts");   
+   ha1_adc_scaled[i]=new TH1F(Form("ha1_adc_scaled_%d",i),"AC1 ADC HIST",bin_npe1,min_npe1,max_npe1);   
+   set->SetTH1(ha1_adc_scaled[i],"AC1 ADC HIST (Scaled /400.)","ADC [ch]","Counts");   
+   ha1_npe[i]=new TH1F(Form("ha1_npe_%d",i),"AC1 NPE HIST",bin_npe1,min_npe1,max_npe1);
+   set->SetTH1(ha1_npe[i],"AC1 NPE HIST","ADC [Pes]","Counts");   
    fconv_a1[i]=new TF1(Form("fconv_a1[%d]",i),"gaus",min_ac1,max_ac1);
  }
 
 for(int i=0;i<26;i++){
-   ha2_adc[i]=new TH1F(Form("ha2_adc[%d]",i),"AC2 ADC HIST",bin_ac2,min_ac2,max_ac2);
-   ha2_adc_scaled[i]=new TH1F(Form("ha2_adc_scaled[%d]",i),"AC2 ADC SCALED HIST",bin_npe2,min_npe2,max_npe2);   
-   ha2_npe[i]=new TH1F(Form("ha2_npe[%d]",i),"AC2 NPE HIST",bin_npe2,min_npe2,max_npe2);   
+   ha2_adc[i]=new TH1F(Form("ha2_adc_%d",i),"AC2 ADC HIST",bin_ac2,min_ac2,max_ac2);
+   set->SetTH1(ha2_adc[i],"AC2 ADC HIST","ADC [ch]","Counts");   
+   ha2_adc_scaled[i]=new TH1F(Form("ha2_adc_scaled_%d",i),"AC2 ADC SCALED HIST",bin_npe2,min_npe2,max_npe2);   
+   set->SetTH1(ha2_adc_scaled[i],"AC2 ADC HIST (Scaled 1./400.)","ADC [ch]","Counts");   
+   ha2_npe[i]=new TH1F(Form("ha2_npe_%d",i),"AC2 NPE HIST",bin_npe2,min_npe2,max_npe2);   
+   set->SetTH1(ha2_npe[i],"AC2 NPE HIST","ADC [Pes]","Counts");   
    fconv_a2[i]=new TF1(Form("fconv_a2[%d]",i),"gaus",min_ac2,max_ac2);
  }
  
@@ -298,7 +344,7 @@ for(int i=0;i<26;i++){
  TFile* fnew=new TFile(ofroot.c_str(),"recreate");
  TTree* tnew=new TTree("T",ofroot.c_str());
   tnew = T->CloneTree(0);
-  double ac1_p[24],ac1_c[24],ac2_p[26],ac2_c[26],ac1_sum_c,ac2_sum_c,ac2_sum_p,ac1_sum_p;
+  double ac1_p[24],ac1_c[24],ac2_p[26],ac2_c[26],ac1_sum_c,ac2_sum_c,ac2_sum_p,ac1_sum_p,coin_t;
   tnew->Branch("ac1_p",ac1_p,"ac1_p[24]/D");
   tnew->Branch("ac1_c",ac1_c,"ac1_c[24]/D");   
   tnew->Branch("ac2_p",ac2_p,"ac2_p[26]/D");
@@ -307,42 +353,73 @@ for(int i=0;i<26;i++){
   tnew->Branch("ac2_sum_p",&ac2_sum_p,"ac2_sum_p/D");     
   tnew->Branch("ac1_sum_c",&ac1_sum_c,"ac1_sum_c/D");   
   tnew->Branch("ac2_sum_c",&ac2_sum_c,"ac2_sum_c/D");   
- 
+  tnew->Branch("coin_t",&coin_t,"coin_t/D");   
+  double a1_sum,a2_sum;
  
  for(int k=0;k<evnt;k++){
    T->GetEntry(k);
-   ac1_sum_c=0.0,ac2_sum_c=0.0;
-   ac1_sum_p=0.0,ac2_sum_p=0.0;     
+   ac1_sum_c=0.0; ac2_sum_c=0.0;
+   ac1_sum_p=0.0; ac2_sum_p=0.0;     
+   a1_sum=0.0;  a2_sum=0.0;
+   coin_t=-100.0;
+   if(Trig==5){
 
-   for(int i=0;i<24;i++){
+     //===== coin time ======//
+
+     //--- Set Coincidence time ---------//
+     int Ls2pads=(int)Ls2tpads[0];
+     int Rs2pads=(int)Rs2tpads[0];
+     double Rs2_off=RS2_off_H1[Rs2pads];
+     double Ls2_off=LS2_off_H1[Ls2pads];
+     double rpathl=rtrpathl[0]+rs2pathl[0];
+     double lpathl=ltrpathl[0]+ls2pathl[0];
+     double rpath_corr = rpathl/c/(Rp[0]/sqrt(Rp[0]*Rp[0] + MK*MK));
+     double lpath_corr=lpathl/c/(Lp[0]/sqrt(Lp[0]*Lp[0] + Me*Me));
+     double tof_r=(((-RF1[48+Rs2pads]+RF1[46]-RF1[16+Rs2pads]+RF1[9]+Rs2_off)/2.0))*tdc_time;
+     double tof_l=((-LF1[Ls2pads]+LF1[30]-LF1[Ls2pads+48]+LF1[37]+Ls2_off)/2.0)*tdc_time;
+     coin_t=tof_r-tof_l+rpath_corr-lpath_corr-pathl_off-coin_offset; //  coin Path & Offset  correction   
+     //----------------------------------//     
+
+ 
+     for(int i=0;i<24;i++){
+     if(Ra1a_p[i]==0.0)continue;
      ac1_p[i]=Ra1a_p[i];
      ac1_c[i]=Ra1a_p[i]/conv_a1[i];     
      ha1_adc[i]->Fill(Ra1a_p[i]);
-     ha1_adc_scaled[i]->Fill(Ra1a_c[i]/400);     
-     ha1_npe[i]->Fill(Ra1a_p[i]/conv_a1[i]);
-     ha1_npe_sum->Fill(Ra1a_p[i]/conv_a1[i]);
+     ha1_adc_scaled[i]->Fill(Ra1a_c[i]/400.);          
+     ha1_npe[i] ->Fill(ac1_c[i]);
+     a1_sum+=Ra1a_c[i];     
      ac1_sum_p+=ac1_p[i];     
      ac1_sum_c+=ac1_c[i];
    }
-   for(int i=0;i<26;i++){
+
+     for(int i=0;i<26;i++){
+     if(Ra2a_p[i]==0.0)continue;     
      ac2_p[i]=Ra2a_p[i];
      ac2_c[i]=Ra2a_p[i]/conv_a2[i];          
      ha2_adc[i]->Fill(Ra2a_p[i]);
-     ha2_adc_scaled[i]->Fill(Ra2a_c[i]/400.);     
-     ha2_npe[i]->Fill(Ra2a_p[i]/conv_a2[i]);
-     ha2_npe_sum->Fill(Ra2a_p[i]/conv_a2[i]);
+     ha2_adc_scaled[i]->Fill(Ra2a_c[i]/400.);          
+     ha2_npe[i]->Fill(ac2_c[i]);
+     a2_sum+=Ra2a_c[i];
      ac2_sum_p+=ac2_p[i];     
      ac2_sum_c+=ac2_c[i];}
      //     ha2_npe[i]->Fill(Ra2a_p[i]/pe1_a2[i]);
      //     ha2_npe_sum->Fill(Ra2a_p[i]/pe1_a2[i]);}
 
-   ha1_adc_sum->Fill(Ra1sum);
-   ha2_adc_sum->Fill(Ra2sum);
+    if(ac1_sum_c==0)ac1_sum_c=-10.;
+    if(ac2_sum_c==0)ac2_sum_c=-10.;
+
+   ha1_adc_sum->Fill(a1_sum);
+   ha2_adc_sum->Fill(a2_sum);
+   ha1_npe_sum->Fill(ac1_sum_c);   
+   ha2_npe_sum->Fill(ac2_sum_c);
+
+
+   
    tnew->Fill();
    if(k%100000==0)cout<<"Filled "<<k<<" / "<<evnt<<endl;
-}
-
-
+   }
+ }
 
  /*
  
@@ -477,3 +554,19 @@ TString name;
 
 		    
 }
+
+
+
+
+//===========================================================//
+//=====================  Function ===========================//
+//===========================================================//
+
+double ac1_offset(int ch){
+
+  double offset[24]={41.1, 52.9, 53.0, 52.7, 45.5, 56.9, 0.0 , 22.2, 39.5, 0.0 , 42.5, 26.8,
+		     22.4, 91.4, 23.5, 0.0 , 47.5, 19.3, 48.3, 52.2, 44.2, 26.6, 14.4, 12.9 };
+		    
+
+
+};

@@ -39,7 +39,8 @@ using namespace std;
 
 int main(int argc, char** argv){
 
-  gStyle->SetOptFit(111111111);
+  //  gStyle->SetOptStat(stat);
+  
   int ch;
   string ifname ="";
   string ofname = "./param/test.dat";
@@ -88,11 +89,14 @@ int main(int argc, char** argv){
   
    VDCt0_plot* plot= new VDCt0_plot();
    //   plot->SetPoint(ifname);
+   if(draw_flag)    gROOT->SetBatch(1);
    plot->SetPointError(ifname);   
    plot->Draw();
    if(print_flag)   plot->Print(print_name);
    if(root_flag)    plot->MakeRoot(root_name);
-   if(draw_flag)    gROOT->SetBatch(1);
+
+   cout<<"pdf file "<<print_name<<endl;
+   cout<<"root file "<<root_name<<endl;   
    gSystem->Exit(1);
    theApp->Run();
 

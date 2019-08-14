@@ -38,10 +38,14 @@ CXXLIBS = $(ROOTLIBS)
 #OBJS10=   hrs_KID_F1_eff5.o Setting.o 
 #TARGET11= hrs_KID_F1_eff6
 #OBJS11=   hrs_KID_F1_eff6.o Setting.o
+TARGET11= hrs_coin
+OBJS11=   hrs_coin.o Setting.o
 TARGET12= hrs_tuingAC
 OBJS12=   hrs_tuningAC.o Setting.o
+
 .PHONY: all
-all:$(TARGET12)
+all:$(TARGET12)\
+     $(TARGET11)
 #$(TARGET1)\
 #     $(TARGET2)\
 #     $(TARGET3)\
@@ -52,7 +56,7 @@ all:$(TARGET12)
 #     $(TARGET8)\
 #     $(TARGET9)\
 #     $(TARGET10)\
-#     $(TARGET11)
+
 
 
 $(LIBDIR)/%.o : %.cc
@@ -78,8 +82,8 @@ $(LIBDIR)/%.o : %.cc
 #	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 #$(TARGET10): $(patsubst %,$(LIBDIR)/%,$(OBJS10))
 #	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
-#$(TARGET11): $(patsubst %,$(LIBDIR)/%,$(OBJS11))
-#	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
+$(TARGET11): $(patsubst %,$(LIBDIR)/%,$(OBJS11))
+	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 
 $(TARGET12): $(patsubst %,$(LIBDIR)/%,$(OBJS12))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)

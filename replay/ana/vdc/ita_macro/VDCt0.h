@@ -300,7 +300,9 @@ void VDCt0::SetRunList(string ifname){
 
 void VDCt0::SetRun(int runnum){
   T=new TChain("T");
-  int sum_run=10;
+  //####################
+  int sum_run=2;
+  //#####################
   cout<<"TChain run number : "<<runnum<<" - "<<runnum+sum_run-1<<endl;
 
   //  const string ROOTfilePath="/data/opt_small/VDC/initial";
@@ -328,7 +330,7 @@ void VDCt0::SetRun(int runnum){
    }
   }//end for
 
-    ENum=T->GetEntries();
+  ENum=T->GetEntries();
   cout<<"Events: "<<ENum<<endl; 
 
   
@@ -505,11 +507,8 @@ void VDCt0::MakeHist(){
   max_time=500.0;
   double conv_tdc=0.5; //[ns/bin]
   bin_time=(int)((max_time-min_time)/conv_tdc); //0.5 [ns/bin]
-  bin_time=(int)((max_time-min_time)/conv_tdc*2); //1.0 [ns/bin]
+  //  bin_time=(int)((max_time-min_time)/(conv_tdc*2)); //1.0 [ns/bin]
 
-  cout<<endl;
-  cout<<"bin_time : "<<bin_time<<endl;
-  cout<<endl;
   
   double min_wire=0;
   double max_wire=(double)nwire;

@@ -59,6 +59,8 @@ class angcalib
   void Close_tree();
   void Draw();
 
+  bool Xp_flag;
+  bool Yp_flag;
   //-------- SetBranch ------------//
   TFile* f2;
   TTree* t2;
@@ -119,6 +121,8 @@ class angcalib
   TH2F* h3_a;
   TH2F* h3_b;
   TH2F* h3_c;
+  TH1F* hph_cut; 
+  TH1F* hssy_cut; 
   TH1F* hth;
   TH1F* hth_c;  
   char tempc[500];
@@ -130,10 +134,11 @@ class angcalib
   //-------- Hole Posi --------//
   int nhole;
   TMarker* mark[nsshole];
-
+  TMarker* mark_real[nsshole];  
+  TMarker* mark_ang[nsshole];
  //-------- Mxpt && Mypt------------//
-  double Pxpt[nParamT];  
-  double Pypt[nParamT];
+  //  double Pxpt[nParamT];  
+  //  double Pypt[nParamT];
 
 
   //-------- Scale Correction ----//
@@ -164,7 +169,7 @@ class angcalib
 
  //------- Draw ---------------//
   TCanvas* c1;
-
+  TCanvas* c0;
   
 };
 
@@ -173,7 +178,10 @@ class angcalib
 //=============================================//
 angcalib::angcalib(){
   gROOT->SetStyle("Plain");
-  gStyle->SetOptStat(0);};
+  //  gStyle->SetOptStat(0);
+  Xp_flag=false;
+  Yp_flag=true;
+};
 
   angcalib::~angcalib(){};
 
@@ -270,10 +278,10 @@ void angcalib::NewBranch(string ofname, bool rarm){
   tnew->Branch("Ndata.L.tr.vz", &NLvz, "Ndata.L.tr.vz/I");
   tnew->Branch("R.tr.vz", Rvz, "R.tr.vz[100]/D");
   tnew->Branch("L.tr.vz", Lvz, "L.tr.vz[100]/D");
-  tnew->Branch("R.tr.tg_th", &Rth,"R.tr.tg_th[100]/D");
-  tnew->Branch("R.tr.tg_ph", &Rph,"R.tr.th_ph[100]/D");
-  tnew->Branch("L.tr.tg_th", &Lth,"L.tr.tg_th[100]/D");
-  tnew->Branch("L.tr.tg_ph", &Lph,"L.tr.tg_ph[100]/D");
+  tnew->Branch("R.tr.tg_th", Rth,"R.tr.tg_th[100]/D");
+  tnew->Branch("R.tr.tg_ph", Rph,"R.tr.th_ph[100]/D");
+  tnew->Branch("L.tr.tg_th", Lth,"L.tr.tg_th[100]/D");
+  tnew->Branch("L.tr.tg_ph", Lph,"L.tr.tg_ph[100]/D");
   tnew->Branch("ss_x",&ss_x,"ss_x/D " );
   tnew->Branch("ss_y",&ss_y,"ss_y/D " );
   if(rarm==true){
@@ -354,6 +362,9 @@ void angcalib::MakeHist(){
   hth=new TH1F("hth","",1000,-0.1,0.1);
   hth_c=new TH1F("hth_c","",1000,-0.1,0.1);  
 
+  hph_cut = new TH1F("hph_cut","",1000,-0.1,0.1);
+  hssy_cut = new TH1F("hssy_cut","",1000,-5.0,5.0);
+  
 };
 
 
@@ -363,7 +374,20 @@ void angcalib::HolePosi(){
   nhole = 0;
    double ssy_cent_real[nrow];
    double ssx_cent_real[ncol];
-  for(int i=0; i<ncol ; i++){
+   for(int k=0;k<nsshole;k++){
+     ssx_off[k]=0.0;
+     ssy_off[k]=0.5;
+     TFlag[k]=false;
+     if((21<k && k<63) && (k % 11 != 0 &&  (k-10) % 11 != 0) ){TFlag[k]=true;}
+   }
+
+   
+   //========= Sieve Slit offset tuning ========//
+   //   refy_real[38]=0.5;
+
+   
+   
+   for(int i=0; i<ncol ; i++){
     for(int j=0; j<nrow; j++){
       ssy_cent_real[i] = -3.0*step + step*i;
       if(j%2==0)ssy_cent_real[i] = ssy_cent_real[i] - step/2.0;
@@ -371,8 +395,27 @@ void angcalib::HolePosi(){
       refx[nhole] = ssx_cent_real[j];
       refy[nhole] = ssy_cent_real[i];
       mark[nhole] = new TMarker(refy[nhole],refx[nhole],28);
-         nhole++;
+      mark[nhole]->SetMarkerColor(2);
+      
+      refx_real[nhole]=refx[nhole]+ssx_off[nhole];
+      refy_real[nhole]=refy[nhole]+ssy_off[nhole];      
+      mark_real[nhole] =new TMarker(refy_real[nhole],refx_real[nhole],20);
+      mark_real[nhole]->SetMarkerColor(2);
+      
+      
+      // k is nfoil
+      int k=5;
+      //mark_ang[nhole] = new TMarker(ssy_cent_real[i]/l[k]/projectf[k],ssx_cent_real[i]/l[k]/projectf[k]);
 
+
+      
+      //      cout<<"nhole "<<nhole<<" i "<<i<<" j "<<j <<" refx "<<ssx_cent_real[j]<<" refy "<<ssy_cent_real[i]<<endl;
+      //		if(pow(ssx-(refx[nhole]-0.8),2.0)/pow(selec_widthx,2.0)
+      //	   + pow(ssy-(refy[nhole]-0.3),2.0)/pow(selec_widthy,2.0)<0.64){
+
+      nhole++;
+
+      
     }
   }
 
@@ -390,7 +433,7 @@ void angcalib::Mxpt(string matrix_xp){
     Mxpt >> par >> p >> p >> p >> p >> p;
     Pxpt[i]  = par;
     OptPar1[i] = par;
-
+    //    cout<<Form("OptPar1[%d] ",i)<<OptPar1[i]<<endl;
   }
   Mxpt.close();  
 };
@@ -406,6 +449,7 @@ void angcalib::Mypt(string matrix_yp){
     Mypt >> par >> p >> p >> p >> p >> p;
     Pypt[i]  = par;
     OptPar2[i] = par;
+    //    cout<<Form("OptPar2[%d] ",i)<<OptPar2[i]<<endl;
   }
   Mypt.close();  
 };
@@ -430,13 +474,17 @@ void angcalib::Scale_corr(string offset_file){
 //============== Event Selection =========================//
 void angcalib::EventSelect(bool rarm){
 
-  
+  bool ac_cut=false;
+  bool PID_flag=false;
+  bool Xpt_cut=false;
+  bool Ypt_cut=false;
   ent=t2->GetEntries();
   cout<<"=============================================="<<endl;
   cout<<"======== Event Selection is starting! ========"<<endl;
   cout<<"=============================================="<<endl;
   cout<<"Event: "<<ent<<endl;
   cout<<"Tuning Events: "<<nmax<<endl;
+  cout<<"rarm "<<rarm<<endl;
   d=div(ent,10000);
   
     // ----- Initialization ------- //
@@ -461,6 +509,10 @@ void angcalib::EventSelect(bool rarm){
       Xpt[j]     = -2222.0;
       Ypt[j]     = -2222.0;
       Zt[j]      = -2222.0;
+      Rth[j]     = -2222.0;
+      Rph[j]     = -2222.0;
+      Lth[j]     = -2222.0;
+      Lph[j]     = -2222.0;             
     }
 
 
@@ -480,6 +532,10 @@ void angcalib::EventSelect(bool rarm){
     rtrig = false;
     ltrig = false;
     gs_cut=false; //L-HRS gas cut
+    ac_cut=false;
+    PID_flag=false;
+    Xpt_cut=false;
+    Ypt_cut=false;
     
     t2->GetEntry(i);
     
@@ -495,60 +551,85 @@ void angcalib::EventSelect(bool rarm){
     if(trig1>1.0) ltrig = true;
     else ltrig = false;
     if(gs_asum>1000 || rarm==true)gs_cut=true;
+    if(a1>100 && a2>2000)ac_cut=true;
+    if((gs_cut && rarm!=0) || (rarm && ac_cut) )PID_flag=true;
 
+    
     
     if(rarm==true){
     XFP[0]   = r_x_fp[0];
     XpFP[0]  = r_th_fp[0];
     YFP[0]   = r_y_fp[0];
     YpFP[0]  = r_ph_fp[0];
-
+    Xpt[0]   = Rth[0];
+    Ypt[0]   = Rph[0];    
     }
     else{
     XFP[0]   = l_x_fp[0];
     XpFP[0]  = l_th_fp[0];
     YFP[0]   = l_y_fp[0];
     YpFP[0]  = l_ph_fp[0];
-
+    Xpt[0]   = Lth[0];
+    Ypt[0]   = Lph[0];    
     }
 
 
+
+    
     XFP[0]  = (XFP[0]-XFPm)/XFPr;
     XpFP[0] = (XpFP[0]-XpFPm)/XpFPr;
     YFP[0]  = (YFP[0]-YFPm)/YFPr;
     YpFP[0] = (YpFP[0]-YpFPm)/YpFPr;
+
     Zt[0]   = (Zt[0]-Ztm)/Ztr;
+    Xpt[0]  = (Xpt[0]-Xptm)/Xptr;
+    Ypt[0] = (Ypt[0]-Yptm)/Yptr;
+
+
 
     
     Xpt[0]  = calcf2t_4th_2(Pxpt,
 			   XFP[0], XpFP[0],
 			   YFP[0], YpFP[0],
 			   Zt[0]);
+
     Ypt[0] = calcf2t_4th_2(Pypt,
 			   XFP[0], XpFP[0],
 			   YFP[0], YpFP[0],
 			   Zt[0]);
 
+
+
+    XFP[0]  = XFP[0]  * XFPr + XFPm;
+    XpFP[0] = XpFP[0] * XpFPr + XpFPm;
+    YFP[0]  = YFP[0]  * YFPr + YFPm;
+    YpFP[0] = YpFP[0] * YpFPr + YpFPm;    
+    
     Ypt[0]  = Ypt[0]*Yptr +Yptm;
     Xpt[0]  = Xpt[0]*Xptr +Xptm;
     Zt[0]   = Zt[0]*Ztr +Ztm;
 
+  
+
+    if(fabs(Xpt[0])<0.005)Xpt_cut=true;
+    Xpt_cut=true;
 
     
-    if(fabs(Xpt[0]) < 0.08 
-       && fabs(Ypt[0]) < 0.06 && gs_cut){
-      
+    
+        if(fabs(Xpt[0]) < 0.08 
+           && fabs(Ypt[0]) < 0.06 && PID_flag && Xpt_cut){
 
-      for(int j=0 ; j<nfoil ; j++){
-	
+	  
+	  //          for(int j=0 ; j<nfoil ; j++){
+
+	  int j=5;
+	  
 	if(fcent[j]-selection_width<Zt[0]
 	   && Zt[0]<fcent[j]+selection_width){
-	  
+
 	  h2[j]->Fill(-Ypt[0]*l[j]*projectf[j],-Xpt[0]*l[j]*projectf[j]);
 
 
-
-	  
 	  //if(offset_flag[j]==true){ 
 	  if(offset_flag[j]==true || offset_flag[j]==false){
 	    // (in case you don't need scale+offset for event selection)
@@ -561,44 +642,67 @@ void angcalib::EventSelect(bool rarm){
 
 	    //if(j==8) ssy = ssy * 1.08;  // for second parameters
 	    //if(j==9) ssy = ssy * 1.126; // for second parameters
+
+	    hph_cut->Fill(Ypt[0]);
+	    hssy_cut->Fill(ssy);
 	    
 	    h2_new[j]->Fill(ssy,ssx);
      	    h2_      ->Fill(ssy,ssx);
 	    nhole=0;
 	  
-
+	    //      refx[nhole] = ssx_cent_real[j]-0.8;
+	    //      refy[nhole] = ssy_cent_real[i]-0.3;
 	    
 	    for(int col=0 ; col<ncol ; col++){
 	      for(int row=0 ; row<nrow ; row++){
-		if(pow(ssx-refx[nhole],2.0)/pow(selec_widthx,2.0)
-		   + pow(ssy-refy[nhole],2.0)/pow(selec_widthy,2.0)<1.0){
+
+		//		if(pow(ssx-(refx[nhole]-0.8),2.0)/pow(selec_widthx,2.0)
+		// + pow(ssy-(refy[nhole]-0.3),2.0)/pow(selec_widthy,2.0)<0.64){
+
+		//		if(pow(ssx-(refx[nhole]),2.0)/pow(selec_widthx,2.0)
+		//		   + pow(ssy-(refy[nhole]),2.0)/pow(selec_widthy,2.0)<0.64){
+
+		if(pow(ssx-(refx_real[nhole]),2.0)/pow(selec_widthx,2.0) // RHRS initial tuning setting
+		   + pow(ssy-(refy_real[nhole]),2.0)/pow(selec_widthy,2.0)<0.64){
+
 		  holeg_temp = nhole;
 		  foilg_temp = j;
-		  holethrough = true;
+		  if(TFlag[holeg_temp])holethrough = true;		  
+
+		  //	    holethrough = true;		  
+		  //	  if(refx[nhole]==0.0)holethrough = true;
+
 		}
 		nhole++;
 	      }
 	    }
 	  }
 
+
+	  
 	  if(ntune_event<nmax && holethrough==true
 	     && filled==false ){
 	    //foil_flag[ntune_event] = j;
-	    foil_flag[ntune_event] = foilg_temp;
+	    foil_flag[ntune_event] = 5;
+	    //	    foil_flag[ntune_event] = foilg_temp;
+
 	    holegroup[ntune_event] = holeg_temp;
 	    x[ntune_event]  = XFP[0];  // scaled 
 	    y[ntune_event]  = YFP[0];  // scaled
 	    xp[ntune_event] = XpFP[0]; // scaled
 	    yp[ntune_event] = YpFP[0]; // scaled
 	    z_recon[ntune_event] = Zt[0]; // not scaled
+	    th[ntune_event] = Xpt[0];
+	    ph[ntune_event] = Ypt[0];	    
 	    ntune_event++;
 
 	    filled=true;
+	    //	    cout<<"ssx "<<ssx<<" ssy "<<ssy<<endl;
 	    h3[j]->Fill(ssy,ssx);
 	    h3_  ->Fill(ssy,ssx);
 	  }
 	}
-      }
+	//	  } //for (j)
     }
     //        if(i % 100000 == 0)cout<<i<<" / "<<ent<<endl;
    if(i % (d.quot*1000) == 0)cout<<i<<" / "<<ent<<endl;
@@ -633,29 +737,42 @@ void angcalib::Tuning(string ofMTPname){
     // --------------------------- //
     x[i] = i+1;
 
-    cout<<"------- Xp tuning -----"<<endl;
-    chi_sq1[i] = tune(OptPar1,i,1);   // xpt
-    cout<<"------- Yp tuning -----"<<endl;    
-    chi_sq2[i] = tune(OptPar2,i,2);  // ypt
+    ofstream * ofs1;
+    ofstream * ofs2;
+
+    if(Xp_flag){
+      cout<<"------- Xp tuning -----"<<endl;
+      chi_sq1[i] = tune(OptPar1,i,1);
+      gchi_xp->SetPoint(i,i,chi_sq1[i]);    
+    cout << " Xp Tuning# = " << i+1 << ": chisq = "
+	 << chi_sq1[i] <<endl;
+    sprintf(tempc,  "%s_xpt_%d.dat",new_tempc,i);
+    cout<<"new matrix xp: "<<tempc<<endl;    
+    ofs1 = new ofstream(tempc);
+    }// xpt
+    if(Yp_flag){cout<<"------- Yp tuning -----"<<endl;    
+      chi_sq2[i] = tune(OptPar2,i,2);
+        gchi_yp->SetPoint(i,i,chi_sq2[i]);
+    cout << "YXp Tuning# = " << i+1 << ": chisq = "
+	 << chi_sq2[i] <<endl;
+    sprintf(tempc2, "%s_ypt_%d.dat",new_tempc,i);         
+    cout<<"new matrix yp: "<<tempc<<endl;
+    ofs2 = new ofstream(tempc2);
+    } // ypt
 
     
-    cout << " Tuning# = " << i << ": chisq = "
-	 << chi_sq1[i] << " "
-	 << chi_sq2[i] << endl;
-    cout << endl;
-    gchi_xp->SetPoint(i,i,chi_sq1[i]);    
-    gchi_yp->SetPoint(i,i,chi_sq2[i]);
+   
 
 
     //    sprintf(tempc,  "../matrix/newpar_xpt_%d.dat",i); 
     //    sprintf(tempc2, "../matrix/newpar_ypt_%d.dat",i);
-    sprintf(tempc,  "%s_xpt_%d.dat",new_tempc,i); 
-    sprintf(tempc2, "%s_ypt_%d.dat",new_tempc,i);     
 
-    cout<<"new matrix xp: "<<tempc<<endl;
-    cout<<"new matrix yp: "<<tempc<<endl;
-    ofstream * ofs1 = new ofstream(tempc);
-    ofstream * ofs2 = new ofstream(tempc2);
+
+
+
+
+
+
     int nppp = 0;
 
     for(int i=0 ; i<nn+1 ; i++){
@@ -665,24 +782,32 @@ void angcalib::Tuning(string ofMTPname){
 	    for(int b=0 ; b<nn+1 ; b++){
 	      for(int a=0 ; a<nn+1 ; a++){  
 		if(a+b+c+d+e==i){
+		  if(Xp_flag){
 		  *ofs1 << OptPar1[nppp] 
 			<< " " << a 
 			<< " " << b
 			<< " " << c
 			<< " " << d
 			<< " " << e << endl;
+		  /*
+		  cout <<nppp
+		       << " "<<OptPar1[nppp] 
+		       << " " << a 
+		       << " " << b
+		       << " " << c
+		       << " " << d
+		       << " " << e << endl;*/
+		  
+		  }
+		  if(Yp_flag){
 		  *ofs2 << OptPar2[nppp] 
 			<< " " << a 
 			<< " " << b
 			<< " " << c
 			<< " " << d
-			<< " " << e << endl;
+			<< " " << e << endl;}
 		  nppp++;
-		  //	      cout << Plen_opt[nppp] 
-		  //		   << " " << a 
-		  //		   << " " << b
-		  //		   << " " << c
-		  //		   << " " << d << endl;
+
 		}
 	      }
 	    }
@@ -690,11 +815,14 @@ void angcalib::Tuning(string ofMTPname){
 	}
       }
     }
+    if(Xp_flag){
     ofs1->close();
     ofs1->clear();
+    }
+    if(Yp_flag){
     ofs2->close();
     ofs2->clear();
-
+    }
 
 
     
@@ -714,7 +842,7 @@ void angcalib::Fill(bool rarm){
 
   ent=t2->GetEntries();
     d=div(ent,10000);
-  cout<<"Event: "<<ent<<endl;
+    cout<<"Event: "<<ent<<endl;
 
   
     // ----- Initialization ------- //
@@ -776,21 +904,25 @@ void angcalib::Fill(bool rarm){
     XpFP[0]  = r_th_fp[0];
     YFP[0]   = r_y_fp[0];
     YpFP[0]  = r_ph_fp[0];
-    Xpt_init   = Rth[0];
-    Ypt_init   = Rph[0];
+    Xpt[0]   =  Rth[0];
+    Ypt[0]   =  Rph[0];    
+    //    Xpt_init   = Rth[0];
+    //    Ypt_init   = Rph[0];
     } else {
     XFP[0]   = l_x_fp[0];
     XpFP[0]  = l_th_fp[0];
     YFP[0]   = l_y_fp[0];
     YpFP[0]  = l_ph_fp[0];
+    //    Xpt[0]   =  Lth[0];
+    //    Ypt[0]   =  Lph[0];        
     Xpt_init   = Lth[0];
     Ypt_init   = Lph[0];
     }
 
+
+    
     h1->Fill(Ypt[0],Xpt[0]);
     hth->Fill(Xpt[0]);
-
-
     
     XFP[0]  = (XFP[0]-XFPm)/XFPr;
     XpFP[0] = (XpFP[0]-XpFPm)/XpFPr;
@@ -798,43 +930,55 @@ void angcalib::Fill(bool rarm){
     YpFP[0] = (YpFP[0]-YpFPm)/YpFPr;
     Zt[0]   = (Zt[0]-Ztm)/Ztr;
 
+
     
+    Xpt[0]  = (Xpt[0]-Xptm)/Xptr;
+    Xpt_tuned[0] = (Xpt_tuned[0]-Xptm)/Xptr;
+    Ypt[0]  = (Ypt[0]-Yptm)/Yptr;
+    Ypt_tuned[0] = (Ypt_tuned[0]-Yptm)/Yptr;
+
+
     Xpt[0]  = calcf2t_4th_2(Pxpt,
 			   XFP[0], XpFP[0],
 			   YFP[0], YpFP[0],
-			   Zt[0]);
+			   Zt[0]);    
+
     Ypt[0] = calcf2t_4th_2(Pypt,
 			   XFP[0], XpFP[0],
 			   YFP[0], YpFP[0],
 			   Zt[0]);
- 
-
     
+
     Xpt_tuned[0] = calcf2t_4th_2(OptPar1,
 			   XFP[0], XpFP[0],
 			   YFP[0], YpFP[0],
 			   Zt[0]);
+    
+
     Ypt_tuned[0] = calcf2t_4th_2(OptPar2,
 			   XFP[0], XpFP[0],
 			   YFP[0], YpFP[0],
 			   Zt[0]);
 
     
-
+    
     Xpt[0]  = Xpt[0]*Xptr +Xptm; // scaled
     Ypt[0]  = Ypt[0]*Yptr +Yptm; // scaled    
     Xpt_tuned[0]  = Xpt_tuned[0]*Xptr +Xptm; // scaled   
     Ypt_tuned[0]  = Ypt_tuned[0]*Yptr +Yptm; // scaled
+    Zt[0]   = Zt[0]*Ztr +Ztm; //scaled
 
+    
     hth_c->Fill(Xpt[0]);
 
-     Zt[0]   = Zt[0]*Ztr +Ztm; //scaled
+
     
       for(int j=0 ; j<nfoil ; j++){
 	if(fcent[j]-selection_width<Zt[0]
 	   && Zt[0]<fcent[j]+selection_width){
 
 
+	  /*
 	  //===== w/o matrix tuing =====// 
     	    ssx = -Xpt_init*l[j]*projectf[j];
 	    ssy = -Ypt_init*l[j]*projectf[j];
@@ -845,7 +989,9 @@ void angcalib::Fill(bool rarm){
 	    ssy = -Ypt[0]*l[j]*projectf[j];
 	    h3_b  ->Fill(ssy,ssx);
 	    ssx=-2222.0;ssy=-2222.0;	    
-	  //===== w/  matrix tuing =====//	  
+	  */
+	  
+	    //===== w/  matrix tuing =====//	  
     	    ssx = -Xpt_tuned[0]*l[j]*projectf[j];
 	    ssy = -Ypt_tuned[0]*l[j]*projectf[j];
 	    h3_c  ->Fill(ssy,ssx);
@@ -880,12 +1026,15 @@ void angcalib::Write(){
   gchi_yp->SetName("gchi_yp");
   gchi_yp->Write();
 
-    h1  ->Write();
-    h2_ ->Write();
-    h3_->Write();
-    h3_a->Write();        
-    h3_b->Write();        
-    h3_c->Write();    
+  hph_cut->Write();
+  hssy_cut->Write();
+  h1  ->Write();
+  h2_ ->Write();
+  h3_->Write();
+  h3_a->Write();        
+  h3_b->Write();        
+  h3_c->Write();    
+
   for(int i=0;i<nfoil;i++){
     h2[i]->Write();
     h2_new[i]->Write();
@@ -904,17 +1053,62 @@ void angcalib::Close_tree(){
 
   f2->Close();
   fnew->Close();
+  cout<<"===== closed root ======"<<endl;
 }
 
 //============ Draw ===================//
 void angcalib::Draw(){
   c1=new TCanvas("c1","c1");
-  c1->cd();
-  h1->Draw();
-  for(int i=0 ; i<nfoil ; i++){
-    h2[i]->Draw("same");
+  c1->cd(1);
+  h2_new[5]->Draw("colz");
+
+  int nhole=0;  
+  for(int i=0; i<ncol ; i++){
+    for(int j=0; j<nrow; j++){
+
+      
+      if(TFlag[nhole]){
+       mark[nhole]->Draw("same");
+       mark_real[nhole]->Draw("same");
+      }
+       nhole++;
+    }
+  }
+  c0=new TCanvas("c0","c0");
+  h3_->Draw("colz");
+  nhole=0;  
+  for(int i=0; i<ncol ; i++){
+    for(int j=0; j<nrow; j++){
+
+
+      if(TFlag[nhole]){
+       mark[nhole]->Draw("same");
+       mark_real[nhole]->Draw("same");
+      }
+
+       nhole++;
+    }
   }
 
+  TCanvas* c2=new TCanvas("c2","c2");
+  c2->Divide(2,1);
+  c2->cd(1);
+  hph_cut->Draw();
+  c2->cd(2);
+  hssy_cut->Draw();
+  
+  
+  /*
+  h1->Draw();
+   for(int i=0 ; i<nfoil ; i++){
+    h2[i]->Draw("same");
+    //    h2_new[i]->Draw("colz");
+  }
+  */
+
+  cout<<"================================="<<endl;
+  cout<<"========== Drawn ================"<<endl;
+  cout<<"================================="<<endl;
 };
 
 
@@ -1027,18 +1221,17 @@ double tune(double* pa, int j, int angflag)
   TMinuit* minuit = new TMinuit(allparam);
   if(angflag==1){
     minuit->SetFCN(fcn1);
-  }
-  else minuit->SetFCN(fcn2);
+  }else{ minuit->SetFCN(fcn2);}
 
 
   double start[allparam];
   double step[allparam];
-  const int nMatT=4;  
-  const int nXf=4;
-  const int nXpf=4;
-  const int nYf=4;
-  const int nYpf=4;
-  const int nZt=2; // The number of order is reduced for test (4-->2)
+  const int nMatT=nn;  
+  const int nXf=nn;
+  const int nXpf=nn;
+  const int nYf=nn;
+  const int nYpf=nn;
+  const int nZt=nnz; // The number of order is reduced for test (4-->2)
   int npar=0;
   int a=0,b=0,c=0,d=0,e=0;
   for (int n=0;n<nMatT+1;n++){
@@ -1085,6 +1278,7 @@ double tune(double* pa, int j, int angflag)
     ULim[i] = pa[i] + 5.0; // temp
     
     minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
+    
   }
 
   
@@ -1111,10 +1305,9 @@ double tune(double* pa, int j, int angflag)
   
   for(int i=0 ; i<allparam ; i++){
     //minuit -> GetParameter(i,par[i],e);
-    if(angflag==1){
-      minuit -> GetParameter(i,OptPar1[i],er);
-    }
-    else minuit -> GetParameter(i,OptPar2[i],er);
+    if(angflag==1){minuit -> GetParameter(i,OptPar1[i],er);}
+    else {minuit -> GetParameter(i,OptPar2[i],er);}
+    
   }
   
   return chi2;
@@ -1124,6 +1317,7 @@ double tune(double* pa, int j, int angflag)
 void fcn1(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/)
 // #############################################################
 {
+
   
   const double sigma = 1.0;
   double ztR      = 0.0;
@@ -1145,6 +1339,7 @@ void fcn1(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
       w[i][j]    = 1.0;
     }
   }
+
   
   for(int i=0 ; i<ntune_event ; i++){
     residual = 0.0;
@@ -1152,44 +1347,88 @@ void fcn1(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
     sspos  = 0.0;
     refpos = 0.0;  refpos = refx[holegroup[i]];
     ztR    = 0.0;  ztR    = z_recon[i];
+
+
+
+
+
+
+
+    
+
+    
+    //    cout<<"ztR "<<ztR<<" foil "<<foil_flag[i]<<" hole "<<holegroup[i]<<endl;
     
     //if(foil_flag[i]==i) nev[i]++;
 
+    x[i]  = (x[i]-XFPm)/XFPr;
+    xp[i] = (xp[i]-XpFPm)/XpFPr;
+    y[i]  = (y[i]-YFPm)/YFPr;
+    yp[i] = (yp[i]-YpFPm)/YpFPr;
     ztR= (ztR-Ztm)/Ztr; // only zt was not scaled, so apply scaling here
+    ang  = (ang-Xptm)/Xptr;
+
+    
     ang = calcf2t_4th_2(param,
 			x[i], xp[i],
 			y[i], yp[i],
 			ztR);
-    ang = ang*Xptr +Xptm;
-    sspos = -ang*l[foil_flag[i]]*projectf[foil_flag[i]]; // in centimeter
+    //    Pxpt[i]  = par;
+    double ang_def= calcf2t_4th_2(Pxpt,
+				  x[i], xp[i],
+				  y[i], yp[i],
+				  ztR);
+
     
+    x[i]  = x[i]  * XFPr + XFPm;    
+    xp[i] = xp[i] * XpFPr + XpFPm;
+    y[i]  = y[i]  * YFPr + YFPm;
+    yp[i] = yp[i] * YpFPr + YpFPm;    
+    ztR = ztR*Ztr +Ztm;
+    ang = ang*Xptr +Xptm;
+    ang_def=ang_def*Xptr +Xptm;
+
+    //    cout<<"ang "<<ang<<" ang_def "<<ang_def<<" th "<<th[i]<<endl;
+    
+    sspos = -ang*l[foil_flag[i]]*projectf[foil_flag[i]]; // in centimeter
+
+  
+
     // ------------------- //
     // --- Residual ------ //
     // ------------------- //
-    residual = sspos - refpos;
-    //cout << i << ": " << sspos << "-(" << refpos << ")=" << residual << endl;
     
+    residual = sspos - refpos;
+
+    cout<<"sspos "<<sspos <<" refpos "<<refpos<<" residual "<<residual<<endl;
     chi2[foil_flag[i]][holegroup[i]]
       = chi2[foil_flag[i]][holegroup[i]] + pow(residual,2.0);
+
     
+
     nev[foil_flag[i]][holegroup[i]]++;
   }
+
   
   for(int i=0 ; i<nfoil ; i++){
     for(int j=0 ; j<nsshole ; j++){
-      
+      int i=5;   
       //if(nev[i][j]>0){
       if(nev[i][j]>10){ 
       //if(nev[i][j]>50){ // using only holes with more than 50 events
 	chi2[i][j] = chi2[i][j]/nev[i][j]/pow(sigma,2.0);
+	//      cout<<"i "<<i<<" j "<<j <<" chi2 "<<chi2[i][j]<<" nev "<<nev[i][j]<<endl;	
       }
       else chi2[i][j] = 0.0;
-      
       total_chi2 = total_chi2 + chi2[i][j]*w[i][j];
+
+						   
     }
+    
   }
   
-  fval = total_chi2/(double)nfoil/(double)nsshole;
+  fval = total_chi2;//(double)nfoil/(double)nsshole;
+  
 }
 
 
@@ -1227,13 +1466,27 @@ void fcn2(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
     ztR    = 0.0;  ztR    = z_recon[i];
     
     //if(foil_flag[i]==i) nev[i]++;
-
+    x[i]  = (x[i]-XFPm)/XFPr;
+    xp[i] = (xp[i]-XpFPm)/XpFPr;
+    y[i]  = (y[i]-YFPm)/YFPr;
+    yp[i] = (yp[i]-YpFPm)/YpFPr;
     ztR= (ztR-Ztm)/Ztr; // only zt was not scaled, so apply scaling here
+    ang  = (ang-Xptm)/Xptr;
+
+    
     ang = calcf2t_4th_2(param,
 			x[i], xp[i],
 			y[i], yp[i],
 			ztR);
+
+
+    x[i]  = x[i]  * XFPr + XFPm;    
+    xp[i] = xp[i] * XpFPr + XpFPm;
+    y[i]  = y[i]  * YFPr + YFPm;
+    yp[i] = yp[i] * YpFPr + YpFPm;    
+    ztR = ztR*Ztr +Ztm;
     ang = ang*Yptr +Yptm;
+
     sspos = -ang*l[foil_flag[i]]*projectf[foil_flag[i]]; // in centimeter
     
     // ------------------- //
@@ -1244,25 +1497,27 @@ void fcn2(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
     
     chi2[foil_flag[i]][holegroup[i]]
       = chi2[foil_flag[i]][holegroup[i]] + pow(residual,2.0);
-    
+    //    cout<<"foil "<<foil_flag[i]<<" hole "<<holegroup[i]<<" sspos "<<sspos <<" ref "<<refpos<<" chi2 "<<chi2[foil_flag[i]][holegroup[i]]<<endl;    
     nev[foil_flag[i]][holegroup[i]]++;
   }
+
   
   for(int i=0 ; i<nfoil ; i++){
     for(int j=0 ; j<nsshole ; j++){
-      
+      //      int i=5; 
       //if(nev[i][j]>0){
       if(nev[i][j]>10){ 
       //if(nev[i][j]>50){ // using only holes with more than 50 events
 	chi2[i][j] = chi2[i][j]/nev[i][j]/pow(sigma,2.0);
+	//      cout<<"i "<<i<<" j "<<j <<" chi2 "<<chi2[i][j]<<" nev "<<nev[i][j]<<endl;		
       }
       else chi2[i][j] = 0.0;
       
       total_chi2 = total_chi2 + chi2[i][j]*w[i][j];
     }
-  }
+     }
   
-  fval = total_chi2/(double)nfoil/(double)nsshole;
+  fval = total_chi2;///(double)nfoil/(double)nsshole;
 }
 
 

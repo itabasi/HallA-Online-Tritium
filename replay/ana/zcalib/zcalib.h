@@ -415,8 +415,8 @@ void zcalib::EventSelection(bool rarm){
 
 
 //=========== Fill ================//
-void zcalib:: Fill(bool rarm){
 
+void zcalib::Fill(bool rarm){
 
   
   cout<<"==========================="<<endl;
@@ -425,11 +425,12 @@ void zcalib:: Fill(bool rarm){
   cout<<"rarm: "<<rarm<<endl;  
   
   ENum=t1->GetEntries();
-
-   for (int i=0 ; i< ENum; i++){
-
+  cout<<"Events : "<<ENum<<endl;
 
 
+  
+  for (int i=0 ; i< ENum; i++){
+    
      for(int j=0 ; j<MAX ; j++){
       r_x_fp[j]  = -2222.0;
       r_th_fp[j] = -2222.0;
@@ -447,7 +448,6 @@ void zcalib:: Fill(bool rarm){
     }
 
      t1->GetEntry(i);
-     
 
      if(rarm==true){
     XFP   = r_x_fp[0];
@@ -476,7 +476,6 @@ void zcalib:: Fill(bool rarm){
       
       hz_tuned->Fill(ztR_opt[0]);
 
-
       if(rarm) Rvz[0] = ztR_opt[0];
       else     Lvz[0] = ztR_opt[0];
 
@@ -487,10 +486,10 @@ void zcalib:: Fill(bool rarm){
 	ztr_opt=calcf2t_zt(pzt_tuned, XFP, XpFP, YFP, YpFP);	
         ztr_opt = ztr_opt * Ztr + Ztm; 
 	hz[k]->Fill(ztr_opt);}
- 
+
       tnew->Fill();      
-       
-    if(i % (d.quot*1000) == 0)cout<<i<<" / "<<ENum<<endl;
+
+    if(i % 100000 == 0)cout<<i<<" / "<<ENum<<endl;
    }
    
  

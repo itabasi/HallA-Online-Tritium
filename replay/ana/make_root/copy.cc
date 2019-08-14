@@ -128,10 +128,10 @@ int main(int argc, char** argv){
   oldtree->SetBranchStatus("L.vdc.u2.nhit"          ,1);
   oldtree->SetBranchStatus("L.vdc.v1.nhit"          ,1);
   oldtree->SetBranchStatus("L.vdc.v2.nhit"          ,1);
-  oldtree->SetBranchStatus("Ndata.L.vdc.u1.nhit"          ,1);
-  oldtree->SetBranchStatus("Ndata.L.vdc.u2.nhit"          ,1);
-  oldtree->SetBranchStatus("Ndata.L.vdc.v1.nhit"          ,1);
-  oldtree->SetBranchStatus("Ndata.L.vdc.v2.nhit"          ,1);  
+  //  oldtree->SetBranchStatus("Ndata.L.vdc.u1.nhit"          ,1);
+  //  oldtree->SetBranchStatus("Ndata.L.vdc.u2.nhit"          ,1);
+  //  oldtree->SetBranchStatus("Ndata.L.vdc.v1.nhit"          ,1);
+  //  oldtree->SetBranchStatus("Ndata.L.vdc.v2.nhit"          ,1);  
   oldtree->SetBranchStatus("L.vdc.u1.wire"          ,1);
   oldtree->SetBranchStatus("L.vdc.u2.wire"          ,1);
   oldtree->SetBranchStatus("L.vdc.v1.wire"          ,1);
@@ -306,10 +306,10 @@ int main(int argc, char** argv){
   oldtree->SetBranchStatus("R.vdc.u2.nhit"          ,1);
   oldtree->SetBranchStatus("R.vdc.v1.nhit"          ,1);
   oldtree->SetBranchStatus("R.vdc.v2.nhit"          ,1);
-  oldtree->SetBranchStatus("Ndata.R.vdc.u1.nhit"          ,1);
-  oldtree->SetBranchStatus("Ndata.R.vdc.u2.nhit"          ,1);
-  oldtree->SetBranchStatus("Ndata.R.vdc.v1.nhit"          ,1);
-  oldtree->SetBranchStatus("Ndata.R.vdc.v2.nhit"          ,1);  
+  //  oldtree->SetBranchStatus("Ndata.R.vdc.u1.nhit"          ,1);
+  //  oldtree->SetBranchStatus("Ndata.R.vdc.u2.nhit"          ,1);
+  //  oldtree->SetBranchStatus("Ndata.R.vdc.v1.nhit"          ,1);
+  //  oldtree->SetBranchStatus("Ndata.R.vdc.v2.nhit"          ,1);  
   oldtree->SetBranchStatus("R.vdc.u1.wire"          ,1);
   oldtree->SetBranchStatus("R.vdc.u2.wire"          ,1);
   oldtree->SetBranchStatus("R.vdc.v1.wire"          ,1);
@@ -372,6 +372,7 @@ int main(int argc, char** argv){
   oldtree->SetBranchStatus("R.a1.peak"       ,1);
   oldtree->SetBranchStatus("R.a1.t_fadc"     ,1);
   oldtree->SetBranchStatus("R.a1.tc_fadc"    ,1);
+  oldtree->SetBranchStatus("R.a1.nahit"      ,1);     
   oldtree->SetBranchStatus("R.a2.a"          ,1);
   oldtree->SetBranchStatus("R.a2.a_c"        ,1);
   oldtree->SetBranchStatus("R.a2.a_p"        ,1);
@@ -386,6 +387,9 @@ int main(int argc, char** argv){
   oldtree->SetBranchStatus("R.a2.peak"       ,1);
   oldtree->SetBranchStatus("R.a2.t_fadc"     ,1);
   oldtree->SetBranchStatus("R.a2.tc_fadc"    ,1);
+  oldtree->SetBranchStatus("R.a2.nahit"      ,1); 
+
+  /*
   oldtree->SetBranchStatus("R.cer.a"         ,1);
   oldtree->SetBranchStatus("R.cer.a_c"       ,1);
   oldtree->SetBranchStatus("R.cer.a_p"       ,1);
@@ -404,6 +408,7 @@ int main(int argc, char** argv){
   oldtree->SetBranchStatus("R.ps.asum_c"     ,1);
   oldtree->SetBranchStatus("R.sh.asum_p"     ,1);
   oldtree->SetBranchStatus("R.sh.asum_c"     ,1);  
+  */
   oldtree->SetBranchStatus("R.tr.n"          ,1);  oldtree->SetBranchAddress("R.tr.n" ,&R_tr_n );
   oldtree->SetBranchStatus("R.tr.flag"       ,1);
   oldtree->SetBranchStatus("R.tr.ndof"       ,1);

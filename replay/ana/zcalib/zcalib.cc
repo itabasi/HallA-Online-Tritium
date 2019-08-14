@@ -172,17 +172,20 @@ int main(int argc, char** argv){
 
  if(single_flag) Zcalib->SetRoot(ifname);
    else Zcalib->ChainRoot(ifname);
-
   if(root_flag)Zcalib->NewBranch(ofname, RHRS_flag);
   Zcalib->Mzt(matrix_name, RHRS_flag);
   Zcalib->Mzt_L(matrix_name, RHRS_flag);
   Zcalib->MakeHist();
-  Zcalib->EventSelection(RHRS_flag);
-  Zcalib->MTtuning(ofMTPname,matrix_name);
+  if(nite>0)Zcalib->EventSelection(RHRS_flag);
+  if(nite>0)Zcalib->MTtuning(ofMTPname,matrix_name);
   Zcalib->Fill(RHRS_flag);
   if(draw_flag)Zcalib->Draw();
   if(root_flag)Zcalib->MakeTree();
   Zcalib->Close_tree();
+
+  cout<<"========== Out Put ==========="<<endl;
+  if(root_flag)cout<<"root file "<<ofname<<endl;
+  if(nite>0)cout<<"matrix file "<<ofMTPname<<endl;
   gSystem->Exit(1);
   theApp->Run();
 

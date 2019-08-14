@@ -1,6 +1,7 @@
 using namespace std;
 
 #include "ana_Lambda.h"
+#include "Param.h"
 
 bool pdf_out  = false;
 bool root_out = false;
@@ -13,17 +14,357 @@ string ofroot("output.root");
 
 #define F1TDC
 
+extern  double Calc_ras(double a,double b,double c){return  a *b + c;};  
+extern double calcf2t_ang(double* P,double xf, double xpf, double yf, double fpf,double z);
+extern double calcf2t_zt(double* P, double xf, double xpf, double yf, double ypf);
+extern double calcf2t_mom(double* P, double xf, double xpf, double yf, double ypf, double zt);
+
+
+
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
 ana::ana()
 {
   set = new Setting();
   if( root_out ) ofp = new TFile(Form("%s",ofroot.c_str()),"recreate");
 
+  //   mom=new momcalib();
+  //   mom->MTParam(matrix_name);
+
+  
 }
 
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
 ana::~ana(){
 }
+
+
+////////////////////////////////////////////////////////////////////////////
+void ana::matrix(string mtparam){
+
+  cout<<endl;
+  cout<<"==============================="<<endl;
+  cout<<"=== Input Matrix Parameters ==="<<endl;
+  cout<<"==============================="<<endl;
+
+  string buf;
+  int s=0;
+  ifstream ifp(Form("%s",mtparam.c_str()),ios::in);
+  while(1){
+    getline(ifp,buf);
+    if( buf[0]=='#' ){ continue; }
+    if( ifp.eof() ) break;
+    stringstream sbuf(buf);
+    sbuf >>param_mt[s];
+    cout<<param_mt[s]<<endl;
+    s++;
+  }
+
+  MTParam_R();cout<<" Input RHRS Matrix parameter "<<endl;
+  MTParam_L();cout<<" Input LHRS Matrix parameter "<<endl;
+  MTP_mom();
+
+  for(int i=0;i<10;i++)MT_p[i]=false;  
+  //======= Tuning selection flag =====================//
+  //--------- RHRS ------------------------//
+  MT_p[0] = true;  // RHRS z correction
+  MT_p[1] = true;  // RHRS raster correction
+  MT_p[2] = true;  // RHRS theta correction
+  MT_p[3] = true;  // RHRS phi correction
+  //--------- LHRS -----------------------//
+  MT_p[4] = true;  // LHRS z correction
+  MT_p[5] = true;  // LHRS raster correction
+  // MT_p[5] = false;  // LHRS raster correction
+  MT_p[6] = true;  // LHRS theta correction
+  MT_p[7] = true;  // LHRS phi correction
+  //-------- momentum calibration ---------//
+  MT_p[8] = true; // RHRS momentum correction  
+  MT_p[9] = true; // LHRS momentum correction  
+  ploss = true;  // Energy Loss
+  //================================================//
+
+  cout<<endl;
+  cout<<"======== Correction Parameters ========="<<endl;
+  if(MT_p[0])cout<<" RHRS z      correction "<<endl;
+  else     cout<<" RHRS z                    no correction "<<endl;
+  if(MT_p[1])cout<<" RHRS raster correction "<<endl;
+  else     cout<<" RHRS raster               no correction "<<endl;
+  if(MT_p[2])cout<<" RHRS theta  correction "<<endl;
+  else     cout<<" RHRS theta                no correction "<<endl;
+  if(MT_p[3])cout<<" RHRS phi    correction "<<endl;
+  else     cout<<" RHRS phi                  no correction "<<endl;
+  if(MT_p[4])cout<<" LHRS z      correction "<<endl;
+  else     cout<<" LHRS z                    no correction "<<endl;
+  if(MT_p[5])cout<<" LHRS raster correction "<<endl;
+  else     cout<<" LHRS raster               no correction "<<endl;
+  if(MT_p[6])cout<<" LHRS theta  correction "<<endl;
+  else     cout<<" LHRS theta                no correction "<<endl;
+  if(MT_p[7])cout<<" LHRS phi    correction "<<endl;
+  else     cout<<" LHRS phi                  no correction "<<endl;
+  if(MT_p[8])cout<<" RHRS mom    correction "<<endl;
+  else     cout<<" RHRS mom                  no correction "<<endl;
+  if(MT_p[9])cout<<" LHRS mom    correction "<<endl;
+  else     cout<<" LHRS mom                  no correction "<<endl;
+  if(ploss)cout<<" Energy Los  correction "<<endl;
+  else     cout<<" Energy Los                no correction "<<endl;
+  cout<<endl;
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+void ana::MTParam_R(){
+
+  //=================//
+  //==== RHRS =======//
+  //=================//
+
+  
+  //====== RHRS z parameters ======//
+
+    char name_Mzt[500];
+    sprintf(name_Mzt, param_mt[0].c_str()); // optimized
+    ifstream Mzt(name_Mzt);
+
+   for(int i=0;i<nParamTz;i++){
+    double par=0.;
+    int p=0;
+    Mzt >> par >> p >> p >> p >> p;
+    Pzt[i]=par;
+    //    cout<<"R Mzt : "<<Pzt[i]<<endl;
+   }
+  Mzt.close();
+
+  
+  //====== RHRS raster paramters =======//
+    char name_Mras[500];
+    sprintf(name_Mras, param_mt[1].c_str()); // optimized
+    //    cout<<"RHRS Raster parameters file: "<<name_Mras<<endl;
+  ifstream Mras(name_Mras);
+
+  for (int i=0;i<nParamT_ras;i++){
+
+    Mras >> Pras[i];
+    // ---- raster x is tuned by this macro ---- //
+    if(i==1 || i==3) Pras[i] = 0.0;
+  }
+
+
+  Mras.close();    
+
+  
+  //===== RHRS theta parameters ======// 
+    char name_Mxpt[500];
+    sprintf(name_Mxpt, param_mt[2].c_str()); // optimized
+  ifstream Mxpt(name_Mxpt);
+
+    for(int i=0;i<nParamT;i++){
+    double par=0.;
+    int p=0;
+    Mxpt >> par >> p >> p >> p >> p >> p;
+    Pxpt[i]  = par;
+  }
+  Mxpt.close();  
+ //===== RHRS phi parameters ======//
+  char name_Mypt[500];
+    sprintf(name_Mypt, param_mt[3].c_str()); // optimized  
+  ifstream Mypt(name_Mypt);
+
+  for (int i=0;i<nParamT;i++){
+    double par=0.;
+    int p=0;
+    Mypt >> par >> p >> p >> p >> p >> p;
+    Pypt[i]  = par;
+  }
+  Mypt.close();    
+
+
+
+  
+};
+//////////////////////////////////////////////////////////////
+
+void ana::MTParam_L(){
+
+  //=================//
+  //===== LHRS ======//
+  //=================//
+
+  
+  //====== LHRS z parameters ======//  
+  char name_Mzt_L[500];
+  sprintf(name_Mzt_L,param_mt[4].c_str()); // optimized
+  ifstream Mzt_L(name_Mzt_L); 
+  for (int i=0;i<nParamTz;i++){
+    double par=0.;
+    int p=0;
+    Mzt_L >> par >> p >> p >> p >> p;
+    Pzt_L[i]=par;
+  }
+ Mzt_L.close();
+
+  //====== LHRS raster paramters =======//
+    char name_Mras_L[500];
+    sprintf(name_Mras_L, param_mt[5].c_str()); // optimized
+    //    cout<<"LHRS Raster parameters file: "<<name_Mras_L<<endl;
+  ifstream Mras_L(name_Mras_L);
+
+  for (int i=0;i<nParamT_ras;i++){
+
+    Mras_L >> Pras_L[i];
+    // ---- raster x is tuned by this macro ---- //
+    if(i==1 || i==3) Pras_L[i] = 0.0;
+  }
+  
+  Mras_L.close();    
+
+ 
+ //===== LHRS theta parameters ======// 
+  char name_Mxpt_L[500];
+    sprintf(name_Mxpt_L, param_mt[6].c_str()); // optimized
+  ifstream Mxpt_L(name_Mxpt_L);
+  //  cout<<"LHRS theta parameters file: "<<name_Mxpt_L<<endl;  
+  for (int i=0;i<nParamT;i++){
+    double par=0.;
+    int p=0;
+    Mxpt_L >> par >> p >> p >> p >> p >> p;
+    //   cout<<"LHRS theta : "<<par<<endl;
+    Pxpt_L[i]  = par;
+  }
+  Mxpt_L.close();
+
+  
+ //===== LHRS phi parameters ===x==//
+  char name_Mypt_L[500];
+    sprintf(name_Mypt_L, param_mt[7].c_str()); // optimized
+  ifstream Mypt_L(name_Mypt_L);
+
+  for (int i=0;i<nParamT;i++){
+    double par=0.;
+    int p=0;
+    Mypt_L >> par >> p >> p >> p >> p >> p;
+    Pypt_L[i]  = par;    
+  }
+  Mypt_L.close();    
+
+
+}
+
+//========================================================//
+
+
+void ana::MTP_mom(){
+
+  //====== RHRS Momentum parameters ========//
+    char name_Mpt[500];
+    sprintf(name_Mpt, param_mt[8].c_str()); // optimized
+    ifstream Mpt(name_Mpt);
+
+   for(int i=0;i<nParamTp;i++){
+    double par=0.;
+    int p=0;
+    Mpt >> par >> p >> p >> p >> p >> p;
+    Prp[i]=par;
+    Opt_par_R[i]=par;
+    Opt_par[i]=par;
+   }
+  Mpt.close();
+
+  //====== LHRS Momentum parameters ========//
+    char name_Mpt_L[500];
+    sprintf(name_Mpt_L, param_mt[9].c_str()); // optimized
+    ifstream Mpt_L(name_Mpt_L);
+
+   for(int i=0;i<nParamTp;i++){
+    double par=0.;
+    int p=0;
+    Mpt_L >> par >> p >> p >> p >> p >> p;
+    Plp[i]=par;
+    Opt_par_L[i]=par;
+    Opt_par[i+nParamTp]=par;  // Both momentum paramters
+   }
+  Mpt_L.close();
+
+}
+
+
+///////////////////////////////////////////////////////////////////////////
+
+void ana::Calib(int rt, int lt ){
+
+
+  //======= Nomalization ==================//
+  R_tr_x[rt]    = (R_tr_x[rt]-XFPm)/XFPr;
+  R_tr_th[rt]   = (R_tr_th[rt]-XpFPm)/XpFPr;
+  R_tr_y[rt]    = (R_tr_y[rt]-YFPm)/YFPr;
+  R_tr_ph[rt]   = (R_tr_ph[0]-YpFPm)/YpFPr;
+  L_tr_x[lt]    = (L_tr_x[lt]-XFPm)/XFPr; 
+  L_tr_th[lt]   = (L_tr_th[lt]-XpFPm)/XpFPr;
+  L_tr_y[lt]    = (L_tr_y[lt]-YFPm)/YFPr;
+  L_tr_ph[lt]   = (L_tr_ph[lt]-YpFPm)/YpFPr;  
+  //========================================//
+  
+    R_tr_vz[rt]   = calcf2t_zt(Pzt, R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt]); // nomalized
+    L_tr_vz[lt]   = calcf2t_zt(Pzt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt]); //nomalized
+
+
+        //======== Raster Correction ==========================//    
+
+    RasterCor= Calc_ras(R_Ras_x, Pras[2], Pras[0]);
+    RasterCor = RasterCor/tan(hrs_ang);
+    R_tr_vz[rt]  = R_tr_vz[rt]*Ztr +Ztm; // scaled     
+    R_tr_vz[rt]  = R_tr_vz[rt] - RasterCor; // correction
+    R_tr_vz[rt]  = (R_tr_vz[rt]-Ztm)/Ztr;    // nomalization    
+    
+    RasterCor_L  = Calc_ras(L_Ras_x, Pras_L[2], Pras_L[0]);
+    RasterCor_L  = RasterCor_L/tan(hrs_ang);
+    L_tr_vz[lt]  = L_tr_vz[lt]*Ztr +Ztm;     // scaled
+    L_tr_vz[lt]  = L_tr_vz[lt]+RasterCor_L;
+    L_tr_vz[lt]  =  (L_tr_vz[lt]  -  Ztm)/Ztr;    // nomalization
+
+    //====================================================//
+
+    
+
+
+    R_tr_tg_th[rt]  = calcf2t_ang(Pxpt,   R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]); // nomalized
+    R_tr_tg_ph[rt]  = calcf2t_ang(Pypt,   R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]); // nomalized
+    L_tr_tg_th[lt]  = calcf2t_ang(Pxpt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt], L_tr_vz[lt]); // nomalized
+    L_tr_tg_ph[lt]  = calcf2t_ang(Pypt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt], L_tr_vz[lt]); // nomalized   
+
+    R_p = calcf2t_mom(Opt_par_R, R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]);
+    L_p = calcf2t_mom(Opt_par_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt],L_tr_vz[lt]);
+
+
+    //========== Scaled at FP ==================//
+    R_tr_x[rt]  = R_tr_x[rt]  * XFPr + XFPm;
+    R_tr_th[rt] = R_tr_th[rt] * XpFPr + XpFPm;
+    R_tr_y[rt]  = R_tr_y[rt]  * YFPr + YFPm;
+    R_tr_ph[rt] = R_tr_ph[rt] * YpFPr + YpFPm;
+
+    L_tr_x[rt]  = L_tr_x[rt]  * XFPr + XFPm;
+    L_tr_th[rt] = L_tr_th[rt] * XpFPr + XpFPm;
+    L_tr_y[rt]  = L_tr_y[rt]  * YFPr + YFPm;
+    L_tr_ph[rt] = L_tr_ph[rt] * YpFPr + YpFPm;    
+
+    //=========== Scaled at Taget =============//
+
+
+    R_tr_vz[rt]     = R_tr_vz[rt] * Ztr + Ztm; // scaled
+    R_tr_tg_th[rt]  = R_tr_tg_th[rt] * Xptr + Xptm; // scaled
+    R_tr_tg_ph[rt]  = R_tr_tg_ph[rt] * Yptr + Yptm; // scaled
+    R_p             = R_p * PRr + PRm; // scaled
+    L_tr_vz[lt]     = L_tr_vz[lt] * Ztr + Ztm; // scaled
+    L_tr_tg_th[lt]  = L_tr_tg_th[lt] * Xptr + Xptm;  // scaled    
+    L_tr_tg_ph[lt]  = L_tr_tg_ph[lt] * Yptr + Yptm;  // scaled    
+    L_p             = L_p * PLr + PLm; // scaled    
+
+    //=========== Energy Loss ===================//
+    B_p     = Eloss(0.0,R_tr_vz[0],"0");
+    R_p     = Eloss(R_tr_tg_th[rt],R_tr_vz[rt],"R");
+    L_p     = Eloss(L_tr_tg_th[lt],L_tr_vz[lt],"L");
+      
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////
 void ana::SetRoot(string ifname){
@@ -83,10 +424,7 @@ double ana::Eloss(double xp,double z,char* arm){
     pl[1] = 4.0336e-1;
   }
 
-
-
-
-  
+ 
   if(high){
     dEloss_h = ph[0]*sin(ph[1]*x)+ph[2];    
     dEloss = dEloss_h;
@@ -368,10 +706,12 @@ void ana::Loop(){
 
           if( L_Tr && L_FP && R_Tr && R_FP ){
 
-	    double B_p     = HALLA_p/1000.0;// [GeV/c]	    
-            double L_p     = L_tr_p[lt];
-            double R_p     = R_tr_p[rt];
-
+	    //	    double B_p     = HALLA_p/1000.0;// [GeV/c]	    
+	    //            double L_p     = L_tr_p[lt];
+	    //            double R_p     = R_tr_p[rt];
+	    B_p     = HALLA_p/1000.0;// [GeV/c]	    
+	    L_p     = L_tr_p[lt];
+	    R_p     = R_tr_p[rt];
 
 	    tr.Lp[lt] = L_p;
 	    tr.Rp[rt] = R_p;
@@ -420,11 +760,33 @@ void ana::Loop(){
             h_a1sum_ct->Fill( ct, R_a1_asum_c );
             h_a2sum_ct->Fill( ct, R_a2_asum_c );
 
+	    h_Rz->Fill(R_tr_vz[rt]);
+	    h_Rth->Fill(R_tr_tg_th[rt]);
+	    h_Rph->Fill(R_tr_tg_ph[rt]);
+	    h_Rp->Fill(R_p);
+	    h_Lz->Fill(L_tr_vz[lt]);
+	    h_Lth->Fill(L_tr_tg_th[lt]);	    	    
+	    h_Lph->Fill(L_tr_tg_ph[lt]);	    	    
+	    h_Lp->Fill(L_p);	    
+	    
             TVector3 L_v, R_v, B_v;
-
 	    //         double Ee = 4.3185;
             double Ee= B_E;
-	    //========== Before Tuned Parameters =========//
+	    
+	    //===== momentum calibration =========//
+	    Calib(rt, lt);	    
+	    h_Rz_c->Fill(R_tr_vz[rt]);
+	    h_Rth_c->Fill(R_tr_tg_th[rt]);
+	    h_Rph_c->Fill(R_tr_tg_ph[rt]);
+	    h_Rp_c->Fill(R_p);
+	    h_Lz_c->Fill(L_tr_vz[lt]);
+	    h_Lth_c->Fill(L_tr_tg_th[lt]);	    	    
+	    h_Lph_c->Fill(L_tr_tg_ph[lt]);	    	    
+	    h_Lp_c->Fill(L_p);	    
+	    //=====================================//
+
+
+	    
             L_v.SetMagThetaPhi( L_p, L_tr_tg_th[lt], L_tr_tg_ph[lt] );
             R_v.SetMagThetaPhi( R_p, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
             B_v.SetMagThetaPhi( B_p, 0, 0 );	    
@@ -1222,6 +1584,28 @@ void ana::MakeHist(){
   h_peak_nnL       = new TH1D("h_peak_nnL"      ,"h_peak_nnL"      , 500,2.5,3.5); //nnL mass range bin=2 MeV
 
 
+  h_Rz     = new TH1D("h_Rz", "h_Rz",1000,-0.2,0.2);
+  h_Rz_c   = new TH1D("h_Rz_c", "h_Rz_c",1000,-0.2,0.2);
+  h_Lz     = new TH1D("h_Lz", "h_Lz",1000,-0.2,0.2);
+  h_Lz_c   = new TH1D("h_Lz_c", "h_Lz_c",1000,-0.2,0.2);
+
+  h_Rth     = new TH1D("h_Rth", "h_Rth",1000,-0.1,0.1);
+  h_Rth_c   = new TH1D("h_Rth_c", "h_Rth_c",1000,-0.1,0.1);
+  h_Lth     = new TH1D("h_Lth", "h_Lth",1000,-0.1,0.1);
+  h_Lth_c   = new TH1D("h_Lth_c", "h_Lth_c",1000,-0.1,0.1);
+
+  h_Rph     = new TH1D("h_Rph", "h_Rph",1000,-0.1,0.1);
+  h_Rph_c   = new TH1D("h_Rph_c", "h_Rph_c",1000,-0.1,0.1);
+  h_Lph     = new TH1D("h_Lph", "h_Lph",1000,-0.1,0.1);
+  h_Lph_c   = new TH1D("h_Lph_c", "h_Lph_c",1000,-0.1,0.1);
+
+  h_Rp     = new TH1D("h_Rp", "h_Rp",1000,1.6,2.0);
+  h_Rp_c   = new TH1D("h_Rp_c", "h_Rp_c",1000,1.6,2.0);
+  h_Lp     = new TH1D("h_Lp", "h_Lp",1000,1.9,2.3);
+  h_Lp_c   = new TH1D("h_Lp_c", "h_Lp_c",1000,1.9,2.3);
+  
+
+  
 
   h_Lp_mm    = new TH2D("h_Lp_mm"   ,"h_Lp_mm"   , bin_mm,min_mm,max_mm,bin_Lp,min_Lp,max_Lp); 
   h_mmall    = new TH1D("h_mmall"   ,"h_mmall"   , 1000,-0.5,1.5); 
@@ -1330,6 +1714,7 @@ void ana::Swich(bool nnL){
 }
 
 
+
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
 int main(int argc, char** argv){
 
@@ -1342,7 +1727,7 @@ int main(int argc, char** argv){
   string runlistname = "runlist/test.txt";
   string pname = "param/.default.param";
   bool single_flag = false;
-
+  string mtparam;
   string root_init="../rootfiles/mmass/ana_Lambda/";
   string root_end=".root";
   string pdf_init="../pdf/mmass/";
@@ -1351,7 +1736,7 @@ int main(int argc, char** argv){
     RHRS= true;
     LHRS= true;
     
-  while((ch=getopt(argc,argv,"hHTf:s:p:w:r:o:b"))!=-1){
+  while((ch=getopt(argc,argv,"hHTf:s:p:w:r:m:o:b"))!=-1){
     switch(ch){
     case 's':
       ifname = optarg;
@@ -1361,6 +1746,11 @@ int main(int argc, char** argv){
       runlistname = optarg;
       break;
 
+    case 'm':
+      mtparam = optarg;
+      break;
+
+     
     case 'p':
       pname = optarg;
       break;
@@ -1432,6 +1822,7 @@ int main(int argc, char** argv){
 
   TApplication theApp("App", &argc, argv);
   Ana->Swich(nnL);
+  Ana->matrix(mtparam);
   Ana->SetMaxEvent(MaxNum);  // Set Maximum event roop
   Ana->MakeHist();           // Initialize histograms
   Ana->ReadParam(pname);
@@ -1461,4 +1852,160 @@ int main(int argc, char** argv){
   return 0;
 
 }
+
+
+
+
+// ###################################################
+double calcf2t_mom(double* P, double xf, double xpf, 
+		   double yf, double ypf, double zt)
+// ###################################################
+{
+  // ----------------------------------------------------------------- //
+  // ------ 4rd order using xf, xpf, yf, ypf, zt, xt, xpt, yt, ytp --- //
+  // ----------------------------------------------------------------- //
+
+  const int nMatT=nnp;  
+  const int nXf=nnp;
+  const int nXpf=nnp;
+  const int nYf=nnp;
+  const int nYpf=nnp;
+  const int nZt=nnp;
+  const int nXt=nnp;
+  const int nXpt=nnp;
+  const int nYt=nnp;
+  const int nYpt=nnp;
+  
+  double Y=0.;
+  double x=1.; 
+  int npar=0;
+  int a=0,b=0,c=0,d=0,e=0,f=0,g=0,h=0,i=0;
+  for (int n=0;n<nMatT+1;n++){
+	    for(e=0;e<n+1;e++){
+	      for (d=0;d<n+1;d++){
+		for (c=0;c<n+1;c++){ 
+		  for (b=0;b<n+1;b++){
+		    for (a=0;a<n+1;a++){ 
+		      if (a+b+c+d+e+f+g+h+i==n){
+		if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt
+		    && f<=nXt && g<=nXpt && h<=nYt && i<=nYpt){
+		  x = pow(xf,double(a))*pow(xpf,double(b))*
+		    pow(yf,double(c))*pow(ypf,double(d))*pow(zt,double(e));
+		}
+		else{
+		  x = 0.;
+		}
+		Y += x*P[npar]; 
+		npar++;
+		      }
+		    }
+		  }
+		}
+	      }    
+	    }
+	  }
+
+  return Y; 
+  
+}
+
+
+
+// ###################################################
+double calcf2t_ang(double* P, double xf, double xpf, 
+		     double yf, double ypf, double zt)
+// ####################################################
+{
+  // ------------------------------------------------ //
+  // ----- 4rd order using xf, xpf, yf, ypf, zt ----- //
+  // ------------------------------------------------ //
+  
+  const int nMatT=nn;  
+  const int nXf=nn;
+  const int nXpf=nn;
+  const int nYf=nn;
+  const int nYpf=nn;
+  const int nZt=nn;
+  
+  double Y=0.;
+  double x=1.; 
+  int npar=0;
+  int a=0,b=0,c=0,d=0,e=0;
+  for (int n=0;n<nMatT+1;n++){
+    for(e=0;e<n+1;e++){
+      for (d=0;d<n+1;d++){
+	for (c=0;c<n+1;c++){ 
+	  for (b=0;b<n+1;b++){
+	    for (a=0;a<n+1;a++){ 
+	      
+	      if (a+b+c+d+e==n){
+		if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt){
+		  x = pow(xf,double(a))*pow(xpf,double(b))*
+		    pow(yf,double(c))*pow(ypf,double(d))*pow(zt,double(e));
+		}
+		else{
+		  x = 0.;
+		}
+		Y += x*P[npar]; 
+	      npar++;
+	      }  
+	    }
+	  }
+	}
+      }    
+    }
+  }
+
+
+  return Y; 
+  
+}
+      	
+
+// #################################################
+double calcf2t_zt(double* P, double xf, double xpf, 
+                 double yf, double ypf){
+// ###############################################
+
+  int nnz=3;  
+
+  const int nMatT=nnz; 
+  const int nXf=nnz;
+  const int nXpf=nnz;
+  const int nYf=nnz;
+  const int nYpf=nnz;
+
+  
+  double Y=0.;
+  double x=1.; 
+  int npar=0;
+  int a=0,b=0,c=0,d=0;
+  
+  for (int n=0;n<nMatT+1;n++){
+  	for (d=0;d<n+1;d++){
+	  for (c=0;c<n+1;c++){
+	    for (b=0;b<n+1;b++){
+	      for (a=0;a<n+1;a++){
+		
+		if (a+b+c+d==n){
+		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf){
+		    x = pow(xf,double(a))*pow(xpf,double(b))*
+		      pow(yf,double(c))*pow(ypf,double(d));
+		  }
+		  else{
+		    x = 0.;
+		  }
+		  Y += x*P[npar];
+		  npar++;
+		}
+		
+	      }
+	    }
+	  }
+  	}
+  }
+  
+  return Y;
+}
+
 

@@ -68,6 +68,7 @@ class tuningAC{
   void Draw();
   void Print(string ofname);
   void Write();
+  void Write_coin();  
   void Comment();
   TFile* fnew;
   public:
@@ -186,7 +187,8 @@ class tuningAC{
  TH2F* hmm_ac2[100];
  TH2F* hmm_ac1_acc[100];
  TH2F* hmm_ac2_acc[100];
- 
+ TH2F* hct_a1a_c[24];
+ TH2F* hct_a2a_c[26]; 
  //----- Fill -----// 
  TH1D* hmm_ac1_p[100][100];
  TH1D* hmm_ac2_p[100][100];
@@ -550,10 +552,15 @@ void tuningAC::SetBranch(){
  T->SetBranchAddress("R.s2.t_pads",Rs2tpads);
  T->SetBranchStatus("R.s2.trpad",1);
  T->SetBranchAddress("R.s2.trpad",Rs2trpad);
+ T->SetBranchStatus("R.a1.a_c",1);
+ T->SetBranchAddress("R.a1.a_c",Ra1a_c);
+ T->SetBranchStatus("R.a2.a_c",1);
+ T->SetBranchAddress("R.a2.a_c",Ra2a_c); 
  T->SetBranchStatus("R.a1.asum_c",1);
  T->SetBranchAddress("R.a1.asum_c",&Ra1sum);
  T->SetBranchStatus("R.a2.asum_c",1);
  T->SetBranchAddress("R.a2.asum_c",&Ra2sum);
+ 
  T->SetBranchStatus("R.vdc.u1.time",1);
  T->SetBranchAddress("R.vdc.u1.time",Ru1_time);
  T->SetBranchStatus("Ndata.R.vdc.u1.time",1);
@@ -870,7 +877,7 @@ void tuningAC::MakeHist(){
 							    ,ac1_adc[i],ac2_adc[j]),bin_coin_c,min_coin_c,max_coin_c);
   set->SetTH1(hcoin_t3[i][j],"","","");
   hfom_ac[i][j]=new TH2F(Form("hfom_ac[%d][%d]",i,j),"",iter_ac1,min_ac1,th1_max,iter_ac1,th2_min,th2_max);
-  set->SetTH1(hfom_ac[i][j],"","","");
+  set->SetTH2(hfom_ac[i][j],"","","");
 
 
  }
@@ -891,6 +898,24 @@ void tuningAC::MakeHist(){
 	      ,nth,ac2_adc[0]-(ac2_adc[nth-1]-ac2_adc[0])/(2.0*nth),ac2_adc[nth-1]+(ac2_adc[nth-1]-ac2_adc[0])/(2.0*nth));
 
  set->SetTH2(hAC2,"AC threshold","AC1","AC2"); 
+
+
+
+ // TH2F* hct_a1a_c[24];
+ // TH2F* hct_a2a_c[26]; 
+
+ for(int i=0;i<24;i++){
+
+   hct_a1a_c[i]=new TH2F(Form("hct_a1a_c_%i",i),"",bin_coin_c,min_coin_c,max_coin_c,2000,-100,10000);
+   set->SetTH2(hct_a1a_c[i],Form("coin-time vs AC1 seg %d ADC hist",i),"coin time [ns]","ADC [ch]");
+ }
+
+
+
+
+
+
+
  
  gfom=new TGraphErrors();
  set->SetGr(gfom,"","","");
@@ -1055,6 +1080,9 @@ void tuningAC::MakeHist(){
  }
  }
 
+
+
+ 
 
 
  //===== Fitting =======//
@@ -2812,6 +2840,13 @@ void tuningAC::Print(string ofname){
 
 }
 
+
+///////////////////////////////////////////////////////////////
+
+void tuningAC::Write_coin(){
+
+
+}
 
 ///////////////////////////////////////////////////////////////
 

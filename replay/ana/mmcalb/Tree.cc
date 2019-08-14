@@ -63,7 +63,7 @@ void Tree::readtreeHRSLR()
 void Tree::readtreeHRSL()
 {
   
-  //  readtreeRasterL();
+  readtreeRasterL();
   readtreeS0L();
   readtreeS2L();
   readtreeTrackL();
@@ -76,7 +76,7 @@ void Tree::readtreeHRSL()
 //////////////////////////////////////////////////
 void Tree::readtreeHRSR()
 {
-  //  readtreeRasterR();
+  readtreeRasterR();
   readtreeS0R();
   readtreeS2R();
   readtreeA1R();

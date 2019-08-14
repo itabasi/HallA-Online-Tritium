@@ -40,6 +40,7 @@ using namespace std;
 int main(int argc, char** argv){
 
   gStyle->SetOptFit(111111111);
+  gStyle->SetOptStat(111111111);  
   int ch;
   string ifname="";
   string ofname = "./param/test.dat";
@@ -111,14 +112,17 @@ int main(int argc, char** argv){
   //  param_init="./param/";
   //  print_init="../../pdf/VDC/ita_mac/initial/";
   //  root_init="../../rootfiles/VDC/initial/";
-  param_init="./param/t0tuned_1ns/";
-  print_init="../../pdf/VDC/ita_mac/t0tuned_1ns/";
-  root_init="../../rootfiles/VDC/t0tuned_1ns/";    
+  //  param_init="./param/t0tuned_1ns/";
+  //  print_init="../../pdf/VDC/ita_mac/t0tuned_1ns/";
+  //  root_init="../../rootfiles/VDC/t0tuned_1ns/";    
+  param_init="./param/initial_2run/";
+  print_init="../../pdf/VDC/ita_mac/initial_2run/";
+  root_init="../../rootfiles/VDC/initial_2run/";    
   print_end=".pdf";
   param_end=".dat";
   root_end=".root";
   ostringstream run;
-  run<<runnum<<"-"<<runnum+9;
+  run<<runnum<<"-"<<runnum+1;
   string def_param = "./param/def_t0.dat";
 
 
