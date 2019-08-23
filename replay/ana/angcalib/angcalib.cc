@@ -65,12 +65,12 @@ int main(int argc, char** argv){
   bool root_flag=false;
   // bool RHRS_flag=true;
   bool RHRS_flag=false; 
+  bool fill_flag=false;
   string pngname;
   extern char *optarg;
   string itel;  
   //  char *root_init="/w/halla-scifs17exp/triton/itabashi/rootfiles/calib_root/";//ifarm
   string root_init="../rootfiles/angcalib/";
-  
   string root_end=".root";
   string dat_init="../matrix/";
   string dat_end=".dat";
@@ -96,6 +96,7 @@ int main(int argc, char** argv){
       break;
 
     case 'i':
+      fill_flag=true;
       itel= optarg;
       nite= atoi(itel.c_str());
       break;
@@ -153,6 +154,7 @@ int main(int argc, char** argv){
 
     case 'd':
       draw_flag =true;
+      BreakTrue=false; 
       cout<<"Draw analysis"<<endl;
       break;
       
@@ -186,16 +188,16 @@ int main(int argc, char** argv){
   angcalib * Ang=new angcalib();
   cout<<"root flag "<<root_flag<<endl;
    Ang->SetBranch(ifname,RHRS_flag);
-   if(root_flag)Ang->NewBranch(ofname,RHRS_flag);
-   Ang->HolePosi();
+   if(root_flag && draw_flag==0)Ang->NewBranch(ofname,RHRS_flag);
+   Ang->HolePosi(RHRS_flag);
    Ang->MakeHist();
    Ang->Scale_corr(opt_file);
    Ang->Mxpt(matrix_xp);
    Ang->Mypt(matrix_yp);
-   //   if(nite>0)Ang->EventSelect(RHRS_flag);
-   Ang->EventSelect(RHRS_flag);
+   if(nite != 0 || draw_flag)Ang->EventSelect(RHRS_flag);
+   //Ang->EventSelect(RHRS_flag);
    if(nite>0 && draw_flag==0)Ang->Tuning(ofMTPname);
-   if(nite>0 && draw_flag==0) Ang->Fill(RHRS_flag);
+   if(nite >=0 && draw_flag==0 && fill_flag) Ang->Fill(RHRS_flag);
    //Ang->Fill(RHRS_flag);
    if(draw_flag)Ang->Draw();
    //Ang->Draw();
@@ -206,7 +208,7 @@ int main(int argc, char** argv){
    if(draw_flag==0)gSystem->Exit(1);
    theApp->Run();
 
- 
+
   
   
 

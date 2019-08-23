@@ -51,7 +51,7 @@ class VDCt0_plot : public VDCt0{
   void MakeRoot(string ofname);
   void Draw();
   void Print(string ofname);
-
+  void Fill();
 
   //=== GetPlot ====//
   TGraph* gLu1[nwire];
@@ -250,6 +250,7 @@ void VDCt0_plot::SetPointError(string ifname){
    // ita_macro/param/ = 101
    int num_end=103;
    num_end=108;
+   //   num_end=109;
     string main = runname.substr(0,num_end);
     int num_start=num_end-13;
     string ifname_err = main + "_err.dat";
@@ -371,35 +372,35 @@ void VDCt0_plot::SetPointError(string ifname){
       gRu1_ac[i]=new TGraphAsymmErrors();
       gRu1_ac[i]->SetMarkerStyle(21);
       gRu1_ac[i]->SetMarkerColor(kRed);
-      gRu1_ac[i]->SetMarkerSize(0.5);
+      gRu1_ac[i]->SetMarkerSize(0.2);
       gRu2_ac[i]=new TGraphAsymmErrors();
       gRu2_ac[i]->SetMarkerStyle(21);
       gRu2_ac[i]->SetMarkerColor(kRed);
-      gRu2_ac[i]->SetMarkerSize(0.5);      
+      gRu2_ac[i]->SetMarkerSize(0.2);      
       gRv1_ac[i]=new TGraphAsymmErrors();
       gRv1_ac[i]->SetMarkerStyle(21);
       gRv1_ac[i]->SetMarkerColor(kRed);
-      gRv1_ac[i]->SetMarkerSize(0.5);
+      gRv1_ac[i]->SetMarkerSize(0.2);
       gRv2_ac[i]=new TGraphAsymmErrors();
       gRv2_ac[i]->SetMarkerStyle(21);
       gRv2_ac[i]->SetMarkerColor(kRed);
-      gRv2_ac[i]->SetMarkerSize(0.5);      
+      gRv2_ac[i]->SetMarkerSize(0.2);      
       gLu1_ac[i]=new TGraphAsymmErrors();
       gLu1_ac[i]->SetMarkerStyle(21);
       gLu1_ac[i]->SetMarkerColor(kRed);
-      gLu1_ac[i]->SetMarkerSize(0.5);
+      gLu1_ac[i]->SetMarkerSize(0.2);
       gLu2_ac[i]=new TGraphAsymmErrors(); 
       gLu2_ac[i]->SetMarkerStyle(21);
       gLu2_ac[i]->SetMarkerColor(kRed);
-      gLu2_ac[i]->SetMarkerSize(0.5);     
+      gLu2_ac[i]->SetMarkerSize(0.2);     
       gLv1_ac[i]=new TGraphAsymmErrors();
       gLv1_ac[i]->SetMarkerStyle(21);
       gLv1_ac[i]->SetMarkerColor(kRed);
-      gLv1_ac[i]->SetMarkerSize(0.5);      
+      gLv1_ac[i]->SetMarkerSize(0.2);      
       gLv2_ac[i]=new TGraphAsymmErrors();
       gLv2_ac[i]->SetMarkerStyle(21);
       gLv2_ac[i]->SetMarkerColor(kRed);
-      gLv2_ac[i]->SetMarkerSize(0.5);
+      gLv2_ac[i]->SetMarkerSize(0.2);
 
       
   for(int k=0;k<jmax;k++){      
@@ -564,28 +565,28 @@ void VDCt0_plot::Draw(){
     c4[j]->cd(i+1);
       gLu1_ac[32*j+i]->SetMarkerStyle(21);
       gLu1_ac[32*j+i]->SetMarkerColor(2);
-      gLu1_ac[32*j+i]->SetMarkerSize(0.5);
+      gLu1_ac[32*j+i]->SetMarkerSize(0.2);
     gLu1_ac[32*j+i]->Draw("AP");
     gLu1_ac[32*j+i]->GetXaxis()->SetRangeUser(160,500);
     gLu1_ac[32*j+i]->GetYaxis()->SetRangeUser(2800,3000);    
     c5[j]->cd(i+1);
       gLu2_ac[32*j+i]->SetMarkerStyle(21);
       gLu2_ac[32*j+i]->SetMarkerColor(2);
-      gLu2_ac[32*j+i]->SetMarkerSize(0.5);    
+      gLu2_ac[32*j+i]->SetMarkerSize(0.2);    
     gLu2_ac[32*j+i]->Draw("AP");
     gLu2_ac[32*j+i]->GetXaxis()->SetRangeUser(160,500);    
     gLu2_ac[32*j+i]->GetYaxis()->SetRangeUser(2800,3000);    
     c6[j]->cd(i+1);
       gLv1_ac[32*j+i]->SetMarkerStyle(21);
       gLv1_ac[32*j+i]->SetMarkerColor(2);
-      gLv1_ac[32*j+i]->SetMarkerSize(0.5);
+      gLv1_ac[32*j+i]->SetMarkerSize(0.2);
     gLv1_ac[32*j+i]->GetXaxis()->SetRangeUser(160,500);    
     gLv1_ac[32*j+i]->GetYaxis()->SetRangeUser(2800,3000);    
     gLv1_ac[32*j+i]->Draw("AP");
     c7[j]->cd(i+1);
       gLv2_ac[32*j+i]->SetMarkerStyle(21);
       gLv2_ac[32*j+i]->SetMarkerColor(2);
-      gLv2_ac[32*j+i]->SetMarkerSize(0.5);    
+      gLv2_ac[32*j+i]->SetMarkerSize(0.2);    
     gLv2_ac[32*j+i]->GetXaxis()->SetRangeUser(160,500);    
     gLv2_ac[32*j+i]->GetYaxis()->SetRangeUser(2800,3000);    
     gLv2_ac[32*j+i]->Draw("AP"); 

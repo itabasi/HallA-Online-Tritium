@@ -39,8 +39,14 @@
 const char* REPLAY_DIR_PREFIX = "./%s";
 //const char* ROOTFILE_DIR_PREFIX = "/data1/rootfiles/%s";
 //const char* ROOTFILE_DIR_PREFIX = "/data1/root";
-const char* ROOTFILE_DIR_PREFIX = "/data/test";
+//const char* ROOTFILE_DIR_PREFIX = "/data/test";
+
+//const char* ROOTFILE_DIR_PREFIX = "/data/VDC/T0tuning";
+//const char* ROOTFILE_DIR_PREFIX = "/data/VDC/root/initial";
+//const char* ROOTFILE_DIR_PREFIX = "/data/VDC/root/LU1t0_2ch/11120X_";
 //const char* ROOTFILE_DIR_PREFIX = "/data/rootfiles";
+const char* ROOTFILE_DIR_PREFIX = "/data1/root";
+//const char* ROOTFILE_DIR_PREFIX = "/data1/vdc/Ltuned_2run";
 //const char* ROOTFILE_DIR_PREFIX = "/t2root/%s";
 //const char* ROOTFILE_DIR_PREFIX = "./t2root/%s"; 
 //const char* ROOTFILE_DIR_PREFIX = "./rootfiles/";

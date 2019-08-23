@@ -83,9 +83,9 @@ void Tree::readtreeHRSR()
   readtreeA2R();
   readtreeTrackR();
   readtreeF1TDCR();
-  readtreeGCR();
-  readtreePSR();
-  readtreeShR();
+  //  readtreeGCR();
+  //  readtreePSR();
+  //  readtreeShR();
 
   //readtreeMiscR();
 }
@@ -381,7 +381,7 @@ void Tree::readtreeShR(){
 }
 //////////////////////////////////////////////////
 void Tree::readtreePSR(){
-    tree->SetBranchStatus("R.ps.asum_c"           ,1);  tree->SetBranchAddress("R.ps.asum_c"           ,& R_ps_asum_c          ); 
+     tree->SetBranchStatus("R.ps.asum_c"           ,1);  tree->SetBranchAddress("R.ps.asum_c"           ,& R_ps_asum_c          ); 
 }
 
 //////////////////////////////////////////////////

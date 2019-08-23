@@ -444,7 +444,7 @@ void mmcalib::Fill(){
 
       double RasterCor = calcRasterCor(R_Ras_x, parRaster_R_2, parRaster_R_0);
       RasterCor = RasterCor/tan(hrs_ang);
-      //      R_tr_vz[0]=R_tr_vz[0]+RasterCor; w/ Raster correction
+      R_tr_vz[0]=R_tr_vz[0]+RasterCor;// w/ Raster correction
       hRvz_Rc->Fill(R_tr_vz[0]);
 
 
@@ -494,7 +494,7 @@ void mmcalib::Fill(){
 
       double RasterCor_L = calcRasterCor(L_Ras_x, parRaster_L_2, parRaster_L_0);
       RasterCor_L = RasterCor_L/tan(hrs_ang);
-      //      L_tr_vz[0]=L_tr_vz[0]+RasterCor;
+      L_tr_vz[0]=L_tr_vz[0]+RasterCor;
       hLvz_Rc->Fill(L_tr_vz[0]);
 
       double Zt_L=L_tr_vz[0];

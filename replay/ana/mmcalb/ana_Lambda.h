@@ -12,6 +12,12 @@ using namespace std;
 struct TreeBranch{
   double missing_mass, coin_time;
   double missing_mass_acc;
+  double missing_mass_L;
+  double missing_mass_nnL;
+  double missing_mass_cut;
+  double missing_mass_Lb;
+  double missing_mass_nnLb;
+  double missing_mass_b;
   double mm_tuned;
   double momR, momL;
   double zR, zL;
@@ -27,7 +33,7 @@ struct TreeBranch{
   double LXt,LYt,LXpt,LYpt;
   double Lp[100],Rp[100],Bp;
   double Lp_c[100],Rp_c[100],Bp_c;  
-  double dpe,dpe_[10],dpk[10];  
+  double dpe,dpe_[10],dpk[10];
 };
 static TreeBranch tr;
 

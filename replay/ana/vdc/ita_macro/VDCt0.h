@@ -53,8 +53,10 @@ class VDCt0{
   void SetRunList(string ifname);
   void SetRun(int runnum);
   void SetBranch();
+  void NewRoot(string ofname);
   void MakeHist();
   void Fill();
+  void GetOffset(string paraname);
   double Findt0(bool rarm,char* plane, int wire);
   double Findt0_time(bool rarm, char* plane, int wire);
   void Deft0(string ifname);
@@ -71,8 +73,9 @@ class VDCt0{
   //== SetRunList ====//
     int ENum;
     TChain* T;
-
-    //=== SetBranch ====//
+    double off[nwire][8];
+    
+  //=== SetBranch ====//
   double evtype, HallA_p;  
   double Ru1_nhit[nmax],Ru2_nhit[nmax],Rv1_nhit[nmax],Rv2_nhit[nmax];
   int NRu1_nhit,NRu2_nhit,NRv1_nhit,NRv2_nhit;
@@ -91,6 +94,13 @@ class VDCt0{
   int NLu1_rtime,NLu2_rtime,NLv1_rtime,NLv2_rtime;
  double Lu1_time[nmax],Lu2_time[nmax],Lv1_time[nmax],Lv2_time[nmax];
   int NLu1_time,NLu2_time,NLv1_time,NLv2_time;      
+
+  //===== NewRoot =====//
+  TFile* fnew;
+  TTree* tnew;
+  double Ru1_rt_p[500],Ru2_rt_p[500],Rv1_rt_p[500],Rv2_rt_p[500];
+  double Lu1_rt_p[500],Lu2_rt_p[500],Lv1_rt_p[500],Lv2_rt_p[500];
+
 
   //===== MakeHist =====//
   TH2F* hRu1;
@@ -223,6 +233,8 @@ class VDCt0{
   //  TCanvas* c14= new TCanvas("c14","c14");
   //  TCanvas* c15= new TCanvas("c15","c15");  
 
+
+  
   //=== Def param ====//
   double  Ru1t0_def[nwire],Ru2t0_def[nwire],Rv1t0_def[nwire],Rv2t0_def[nwire];
   double  Lu1t0_def[nwire],Lu2t0_def[nwire],Lv1t0_def[nwire],Lv2t0_def[nwire];  
@@ -243,9 +255,6 @@ class VDCt0{
   
 
   //==== MakeRoot =====//
-  TFile* fnew;
-  TTree* tnew;
-
 
   //==== Findt0 =====//
   double  Lu1_p0[nwire],Lu1_p1[nwire],Lu2_p0[nwire],Lu2_p1[nwire],Lv1_p0[nwire],Lv1_p1[nwire],Lv2_p0[nwire],Lv2_p1[nwire];
@@ -259,6 +268,9 @@ VDCt0::VDCt0(){
   cout<<"start VDC T0 tuning "<<endl;
   set=new Setting();
   set->Initialize();
+  for(int i=0;i<nwire;i++)
+    for(int j=0;j<8;j++)off[i][j]=0.0;
+  
 }
 VDCt0::~VDCt0(){}
 
@@ -301,9 +313,9 @@ void VDCt0::SetRunList(string ifname){
 void VDCt0::SetRun(int runnum){
   T=new TChain("T");
   //####################
-  int sum_run=2;
+  int sum_run=3;
   //#####################
-  cout<<"TChain run number : "<<runnum<<" - "<<runnum+sum_run-1<<endl;
+  //  cout<<"TChain run number : "<<runnum<<" - "<<runnum+sum_run-1<<endl;
 
   //  const string ROOTfilePath="/data/opt_small/VDC/initial";
   const string ROOTfilePath="/data/opt_small/VDC/initial/";  
@@ -324,7 +336,7 @@ void VDCt0::SetRun(int runnum){
    int sub=1;
    while ( !gSystem->AccessPathName(rootfile.c_str()) ) {
         T->Add(rootfile.c_str());
-	//        cout << "ROOT file " << rootfile << " added to TChain." << endl;
+        cout << "ROOT file " << rootfile << " added to TChain." << endl;
         rootfile = basename + "_" + sub + ".root";
 	sub++;
    }
@@ -335,6 +347,33 @@ void VDCt0::SetRun(int runnum){
 
   
 }
+
+/////////////////////////////////////////////////////
+
+void VDCt0::GetOffset(string paraname){
+
+  ifstream ifparam(paraname.c_str());  
+  string buf;
+  if (ifparam.fail()){ cerr << "failed open files" <<paraname<<endl; exit(1);}
+
+  int plane=-1;
+  int i=0;
+
+  while( getline(ifparam,buf) ){
+
+    if( buf[0]=='#' ){
+      i=0;
+      plane++;}
+    if( ifparam.eof() || i+1 > nwire){continue;}
+
+    ifparam >> off[i][plane] >> off[i+1][plane] >> off[i+2][plane] >> off[i+3][plane]
+	    >> off[i+4][plane] >> off[i+5][plane] >> off[i+6][plane] >> off[i+7][plane];
+    i=i+8;
+  }//end while dat file
+
+  
+}
+
 
 /////////////////////////////////////////////////////
 
@@ -493,6 +532,26 @@ void VDCt0::SetBranch(){
 }
 
 ///////////////////////////////////////////////////
+
+void VDCt0::NewRoot(string ofname){
+
+  
+  fnew = new TFile(Form("%s",ofname.c_str()),"recreate");
+  tnew =new TTree("T",ofname.c_str());
+
+  tnew->Branch("Ru1_rt_p",Ru1_rt_p,"Ru1_rt_p[500]/D");
+  tnew->Branch("Ru2_rt_p",Ru2_rt_p,"Ru2_rt_p[500]/D");
+  tnew->Branch("Rv1_rt_p",Rv1_rt_p,"Rv1_rt_p[500]/D");
+  tnew->Branch("Rv2_rt_p",Rv2_rt_p,"Rv2_rt_p[500]/D");
+  tnew->Branch("Lu1_rt_p",Lu1_rt_p,"Lu1_rt_p[500]/D");
+  tnew->Branch("Lu2_rt_p",Lu2_rt_p,"Lu2_rt_p[500]/D");
+  tnew->Branch("Lv1_rt_p",Lv1_rt_p,"Lv1_rt_p[500]/D");
+  tnew->Branch("Lv2_rt_p",Lv2_rt_p,"Lv2_rt_p[500]/D");
+
+ 
+}
+
+//////////////////////////////////////////////////////
 
 void VDCt0::MakeHist(){
 
@@ -752,9 +811,10 @@ void VDCt0::Fill(){
   int Lu1_nwire,Lu2_nwire,Lv1_nwire,Lv2_nwire;
 
   
-  ///===== FIll =======//
+  ///===== Fill =======//
   //  int test=10000;
   //   ENum=test;
+
   for(int k=0;k<ENum;k++){
     for(int i=0;i<nmax;i++){
       Ru1_wire[i]=0.0;
@@ -783,6 +843,17 @@ void VDCt0::Fill(){
       Lv2_time[i]=0.0;            
     }
 
+    for(int i=0;i<500;i++){
+      Ru1_rt_p[i]=-1000.;
+      Ru2_rt_p[i]=-1000.;
+      Rv1_rt_p[i]=-1000.;
+      Rv2_rt_p[i]=-1000.;
+      Lu1_rt_p[i]=-1000.;
+      Lu2_rt_p[i]=-1000.;
+      Lv1_rt_p[i]=-1000.;
+      Lv2_rt_p[i]=-1000.;      
+    }
+    
     T1=false;
     T4=false;
     T5=false;
@@ -804,10 +875,19 @@ void VDCt0::Fill(){
     
 
     if(T1){
-    if(NLu1_wire>0 && 100>NLu1_wire)for(int i=0;i<NLu1_wire;i++){hLu1->Fill(Lu1_wire[i],Lu1_rtime[i]);}
-    if(NLu2_wire>0 && 100>NLu2_wire)for(int i=0;i<NLu2_wire;i++){hLu2->Fill(Lu2_wire[i],Lu2_rtime[i]);}
-    if(NLv1_wire>0 && 100>NLv1_wire)for(int i=0;i<NLv1_wire;i++){hLv1->Fill(Lv1_wire[i],Lv1_rtime[i]);}
-    if(NLv2_wire>0 && 100>NLv2_wire)for(int i=0;i<NLv2_wire;i++){hLv2->Fill(Lv2_wire[i],Lv2_rtime[i]);}
+    if(NLu1_wire>0 && 100>NLu1_wire)for(int i=0;i<NLu1_wire;i++){
+	hLu1->Fill(Lu1_wire[i],Lu1_rtime[i]);
+	Lu1_rt_p[(int)Lu1_wire[i]]=Lu1_rtime[i]-off[(int)Lu1_wire[i] ][4];    }
+    if(NLu2_wire>0 && 100>NLu2_wire)for(int i=0;i<NLu2_wire;i++){
+	hLu2->Fill(Lu2_wire[i],Lu2_rtime[i]);
+	Lu2_rt_p[(int)Lu2_wire[i]]=Lu2_rtime[i]-off[(int)Lu2_wire[i] ][5];    }
+    if(NLv1_wire>0 && 100>NLv1_wire)for(int i=0;i<NLv1_wire;i++){
+	hLv1->Fill(Lv1_wire[i],Lv1_rtime[i]);
+	Lv1_rt_p[(int)Lv1_wire[i]]=Lv1_rtime[i]-off[(int)Lv1_wire[i] ][6];    }
+    if(NLv2_wire>0 && 100>NLv2_wire)for(int i=0;i<NLv2_wire;i++){
+	hLv2->Fill(Lv2_wire[i],Lv2_rtime[i]);
+      	Lv2_rt_p[(int)Lv2_wire[i]]=Lv2_rtime[i]-off[(int)Lv2_wire[i] ][7];    }
+
     if(NLu1_wire>0 && 100>NLu1_wire)for(int i=0;i<NLu1_wire;i++){hLu1_c->Fill(Lu1_wire[i],Lu1_time[i]*1.0e9);}
     if(NLu2_wire>0 && 100>NLu2_wire)for(int i=0;i<NLu2_wire;i++){hLu2_c->Fill(Lu2_wire[i],Lu2_time[i]*1.0e9);}
     if(NLv1_wire>0 && 100>NLv1_wire)for(int i=0;i<NLv1_wire;i++){hLv1_c->Fill(Lv1_wire[i],Lv1_time[i]*1.0e9);}
@@ -820,23 +900,38 @@ void VDCt0::Fill(){
   
     if(T4){
 
-    if(NRu1_wire>0 && 100>NRu1_wire)for(int i=0;i<NRu1_wire;i++){hRu1->Fill(Ru1_wire[i],Ru1_rtime[i]);}
-    if(NRu2_wire>0 && 100>NRu2_wire)for(int i=0;i<NRu2_wire;i++){hRu2->Fill(Ru2_wire[i],Ru2_rtime[i]);}
-    if(NRv1_wire>0 && 100>NRv1_wire)for(int i=0;i<NRv1_wire;i++){hRv1->Fill(Rv1_wire[i],Rv1_rtime[i]);}
-    if(NRv2_wire>0 && 100>NRv2_wire)for(int i=0;i<NRv2_wire;i++){hRv2->Fill(Rv2_wire[i],Rv2_rtime[i]);}
+    if(NRu1_wire>0 && 100>NRu1_wire)for(int i=0;i<NRu1_wire;i++){
+	hRu1->Fill(Ru1_wire[i],Ru1_rtime[i]);
+	Ru1_rt_p[(int)Ru1_wire[i]]=Ru1_rtime[i]-off[(int)Ru1_wire[i] ][0];          }
+    if(NRu2_wire>0 && 100>NRu2_wire)for(int i=0;i<NRu2_wire;i++){
+	hRu2->Fill(Ru2_wire[i],Ru2_rtime[i]);
+	Ru2_rt_p[(int)Ru2_wire[i]]=Ru2_rtime[i]-off[(int)Ru2_wire[i] ][1];          }
+    if(NRv1_wire>0 && 100>NRv1_wire)for(int i=0;i<NRv1_wire;i++){
+	hRv1->Fill(Rv1_wire[i],Rv1_rtime[i]);
+      	Rv1_rt_p[(int)Ru1_wire[i]]=Rv1_rtime[i]-off[(int)Rv1_wire[i] ][2];          }
+    if(NRv2_wire>0 && 100>NRv2_wire)for(int i=0;i<NRv2_wire;i++){
+	hRv2->Fill(Rv2_wire[i],Rv2_rtime[i]);
+      	Rv2_rt_p[(int)Rv2_wire[i]]=Rv2_rtime[i]-off[(int)Rv2_wire[i] ][3];          }
+
     
     if(NRu1_wire>0 && 100>NRu1_wire)for(int i=0;i<NRu1_wire;i++){hRu1_c->Fill(Ru1_wire[i],Ru1_time[i]*1.0e9);}
     if(NRu2_wire>0 && 100>NRu2_wire)for(int i=0;i<NRu2_wire;i++){hRu2_c->Fill(Ru2_wire[i],Ru2_time[i]*1.0e9);}
     if(NRv1_wire>0 && 100>NRv1_wire)for(int i=0;i<NRv1_wire;i++){hRv1_c->Fill(Rv1_wire[i],Rv1_time[i]*1.0e9);}
     if(NRv2_wire>0 && 100>NRv2_wire)for(int i=0;i<NRv2_wire;i++){hRv2_c->Fill(Rv2_wire[i],Rv2_time[i]*1.0e9);}
-   
+
+
+    
     }
 
 
-
+    tnew->Fill();
+    
     if(k%(ENum/10)==0){
       int fill=k/(ENum/10)*10;
       cout<<"Filled : "<<fill<<" % ("<<k<<" / "<<ENum<<")"<<endl;}
+
+
+
     
   }//end Fill
 
@@ -879,7 +974,9 @@ void VDCt0::Fill(){
     set->SetTH1(hLv1_time[i],Form("LVDC V1 wire-%d  tdc hist ",i),"time [ns]","Counts");
     hLv2_time[i]=hLv2_c->ProjectionY(Form("hLv2_time_%d",i),i+1,i+1);
     set->SetTH1(hLv2_time[i],Form("LVDC V2 wire-%d  tdc hist ",i),"time [ns]","Counts");            
-    
+
+
+   
   }
 
   
@@ -954,6 +1051,9 @@ void VDCt0::Deft0(string ifname){
     Int_t nbins = hnew->GetNbinsX();
     Int_t maxbin = hnew->GetMaximumBin();
     Double_t maxcont = hnew->GetBinContent(maxbin);
+    int bin_rmin;
+    if(rarm==0)bin_rmin=hnew->GetXaxis()->FindBin(2900);
+    if(rarm)bin_rmin=hnew->GetXaxis()->FindBin(2600);
     int kmax=5;
     int jmax=3;
     int nelement=kmax*jmax;    
@@ -962,11 +1062,13 @@ void VDCt0::Deft0(string ifname){
     double slopes[nbins];
     double n[nwire];
 
-    for (Int_t i=maxbin+5; i<=nbins; i++) {
-        if (hnew->GetBinContent(i)>0.5*maxcont) continue;
+    //    for (Int_t i=maxbin+5; i<=nbins; i++) {
+        for (Int_t i=bin_rmin; i<=nbins; i++) {
+
+	  if (hnew->GetBinContent(i)>0.5*maxcont) continue;
         if (hnew->GetBinContent(i-1)>0.5*maxcont) continue;
 	
-        if (i>1 && i<nbins) {
+        if (i>bin_rmin+1 && i<nbins) {
             slope = (hnew->GetBinContent(i+1)-hnew->GetBinContent(i-1))/(2.*dx);
 
 	    
@@ -1017,10 +1119,17 @@ void VDCt0::Deft0(string ifname){
 	yb = hnew->GetBinContent(sdbin-1);
 	ya = hnew->GetBinContent(sdbin+1);
 	slope = (ya-yb)/(2.*dx);
-	y0= y - slope_min*x;	
-       	if(ya==0 || yb==0 || slope_min==0 || y==0 || dt0<-1.0)dt0=100.0;
-	else{dt0=(t0-x)*(sqrt(y)/y+(sqrt(yb)+sqrt(ya))/fabs(ya-yb));	}
+	y0= y - slope_min*x;
 
+	
+	//       	if(ya==0 || yb==0 || slope_min==0 || y==0 || dt0<-1.0)dt0=100.0;
+	//	else{dt0=(t0-x)*(sqrt(y)/y+(sqrt(yb)+sqrt(ya))/fabs(ya-yb));	}
+	double dy;
+	if(y==0)dy=0.0;
+	else dy=1./sqrt(y);
+	dt0=y/fabs(slope)*sqrt(  dy +pow( (sqrt(ya) + sqrt(yb))/fabs(slope) ,2 )  );
+	
+	//	cout<<"dt0: "<<dt0<<" yn "<<y<<" xn "<<x<<" a "<<slope<<" yn+1 "<<ya<<" yn-1 "<<yb<<" calc dt0 "<<y/fabs(slope)*sqrt(  dy +pow( (sqrt(ya) + sqrt(yb))/fabs(slope) ,2 )  )<<endl;
     }
 
 
@@ -1077,6 +1186,7 @@ void VDCt0::Deft0(string ifname){
     Int_t nbins = hnew->GetNbinsX();
     Int_t maxbin = hnew->GetMaximumBin();
     Double_t maxcont = hnew->GetBinContent(maxbin);
+    int bin_tmax  = hnew-> GetXaxis()->FindBin(50.);
     int kmax=5;
     int jmax=3;
     int nelement=kmax*jmax;    
@@ -1085,16 +1195,19 @@ void VDCt0::Deft0(string ifname){
     double slopes[nbins];
     double n[nwire];
 
-    for (Int_t i=0; i<=maxbin; i++) {
+    //    for (Int_t i=0; i<=maxbin; i++) {
+    for (Int_t i=0; i<=bin_tmax; i++) {
         if (hnew->GetBinContent(i)>0.5*maxcont) continue;
         if (hnew->GetBinContent(i+1)>0.5*maxcont) continue;
 	
-        if (i>1 && i<maxbin) {
+	//        if (i>1 && i<maxbin) {
+	        if (i>1 && i<bin_tmax) {
             slope = (hnew->GetBinContent(i+1)-hnew->GetBinContent(i-1))/(2.*dx);
 	    
         } else if (i==1) {
             slope = (hnew->GetBinContent(i+1)-hnew->GetBinContent(i))/dx;
-        } else if (i==maxbin) {
+	    //        } else if (i==maxbin) {
+		} else if (i==bin_tmax) {
             slope = (hnew->GetBinContent(i)-hnew->GetBinContent(i-1))/dx;
         }
 
@@ -1123,11 +1236,16 @@ void VDCt0::Deft0(string ifname){
       slope = (ya-yb)/(2.*dx);
       
 	y0= y - slope_max*x;
-	dt0=fabs((t0-x)*(sqrt(y)/y+(sqrt(yb)+sqrt(ya))/fabs(ya-yb)));
+
+	//	dt0=fabs((t0-x)*(sqrt(y)/y+(sqrt(yb)+sqrt(ya))/fabs(ya-yb)));
+
+	double dy;
+	if(y==0)dy=0.0;
+	else dy=1./sqrt(y);
+	dt0=y/fabs(slope)*sqrt(  dy +pow( (sqrt(ya) + sqrt(yb))/fabs(slope) ,2 )  );
 	
     }
 
-    
     
     if(rarm && plane=="U1"){
       Ru1_p0[wire]=slope_max;
@@ -1532,9 +1650,7 @@ void VDCt0::Print_c(string ofname){
 
 void VDCt0::MakeRoot(string ofname){
 
-  fnew = new TFile(Form("%s",ofname.c_str()),"recreate");
-  tnew =new TTree("T",ofname.c_str());
-
+  
   //======= Write ========//
 
 
@@ -1583,6 +1699,8 @@ void VDCt0::MakeRoot(string ofname){
     gLv2->SetName("gLv2");
     gLv2->Write();  
 
+    tnew->Write();
+    
    fnew->Close();
 }
 

@@ -72,9 +72,9 @@ int main(int argc, char** argv){
     case 'o':
       ofname = optarg;
 
-      root_name="./../../rootfiles/VDC/t0ttuned_1ns/" + ofname + ".root";
-      print_name="./../../pdf/VDC/ita_mac/t0tuned_1ns/" +ofname + ".pdf";
-      param_name="./param/t0tuned_1ns/" + ofname;
+      root_name="./../../rootfiles/VDC/t0ttuned_3ns/" + ofname + ".root";
+      print_name="./../../pdf/VDC/ita_mac/t0tuned_3ns/" +ofname + ".pdf";
+      param_name="./param/t0tuned_3ns/" + ofname;
       
       //      root_name="./../../rootfiles/VDC/initial/" + ofname + ".root";
       //      print_name="./../../pdf/VDC/ita_mac/initial/" +ofname + ".pdf";
@@ -115,14 +115,19 @@ int main(int argc, char** argv){
   //  param_init="./param/t0tuned_1ns/";
   //  print_init="../../pdf/VDC/ita_mac/t0tuned_1ns/";
   //  root_init="../../rootfiles/VDC/t0tuned_1ns/";    
-  param_init="./param/initial_2run/";
-  print_init="../../pdf/VDC/ita_mac/initial_2run/";
-  root_init="../../rootfiles/VDC/initial_2run/";    
+  param_init="./param/initial_3run/";
+  print_init="../../pdf/VDC/ita_mac/initial_3run/";
+  root_init="../../rootfiles/VDC/initial_3run/";
+
+  //  param_init="./param/test/";
+  //  print_init="../../pdf/VDC/ita_mac/test/";
+  //  root_init="../../rootfiles/VDC/test/";
+  
   print_end=".pdf";
   param_end=".dat";
   root_end=".root";
   ostringstream run;
-  run<<runnum<<"-"<<runnum+1;
+  run<<runnum<<"-"<<runnum+2;
   string def_param = "./param/def_t0.dat";
 
 
@@ -146,6 +151,7 @@ int main(int argc, char** argv){
    else   vdct0->SetRun(runnum);
    gROOT->SetBatch(1);
    vdct0->SetBranch();
+   vdct0->NewRoot(root_name);
    vdct0->MakeHist();
    vdct0->Fill();
    vdct0->SetRawt0();   
@@ -153,6 +159,7 @@ int main(int argc, char** argv){
    vdct0->Draw();
    vdct0->Print(print_name);
    vdct0->MakeRoot(root_name);
+
    cout<<endl;
    cout<<"========= output file =============="<<endl;
    cout<<"rootfile: "<<root_name<<endl;

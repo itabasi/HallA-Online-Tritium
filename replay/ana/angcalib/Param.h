@@ -27,21 +27,24 @@ const double  Ztm = -0.15,Ztr=0.35;
 //const int nParamT = 56;  // Number of parameters
 
 const int nn =  4; // 4th order matrix using xf, xpf, y, ypf, and zt
-const int nnz = 2; // 3th order matrix using zt
+const int nnz = 4; // 3th order matrix using zt
 const int nParamT = 126;  // Number of parameters
 
 //const int nn =  5; // 4th order matrix using xf, xpf, y, ypf, and zt
-//const int nnz = 2; // 3th order matrix using zt
+//const int nnz = 4; // 3th order matrix using zt
 //const int nParamT = 252;  // Number of parameters
 
 
 
   double Pxpt[nParamT];
   double Pypt[nParamT];
+  double OptPar1[nParamT];
+  double OptPar2[nParamT];
 
 
-//const int nmax = 3000; // Number of events used for tuning
+//const int nmax = 300; // Number of events used for tuning
 const int nmax=10000;// Number of events used for tuning;
+//const int nmax=20000;// Number of events used for tuning;
 //const int nmax = 50000; // Number of events used for tuning
 //const int nite =0;
 const int nfoil = 10;
@@ -59,11 +62,11 @@ const int ncol = 7;  // the number of column in SS pattern
 const int nsshole = nrow*ncol; // the number of holes to consider 
 double refx[nsshole];
 double refy[nsshole];
-double refx_real[nsshole];
-double refy_real[nsshole];
-double ssy_off[nsshole];
-double ssx_off[nsshole];
-bool TFlag[nsshole];
+double refx_real[nsshole][nfoil];
+double refy_real[nsshole][nfoil];
+double ssy_off[nsshole][nfoil];
+double ssx_off[nsshole][nfoil];
+bool TFlag[nsshole][nfoil];
 //double selec_widthx = 0.60; // selection width in x (dispersive plane)
 //double selec_widthy = 0.45; // selection width in y
 double selec_widthx = 0.60; // selection width in x (dispersive plane) initial
@@ -83,8 +86,6 @@ int holegroup[nmax];
 
 double l[nfoil];
 double projectf[nfoil];
-double OptPar1[nParamT];
-double OptPar2[nParamT];
 
 //const int nParamT2 = 4; 
 //double parRaster[nParamT2];

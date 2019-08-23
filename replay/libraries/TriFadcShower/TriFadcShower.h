@@ -10,7 +10,7 @@
 #include "THaPidDetector.h"
 #include "Fadc250Module.h"
 #include <vector>
-#include <map>    
+
 class TClonesArray;
 
 class TriFadcShower : public THaPidDetector {
@@ -36,8 +36,7 @@ protected:
   // Mapping (see also fDetMap)
   std::vector< std::vector<UShort_t> > fChanMap; // Logical channel numbers
                                                  // for each detector map module
-  std::map<std::string,UInt_t> fMessages; // Warning messages & count
-  UInt_t      fNEventsWithWarnings; // Events with warnings         
+
   // Configuration
   Int_t      fNclublk;   // Max. number of blocks composing a cluster
   Int_t      fNrows;     // Number of rows

@@ -402,7 +402,6 @@ Int_t TriFadcShower::Decode( const THaEvData& evdata )
 	ostringstream msg;
 	msg << nhit << " hits on " << "ADC channel "
 	    << d->crate << "/" << d->slot << "/" << chan;
-	
 	++fMessages[msg.str()];
 	has_warning = true;
 	if( nhit == 0 ) {

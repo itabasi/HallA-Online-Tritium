@@ -2,7 +2,7 @@
 
 	    
 init=111160
-end=111220
+end=111600
 
 i=`expr $init`
 j=`expr $end`
@@ -17,6 +17,6 @@ j=`expr $end`
 	  offset="./bin/VDCt0_raw -i $i"	  
 #	  echo $offset
 	  eval $offset
-	i=$((i+2));
+	i=$((i+3));
     done
 
