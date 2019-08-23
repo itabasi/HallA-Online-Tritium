@@ -409,29 +409,110 @@ void angcalib::HolePosi(bool rarm){
      ssy_off[k][i]=0.0;
 
 
-
+     /*
      ssy_off[13][4]=0.7;     
      ssy_off[15][4]=0.6;     
      ssy_off[17][4]=0.6;     
      ssy_off[19][4]=0.6;     
      ssy_off[21][4]=0.7;
-
-     
      ssy_off[24][4]=0.2;     
      ssy_off[26][4]=0.2;     
      ssy_off[28][4]=0.2;     
      ssy_off[30][4]=0.2;     
      ssy_off[32][4]=0.2;
+     */
+
+     ssy_off[23][3]= -0.25;
+     ssy_off[25][3]= -0.25;
+     ssy_off[27][3]= -0.25;
+     ssy_off[29][3]= -0.25;
+     ssy_off[31][3]= -0.25;
+     ssy_off[34][3]= -0.5;
+     ssy_off[35][3]= -0.35;
+     ssy_off[36][3]= -0.5;
+     ssy_off[37][3]= -0.35;
+     ssy_off[38][3]= -0.5;
+     ssy_off[39][3]= -0.35;
+     ssy_off[40][3]= -0.5;
+     ssy_off[41][3]= -0.35;
+     ssy_off[42][3]= -0.5;
+     ssy_off[45][3]= -0.75;
+     ssy_off[46][3]= -0.4;
+     ssy_off[47][3]= -0.75;
+     ssy_off[48][3]= -0.4;
+     ssy_off[49][3]= -0.75;
+     ssy_off[50][3]= -0.4;
+     ssy_off[51][3]= -0.75;
+     ssy_off[52][3]= -0.4;
+     ssy_off[53][3]= -0.75;
+
+
      
+     ssx_off[56][4]= -0.75;
+   
+     ssy_off[36][4]= -0.2;     
+     ssy_off[38][4]= -0.2;     
+     ssy_off[46][4]= -0.2;
+     ssy_off[47][4]= -0.2;     
+     ssy_off[48][4]= -0.2;     
+     ssy_off[49][4]= -0.2;     
+     ssy_off[50][4]= -0.2;
+     ssy_off[51][4]= -0.2;     
+     ssy_off[52][4]= -0.2;
+     ssy_off[53][4]= -0.2;
+     ssy_off[56][4]= -0.6;
+     ssy_off[57][4]= -0.4;     
+     ssy_off[58][4]= -0.65;
+     ssy_off[59][4]= -0.4;
+     ssy_off[60][4]= -0.65; 
+     ssy_off[61][4]= -0.4;
+     ssy_off[62][4]= -0.65;
+     ssy_off[63][4]= -0.4;
+     ssy_off[70][4]= -0.9;
+     ssy_off[72][4]= -0.9;
+	  
+     ssy_off[57][5]= -0.1;     
+     ssy_off[59][5]= -0.1;     
+     ssy_off[61][5]= -0.1;     
+     ssy_off[63][5]= -0.1;     
+     ssy_off[65][5]= -0.1;
 
-
-     ssy_off[12][5]=0.5;     
-     ssy_off[14][5]=0.35;     
-     ssy_off[16][5]=0.35;     
-     ssy_off[18][5]=0.35;     
-     ssy_off[20][5]=0.5;
+    
+     ssy_off[56][5]= -0.4;     
+     ssy_off[58][5]= -0.4;     
+     ssy_off[60][5]= -0.4;     
+     ssy_off[62][5]= -0.4;     
+     ssy_off[64][5]= -0.4;
+     ssy_off[70][5]= -0.65;     
+     ssy_off[72][5]= -0.65;
 
      
+     ssy_off[56][6]= -0.4;
+     ssy_off[57][6]= -0.2;
+     ssy_off[58][6]= -0.4;
+     ssy_off[59][6]= -0.2;
+     ssy_off[60][6]= -0.4;
+     ssy_off[61][6]= -0.2;
+     ssy_off[62][6]= -0.4;
+     ssy_off[63][6]= -0.2;
+
+
+     ssy_off[1][7]=  0.2;
+     ssy_off[3][7]=  0.2;
+     ssy_off[5][7]=  0.2;
+     ssy_off[7][7]=  0.2;
+     ssy_off[9][7]=  0.2;
+     ssy_off[57][7]= -0.35;
+     ssy_off[59][7]= -0.35;
+     ssy_off[61][7]= -0.35;
+     ssy_off[63][7]= -0.35;
+
+     ssx_off[20][7]=  0.5;
+     ssx_off[31][7]=  0.5;
+     ssx_off[42][7]=  0.5;
+     ssx_off[53][7]=  0.5;
+     ssx_off[64][7]=  0.5;
+
      //     ssy_off[k][4]  = 0.0;
      
      /*
@@ -617,18 +698,35 @@ void angcalib::HolePosi(bool rarm){
      //     	&& (4 <= i && i <= 7)){TFlag[k][i]=true;}
      //	   && (i==5) ){TFlag[k][i]=true;}
 
-         if((11 <= k && k <= 76) && (k % 11 != 0)
+         if((1 <= k && k <= 76) && (k % 11 != 0)
 	    //	    && (i==5) ){TFlag[k][i]=true;}
-	    && (0 <= i && i <= 7)){TFlag[k][i]=true;}
+	    && (3 <= i && i <= 7)){TFlag[k][i]=true;}
 
 	 //     TFlag[11][i]=false;
 	 //     TFlag[13][i]=false;
 	 //     TFlag[15][i]=false;     
 	 //     TFlag[17][i]=false;
 	 //     TFlag[19][i]=false;
-	 
+
+	 TFlag[0][i]=false;
+	 TFlag[2][i]=false;
+	 TFlag[4][i]=false;
+	 TFlag[6][i]=false;
+	 TFlag[8][i]=false;
+	 TFlag[10][i]=false;
+	 TFlag[32][i]=false;
+	 TFlag[43][i]=false;
+	 TFlag[54][i]=false;
+	 TFlag[65][i]=false;
 	 TFlag[74][i]=false;
-	 
+	 TFlag[76][i]=false;
+	 TFlag[64][i]=false;          
+	 TFlag[67][i]=false;
+	 TFlag[69][i]=false;
+	 TFlag[71][i]=false;     
+	 TFlag[73][i]=false;
+	 TFlag[75][i]=false;
+
 	 //     TFlag[11][4]=true;
 	 //     TFlag[13][4]=true;
 	 //     TFlag[15][4]=true;     
@@ -636,53 +734,125 @@ void angcalib::HolePosi(bool rarm){
 	 //     TFlag[19][4]=true;
 	 
 
+    for(int j=0;j<=21;j++)TFlag[j][3]=false;	 
+    for(int j=57;j<=nhole;j++)TFlag[j][3]=false;	 
+    TFlag[56][3]=false;
+    TFlag[57][3]=false;
+    TFlag[58][3]=false;
+    TFlag[59][3]=false;
+    TFlag[60][3]=false;
+    TFlag[61][3]=false;	 
+    TFlag[62][3]=false;
+    TFlag[63][3]=false;
+    TFlag[64][3]=false;
+    TFlag[65][3]=false;
+    TFlag[66][3]=false;
+    TFlag[67][3]=false;
+    TFlag[68][3]=false;
+    TFlag[69][3]=false;	 
+    TFlag[70][3]=false;
+    TFlag[71][3]=false;
+    TFlag[72][3]=false;
+     
+    
+     
+     TFlag[1][4]=false;
+     TFlag[3][4]=false;
+     TFlag[5][4]=false;
+     TFlag[7][4]=false;
+     TFlag[9][4]=false;     
+     TFlag[11][4]=false;
+     TFlag[12][4]=false;
+     TFlag[13][4]=false;
+     TFlag[14][4]=false;
+     TFlag[15][4]=false;     
+     TFlag[16][4]=false;
+     TFlag[17][4]=false;
+     TFlag[18][4]=false;
+     TFlag[19][4]=false;
+     TFlag[20][4]=false;
+     TFlag[32][4]=false;
+     TFlag[43][4]=false;
+     TFlag[54][4]=false;
+     TFlag[65][4]=false;
+     //     TFlag[56][4]=false;
+     //     TFlag[58][4]=false;     
+     //     TFlag[62][4]=false;          
+     TFlag[68][4]=false;
+     //     TFlag[70][4]=false;
+     //     TFlag[72][4]=false;
+     TFlag[74][4]=false;     
+
+
+	 
+     TFlag[1][5]=false;
+     TFlag[3][5]=false;
+     TFlag[5][5]=false;
+     TFlag[7][5]=false;
+     TFlag[9][5]=false;     
      TFlag[11][5]=false;
      TFlag[13][5]=false;
      TFlag[15][5]=false;     
      TFlag[17][5]=false;
      TFlag[19][5]=false;
-	 
-     
-     TFlag[11][6]=false;
-     TFlag[13][6]=false;
-     TFlag[15][6]=false;     
-     TFlag[17][6]=false;
-     TFlag[19][6]=false;
-     
-     
-     TFlag[11][7]=false;
-     TFlag[13][7]=false;
-     TFlag[15][7]=false;     
-     TFlag[17][7]=false;
-     TFlag[19][7]=false;
-     
-
-     TFlag[64][i]=false;          
-     TFlag[67][i]=false;
-     TFlag[69][i]=false;
-     TFlag[71][i]=false;     
-     TFlag[73][i]=false;
-     TFlag[75][i]=false;
-
-     
-     TFlag[56][4]=false;
-     TFlag[58][4]=false;     
-     TFlag[62][4]=false;          
-     TFlag[68][4]=false;
-     TFlag[70][4]=false;
-     TFlag[72][4]=false;
-     TFlag[74][4]=false;     
-
-     TFlag[56][5]=false;     
-     TFlag[58][5]=false;
-     TFlag[60][5]=false;     
-     TFlag[62][5]=false;     
+     TFlag[32][5]=false;
+     TFlag[43][5]=false;
+     TFlag[54][5]=false;
+     TFlag[65][5]=false;
+     //     TFlag[56][5]=false;     
+     //     TFlag[58][5]=false;
+     //     TFlag[60][5]=false;     
+     //     TFlag[62][5]=false;     
      TFlag[68][5]=false;
-     TFlag[70][5]=false;
-     TFlag[72][5]=false;
+     //     TFlag[70][5]=false;
+     //     TFlag[72][5]=false;
      TFlag[74][5]=false;     
 
 
+     
+     
+     TFlag[1][6]=false;
+     TFlag[3][6]=false;
+     TFlag[5][6]=false;
+     TFlag[7][6]=false;
+     TFlag[9][6]=false;     
+     //     TFlag[11][6]=false;
+     //     TFlag[13][6]=false;
+     //     TFlag[15][6]=false;     
+     //     TFlag[17][6]=false;
+     //     TFlag[19][6]=false;
+     TFlag[68][6]=false;
+     TFlag[70][6]=false;
+     TFlag[72][6]=false;
+     TFlag[74][6]=false;     
+     TFlag[76][6]=false;     
+
+     
+     
+     //     TFlag[11][7]=false;
+     //     TFlag[13][7]=false;
+     //     TFlag[15][7]=false;     
+     //     TFlag[17][7]=false;
+     //     TFlag[19][7]=false;
+     TFlag[56][7]=false;
+     TFlag[58][7]=false;
+     TFlag[60][7]=false;
+     TFlag[62][7]=false;     
+     TFlag[64][7]=false;
+     TFlag[68][7]=false;
+     TFlag[70][7]=false;
+     TFlag[72][7]=false;
+     TFlag[74][7]=false;     
+     TFlag[76][7]=false;     
+
+     
+
+     
+
+
+
+
+     
          
      /*
      TFlag[12][6]=false;
@@ -729,10 +899,12 @@ void angcalib::HolePosi(bool rarm){
       mark[nhole]->SetMarkerColor(1);
 
       for(int k=0;k<nfoil;k++){
+
       refx_real[nhole][k] =refx[nhole]+ssx_off[nhole][k];
       refy_real[nhole][k] =refy[nhole]+ssy_off[nhole][k];      
       mark_real[nhole][k] =new TMarker(refy_real[nhole][k],refx_real[nhole][k],20);
       mark_real[nhole][k] -> SetMarkerColor(1);
+
       }
       // k is nfoil
       //      int k=5;
@@ -752,54 +924,13 @@ void angcalib::HolePosi(bool rarm){
       for(int k=0;k<nfoil;k++){
 
 	mark_real[38][k]->SetMarkerColor(2);
-      	mark_real[45][k]->SetMarkerColor(2);
-	
-	mark_real[12][k]->SetMarkerColor(6);
-      	mark_real[13][k]->SetMarkerColor(6);
-	mark_real[14][k]->SetMarkerColor(6);
-       	mark_real[15][k]->SetMarkerColor(6);
-       	mark_real[16][k]->SetMarkerColor(6);
-	mark_real[17][k]->SetMarkerColor(6);
-      	mark_real[18][k]->SetMarkerColor(6);
-       	mark_real[19][k]->SetMarkerColor(6);
-	mark_real[20][k]->SetMarkerColor(6);
-	
-	//	mark_real[22][k]->SetMarkerColor(6);
-	//	mark_real[23][k]->SetMarkerColor(6);
-	//	mark_real[24][k]->SetMarkerColor(6);
-	//	mark_real[25][k]->SetMarkerColor(6);
-	//	mark_real[26][k]->SetMarkerColor(6);
-	//	mark_real[27][k]->SetMarkerColor(6);	
-	//	mark_real[28][k]->SetMarkerColor(6);
-	//	mark_real[29][k]->SetMarkerColor(6);
-	//	mark_real[30][k]->SetMarkerColor(6);
-	//	mark_real[31][k]->SetMarkerColor(6);
-       	
-	//	mark_real[38][k]->SetMarkerColor(2); //big hole
-	//	mark_real[45][k]->SetMarkerColor(2); //big hole
-
-	mark_real[54][k]->SetMarkerColor(6);
-	mark_real[55][k]->SetMarkerColor(6);
-	mark_real[56][k]->SetMarkerColor(6);
-	mark_real[57][k]->SetMarkerColor(6);
-	mark_real[58][k]->SetMarkerColor(6);
-	mark_real[59][k]->SetMarkerColor(6);	
-	mark_real[60][k]->SetMarkerColor(6);
-	mark_real[61][k]->SetMarkerColor(6);
-	mark_real[62][k]->SetMarkerColor(6);
-	mark_real[63][k]->SetMarkerColor(6);	
-
-	mark_real[68][k]->SetMarkerColor(6);
-	mark_real[70][k]->SetMarkerColor(6);
-	mark_real[72][k]->SetMarkerColor(6);
-	mark_real[74][k]->SetMarkerColor(6);
-	mark_real[76][k]->SetMarkerColor(6);
-
+      	mark_real[23][k]->SetMarkerColor(2);
+       
 
 	
       }
       mark[38]->SetMarkerColor(2);
-      mark[45]->SetMarkerColor(2);
+      mark[23]->SetMarkerColor(2);
 };
 
 //========== Mxpt ============================//
@@ -1008,10 +1139,6 @@ void angcalib::EventSelect(bool rarm){
 	if(fcent[j]-selection_width<Zt[0]
 	   && Zt[0]<fcent[j]+selection_width){
 
-
-    
-	  if(RHRSTrue==0)h2[j]->Fill(-Ypt[0]*l[j]*projectf[j],-Xpt[0]*l[j]*projectf[j]);
-	  if(RHRSTrue)h2[j]->Fill(Ypt[0]*l[j]*projectf[j],-Xpt[0]*l[j]*projectf[j]);
 	  hz[j]->Fill(Zt[0]);
 	  hz_all->Fill(Zt[0]);
 	  //if(offset_flag[j]==true){ 
@@ -1023,7 +1150,7 @@ void angcalib::EventSelect(bool rarm){
 	    
 	    ssx = -Xpt[0]*l[j]*projectf[j];
 	    if(RHRSTrue==0)ssy = -Ypt[0]*l[j]*projectf[j];
-	    if(RHRSTrue)ssy = Ypt[0]*l[j]*projectf[j];
+	    if(RHRSTrue)ssy = -Ypt[0]*l[j]*projectf[j];
 	    //if(j==8) ssy = ssy * 1.08;  // for second parameters
 	    //if(j==9) ssy = ssy * 1.126; // for second parameters
 
@@ -1392,11 +1519,12 @@ void angcalib::Fill(bool rarm){
     	    ssx = -Xpt_tuned[0]*l[j]*projectf[j];
 
 	    if(RHRSTrue==0)ssy = -Ypt_tuned[0]*l[j]*projectf[j];
-	    if(RHRSTrue)ssy = Ypt_tuned[0]*l[j]*projectf[j];
+	    if(RHRSTrue)ssy = -Ypt_tuned[0]*l[j]*projectf[j];
 	    h3_c  ->Fill(ssy,ssx);
 	    ss_x=ssx;
 	    ss_y=ssy;
-	    
+	    if(RHRSTrue==0)h2[j]->Fill(ssy,ssx);
+	    if(RHRSTrue)h2[j]->Fill(ssy,ssx);
 	}
       }
 
@@ -1487,7 +1615,10 @@ void angcalib::Draw(){
   //  hz[5]->Draw("same");
   //  hz[6]->Draw("same");  
 
-
+  TCanvas* cx=new TCanvas("cx","cx");
+  cx->cd();
+  h2_new[5]->Draw();
+  
   c0=new TCanvas("c0","c0");
   c0->Divide(2,2);
   c0->cd(1);
@@ -1500,6 +1631,7 @@ void angcalib::Draw(){
   h3_->Draw("colz");
 
   
+  
   int nhole=0;
 
   
@@ -1510,14 +1642,19 @@ void angcalib::Draw(){
 	  c0->cd(k);
 	  mark[nhole]->Draw("same");
 	  mark_real[nhole][k+3]->Draw("same");
-	  c10->cd(k);
-	  mark[nhole]->Draw("same");
-	  mark_real[nhole][k+3]->Draw("same");
 	  c1->cd(k);
 	  mark[nhole]->Draw("same");
 	  mark_real[nhole][k+3]->Draw("same");
-
+	  cx->cd();
+	  mark[nhole]->Draw("same");
 	}
+	if(TFlag[nhole][k-1]){
+	  c10->cd(k);
+	  mark[nhole]->Draw("same");
+	  mark_real[nhole][k-1]->Draw("same");
+	}
+
+	
       }
       nhole++;
     }
@@ -1921,7 +2058,7 @@ void fcn2(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
 
     
     if(RHRSTrue==0)sspos = -ang*l[foil_flag[i]]*projectf[foil_flag[i]]; // in centimeter
-    if(RHRSTrue)sspos = ang*l[foil_flag[i]]*projectf[foil_flag[i]]; // in centimeter
+    if(RHRSTrue)sspos = -ang*l[foil_flag[i]]*projectf[foil_flag[i]]; // in centimeter
 
     // ------------------- //
     // --- Residual ------ //
