@@ -43,6 +43,7 @@ class angcalib
 
  public:
   void HolePosi(bool rarm);
+  void SSHole(string paraname, bool rarm);
   void Mxpt(string matrix_xp);  
   void Mypt(string matrix_yp);  
   void Scale_corr(string offset_file);  
@@ -386,6 +387,100 @@ void angcalib::MakeHist(){
   hssy_cut = new TH1F("hssy_cut","",1000,-5.0,5.0);
   
 };
+
+
+//========== SSHole =========================//
+
+void angcalib::SSHole(string paramname, bool rarm){
+
+  ifstream ifp(paramname.c_str());
+  string buf;
+  int hole, foil;
+   double ssy_cent_real[nrow];
+   double ssx_cent_real[ncol];
+
+
+   for(int i=0;i<nfoil;i++){
+     for(int j=0;j<nsshole;j++){
+       w[i][j]=0.0;
+       TFlag[j][i]=false;
+     }
+   }
+
+
+   while(getline(ifp, buf)){
+     if( buf[0]=='#' ){ continue; }
+     if( ifp.eof() ) break;	
+     hole=0; foil=0; 
+     stringstream sbuf;
+     sbuf <<buf;
+     int flag=0;
+     double a=0.,b=0.,c=0.;
+
+     sbuf >> foil >> hole >> flag >> a >> b >> c;
+
+     w[foil][hole] = a;
+     ssx_off[hole][foil] = b;
+     ssy_off[hole][foil] = c;
+
+    if(flag==1)TFlag[hole][foil]=true;
+    else if(flag==0)TFlag[hole][foil]=false;
+    
+    //    cout<<"    "<<foil <<" : "<<hole<<" : "<<TFlag[hole][foil]<<" :"<<w[foil][hole]<<" : "<<ssx_off[hole][foil]<<" : "<<ssy_off[hole][foil]<<endl; 
+    
+  }//while
+  
+
+  
+   for(int i=0; i<ncol ; i++){
+    for(int j=0; j<nrow; j++){
+      ssy_cent_real[i] = -3.0*step + step*i;
+      if(j%2==0)ssy_cent_real[i] = ssy_cent_real[i] - step/2.0;
+      ssx_cent_real[j] = 5.0*step - step*j;
+      refx[nhole] = ssx_cent_real[j];
+      refy[nhole] = ssy_cent_real[i];
+      mark[nhole] = new TMarker(refy[nhole],refx[nhole],28);
+      mark[nhole]->SetMarkerColor(1);
+
+      for(int k=0;k<nfoil;k++){
+
+      refx_real[nhole][k] =refx[nhole]+ssx_off[nhole][k];
+      refy_real[nhole][k] =refy[nhole]+ssy_off[nhole][k];      
+      mark_real[nhole][k] =new TMarker(refy_real[nhole][k],refx_real[nhole][k],20);
+      mark_real[nhole][k] -> SetMarkerColor(1);
+
+      }
+      // k is nfoil
+      //      int k=5;
+      //mark_ang[nhole] = new TMarker(ssy_cent_real[i]/l[k]/projectf[k],ssx_cent_real[i]/l[k]/projectf[k]);
+
+
+      
+      //      cout<<"nhole "<<nhole<<" i "<<i<<" j "<<j <<" refx "<<ssx_cent_real[j]<<" refy "<<ssy_cent_real[i]<<endl;
+      //		if(pow(ssx-(refx[nhole]-0.8),2.0)/pow(selec_widthx,2.0)
+      //	   + pow(ssy-(refy[nhole]-0.3),2.0)/pow(selec_widthy,2.0)<0.64){
+
+      nhole++;
+
+      
+    }
+  }
+      for(int k=0;k<nfoil;k++){
+
+	mark_real[38][k]->SetMarkerColor(2);
+	if(rarm)mark_real[48][k]->SetMarkerColor(2);
+	else  mark_real[23][k]->SetMarkerColor(2);
+       
+
+	
+      }
+      mark[38]->SetMarkerColor(2);
+      if(rarm) mark[48]->SetMarkerColor(2);
+      else mark[23]->SetMarkerColor(2);
+  
+
+
+}
 
 
 
@@ -1847,14 +1942,8 @@ double tune(double* pa, int j, int angflag)
   for(int i=0 ; i<allparam ; i++){
     sprintf(pname,"param_%d",i+1);
 
-    //    start[i] = pa[i]; 
-    //LLim[i] = pa[i] - pa[i]*0.8;
-    //ULim[i] = pa[i] + pa[i]*0.8;
+    if(i<=56)step[i]  = 0.0;
 
-    //    if(i<126)step[i]=0.0;
-    //    else step[i]=1.0e-3;
-    //    else step[i]=0.0;
-    
     LLim[i] = pa[i] - 5.0; // temp
     ULim[i] = pa[i] + 5.0; // temp     
     minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
@@ -1909,7 +1998,7 @@ void fcn1(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
   
   double nev[nfoil][nsshole];
   double chi2[nfoil][nsshole];
-  double w[nfoil][nsshole];
+  //  double w[nfoil][nsshole];
 
   
   
@@ -1917,26 +2006,22 @@ void fcn1(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
     for(int j=0 ; j<nsshole ; j++){
       nev[i][j]  = 0.0;
       chi2[i][j] = 0.0;
-      w[i][j]    = 1.0;
     }
   }
 
+
   
-  for(int i=0 ; i<ntune_event ; i++){
-    residual = 0.0;
-    ang    = 0.0;
-    sspos  = 0.0;
-    refpos = 0.0;  refpos = refx[holegroup[i]];
-    ztR    = 0.0;  ztR    = z_recon[i];
-
-
-    
-
-    
-    //    cout<<"ztR "<<ztR<<" foil "<<foil_flag[i]<<" hole "<<holegroup[i]<<endl;
-    
+      for(int i=0 ; i<ntune_event ; i++){
+	residual = 0.0;
+	ang    = 0.0;
+	sspos  = 0.0;
+	refpos = 0.0;  refpos = refy[holegroup[i]];
+	ztR    = 0.0;  ztR    = z_recon[i];
+  
+     
     //if(foil_flag[i]==i) nev[i]++;
 
+  
     x[i]  = (x[i]-XFPm)/XFPr;
     xp[i] = (xp[i]-XpFPm)/XpFPr;
     y[i]  = (y[i]-YFPm)/YFPr;
@@ -2015,13 +2100,13 @@ void fcn2(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
   
   double nev[nfoil][nsshole];
   double chi2[nfoil][nsshole];
-  double w[nfoil][nsshole];
+  //  double w[nfoil][nsshole];
   
   for(int i=0 ; i<nfoil ; i++){
     for(int j=0 ; j<nsshole ; j++){
       nev[i][j]  = 0.0;
       chi2[i][j] = 0.0;
-      w[i][j]    = 1.0;
+      //      w[i][j]    = 1.0;
             
     }
   }

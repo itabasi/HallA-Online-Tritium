@@ -60,6 +60,7 @@ const double step = 0.492 * 2.54;
 const int nrow = 11; // the number of row in SS pattern
 const int ncol = 7;  // the number of column in SS pattern
 const int nsshole = nrow*ncol; // the number of holes to consider 
+double w[nfoil][nsshole];
 double refx[nsshole];
 double refy[nsshole];
 double refx_real[nsshole][nfoil];

@@ -26,7 +26,8 @@ void replay_coinc_new(Int_t runnumber=0,Int_t numevents=0,Int_t fstEvt=0,Bool_t 
 	Bool_t bHelicity = kFALSE ;
 	Bool_t bBeam     = kTRUE  ;
 	Bool_t bPhysics  = kTRUE  ;
-	Bool_t bOldTrack = kFALSE ;
+       	Bool_t bOldTrack = kFALSE ;
+	//	Bool_t bOldTrack = kTRUE ;	
 	Bool_t bEloss    = kFALSE  ;
 	// ---------------------------
 	TString rootname;
@@ -88,7 +89,7 @@ void replay_coinc_new(Int_t runnumber=0,Int_t numevents=0,Int_t fstEvt=0,Bool_t 
 
 	//==================================
 	if(bOldTrack){
-		THaApparatus* OldTrackL = new TriHRS("OldTrackL","old analyzer track");
+	  THaApparatus* OldTrackL = new TriHRS("OldTrackL","old analyzer track");
 		OldTrackL->AddDetector( new TriXscin("s0","s0 sintillator",kFALSE) );
 		gHaApps->Add( OldTrackL );
 
@@ -151,7 +152,7 @@ void replay_coinc_new(Int_t runnumber=0,Int_t numevents=0,Int_t fstEvt=0,Bool_t 
 	//==================================
 	if(bBeam){	
 
-		THaIdealBeam* ib = new THaIdealBeam("ib","Ideal beam");
+	THaIdealBeam* ib = new THaIdealBeam("ib","Ideal beam");
 		gHaApps->Add(ib);
 
 		//==================================
@@ -413,7 +414,7 @@ void replay_coinc_new(Int_t runnumber=0,Int_t numevents=0,Int_t fstEvt=0,Bool_t 
 		gSystem->Exec(Form("ln -s %scoinc_physics_%d.pdf %scoinc_physics_latest.pdf"     ,path_to_plots,runnumber       ,SUM_DIR                ));    
 		gSystem->Exec(Form("ln -sf %scoinc_physics_%d.pdf %scoinc_physics_latest.pdf"    ,path_to_plots,runnumber       ,path_to_plots          ));
 	}
-	exit(0);
+  exit(0);
 }
 
 

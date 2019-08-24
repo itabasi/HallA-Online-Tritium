@@ -68,7 +68,8 @@ int main(int argc, char** argv){
   bool fill_flag=false;
   string pngname;
   extern char *optarg;
-  string itel;  
+  string itel;
+  string param_name;
   //  char *root_init="/w/halla-scifs17exp/triton/itabashi/rootfiles/calib_root/";//ifarm
   string root_init="../rootfiles/angcalib/";
   string root_end=".root";
@@ -76,7 +77,7 @@ int main(int argc, char** argv){
   string dat_end=".dat";
   string matrix="matrix/zt_RHRS_2.dat";
   
-  while((ch=getopt(argc,argv,"h:f:i:r:x:y:t:o:s:RLdbcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:p:f:i:r:x:y:t:o:s:RLdbcop"))!=-1){
     switch(ch){
 
     case 'f':
@@ -84,6 +85,12 @@ int main(int argc, char** argv){
       cout<<"input filename : "<<ifname<<endl;
       break;
 
+    case 'p':
+      param_name = optarg;
+      cout<<"input param name : "<<param_name<<endl;
+      break;
+      
+      
     case 's':
       ifname = optarg;
       cout<<"input rootname : "<<ifname<<endl;
@@ -189,7 +196,8 @@ int main(int argc, char** argv){
   cout<<"root flag "<<root_flag<<endl;
    Ang->SetBranch(ifname,RHRS_flag);
    if(root_flag && draw_flag==0)Ang->NewBranch(ofname,RHRS_flag);
-   Ang->HolePosi(RHRS_flag);
+   //   Ang->HolePosi(RHRS_flag);
+   Ang->SSHole(param_name,RHRS_flag);
    Ang->MakeHist();
    Ang->Scale_corr(opt_file);
    Ang->Mxpt(matrix_xp);

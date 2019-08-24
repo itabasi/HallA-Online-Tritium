@@ -28,7 +28,7 @@ void tree::ChainTree(string ifname){
   while(1){
     getline(ifp,buf);
     if( buf[0]=='#' ){ continue; }
-    if( ifp.eof() ) break;
+     if( ifp.eof() ) break;
     stringstream sbuf(buf);
     sbuf >> runname;
     T->Add(runname.c_str());

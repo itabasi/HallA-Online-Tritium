@@ -222,8 +222,10 @@ void ReplayCore(
   		cout << "nrun =    " << nrun << endl;
   		cout << "outname 1:   " << outname << endl;
 	}
-  found=0;    
+  found=0;
+  found=1;//Modify by Itabshi
   //rootfile overwrite proof
+
   while (found==0 && !QuietRun)
     {
       cout << "replay: Testing file "<<outname<<" for overwrite proof."<<endl;
@@ -241,7 +243,7 @@ void ReplayCore(
 	  delete f;
 	  TString DefOverWriting;
 	  if (NEnt==DefReplayNum || DefReplayNum<0 || NEnt==0)
-	    DefOverWriting="no";
+	    DefOverWriting="yes"; //Changed by Itabashi
 	  else DefOverWriting="yes";
 
 	  if (NEnt<=0) {
@@ -253,17 +255,20 @@ void ReplayCore(
 	    cout << "replay: "<<outname<<", which contains "<<NEnt
 		 <<" events, already exists. ";
 	  }
+	  
 #if ALLOW_ROOTFILE_OVERWRITE
-	  cout<<"Do you want to overwrite it? "
-	      <<"(default="<<DefOverWriting.Data()<<"; enter \"c\" means exit):";
 
+	  cout<<"Do you want to overwrite it? "
+	   	      <<"(default="<<DefOverWriting.Data()<<"; enter \"c\" means exit):";
+
+	  
 	  //trick to support blank inputs
 	  fgets(buf,300,stdin);
 	  TString s(buf);
 	  s.Chop();
 	  s.ToLower();
 	  if (s.IsNull()) s=DefOverWriting;
-
+	  s="y"; //added by itabashi
 	  if (s=="y" || s=="yes") {
 		  found=1;
 
@@ -321,7 +326,7 @@ cout << endl
 
 
   // insert info to msql
-  if (nev<0) mysql_start(runnumber);
+  //if (nev<0) mysql_start(runnumber);
 
 
 
@@ -423,7 +428,7 @@ cout << endl
 
  
   // insert info to msql
-  if (nev<0) mysql_end(runnumber);
+  //if (nev<0) mysql_end(runnumber);
 
 }
 
