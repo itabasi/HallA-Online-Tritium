@@ -20,31 +20,52 @@ const double  PRm =1.74   ,PRr=0.2;
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
 
-const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamT = 126;  // Number of parameters
+//const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamT = 126;  // Number of parameters
+const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
+const int nParamT = 252;  // Number of parameters in angles
 const int nnz =3;
 const int nParamTz=35;
 const int nParamT_ras=4;
 
-//const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
-//const int nParamTp=126;
-const int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamTp=56;
+//const int nnp=5;// 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTp=252;
+
+const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
+const int nParamTp=126;
+
+//const int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTp=56;
+
 //const int nnp=2;// 2nd order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=21;
+
+const int nParamTp2=nParamTp*2;
 ///==== MTtuning =====//
+
+
 double Pras[nParamT_ras];
 double Pras_L[nParamT_ras];
 double Pzt[nParamTz],Pzt_L[nParamTz];
 double Pxpt[nParamT],Pxpt_L[nParamT];
 double Pypt[nParamT],Pypt_L[nParamT];
 double Prp[nParamTp],Plp[nParamTp];
-double Opt_par_R[nParamTp],Opt_par_L[nParamTp];
-double Opt_par[nParamTp*2+nParamT*2];
+double Opt_par_R[nParamTp];
+double Opt_par_L[nParamTp];
+double Opt_par[nParamTp2];
+double OptPar1[nParamT];
+double OptPar2[nParamT];
+
+
+//const int nParamT2 = 4; 
+//double parRaster[nParamT2];
+//double Opt_Par[nParamT2];
+//double Ras_curx[nmax];
+//double Ras_cury[nmax];
 
 //const int nmax = 1000; // Number of events used for tuning
-const int nmax=10000;// Number of events used for tuning;
-//const int nmax = 50000; // Number of events used for tuning
+//const int nmax=10000;// Number of events used for tuning;
+const int nmax = 500; // Number of events used for tuning
 //const int nite =0;
 const int nfoil = 10;
 double fcent[nfoil] = {-0.125, -0.100, -0.075, -0.050, -0.025,
@@ -84,15 +105,6 @@ double bp[nmax],rp[nmax],lp[nmax];
 double dth[nfoil];
 double l[nfoil];
 double projectf[nfoil];
-double OptPar1[nParamT];
-double OptPar2[nParamT];
-
-
-//const int nParamT2 = 4; 
-//double parRaster[nParamT2];
-//double Opt_Par[nParamT2];
-//double Ras_curx[nmax];
-//double Ras_cury[nmax];
 
 const double hrs_ang = 13.2 * 3.14159 / 180.;
 //const double tdc_time =56.0e-3;//[ns]
@@ -109,5 +121,10 @@ const double  LS2_off_H2[16]={-25336.9,-25386.6,-25367.5,-25392.3,-25391.1,-2538
 const  double pathl_off=-470.5;
 const  double s2_offset=-499.75;
 //const  double coin_offset=456.65;
-const  double coin_offset=464.65;
+//const  double coin_offset=464.65;
+//double coin_offset=464.13; // H1 mode
+const double a1_th=50;
+const double a2_th=2000; 
+
+
 #endif

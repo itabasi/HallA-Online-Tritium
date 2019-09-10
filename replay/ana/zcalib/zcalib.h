@@ -229,6 +229,7 @@ void zcalib::Mzt(string matrix_name, bool rarm){
     Mzt >> par >> p >> p >> p >> p; 
     Pzt[i]=par;
     Pzt_opt[i]=par;
+    cout<<"Pzt "<<Pzt[i]<<endl;
   }
   Mzt.close();
 
@@ -255,7 +256,7 @@ void zcalib::Mzt_L(string matrix_name,bool rarm){
     // Pzt_opt[i]=Pzt_L[i];
     Pzt[i]=par;
     Pzt_opt[i]=par;
-  
+    //    cout<<"i "<<Pzt[i]<<endl;
   }
   Mzt_L.close();  
   }

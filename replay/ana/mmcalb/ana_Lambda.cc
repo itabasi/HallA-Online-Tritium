@@ -56,10 +56,11 @@ void ana::matrix(string mtparam){
     if( ifp.eof() ) break;
     stringstream sbuf(buf);
     sbuf >>param_mt[s];
-    //    cout<<param_mt[s]<<endl;
+    cout<<param_mt[s]<<endl;
     s++;
   }
 
+  cout<<endl;
   MTParam_R();cout<<" Input RHRS Matrix parameter "<<endl;
   MTParam_L();cout<<" Input LHRS Matrix parameter "<<endl;
   MTP_mom();
@@ -74,7 +75,6 @@ void ana::matrix(string mtparam){
   //--------- LHRS -----------------------//
   MT_p[4] = true;  // LHRS z correction
   MT_p[5] = true;  // LHRS raster correction
-  // MT_p[5] = false;  // LHRS raster correction
   MT_p[6] = true;  // LHRS theta correction
   MT_p[7] = true;  // LHRS phi correction
   //-------- momentum calibration ---------//
@@ -124,7 +124,7 @@ void ana::MTParam_R(){
     char name_Mzt[500];
     sprintf(name_Mzt, param_mt[0].c_str()); // optimized
     ifstream Mzt(name_Mzt);
-
+   if (Mzt.fail()){ cerr << "failed open files" <<name_Mzt<<endl; exit(1);}
    for(int i=0;i<nParamTz;i++){
     double par=0.;
     int p=0;
@@ -140,7 +140,7 @@ void ana::MTParam_R(){
     sprintf(name_Mras, param_mt[1].c_str()); // optimized
     //    cout<<"RHRS Raster parameters file: "<<name_Mras<<endl;
   ifstream Mras(name_Mras);
-
+   if (Mras.fail()){ cerr << "failed open files " <<name_Mras<<endl; exit(1);}
   for (int i=0;i<nParamT_ras;i++){
 
     Mras >> Pras[i];
@@ -156,7 +156,7 @@ void ana::MTParam_R(){
     char name_Mxpt[500];
     sprintf(name_Mxpt, param_mt[2].c_str()); // optimized
   ifstream Mxpt(name_Mxpt);
-
+   if (Mxpt.fail()){ cerr << "failed open files " <<name_Mxpt<<endl; exit(1);}
     for(int i=0;i<nParamT;i++){
     double par=0.;
     int p=0;
@@ -167,14 +167,14 @@ void ana::MTParam_R(){
  //===== RHRS phi parameters ======//
   char name_Mypt[500];
     sprintf(name_Mypt, param_mt[3].c_str()); // optimized  
-  ifstream Mypt(name_Mypt);
-
-  for (int i=0;i<nParamT;i++){
-    double par=0.;
-    int p=0;
-    Mypt >> par >> p >> p >> p >> p >> p;
-    Pypt[i]  = par;
-  }
+    ifstream Mypt(name_Mypt);
+    if(Mypt.fail()){ cerr << "failed open files " <<name_Mypt<<endl; exit(1);}
+    for (int i=0;i<nParamT;i++){
+      double par=0.;
+      int p=0;
+      Mypt >> par >> p >> p >> p >> p >> p;
+      Pypt[i]  = par;
+    }
   Mypt.close();    
 
 
@@ -193,7 +193,8 @@ void ana::MTParam_L(){
   //====== LHRS z parameters ======//  
   char name_Mzt_L[500];
   sprintf(name_Mzt_L,param_mt[4].c_str()); // optimized
-  ifstream Mzt_L(name_Mzt_L); 
+  ifstream Mzt_L(name_Mzt_L);
+  if (Mzt_L.fail()){ cerr << "failed open files " <<name_Mzt_L<<endl; exit(1);}
   for (int i=0;i<nParamTz;i++){
     double par=0.;
     int p=0;
@@ -207,7 +208,7 @@ void ana::MTParam_L(){
     sprintf(name_Mras_L, param_mt[5].c_str()); // optimized
     //    cout<<"LHRS Raster parameters file: "<<name_Mras_L<<endl;
   ifstream Mras_L(name_Mras_L);
-
+  if (Mras_L.fail()){ cerr << "failed open files " <<name_Mras_L<<endl; exit(1);}
   for (int i=0;i<nParamT_ras;i++){
 
     Mras_L >> Pras_L[i];
@@ -222,6 +223,7 @@ void ana::MTParam_L(){
   char name_Mxpt_L[500];
     sprintf(name_Mxpt_L, param_mt[6].c_str()); // optimized
   ifstream Mxpt_L(name_Mxpt_L);
+  if (Mxpt_L.fail()){ cerr << "failed open files " <<name_Mxpt_L<<endl; exit(1);}
   //  cout<<"LHRS theta parameters file: "<<name_Mxpt_L<<endl;  
   for (int i=0;i<nParamT;i++){
     double par=0.;
@@ -237,7 +239,7 @@ void ana::MTParam_L(){
   char name_Mypt_L[500];
     sprintf(name_Mypt_L, param_mt[7].c_str()); // optimized
   ifstream Mypt_L(name_Mypt_L);
-
+  if (Mypt_L.fail()){ cerr << "failed open files " <<name_Mypt_L<<endl; exit(1);}
   for (int i=0;i<nParamT;i++){
     double par=0.;
     int p=0;
@@ -258,7 +260,7 @@ void ana::MTP_mom(){
     char name_Mpt[500];
     sprintf(name_Mpt, param_mt[8].c_str()); // optimized
     ifstream Mpt(name_Mpt);
-
+  if (Mpt.fail()){ cerr << "failed open files " <<name_Mpt<<endl; exit(1);}
    for(int i=0;i<nParamTp;i++){
     double par=0.;
     int p=0;
@@ -273,7 +275,7 @@ void ana::MTP_mom(){
     char name_Mpt_L[500];
     sprintf(name_Mpt_L, param_mt[9].c_str()); // optimized
     ifstream Mpt_L(name_Mpt_L);
-
+  if (Mpt_L.fail()){ cerr << "failed open files " <<name_Mpt_L<<endl; exit(1);}
    for(int i=0;i<nParamTp;i++){
     double par=0.;
     int p=0;
@@ -293,8 +295,9 @@ void ana::Calib(int rt, int lt ){
 
 
 
+  // cout<<"rt "<<rt<<" Rz "<<R_tr_vz[rt]<<" Rth "<<R_tr_tg_th[rt]<<" Rph "<<R_tr_tg_ph[rt]<<" Rp "<<R_tr_p[rt]<<endl;
+  // cout<<"lt "<<lt<<" Lz "<<L_tr_vz[lt]<<" Lth "<<L_tr_tg_th[lt]<<" Lph "<<L_tr_tg_ph[lt]<<" Lp "<<L_tr_p[lt]<<endl;
 
-  
   //======= Nomalization ==================//
   R_tr_x[rt]    = (R_tr_x[rt]-XFPm)/XFPr;
   R_tr_th[rt]   = (R_tr_th[rt]-XpFPm)/XpFPr;
@@ -312,21 +315,21 @@ void ana::Calib(int rt, int lt ){
   L_p = (L_p - PLm)/PLr;
   //========================================//
   
-    R_tr_vz[rt]   = calcf2t_zt(Pzt, R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt]); // nomalized
-    L_tr_vz[lt]   = calcf2t_zt(Pzt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt]); //nomalized
+  if(MT_p[0]) R_tr_vz[rt]   = calcf2t_zt(Pzt, R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt]); // nomalized
+  if(MT_p[4]) L_tr_vz[lt]   = calcf2t_zt(Pzt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt]); //nomalized
 
 
     //======== Raster Correction ==========================//    
 
-    RasterCor= Calc_ras(R_Ras_x, Pras[2], Pras[0]);
+    RasterCor = Calc_ras(R_Ras_x, Pras[2], Pras[0]);
     RasterCor = RasterCor/tan(hrs_ang);
     R_tr_vz[rt]  = R_tr_vz[rt]*Ztr +Ztm; // scaled     
-    R_tr_vz[rt]  = R_tr_vz[rt] - RasterCor; // correction
+    if(MT_p[1])    R_tr_vz[rt]  = R_tr_vz[rt] + RasterCor; // correction
     R_tr_vz[rt]  = (R_tr_vz[rt]-Ztm)/Ztr;    // nomalization     
     RasterCor_L  = Calc_ras(L_Ras_x, Pras_L[2], Pras_L[0]);
     RasterCor_L  = RasterCor_L/tan(hrs_ang);
     L_tr_vz[lt]  = L_tr_vz[lt]*Ztr +Ztm;     // scaled
-    L_tr_vz[lt]  = L_tr_vz[lt]+RasterCor_L;
+    if(MT_p[5])    L_tr_vz[lt]  = L_tr_vz[lt] + RasterCor_L;
     L_tr_vz[lt]  =  (L_tr_vz[lt]  -  Ztm)/Ztr;    // nomalization
 
     //====================================================//
@@ -334,15 +337,15 @@ void ana::Calib(int rt, int lt ){
     
 
 
-    R_tr_tg_th[rt]  = calcf2t_ang(Pxpt,   R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]); // nomalized
-    R_tr_tg_ph[rt]  = calcf2t_ang(Pypt,   R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]); // nomalized
-    L_tr_tg_th[lt]  = calcf2t_ang(Pxpt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt], L_tr_vz[lt]); // nomalized
-    L_tr_tg_ph[lt]  = calcf2t_ang(Pypt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt], L_tr_vz[lt]); // nomalized   
+    if(MT_p[2])    R_tr_tg_th[rt]  = calcf2t_ang(Pxpt,   R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]); // nomalized
+    if(MT_p[3])    R_tr_tg_ph[rt]  = calcf2t_ang(Pypt,   R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]); // nomalized
+    if(MT_p[6])    L_tr_tg_th[lt]  = calcf2t_ang(Pxpt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt], L_tr_vz[lt]); // nomalized
+    if(MT_p[7])    L_tr_tg_ph[lt]  = calcf2t_ang(Pypt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt], L_tr_vz[lt]); // nomalized   
 
-    //    R_p = calcf2t_mom(Opt_par_R, R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]);
-    //    L_p = calcf2t_mom(Opt_par_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt],L_tr_vz[lt]);
+    if(MT_p[8])    R_p = calcf2t_mom(Opt_par_R, R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]);
+    if(MT_p[9])    L_p = calcf2t_mom(Opt_par_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt],L_tr_vz[lt]);
 
-
+    
     //========== Scaled at FP ==================//
     R_tr_x[rt]  = R_tr_x[rt]  * XFPr + XFPm;
     R_tr_th[rt] = R_tr_th[rt] * XpFPr + XpFPm;
@@ -366,11 +369,13 @@ void ana::Calib(int rt, int lt ){
     L_tr_tg_ph[lt]  = L_tr_tg_ph[lt] * Yptr + Yptm;  // scaled    
     L_p             = L_p * PLr + PLm; // scaled    
     
+    // Lp = 2.2 GeV mode //
+    //    L_p=2.21807/2.1*L_p;
+    //L_p=2.2/2.1*L_p;
     //=========== Energy Loss ===================//
     B_p     = B_p + Eloss(0.0,R_tr_vz[0],"0");
-    R_p     = R_p + Eloss(R_tr_tg_th[rt],R_tr_vz[rt],"R");
-    L_p     = L_p + Eloss(L_tr_tg_th[lt],L_tr_vz[lt],"L");
-
+    R_p     = R_p + Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
+    L_p     = L_p + Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
 
     
 }
@@ -387,6 +392,7 @@ void ana::SetRoot(string ifname){
 }
 /////////////////////////////
 void ana::SetRunList(string ifname){
+
   ifstream ifp(Form("%s",ifname.c_str()),ios::in);
   if(!ifp){ cout<<"no input file "<<ifname<<endl; exit(1); }
   string buf, runname;
@@ -397,7 +403,7 @@ void ana::SetRunList(string ifname){
     istringstream sbuf(buf);
     sbuf >> runname;
     add_tree(runname);
-    cout<<buf<<endl;
+    //    cout<<buf<<endl;
   }
 
   pack_tree();
@@ -406,14 +412,16 @@ void ana::SetRunList(string ifname){
 }
 ////////////////////////////////////////////////////////////////////////////
 
-double ana::Eloss(double xp,double z,char* arm){
+double ana::Eloss(double yp,double z,char* arm){
 
   double hrs_ang=13.2*3.14159/180.;
-  double x = - tan(hrs_ang-xp); //xp : theta [rad]
+  
+  double x;
+  if(arm) x= - tan(hrs_ang-yp); //yp : phi [rad] right arm
+  else    x= - tan(hrs_ang+yp); //yp : phi [rad]  left arm
   double ph[3],pl[2];
   double dEloss=0.0;
   bool high;
-
   double dEloss_h = 0.0;
   double dEloss_l = 0.0;
   if(z>0.08)high=false;
@@ -516,7 +524,10 @@ void ana::Loop(){
     tr.dpe=-2222.;
     tr.momR=-2222.;
     tr.momL=-2222.;
-    
+    tr.z_cut=0;
+    tr.ct_cut=0;
+    tr.pid_cut=0;
+      
     for(int s=0;s<10;s++){tr.dpe_[s]=-2222.;tr.dpk[s]; }
     for(int s=0;s<100;s++){
       tr.Lp[s]=-2222.;tr.Rp[s]=-2222.;
@@ -720,14 +731,14 @@ void ana::Loop(){
           h_R_s2_dedx_pad->Fill( s2pad, R_s2_dedx[s2pad] );
           h_R_s2_beta_pad->Fill( s2pad, beta );
 
-          h_R_a1_sum    ->Fill( R_a1_asum_c );
-          h_R_a2_sum    ->Fill( R_a2_asum_c );
-          h_R_a1_sum_x  ->Fill( R_a1_trx[t], R_a1_asum_c );
-          h_R_a2_sum_x  ->Fill( R_a2_trx[t], R_a2_asum_c );
-          h_R_a1_sum_p  ->Fill(               p, R_a1_asum_c );
-          h_R_a2_sum_p  ->Fill(               p, R_a2_asum_c );
-          h_R_a1_sum_m2 ->Fill(              m2, R_a1_asum_c );
-          h_R_a2_sum_m2 ->Fill(              m2, R_a2_asum_c );
+          h_R_a1_sum    ->Fill( R_a1_asum_p );
+          h_R_a2_sum    ->Fill( R_a2_asum_p );
+          h_R_a1_sum_x  ->Fill( R_a1_trx[t], R_a1_asum_p );
+          h_R_a2_sum_x  ->Fill( R_a2_trx[t], R_a2_asum_p );
+          h_R_a1_sum_p  ->Fill(               p, R_a1_asum_p );
+          h_R_a2_sum_p  ->Fill(               p, R_a2_asum_p );
+          h_R_a1_sum_m2 ->Fill(              m2, R_a1_asum_p );
+          h_R_a2_sum_m2 ->Fill(              m2, R_a2_asum_p );
 
           //double rftime = (R_F1Fhit[15] - R_F1Fhit[9]);// * TDCtoT;
           //double tgt = (R_s2_t[s2pad] - rftime);// - (R_tr_pathl[t] + R_s2_trpath[t])/betaK/c;
@@ -769,9 +780,12 @@ void ana::Loop(){
           if( R_tr_th[rt]<0.17*R_tr_x[rt]+0.025
            && R_tr_th[rt]>0.17*R_tr_x[rt]-0.035
            && R_tr_th[rt]<0.40*R_tr_x[rt]+0.130 ) R_FP = true;
-	  //	  if( R_a1_asum_c<150 && R_a2_asum_c>1000 && R_a2_asum_c<6000) Kaon = true;
-	  if( R_a1_asum_c<1.0 && R_a2_asum_c>3.0 && R_a2_asum_c<7.0) Kaon = true;	  
+	  //	  if( R_a1_asum_p<400 && R_a2_asum_p>1000 && R_a2_asum_p<4000) Kaon = true;
+	  if( R_a1_asum_p<a1_th && R_a2_asum_p>a2_th) Kaon = true;
+	  //	  if( R_a1_asum_p<1.0 && R_a2_asum_p>3.0 && R_a2_asum_p<7.0) Kaon = true;	  
           if( L_Tr && L_FP && R_Tr && R_FP ){
+
+
 
 	    //	    double B_p     = HALLA_p/1000.0;// [GeV/c]	    
 	    //            double L_p     = L_tr_p[lt];
@@ -790,16 +804,13 @@ void ana::Loop(){
 	    double B_pc,R_pc,L_pc;
 
 	    tr.dpe     = Eloss(0.0,R_tr_vz[0],"0");
-	    tr.dpk[rt] = Eloss(R_tr_tg_th[rt],R_tr_vz[rt],"R");
-	    tr.dpe_[lt]= Eloss(L_tr_tg_th[lt],L_tr_vz[lt],"L");
+	    tr.dpk[rt] = Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
+	    tr.dpe_[lt]= Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
 	    
 	    R_pc = R_p + tr.dpk[rt];
 	    L_pc = L_p + tr.dpe_[lt];
 	    B_pc = B_p - tr.dpe;
 
-	    tr.Lp_c[lt] = L_pc;
-	    tr.Rp_c[rt] = R_pc;
-	    tr.Bp_c     = B_pc;
 	    
 	    //===================================//	    
 	    double B_E     = sqrt( Me*Me + B_p*B_p );
@@ -817,7 +828,13 @@ void ana::Loop(){
             double R_tgt = R_s2_t[R_s2pad] - (R_tr_pathl[rt] + R_s2_trpath[rt])/R_betaK/c;
             double R_tgt_pi = R_s2_t[R_s2pad] - (R_tr_pathl[rt] + R_s2_trpath[rt])/R_betaPi/c;
             double ct = L_tgt - R_tgt;
-            //cout<<ct<<endl;
+
+	    if(Kaon)tr.pid_cut=1;
+	    if(fabs(ct)<1.0)tr.ct_cut=1;
+	    if(fabs(R_tr_vz[rt])<0.1 && fabs(L_tr_vz[lt]<0.1) )tr.z_cut=1;
+
+
+	    //cout<<ct<<endl;
             h_ct   ->Fill( ct );
 	    h_Rs2  ->Fill(R_tgt);
 	    h_Ls2  ->Fill(L_tgt);
@@ -825,10 +842,11 @@ void ana::Loop(){
             if( Kaon ) h_ct_wK->Fill( ct );
             h_Ls2x_ct ->Fill( ct, L_s2_trx[lt] );
             h_Rs2x_ct ->Fill( ct, R_s2_trx[rt] );
-            h_a1sum_ct->Fill( ct, R_a1_asum_c );
-            h_a2sum_ct->Fill( ct, R_a2_asum_c );
+            h_a1sum_ct->Fill( ct, R_a1_asum_p );
+            h_a2sum_ct->Fill( ct, R_a2_asum_p );
 
 	    h_Rz->Fill(R_tr_vz[rt]);
+	    
 	    h_Rth->Fill(R_tr_tg_th[rt]);
 	    h_Rph->Fill(R_tr_tg_ph[rt]);
 	    h_Rp->Fill(R_p);
@@ -845,11 +863,28 @@ void ana::Loop(){
 	    double Ee_b = sqrt( Me*Me + B_p*B_p );
 	    double L_Eb = sqrt( Me*Me + L_p*L_p );
 	    double R_Eb = sqrt( MK*MK + R_p*R_p );
-            L_vb.SetMagThetaPhi( L_p, L_tr_tg_th[lt], L_tr_tg_ph[lt] );
-            R_vb.SetMagThetaPhi( R_p, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
-            B_vb.SetMagThetaPhi( B_p, 0, 0 );	    	    
-	    L_vb.RotateZ( -13.2 / 180. * PI );
-	    R_vb.RotateZ(  13.2 / 180. * PI );
+
+	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
+	    double R_px_b=R_pz_b*R_tr_tg_th[rt];
+	    double R_py_b=R_pz_b*( R_tr_tg_ph[rt] + 13.2/180.*PI);
+
+	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow(-L_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
+	    double L_px_b=L_pz_b*L_tr_tg_th[rt];
+	    double L_py_b=L_pz_b*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
+
+	    //	    TVector3 L_vb, R_vb, B_vb;
+	    B_vb.SetXYZ(0.0,0.0,B_p);
+	    L_vb.SetXYZ(L_px_b, L_py_b, L_pz_b);
+	    R_vb.SetXYZ(R_px_b, R_py_b, R_pz_b);
+
+	    //            L_vb.SetMagThetaPhi( L_p, L_tr_tg_th[lt],  L_tr_tg_ph[lt] );
+	    //            R_vb.SetMagThetaPhi( R_p, R_tr_tg_th[rt], -R_tr_tg_ph[rt] );
+	    //	    R_vb.SetMagThetaPhi( R_p, R_tr_tg_th[rt],  -R_tr_tg_ph[rt] );
+	    //	    L_vb.SetMagThetaPhi( L_p, L_tr_tg_th[lt],  -L_tr_tg_ph[lt] );
+	    //            B_vb.SetMagThetaPhi( B_p, 0, 0 );	    	    
+	    //	    L_vb.RotateZ( -13.2 / 180. * PI );
+	    //	    R_vb.RotateZ(  13.2 / 180. * PI );
+	    
 	    double mass_b, mm_b, mm_Lb;
             mass_b = sqrt( (Ee_b + mt - L_Eb - R_Eb)*(Ee_b + mt - L_Eb - R_Eb)
 			 - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) );
@@ -858,7 +893,12 @@ void ana::Loop(){
 
 	    
 	    //=====  calibration =========//
-	    Calib(rt, lt);	    
+
+	    //	    if(rt==0 && lr==0){
+	    //	      cout<<"i "<<n<<endl;
+	    //	      Calib(rt, lt);
+	    //	    }
+	    Calib(rt, lt);
 	    h_Rz_c->Fill(R_tr_vz[rt]);
 	    h_Rth_c->Fill(R_tr_tg_th[rt]);
 	    h_Rph_c->Fill(R_tr_tg_ph[rt]);
@@ -866,54 +906,83 @@ void ana::Loop(){
 	    h_Lz_c->Fill(L_tr_vz[lt]);
 	    h_Lth_c->Fill(L_tr_tg_th[lt]);	    	    
 	    h_Lph_c->Fill(L_tr_tg_ph[lt]);	    	    
-	    h_Lp_c->Fill(L_p);	    
+	    h_Lp_c->Fill(L_p);
+
+	    tr.Lp_c[lt] = L_p;
+	    tr.Rp_c[rt] = R_p;
+	    tr.Bp_c     = B_p;
+	    
 	    //=================================//
 
 
 	    //======= W/ Matrix calibraiton ==========================//
-            TVector3 L_v, R_v, B_v;
+
             double Ee;
+
 	    Ee =sqrt(B_p*B_p + Me*Me);
 	    R_E =sqrt(R_p*R_p + MK*MK);
 	    L_E =sqrt(L_p*L_p + Me*Me);
 
-            L_v.SetMagThetaPhi( L_p, L_tr_tg_th[lt], L_tr_tg_ph[lt] );
-            R_v.SetMagThetaPhi( R_p, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
-            B_v.SetMagThetaPhi( B_p, 0, 0 );	    
-	    L_v.RotateZ( -13.2 / 180. * PI );
-	    R_v.RotateZ(  13.2 / 180. * PI );
+	    double R_pz=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
+	    double R_px=R_pz*R_tr_tg_th[rt];
+	    double R_py=R_pz*( R_tr_tg_ph[rt] + 13.2/180.*PI);
+
+	    double L_pz=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow(-L_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
+	    double L_px=L_pz*L_tr_tg_th[rt];
+	    double L_py=L_pz*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
+	    
+	    //            L_v.SetMagThetaPhi( L_p, L_tr_tg_th[lt], L_tr_tg_ph[lt] );
+	    //            R_v.SetMagThetaPhi( R_p, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
+
+	    //	    aL_v.SetMagThetaPhi( L_p, L_tr_tg_th[lt], -L_tr_tg_ph[lt] );
+	    //	    R_v.SetMagThetaPhi( R_p, R_tr_tg_th[rt], -R_tr_tg_ph[rt] );
+	    //            B_v.SetMagThetaPhi( B_p, 0, 0 );	    
+	    //	    L_v.RotateZ( -13.2 / 180. * PI );
+	    //	    R_v.RotateZ(  13.2 / 180. * PI );
+
+
+            TVector3 L_v, R_v, B_v;
+	    B_v.SetXYZ(0.0,0.0,B_p);
+	    L_v.SetXYZ(L_px, L_py, L_pz);
+	    R_v.SetXYZ(R_px, R_py, R_pz);
+
+
+	    
 	    //======= W/ Matrix & Energy Loss calibraiton ============//
             TVector3 L_vc, R_vc, B_vc;
-            double Eec =sqrt(B_p*B_p + Me*Me);
+	    B_vc.SetXYZ(0.0,0.0,B_p);
+	    L_vc.SetXYZ(L_px, L_py, L_pz);
+	    R_vc.SetXYZ(R_px, R_py, R_pz);
+	    double Eec =sqrt(B_p*B_p + Me*Me);
 	    double R_Ec =sqrt(R_p*R_p + MK*MK);
 	    double L_Ec =sqrt(L_p*L_p + Me*Me);
-            L_vc.SetMagThetaPhi( L_p, L_tr_tg_th[lt], L_tr_tg_ph[lt] );
-            R_vc.SetMagThetaPhi( R_p, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
-            B_vc.SetMagThetaPhi( B_p, 0, 0 );	    
-	    L_vc.RotateZ( -13.2 / 180. * PI );
-	    R_vc.RotateZ(  13.2 / 180. * PI );
+	    //	    L_vc.SetMagThetaPhi( L_p, L_tr_tg_th[lt], - L_tr_tg_ph[lt] );
+	    //	    R_vc.SetMagThetaPhi( R_p, R_tr_tg_th[rt], - R_tr_tg_ph[rt] );
+	    //R_vc.SetMagThetaPhi( R_p, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
+	    // L_vc.SetMagThetaPhi( L_p, L_tr_tg_th[lt],  L_tr_tg_ph[lt] );
+	    //            B_vc.SetMagThetaPhi( B_p, 0, 0 );	    
+	    //	    L_vc.RotateZ( -13.2 / 180. * PI );
+	    //	    R_vc.RotateZ(  13.2 / 180. * PI );
 
 	   	    
             double mass,mass_c, mm,mm_c,mass_L,mass_nnL,mm_L,mm_nnL,mm_Al,mass_Al,mass2,mm2;
 	    double mass_pc;
 
 	    
-
             mass = sqrt( (Ee + mt - L_E - R_E)*(Ee + mt - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 
-	    
+   
             mass2= sqrt( (Ee + mt - L_E - R_Epi)*(Ee + mt - L_E - R_Epi)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
-
 
 	    
             mass_pc = sqrt( (Eec + mt - L_Ec - R_Ec)*(Eec + mt - L_Ec - R_Ec)
                               - (B_vc - L_vc - R_vc)*(B_vc - L_vc - R_vc) );
 
 
-	    mm=mass;
-            mm2=mass2;
+	    mm=mass - mh;
+            mm2=mass2 - mh;
 
 
 	    //=== w/o matrix tuning ======//
@@ -921,53 +990,26 @@ void ana::Loop(){
 	    // Lambda Mass //
            mass_L = sqrt( (Ee + Mp - L_E - R_E)*(Ee + Mp - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
-	   mm_L=mass_L;
+	   mm_L=mass_L - ML;
 	    // nnL Mass //
            mass_nnL = sqrt( (Ee + MT - L_E - R_E)*(Ee + MT - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
-	   mm_nnL=mass_nnL;
+	   mm_nnL=mass_nnL - MnnL;
 
 	    // Alminium Mass //
            mass_Al = sqrt( (Ee + MAl - L_E - R_E)*(Ee + MAl - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
-	    mm_Al=mass_Al;
+	   mm_Al=mass_Al - MAl;
 
 
-
-	  	    
-
-
-
-	    
-	    //====================================//
-	    //========= 1st order tuning =========//
-	    //====================================//
-	    /*
-            mm -= (-0.2390 * L_tr_ph[lt]) + 0.0325474;
-            mm -= ( 0.0371 * R_tr_y[rt]);
-            mm -= ( 0.0261 * L_tr_p[lt] - 0.0567315);
-	    //            mm += 0.055;
-            mm_L -= (-0.2390 * L_tr_ph[lt]) + 0.0325474;
-            mm_L -= ( 0.0371 * R_tr_y[rt]);
-            mm_L -= ( 0.0261 * L_tr_p[lt] - 0.0567315);
-
-            mm_nnL -= (-0.2390 * L_tr_ph[lt]) + 0.0325474;
-            mm_nnL -= ( 0.0371 * R_tr_y[rt]);
-            mm_nnL -= ( 0.0261 * L_tr_p[lt] - 0.0567315);
-
-            mm_Al -= (-0.2390 * L_tr_ph[lt]) + 0.0325474;
-            mm_Al -= ( 0.0371 * R_tr_y[rt]);
-            mm_Al -= ( 0.0261 * L_tr_p[lt] - 0.0567315);
-
-	    */
 	    
 	    
 	    if( Kaon && (fabs(ct-30.)<10. || fabs(ct+30.)<10.) ){
               h_mmallbg->Fill( mm );
-              if( fabs( L_tr_vz[lt] + 0.115 ) < 0.015 || fabs( L_tr_vz[lt] - 0.135 ) < 0.015 ){ 
+              if( fabs( L_tr_vz[lt] + 0.125 ) < 0.015 || fabs( L_tr_vz[lt] - 0.125 ) < 0.015 ){ 
                 h_mmfoilbg->Fill( mm );
               }
-              if( fabs( L_tr_vz[lt] - 0.01 ) < 0.1 ){ 
+              if( fabs( L_tr_vz[lt] ) < 0.1 ){ 
                 h_mmbg->Fill( mm );
               }
 	    }
@@ -975,13 +1017,15 @@ void ana::Loop(){
 
 
 
-	    if( Kaon && fabs(ct)<0.9){
+	    if( Kaon && fabs(ct)<1.0){
 	      
               h_mmall ->Fill( mm );
-              if( fabs( L_tr_vz[lt] + 0.115 ) < 0.015 || fabs( L_tr_vz[lt] - 0.135 ) < 0.015 ){ 
-                h_mmfoil->Fill( mm );
+              if( fabs( L_tr_vz[lt] + 0.125 ) < 0.015 || fabs( L_tr_vz[lt] - 0.125 ) < 0.015 ){ 
+		tr.missing_mass_Al=mm_Al;
+		h_mmfoil->Fill( mm );
+		
               }
-              if( fabs( L_tr_vz[lt] - 0.01 ) < 0.1 ){ 
+              if( fabs( L_tr_vz[lt]  ) < 0.1 ){ 
                 h_Lp_mm   ->Fill( mm, L_tr_p[lt] );
                 h_Ll_mm   ->Fill( mm, L_tr_pathl[lt] );
                 h_Ltgy_mm ->Fill( mm, L_tr_tg_y[lt] );
@@ -995,7 +1039,7 @@ void ana::Loop(){
                 h_Lth_mm  ->Fill( mm, L_tr_th[lt] );
                 h_Lph_mm  ->Fill( mm, L_tr_ph[lt] );
               }
-              if( fabs( R_tr_vz[rt] - 0.01 ) < 0.1 ){ 
+              if( fabs( R_tr_vz[rt] ) < 0.1 ){ 
                 h_Rp_mm   ->Fill( mm, R_tr_p[rt] );
                 h_Rl_mm   ->Fill( mm, R_tr_pathl[rt] );
                 h_Rtgy_mm ->Fill( mm, R_tr_tg_y[rt] );
@@ -1011,7 +1055,8 @@ void ana::Loop(){
                 h_Rp_Lp   ->Fill( L_tr_p[lt], R_tr_p[rt] );
                 h_ct_Rp->Fill(R_tr_p[rt],ct);
               }
-              if( fabs( L_tr_vz[lt] - 0.01 ) < 0.1 && fabs( R_tr_vz[rt] - 0.01 ) < 0.1 ){
+              if( fabs( L_tr_vz[lt] ) < 0.1 && fabs( R_tr_vz[rt] ) < 0.1 ){
+
 		//                h_mm      ->Fill( mm );
 
 	       tr.missing_mass_cut = mm;
@@ -1034,16 +1079,16 @@ void ana::Loop(){
 
 				    
 
-              if(Kaon && fabs(ct)<0.9 && ((-0.15<(L_tr_vz[lt]-0.01) && (L_tr_vz[lt]-0.01)<-0.1) || ( 0.1<(L_tr_vz[lt]-0.01) && (L_tr_vz[lt]-0.01)<0.15)) 
-		 && ((-0.15<(R_tr_vz[rt]-0.01) && (R_tr_vz[rt]-0.01)<-0.1) ||( 0.1<(R_tr_vz[rt]-0.01) && (R_tr_vz[rt]-0.01)<0.15)))h_mm_Al->Fill(mm);
+              if(Kaon && fabs(ct)<0.9 && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15)) 
+		 && ((-0.15<(R_tr_vz[rt]) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15)))h_mm_Al->Fill(mm_Al);
 
 	      if(Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) 
-                 && ((-0.15<(L_tr_vz[lt]-0.01) && (L_tr_vz[lt]-0.01)<-0.1) || ( 0.1<(L_tr_vz[lt]-0.01) && (L_tr_vz[lt]-0.01)<0.15)) 
-		 && ((-0.15<(R_tr_vz[rt]-0.01) && (R_tr_vz[rt]-0.01)<-0.1) ||( 0.1<(R_tr_vz[rt]-0.01) && (R_tr_vz[rt]-0.01)<0.15)))h_mm_Al_acc->Fill(mm);
+                 && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15)) 
+		 && ((-0.15<(R_tr_vz[rt]-0.01) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15)))h_mm_Al_acc->Fill(mm_Al);
 	   
 
-	     if( Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) && fabs( L_tr_vz[lt] - 0.01 ) < 0.1 
-		 && fabs( R_tr_vz[rt] - 0.01 ) < 0.1 &&fabs( L_tr_vz[lt] - 0.01 ) < 0.1){
+	     if( Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) && fabs( L_tr_vz[lt] ) < 0.1 
+		 && fabs( R_tr_vz[rt] ) < 0.1 &&fabs( L_tr_vz[lt] ) < 0.1){
                 h_acc_nnL     ->Fill(mm_nnL);
                 h_acc_L       ->Fill(mm_L);
                 h_ct_wK_z_acc ->Fill( ct );
@@ -1052,8 +1097,8 @@ void ana::Loop(){
 	 
               double ctime=-1000.;
 	     //--------------------------------------------------------------------------------//
-              if( Kaon && fabs( L_tr_vz[lt] - 0.01 ) < 0.1 
-		 && fabs( R_tr_vz[rt] - 0.01 ) < 0.1 &&fabs( L_tr_vz[lt] - 0.01 ) < 0.1){
+              if( Kaon && fabs( L_tr_vz[lt] ) < 0.1 
+		 && fabs( R_tr_vz[rt] ) < 0.1 &&fabs( L_tr_vz[lt] ) < 0.1){
                h_ct_wK_z_all->Fill(ct);
             
 
@@ -1072,27 +1117,28 @@ void ana::Loop(){
 	      }
 	      }
 	
-
+	
              tr.missing_mass = mm          ; tr.coin_time =ct         ;
 	     tr.momR         = R_tr_p[0]  ; tr.momL      =L_tr_p[0] ;
 	     tr.zR           = R_tr_vz[0] ; tr.zL        =L_tr_vz[0];
-	     //	     tr.AC1_sum      = R_a1_asum_c/400. ; tr.AC2_sum   =R_a2_asum_c/400.;
-	     tr.AC1_sum      = R_a1_asum_c ; tr.AC2_sum   =R_a2_asum_c;
+	     //	     tr.AC1_sum      = R_a1_asum_p/400. ; tr.AC2_sum   =R_a2_asum_p/400.;
+	     tr.AC1_sum      = R_a1_asum_p ; tr.AC2_sum   =R_a2_asum_p;
 	     tr.ct_acc=ctime;
 	     tree_out->Fill();
-
+	  
     	      //--------------------------------------------------------------------------------------//
 
 
-	     if( fabs( L_tr_vz[lt] - 0.01 ) < 0.1 && fabs( R_tr_vz[rt] - 0.01 ) < 0.1 &&fabs(ct)<0.9)
+	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 &&fabs(ct)<1.0)
 	       h_mm->Fill( mm ); //No Kaon Cut
-	     if( fabs( L_tr_vz[lt] - 0.01 ) < 0.1 && fabs( R_tr_vz[rt] - 0.01 ) < 0.1 && 2.0<ct && ct<4.0)
+	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 && 2.0<ct && ct<4.0)
 	       h_mm_pi->Fill( mm ); //No Kaon Cut
-	     if( fabs( L_tr_vz[lt] - 0.01 ) < 0.1 && fabs( R_tr_vz[rt] - 0.01 ) < 0.1 
-		 && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)))h_mm_acc->Fill( mm ); //No Kaon Cut
-
-
-
+	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 
+		 && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35))){
+	       h_mm_acc->Fill( mm ); //No Kaon Cut
+	       tr.missing_mass_acc=mm;
+	     }
+	     
           } // if L_Tr && L_FP && R_Tr && R_FP
         } // for NRtr
       } // for NLtr
@@ -1335,13 +1381,13 @@ void ana::Draw(){
     c14->cd(2)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mmfoil  ->Draw();
                                       h_mmfoilbg->Scale(1./20.);  h_mmfoilbg->Draw("same");
     c14->cd(3)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mm      ->Draw();
-                                       h_mm_acc->Scale(1.8/40.);  h_mm_acc ->Draw("same"); 
+                                       h_mm_acc->Scale(2.0/40.);  h_mm_acc ->Draw("same"); 
     c14->cd(4)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mm_L      ->Draw();
-                                        h_acc_L->Scale(1.8/40.);  h_acc_L ->Draw("same");
+                                        h_acc_L->Scale(2.0/40.);  h_acc_L ->Draw("same");
     c14->cd(5)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mm_nnL      ->Draw();
-                                      h_acc_nnL->Scale(1.8/40.);  h_acc_nnL ->Draw("same");
+                                      h_acc_nnL->Scale(2.0/40.);  h_acc_nnL ->Draw("same");
     c14->cd(6)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mm_Al       ->Draw();
-                                     h_mm_Al_acc->Scale(1.8/40.); h_mm_Al_acc   ->Draw("same");
+                                     h_mm_Al_acc->Scale(2.0/40.); h_mm_Al_acc   ->Draw("same");
                                                                   h_peak_Al     ->Draw("same");
     c14->cd(7)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_peak_nnL    ->Draw();
     c14->cd(8)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_peak_L      ->Draw();
@@ -1399,13 +1445,20 @@ void ana::Draw(){
 void ana::MakeHist(){
 
   cout<<"Make Hist "<<endl;
-  tree_out = new TTree("tree","tree");
-  //`tree_out ->Branch("branch name",variable ,"branch name/type");                                                                        
+  tree_out = new TTree("T","T");
+  //`tree_out ->Branch("branch name",variable ,"branch name/type");
+
+  tree_out ->Branch("pid_cut"        ,&tr.pid_cut      ,"pid_cut/I"     );
+  tree_out ->Branch("ct_cut"        ,&tr.ct_cut      ,"ct_cut/I"     );
+  tree_out ->Branch("z_cut"        ,&tr.z_cut      ,"z_cut/I"     );
+  
   tree_out ->Branch("mm",&tr.missing_mass ,"missing_mass/D");
   tree_out ->Branch("mm_b",&tr.missing_mass_b ,"missing_mass_b/D");
   tree_out ->Branch("mm_L",&tr.missing_mass_L ,"missing_mass_L/D");
   tree_out ->Branch("mm_nnL",&tr.missing_mass_nnL ,"missing_mass_nnL/D");
   tree_out ->Branch("mm_cut",&tr.missing_mass_cut ,"missing_mass_cut/D");
+  tree_out ->Branch("mm_Al",&tr.missing_mass_Al ,"missing_mass_Al/D");
+  tree_out ->Branch("mm_acc",&tr.missing_mass_acc ,"missing_mass_acc/D");
   tree_out ->Branch("ct"   ,&tr.coin_time ,"coin_time/D");
   tree_out ->Branch("Rp"        ,&tr.momR      ,"momR/D"     );
   tree_out ->Branch("Lp"        ,&tr.momL      ,"momL/D"     );
@@ -1693,13 +1746,13 @@ void ana::MakeHist(){
   h_mm_Al_acc      = new TH1D("h_mm_Al_acc","h_mm_Al_acc",bin_mm,min_mm,max_mm); //Alminium mass bin=4 MeV
   h_peak_Al      = new TH1D("h_peak_Al","h_peak_Al",bin_mm,min_mm,max_mm); //Alminium mass bin=4 MeV
 
-  h_mm_L       = new TH1D("h_mm_L"      ,"h_mm_L"      , 500,0.5,1.5); //Lambda mass range bin=2 MeV
-  h_mm_L_ec       = new TH1D("h_mm_L_ec"      ,"h_mm_L_ec"      , 500,0.5,1.5); //Lambda mass range bin=2 MeV  
-  h_mm_nnL       = new TH1D("h_mm_nnL"      ,"h_mm_nnL"      , 500,2.5,3.5); //nnL mass range bin=2 MeV
-  h_acc_L       = new TH1D("h_acc_L"      ,"h_acc_L"      , 500,0.5,1.5); //Lambda mass ACC  bin=2 MeV
-  h_acc_nnL       = new TH1D("h_acc_nnL"      ,"h_acc_nnL"      , 500,2.5,3.5); //nnL mass ACC bin=2 MeV
-  h_peak_L       = new TH1D("h_peak_L"      ,"h_peak_L"      , 500,0.5,1.5); //Lambda mass range bin=2 MeV
-  h_peak_nnL       = new TH1D("h_peak_nnL"      ,"h_peak_nnL"      , 500,2.5,3.5); //nnL mass range bin=2 MeV
+  h_mm_L       = new TH1D("h_mm_L"      ,"h_mm_L"      , bin_mm,min_mm,max_mm ); //Lambda mass range bin=2 MeV
+  h_mm_L_ec       = new TH1D("h_mm_L_ec"      ,"h_mm_L_ec"      , bin_mm,min_mm,max_mm); //Lambda mass range bin=2 MeV  
+  h_mm_nnL       = new TH1D("h_mm_nnL"      ,"h_mm_nnL"      , bin_mm,min_mm,max_mm); //nnL mass range bin=2 MeV
+  h_acc_L       = new TH1D("h_acc_L"      ,"h_acc_L"      , bin_mm,min_mm,max_mm); //Lambda mass ACC  bin=2 MeV
+  h_acc_nnL       = new TH1D("h_acc_nnL"      ,"h_acc_nnL"      , bin_mm,min_mm,max_mm); //nnL mass ACC bin=2 MeV
+  h_peak_L       = new TH1D("h_peak_L"      ,"h_peak_L"      , bin_mm,min_mm,max_mm); //Lambda mass range bin=2 MeV
+  h_peak_nnL       = new TH1D("h_peak_nnL"      ,"h_peak_nnL"      , bin_mm,min_mm,max_mm); //nnL mass range bin=2 MeV
 
 
   h_Rz     = new TH1D("h_Rz", "h_Rz",1000,-0.2,0.2);
@@ -1717,20 +1770,18 @@ void ana::MakeHist(){
   h_Lph     = new TH1D("h_Lph", "h_Lph",1000,-0.1,0.1);
   h_Lph_c   = new TH1D("h_Lph_c", "h_Lph_c",1000,-0.1,0.1);
 
-  h_Rp     = new TH1D("h_Rp", "h_Rp",1000,1.6,2.0);
-  h_Rp_c   = new TH1D("h_Rp_c", "h_Rp_c",1000,1.6,2.0);
-  h_Lp     = new TH1D("h_Lp", "h_Lp",1000,1.9,2.3);
-  h_Lp_c   = new TH1D("h_Lp_c", "h_Lp_c",1000,1.9,2.3);
-  
-
+  h_Rp     = new TH1D("h_Rp", "h_Rp",1000,1.5,2.5);
+  h_Rp_c   = new TH1D("h_Rp_c", "h_Rp_c",1000,1.5,2.5);
+  h_Lp     = new TH1D("h_Lp", "h_Lp",1000,1.8,2.8);
+  h_Lp_c   = new TH1D("h_Lp_c", "h_Lp_c",1000,1.8,2.8);
   
 
   h_Lp_mm    = new TH2D("h_Lp_mm"   ,"h_Lp_mm"   , bin_mm,min_mm,max_mm,bin_Lp,min_Lp,max_Lp); 
-  h_mmall    = new TH1D("h_mmall"   ,"h_mmall"   , 1000,-0.5,1.5); 
-  h_mmfoil   = new TH1D("h_mmfoil"  ,"h_mmfoil"  , 1000,-0.5,1.5); 
-  h_mmbg     = new TH1D("h_mmbg"    ,"h_mmbg"    , 1000,-0.5,1.5); 
-  h_mmallbg  = new TH1D("h_mmallbg" ,"h_mmallbg" , 1000,-0.5,1.5); 
-  h_mmfoilbg = new TH1D("h_mmfoilbg","h_mmfoilbg", 1000,-0.5,1.5); 
+  h_mmall    = new TH1D("h_mmall"   ,"h_mmall"   , bin_mm,min_mm,max_mm); 
+  h_mmfoil   = new TH1D("h_mmfoil"  ,"h_mmfoil"  , bin_mm,min_mm,max_mm); 
+  h_mmbg     = new TH1D("h_mmbg"    ,"h_mmbg"    , bin_mm,min_mm,max_mm); 
+  h_mmallbg  = new TH1D("h_mmallbg" ,"h_mmallbg" , bin_mm,min_mm,max_mm); 
+  h_mmfoilbg = new TH1D("h_mmfoilbg","h_mmfoilbg", bin_mm,min_mm,max_mm); 
 
   h_Ll_mm    = new TH2D("h_Ll_mm"   ,"h_Ll_mm"   , bin_mm,min_mm,max_mm,200,  25.2, 26.3); 
   h_Ltgy_mm  = new TH2D("h_Ltgy_mm" ,"h_Ltgy_mm" , bin_mm,min_mm,max_mm,200, -0.06, 0.06); 
@@ -1793,6 +1844,7 @@ bool ana::Close(){
 void ana::ReadParam(string name){
 
   param = new ParamMan(name.c_str());
+  cout<<"param name : "<<name<<endl;
   if(param -> SetVal())cout<<"F1TDC parameter setted"<<endl; 
 
 }
@@ -1803,29 +1855,30 @@ void ana::Swich(bool nnL){
 
   if(nnL){
     mt=MT; //target mass
-
+    mh=ML;
    
-  min_mm=2.5;
-  max_mm=3.5;
-  min_Lp=2.0;
-  max_Lp=2.4;
+    //  min_mm=2.5;
+    //  max_mm=3.5;
 
-  
-  
+    //  min_Lp=1.8;
+    //  max_Lp=2.8;
 
-    
+
   }else {
 
   mt=Mp; //target mass
+  mh=MnnL;
+  //  min_mm=0.5;
+  //  max_mm=1.5;
 
-  min_mm=0.5;
-  max_mm=1.5;
-  min_Lp=1.9;
-  max_Lp=2.3;
 
   } 
- 
-  bin_mm=(int)(max_mm-min_mm)*500; // 2MeV/bin;
+
+    min_mm=-0.5;
+    max_mm=0.5;
+    min_Lp=1.8;
+    max_Lp=2.8;
+    bin_mm=(int)( (max_mm-min_mm)*500 ); // 2MeV/bin;
 
 
   
@@ -1844,7 +1897,7 @@ int main(int argc, char** argv){
   string MaxEvent;
   string ifname("full_replay_root/tritium_111180.root");
   string runlistname = "runlist/test.txt";
-  string pname = "param/.default.param";
+  string pname = "param/default.param";
   bool single_flag = false;
   string mtparam;
   string root_init="../rootfiles/mmass/ana_Lambda/";
@@ -1855,16 +1908,22 @@ int main(int argc, char** argv){
     RHRS= true;
     LHRS= true;
     
-  while((ch=getopt(argc,argv,"hHTf:s:p:w:r:m:o:b:M:"))!=-1){
+  while((ch=getopt(argc,argv,"hHTf:p:s:w:r:m:o:b:M:"))!=-1){
     switch(ch){
+
     case 's':
       ifname = optarg;
       single_flag = true;
       break;
+
     case 'f':
       runlistname = optarg;
       break;
 
+    case 'p':
+      pname = optarg;
+      break;
+      
     case 'm':
       mtparam = optarg;
       break;
@@ -1876,14 +1935,13 @@ int main(int argc, char** argv){
       break;
       
      
-    case 'p':
-      pname = optarg;
-      break;
+      
     case 'w':
       ofname = optarg;
       pdf_out = true;
       batch = true;
       break;
+
     case'H':
     nnL=false;
     cout<<"================================"<<endl;
@@ -2011,9 +2069,8 @@ double calcf2t_mom(double* P, double xf, double xpf,
 		for (c=0;c<n+1;c++){ 
 		  for (b=0;b<n+1;b++){
 		    for (a=0;a<n+1;a++){ 
-		      if (a+b+c+d+e+f+g+h+i==n){
-		if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt
-		    && f<=nXt && g<=nXpt && h<=nYt && i<=nYpt){
+		      if (a+b+c+d+e==n){
+		if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt){
 		  x = pow(xf,double(a))*pow(xpf,double(b))*
 		    pow(yf,double(c))*pow(ypf,double(d))*pow(zt,double(e));
 		}

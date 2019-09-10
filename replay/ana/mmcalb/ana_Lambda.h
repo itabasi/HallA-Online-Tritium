@@ -10,11 +10,13 @@ using namespace std;
 //#include "momcalib.h"
 
 struct TreeBranch{
+  int z_cut,pid_cut,ct_cut;
   double missing_mass, coin_time;
   double missing_mass_acc;
   double missing_mass_L;
   double missing_mass_nnL;
   double missing_mass_cut;
+  double missing_mass_Al;
   double missing_mass_Lb;
   double missing_mass_nnLb;
   double missing_mass_b;
@@ -68,7 +70,7 @@ class ana : public Tree
     void MTP_mom();
     void Calib(int rt, int lt);
 
-    double Eloss(double xp,double z,char* arm);
+    double Eloss(double yp,double z,char* arm);
     
  private:
     int ENumMax;
@@ -206,11 +208,12 @@ class ana : public Tree
     double min_mm,max_mm;
     double min_Lp,max_Lp;
     double mt;
+    double mh;
     int bin_mm;
     int bin_Lp=200;
 
-    string param_mt[10];
-    bool MT_p[10];
+    string param_mt[100];
+    bool MT_p[100];
     bool ploss;
 
     

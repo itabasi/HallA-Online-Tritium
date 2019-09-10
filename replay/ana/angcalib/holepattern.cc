@@ -11,11 +11,11 @@
 
 
 void holepattern(){
-  string main = "ang_RHRS_4th_0824_0_0";
+  string main = "ang_RHRS_5th_0830_0";
   string end_root = ".root";
   string end_dat = ".dat";
-  string ifname="./rootfile/" + main + ".root";
-  string ofname="./param/" + main + "dat";
+  string ifname="/data2/ita_root/angcalib/" + main + ".root";
+  string ofname="./param/" + main + ".dat";
 
   TFile* f = new TFile(ifname.c_str() );
 
@@ -70,106 +70,92 @@ void holepattern(){
 
       //====== offset paramters======= //
 
-      ssx_off[3][29]= 0.8;
-      ssx_off[3][31]= 0.8;
-      ssx_off[3][40]= 0.2;
-
-      ssx_off[3][56]= -0.75;
-      ssx_off[3][68]= -0.6;
-      ssx_off[3][69]= -0.8;
-      ssx_off[3][70]= -0.7;
-
-      ssy_off[3][34]= -0.2;
-      ssy_off[3][36]= -0.2;
-      ssy_off[3][38]= -0.2;
-      ssy_off[3][40]= -0.2;
-      ssy_off[3][42]= -0.2;
-      ssy_off[3][45]= -0.2;
-      ssy_off[3][46]= -0.2;
-      ssy_off[3][47]= -0.2;
-      ssy_off[3][48]= -0.2;
-      ssy_off[3][49]= -0.2;
-      ssy_off[3][50]= -0.2;
-      ssy_off[3][51]= -0.2;
-      ssy_off[3][52]= -0.2;
-      ssy_off[3][53]= -0.2;
-
-
-      ssy_off[3][56]= -0.45;
-      ssy_off[3][57]= -0.25;
-      ssy_off[3][58]= -0.5;
-      ssy_off[3][59]= -0.25;
-      ssy_off[3][60]= -0.5;
-      ssy_off[3][61]= -0.25;
-      ssy_off[3][62]= -0.5;
-      ssy_off[3][63]= -0.25;
-      ssy_off[3][64]= -0.5;
-
-
-      ssy_off[3][68]= -0.65;
-      ssy_off[3][69]= -1.25;
-      ssy_off[3][70]= -0.5;
-      ssy_off[3][71]= -1.0;
-      ssy_off[3][72]= -0.65;
-      ssy_off[3][73]= -1.25;
-      ssy_off[3][74]= -0.85;
-
-      ssy_off[4][64]= -0.4;
-      ssy_off[4][68]= -0.35;
-      ssy_off[4][69]= -0.7;
-      ssy_off[4][70]= -0.3;
-      ssy_off[4][71]= -0.7;
-      ssy_off[4][72]= -0.35;
-      ssy_off[4][73]= -0.7;
-      ssy_off[4][74]= -0.4;
+      ssy_off[0][62]=   0.5;
+      ssy_off[0][60]=   0.5;
+      ssy_off[0][75]=  -0.3;
       
-      ssy_off[8][3]= 0.75;
-      ssy_off[8][5]= 0.75;
-      ssy_off[8][7]= 1.25;
-      ssy_off[8][12]= 0.8;
-      ssy_off[8][13]= 0.8;
-      ssy_off[8][14]= 0.8;
-      ssy_off[8][15]= 0.8;
-      ssy_off[8][16]= 0.8;
-      ssy_off[8][17]= 0.8;
-      ssy_off[8][18]= 0.8;
-      ssy_off[8][19]= 0.8;
-      ssy_off[8][20]= 0.8;
+      ssy_off[1][69]= - 0.3;
+      ssy_off[1][70]=   0.4;
+      ssy_off[1][71]= - 0.3;
+      ssy_off[1][72]=   0.4;
+      ssy_off[1][73]= - 0.3;
 
-      ssy_off[8][23]= 0.7;
-      ssy_off[8][24]= 0.6;
-      ssy_off[8][25]= 0.7;
-      ssy_off[8][26]= 1.0;
-      ssy_off[8][27]= 0.85;
-      ssy_off[8][28]= 1.0;
-      ssy_off[8][29]= 0.9;
-      ssy_off[8][30]= 1.0;
-      ssy_off[8][35]= 0.65;
-      ssy_off[8][36]= 1.0;
-      ssy_off[8][37]= 0.8;
-      ssy_off[8][38]= 0.9;
-      ssy_off[8][39]= 1.0;
-      ssy_off[8][40]= 1.0;
-      ssy_off[8][41]= 1.0;
-      ssy_off[8][42]= 1.0;
+      ssy_off[2][69]=   -0.5;
+      ssy_off[2][70]=   0.5;
+      ssy_off[2][72]=   0.5;
 
-      ssy_off[8][48]= 0.7;
-      ssy_off[8][50]= 0.9;
-      ssy_off[8][52]= 1.0;
+      //      ssy_off[8][4]=   0.5;
+      //      ssy_off[8][6]=   0.5;
+
+      ssy_off[9][4]=   0.2;
+      ssy_off[9][5]=  -0.6;
+      ssy_off[9][6]=   0.2;
       
       if((1 <= j && j <= 76) && (j % 11 != 0)
-	   && (3 <= i && i <= 8)){flag[i][j]=true;}
+	 && (0 <= i && i <= 9)){flag[i][j]=true;}
+      //&& (i<=3 || 8<=i)){flag[i][j]=true;}
+
+      //=====foil 0 ========//
+      for(int k=0;k<=33;k++)flag[0][k]=false;
+      flag[0][34] =false;
+      flag[0][35] =false;
+      flag[0][37] =false;
+      flag[0][39] =false;
+      flag[0][43] =false;
+      flag[0][45] =false;
+      flag[0][54] =false;
+      flag[0][56] =false;
+      flag[0][65] =false;
+      flag[0][67] =false;
+      //=====foil 1 ========//
+      //      flag[1][38]=true;
+      for(int k=0;k<=22;k++)flag[1][k]=false;
+      flag[1][22] =false;
+      flag[1][23] =false;
+      flag[1][24] =false;
+      flag[1][25] =false;
+      flag[1][26] =false;
+      flag[1][28] =false;
+      flag[1][30] =false;
+      flag[1][32] =false;
+      flag[1][42] =false;
+      flag[1][43] =false;
+      //      flag[1][54] =false;
+      flag[1][65] =false;
+      flag[1][67] =false;
+      flag[1][75] =false;
+      flag[1][76] =false;
+      //      flag[1][33] =true;
+      flag[1][44] =true;
+      
+      //===== foil 2 =======//
+      for(int k=0;k<=22;k++)flag[2][k]=false;
+      flag[2][22] =false;
+      flag[2][23] =false;
+      flag[2][24] =false;
+      flag[2][26] =false;
+      flag[2][28] =false;
+      flag[2][30] =false;
+      flag[2][32] =false;
+      flag[2][43] =false;
+      flag[2][54] =false;
+      //      flag[2][63] =false;
+      flag[2][65] =false;
+      flag[2][67] =false;
+      flag[2][75] =false;
+      flag[2][76] =false;
+
 
 
       //===== foil 3 =======//
 
       for(int k=0;k<=21;k++)flag[3][k]=false;
 
-      flag[3][22] =false;
-      flag[3][24] =false;
-      flag[3][26] =false;
-      flag[3][28] =false;
-      flag[3][30] =false;
+      //      flag[3][22] =false;
+      //      flag[3][24] =false;
+      //      flag[3][26] =false;
+      //      flag[3][28] =false;
+      //      flag[3][30] =false;
       flag[3][32] =false;
       flag[3][43] =false;
       flag[3][54] =false;
@@ -181,6 +167,11 @@ void holepattern(){
       flag[3][75] =false;
       flag[3][76] =false;
 
+      flag[3][22] =true;
+      flag[3][33] =true;
+      flag[3][44] =true;
+
+      
       //======== foil 4 =========//
       for(int k=0;k<=21;k++)flag[4][k]=false;
       flag[4][12] =false;
@@ -280,30 +271,48 @@ void holepattern(){
       flag[8][0]  =false;
       flag[8][1]  =false;			   
       flag[8][2]  =false;
-      flag[8][4]  =false;
-      flag[8][6]  =false;
+      //      flag[8][4]  =false;
+      //      flag[8][6]  =false;
       flag[8][8]  =false;
       flag[8][9]  =false;
       flag[8][10] =false;
       flag[8][20] =false;
       flag[8][21] =false;
-      flag[8][31] =false;
+      //      flag[8][31] =false;
       flag[8][32] =false;
-      flag[8][34] =false;
-      flag[8][42] =false;
+      //      flag[8][34] =false;
+      //      flag[8][42] =false;
       flag[8][43] =false;
       flag[8][45] =false;
-      flag[8][46] =false;
+      //      flag[8][46] =false;
       flag[8][47] =false;
       flag[8][49] =false;
       flag[8][51] =false;
       flag[8][53] =false;
       flag[8][54] =false;
-      
+
+      //      flag[8][22] =true;
+      //      flag[8][33] =true;
+      //      flag[8][44] =true;
+
       for(int k=55;k<nsshole;k++){flag[8][k]=false;}
 
-
+      //====== foil 9 =========//
       
+      for(int k=43;k<nsshole;k++){flag[9][k]=false;}
+      //      flag[9][1]=false;
+      flag[9][2]=false;
+      //      flag[9][3]=false;
+      //      flag[9][8]=false;
+      flag[9][9] =false;
+      flag[9][10]=false;
+      //      flag[9][13]=false;
+      //      flag[9][19]=false;
+      flag[9][21]=false;
+      flag[9][32]=false;
+      flag[9][42]=false;
+      flag[9][43]=false;
+	    
     }
        
   }
@@ -323,10 +332,12 @@ void holepattern(){
 	mark_real[i][j] = new TMarker(refy_real[i][j],refx_real[i][j],20);
 	mark_real[i][j] -> SetMarkerColor(1);
 
-      if(5<=i && i<=7) w[i][j]=1.0;
-      else if(flag[i][j])w[i][j]=3.0;
+      if(5<=i && i<=7) w[i][j]=0.5;
+      else if(i<=1 || i==9) w[i][j]=10.0;
+      //      if(i<=1 && 67<=j ) w[i][j]=10.0;
+      //      if(i<=8 && j<=10 ) w[i][j]=10.0;
 
-	
+      
       }
 
 
@@ -386,13 +397,22 @@ void holepattern(){
   h2[8]->Draw("colz");
   c2->cd(4);
   h2[9]->Draw("colz");
-  
+
+
+  TCanvas* c3=new TCanvas("c3","c3");  
+  c3->Divide(1,2);  
+  c3->cd(1);
+  h2[0]->Draw("colz");
+  c3->cd(2);
+  h2[1]->Draw("colz");
 
   
   
     for(int j=0;j<nsshole;j++){
       for(int i=0;i<nfoil;i++){
 	if(flag[i][j]){
+
+
 	  c0->cd(1);
 	  mark[j]->Draw("same");
 	  if(flag[4][j])mark_real[4][j]->Draw("same");
@@ -417,6 +437,15 @@ void holepattern(){
 	  c2->cd(4);
 	  mark[j]->Draw("same");	  
 	  if(flag[9][j])mark_real[9][j]->Draw("same");
+
+	  c3->cd(1);
+	  mark[j]->Draw("same");	  
+	  if(flag[0][j])mark_real[0][j]->Draw("same");
+	  c3->cd(2);
+	  mark[j]->Draw("same");	  
+	  if(flag[1][j])mark_real[1][j]->Draw("same");
+	  
+	  
 	}
 	c1->cd(i+1);
 	mark[j]->Draw("same");

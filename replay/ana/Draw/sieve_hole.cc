@@ -2,11 +2,13 @@
 
 void sieve_hole(){
 
-  bool rarm=false;
+  bool rarm=true;
+  //  bool rarm=false;
   TFile*f1 ;
-  if(rarm)f1=new TFile(Form("../rootfiles/angcalib/ang_RHRS_woRas.root"));
-  else {f1=new TFile(Form("../rootfiles/angcalib/ang_LHRS_woRas.root"));}
-  
+  //  if(rarm)f1=new TFile(Form("../rootfiles/angcalib/ang_RHRS_woRas.root"));
+  //  else {f1=new TFile(Form("../rootfiles/angcalib/ang_LHRS_woRas.root"));}
+  f1=new TFile(Form("../rootfiles/zcalib/zt_RHRS_sieve.root"));
+  //  f1=new TFile(Form("../angcalib/rootfile/ang_RHRS_5th_0830_0.root"));
   TTree* t1=(TTree*)f1->Get("T");
 
   TH2F* hist_a=(TH2F*)f1->Get("h3_a");
@@ -103,7 +105,7 @@ double selec_widthy = 0.45; // selection width in y
       
 
 
-      mark[nhole]->SetMarkerColor(2);
+      mark[nhole]->SetMarkerColor(1);
       c0->cd();
       mark[nhole]->Draw("same");
       c1->cd();
@@ -113,6 +115,10 @@ double selec_widthy = 0.45; // selection width in y
     }
   }
 
+      mark[23]->SetMarkerColor(2);
+      mark[38]->SetMarkerColor(2);
+
+    
     if(tree){
       hist_a->Write();
       hist_c->Write();	

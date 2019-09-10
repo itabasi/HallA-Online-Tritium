@@ -37,8 +37,8 @@ const int nParamT_ras=4;  //Nunmber of Raster parameters
   double Pras_L[nParamT_ras];
   double Opt_Par_x[nParamTx],Opt_Par_y[nParamTy];
 
-//const int nmax = 1000; // Number of events used for tuning
-const int nmax=1000000;// Number of events used for tuning;
+const int nmax = 500000; // Number of events used for tuning
+//const int nmax=100000;// Number of events used for tuning;
 const int MAX=10;
 //const int nmax = 50000; // Number of events used for tuning
 const int nfoil = 10;
@@ -47,8 +47,8 @@ double fcent[nfoil] = {-0.125, -0.100, -0.075, -0.050, -0.025,
 double fcent_real[nfoil] = {-0.125, -0.100, -0.075, -0.050, -0.025,
 			    0.000, 0.025, 0.050, 0.100, 0.125};
 //double selection_width = 0.0125; 
+//double selection_width = 0.008; // event selection width for z
 double selection_width = 0.008; // event selection width for z
-
 
 const double step = 0.492 * 2.54;
 const int nrow = 11; // the number of row in SS pattern

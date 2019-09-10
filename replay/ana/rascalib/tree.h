@@ -82,7 +82,7 @@ class tree{
   double lbeta[MAX];
   double nhit, nhit_R;
   double R_ps_asum,R_sh_asum;
-  double L_gs_asum;
+  double L_gs_asum,R_gs_asum;
   double R_a1_asum,R_a2_asum;
   double a1_tdc[24];
   double a2_tdc[26];
@@ -165,6 +165,7 @@ void tree::SetBranch(){
   t1->SetBranchAddress("R.ps.asum_c", &R_ps_asum);
   t1->SetBranchAddress("R.sh.asum_c", &R_sh_asum);
   t1->SetBranchAddress("L.cer.asum_c",&L_gs_asum);
+  t1->SetBranchAddress("R.cer.asum_c",&R_gs_asum);
   t1->SetBranchAddress("R.a1.asum_c", &R_a1_asum);
   t1->SetBranchAddress("R.a2.asum_c", &R_a2_asum);
   t1->SetBranchAddress("Lrb.Raster2.rawcur.x", &L_Ras_x); // raster current

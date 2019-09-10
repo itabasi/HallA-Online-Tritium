@@ -26,25 +26,26 @@ const double  Ztm = -0.15,Ztr=0.35;
 //const int nnz = 3; // 3th order matrix using zt
 //const int nParamT = 56;  // Number of parameters
 
-const int nn =  4; // 4th order matrix using xf, xpf, y, ypf, and zt
-const int nnz = 4; // 3th order matrix using zt
-const int nParamT = 126;  // Number of parameters
-
-//const int nn =  5; // 4th order matrix using xf, xpf, y, ypf, and zt
+//const int nn =  4; // 4th order matrix using xf, xpf, y, ypf, and zt
 //const int nnz = 4; // 3th order matrix using zt
-//const int nParamT = 252;  // Number of parameters
+//const int nParamT = 126;  // Number of parameters
 
+const int nn =  5; // 4th order matrix using xf, xpf, y, ypf, and zt
+const int nnz = 4; // 3th order matrix using zt
+const int nParamT = 252;  // Number of parameters
+
+const int nParamT2=nParamT*2;
 
 
   double Pxpt[nParamT];
   double Pypt[nParamT];
   double OptPar1[nParamT];
   double OptPar2[nParamT];
-
+  double Opt_par[nParamT2];
 
 //const int nmax = 300; // Number of events used for tuning
-const int nmax=10000;// Number of events used for tuning;
-//const int nmax=20000;// Number of events used for tuning;
+//const int nmax=10000;// Number of events used for tuning;
+const int nmax=20000;// Number of events used for tuning;
 //const int nmax = 50000; // Number of events used for tuning
 //const int nite =0;
 const int nfoil = 10;

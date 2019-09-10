@@ -20,11 +20,12 @@ double comb(int n, int k){
 
 void mtparam_scaled(){
 
-  string fname="./db_RHRS_phi.dat";
-  string ofname="./test_yp_scaled.dat";
+  //  string fname="./db_RHRS_phi.dat";
+  //  string ofname="./test_yp_scaled.dat";
   //  string fname="./db_RHRS_phi.dat";
   //  string ofname="./test_yp.dat";
-  
+  string fname="./db_RHRS_mom.dat";
+  string ofname="./test_Rp_scaled.dat";
   ofstream * ofs1=new ofstream(ofname.c_str());
 
   ifstream mtp(fname.c_str());

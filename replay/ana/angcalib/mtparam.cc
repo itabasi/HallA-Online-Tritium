@@ -24,8 +24,10 @@ void mtparam(){
   //  string ofname="./test_xp.dat";
   //  string fname="./db_RHRS_phi.dat";
   //  string ofname="./test_yp.dat";
-  string fname="./db_RHRS_y.dat";
-  string ofname="./test_y.dat";  
+  //  string fname="./db_RHRS_y.dat";
+  //  string ofname="./test_y.dat";
+  string fname="./db_LHRS_mom.dat";
+  string ofname="./test_mom.dat";  
   ofstream * ofs1=new ofstream(ofname.c_str());
 
   ifstream mtp(fname.c_str());

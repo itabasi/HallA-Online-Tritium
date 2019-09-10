@@ -67,6 +67,12 @@ void tree::SetBranch(){
  T->SetBranchAddress("R.a1.asum_c",&Ra1sum);
  T->SetBranchStatus("R.a2.asum_c",1);
  T->SetBranchAddress("R.a2.asum_c",&Ra2sum);
+
+ T->SetBranchStatus("R.a1.asum_p",1);
+ T->SetBranchAddress("R.a1.asum_p",&Ra1sum_p);
+ T->SetBranchStatus("R.a2.asum_p",1);
+ T->SetBranchAddress("R.a2.asum_p",&Ra2sum_p);
+
  // T->SetBranchStatus("R.cer.asum_c",1);
  // T->SetBranchAddress("R.cer.asum_c",&Rgssum);
 
@@ -238,4 +244,5 @@ void tree::NewBranch(string ofname, bool rarm){
  tnew->Branch("L.tr.th",Lth_fp,"L.tr.th[100]/D");
  tnew->Branch("L.tr.ph",Lph_fp,"L.tr.ph[100]/D"); 
 };
+
 */

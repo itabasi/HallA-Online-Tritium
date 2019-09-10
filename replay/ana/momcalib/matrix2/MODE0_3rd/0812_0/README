@@ -1,8 +1,0 @@
-### memo
-### 2019/08/12
-input matrix parameters matrix2/momcalib_matirx_3rd_init.list
-condition
-Event Selection :
-didnt applied momcalib parameters in Eventselection
-event cut in mass initial cut
-

@@ -57,7 +57,6 @@ int main(int argc, char** argv){
   bool root_flag=false;
   bool matrix_flag=false;
   // bool RHRS_flag=true;
-  bool single=false;
   bool RHRS_flag=false; 
   bool tuning_flag=false;
   string pngname;
@@ -112,6 +111,11 @@ int main(int argc, char** argv){
       if(Target=="R")cout<<"RHRS momentum tuning "<<endl;
       if(mode=="CA")cout<<"Both arm momentum & RHRS angle tuning "<<endl;
       if(mode=="A")cout<<"RHRS angle tuning"<<endl;
+      if(mode=="I"){
+	cout<<"Both arm momentum tuning && Initial matrix"<<endl;
+	Initial=true;
+      }
+      
       break;
       
 
@@ -190,14 +194,14 @@ int main(int argc, char** argv){
 
   momcalib* Mom=new momcalib();
   Mom->mode(mode,Target,f1tdc);
+  Mom->MTParam(matrix_name);
   if(single)Mom->SingleRoot(ifname);
   else   Mom->SetRoot(ifname);
   if(root_flag)Mom->NewRoot(ofname);
   Mom->MakeHist();
-  Mom->MTParam(matrix_name);
   if(tuning_flag)Mom->EventSelection();
-  if(tuning_flag)Mom->MomTuning(ofMTPname);
-  if(root_flag) Mom->Fill();  
+  if(tuning_flag && nite>0)Mom->MomTuning(ofMTPname);
+  if(root_flag && ( (tuning_flag && nite>0) || tuning_flag==0)) Mom->Fill();  
   if(root_flag) Mom->Close();  
 
 

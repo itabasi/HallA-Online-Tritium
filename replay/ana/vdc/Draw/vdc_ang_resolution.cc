@@ -14,7 +14,7 @@ void vdc_ang_resolution(){
   if(rarm)arm="R";
   else arm="L";
 
-  TFile*f2=new TFile(Form("../../rootfiles/angcalib/ang_%sHRS_721.root",arm.c_str()));
+  TFile*f2=new TFile(Form("../../rootfiles/angcalib/ang_%sHRS_sieve.root",arm.c_str()));
   //  TFile*f2=new TFile(Form("../../rootfiles/angcalib/ang_%sHRS_sieve.root",arm.c_str()));
   TTree* t2=(TTree*)f2->Get("T");
   
@@ -132,7 +132,14 @@ void vdc_ang_resolution(){
   hLph_c->SetTitleSize(0.06,"x");
   hLph_c->SetTitleSize(0.06,"y");
   hLph_c->GetXaxis()->SetTitleOffset(0.8);  
-  hLph_c->GetYaxis()->SetTitleOffset(0.8);        
+  hLph_c->GetYaxis()->SetTitleOffset(0.8);
+
+  TGraphErrors* gth=new TGraphErrors();
+  TGraphErrors* gph=new TGraphErrors();
+
+
+
+  
   int ENum=t2->GetEntries();
   cout<<"Entries : "<<ENum<<endl;
   bool test=false;
@@ -178,7 +185,6 @@ void vdc_ang_resolution(){
     if(pid_cut && z_cut && rarm==0 && ph_cut)hLth_c->Fill(Xpt[0]);        
     //---- phi hist ------------//
     if(pid_cut && z_cut && rarm==0 && th_cut)hLph_c->Fill(Ypt[0]);
-
     if(i%(ENum/10)==0)cout<<"i : "<<i<<" / "<<ENum<<endl;
     
   }//end for
@@ -223,6 +229,7 @@ void vdc_ang_resolution(){
   double Mean_th;
   double sig_th=0.006;
   double th0[nth],th1[nth],th2[nth];
+  double th0_err[nth],th1_err[nth],th2_err[nth];
   for(int i=0;i<nth;i++){
     Mean_th=mean_th(i);
     fth[i]->SetParameter(2,Mean_th);
@@ -243,14 +250,23 @@ void vdc_ang_resolution(){
     th0[i]=fth_all->GetParameter(3*i  );
     th1[i]=fth_all->GetParameter(3*i+1);
     th2[i]=fth_all->GetParameter(3*i+2);
+    th0_err[i]=fth_all->GetParError(3*i  );
+    th1_err[i]=fth_all->GetParError(3*i+1);
+    th2_err[i]=fth_all->GetParError(3*i+2);
+
     fth[i]->SetParameter(3*i,   th0[i]);
     fth[i]->SetParameter(3*i+1, th1[i]);
     fth[i]->SetParameter(3*i+2, th2[i]);
+    th0[i]=fth[i]->GetParameter(0);
+    th1[i]=fth[i]->GetParameter(1);
+    th2[i]=fth[i]->GetParameter(2);
+
   }
   
   double Mean_ph;
   double sig_ph=0.003;
   double ph0[nph],ph1[nph],ph2[nph];
+  double ph0_err[nph],ph1_err[nph],ph2_err[nph];
   for(int i=0;i<nph;i++){
     Mean_ph=mean_ph(i);
     fph[i]->SetParameter(2,Mean_ph);
@@ -260,9 +276,14 @@ void vdc_ang_resolution(){
       ph0[i]=fph[i]->GetParameter(0);
       ph1[i]=fph[i]->GetParameter(1);
       ph2[i]=fph[i]->GetParameter(2);
+      //      ph0_err[i]=fph[i]->GetParError(0);
+      //      ph1_err[i]=fph[i]->GetParError(1);
+      //      ph2_err[i]=fph[i]->GetParError(2);
       fph_all->SetParameter(3*i,   ph0[i]);
       fph_all->SetParameter(3*i+1, ph1[i]);
-      fph_all->SetParameter(3*i+2, ph2[i]);    }
+      fph_all->SetParameter(3*i+2, ph2[i]);
+
+    }
 
   }
 
@@ -271,6 +292,10 @@ void vdc_ang_resolution(){
     ph0[i]=fph_all->GetParameter(3*i  );
     ph1[i]=fph_all->GetParameter(3*i+1);
     ph2[i]=fph_all->GetParameter(3*i+2);
+    ph0_err[i]=fph_all->GetParError(3*i  );
+    ph1_err[i]=fph_all->GetParError(3*i+1);
+    ph2_err[i]=fph_all->GetParError(3*i+2);
+
     fph[i]->SetParameter(3*i,   ph0[i]);
     fph[i]->SetParameter(3*i+1, ph1[i]);
     fph[i]->SetParameter(3*i+2, ph2[i]);
@@ -281,6 +306,7 @@ void vdc_ang_resolution(){
   TCanvas* c0=new TCanvas("c0","c0");
   TCanvas* cth=new TCanvas("cth","cth");
   TCanvas* cph=new TCanvas("cph","cph");
+  TCanvas* c1 =new TCanvas("c1","c1");
   c0->cd();
   hLth_ph->Draw("colz");
   cth->cd();
@@ -296,6 +322,29 @@ void vdc_ang_resolution(){
   for(int i=0;i<nph;i++)fph[i]->Draw("same");
   fph_all->Draw("same");
 
+  c1->Divide(2,1);
+  gth->SetMarkerColor(2);
+  gth->SetMarkerSize(1);
+  gth->SetMarkerStyle(20);
+  gth->SetFillColor(2);
+  gph->SetMarkerColor(2);
+  gph->SetMarkerSize(1.0);
+  gph->SetMarkerStyle(20);
+  gph->SetFillColor(2);
+  c1->cd(1);
+
+  for(int i=1;i<nth;i++){
+    gth->SetPoint(i,i,th2[i]);
+    gth->SetPointError(i,0,th2_err[i]);
+  }
+  gth->Draw("AP");
+  c1->cd(2);
+  for(int i=0;i<nph;i++){
+    gph->SetPoint(i,i,ph2[i]);
+    gph->SetPointError(i,0,ph2_err[i]);
+  }
+  gph->Draw("AP");
+
   
   //============= COMMENT OUT ===============//
   cout<<"================================================"<<endl;
@@ -304,6 +353,7 @@ void vdc_ang_resolution(){
   for(int i=0;i<nth;i++){
     cout<<Form("======== theta peak[%d] =========",i)<<endl;
     cout<<"th0 : "<<th0[i]<<" th1: "<<th1[i]<<" th2: "<<th2[i]<<endl;
+    cout<<"th0 : "<<th0_err[i]<<" th1_err: "<<th1_err[i]<<" th2_err: "<<th2_err[i]<<endl;
   }
     cout<<"================================================"<<endl;
     cout<<"================================================"<<endl;
@@ -311,6 +361,7 @@ void vdc_ang_resolution(){
   for(int i=0;i<nph;i++){
     cout<<Form("======== phi peak[%d] =========",i)<<endl;
     cout<<"ph0 : "<<ph0[i]<<" ph1: "<<ph1[i]<<" ph2: "<<ph2[i]<<endl;
+    cout<<"ph0 : "<<ph0_err[i]<<" ph1_err: "<<ph1_err[i]<<" ph2_err: "<<ph2_err[i]<<endl;
   }
   
   

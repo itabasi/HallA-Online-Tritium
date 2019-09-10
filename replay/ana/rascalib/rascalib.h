@@ -10,7 +10,7 @@
 #include "define.h"
 #include "zcalib.h"
 
-
+bool single_flag=false;
 double Ras_curx[nmax],Ras_cury[nmax];
 double Ras_cur[nmax];
 double parRaster[nParamTx];
@@ -39,12 +39,13 @@ class rascalib :public tree{
   
   void Swich_Ras(bool ras_x);
   void MakeHist();
-  void SetRoot(string ifname, bool rarm);
+  void SetRoot(string ifname, bool sin);
   void NewRoot(string ofname);
   void MTRead(string ifname, bool rarm);
   void MTParam_x(string matrix_name_x, bool rarm);
   void MTParam_y(string matrix_name_y, bool rarm);
   void RasCorr(bool rarm);
+  void zCorr(bool rarm);
   void EventSelection(bool rarm, bool ras_x);
   double Chi(double* pa,int j);
   void Tuning(string ofparam);
@@ -57,6 +58,10 @@ class rascalib :public tree{
   //// NewRoot ///
   ////////////////
 
+  bool sieve=true;
+  double ssx,ssy;
+
+  
   TFile* ofp;
   TTree* tnew;
   double R_tr_vx_c[MAX],R_tr_vy_c[MAX];
@@ -69,8 +74,13 @@ class rascalib :public tree{
 
   TH1F* h2[nfoil];
   TH1F* hz;
+  TH1F* hz_cut;
+  TH1F* hz_cut_r;
+  TH1F* hz_cut_c;
+  TH1F* hz_cut_rc;  
   TH1F* hz_r;
   TH1F* hz_rc;
+  TH1F* hz_c;
   TGraphErrors* gchi=new TGraphErrors();  
   ///////////////
   //// MTParam //
@@ -114,7 +124,6 @@ rascalib::rascalib(){
   
   set =new Setting();
   set->Initialize();
-
   zcorr=new zcalib();
 
   
@@ -151,11 +160,10 @@ void rascalib::MTRead(string ifname,bool rarm){
     zcorr->Mzt(param[0],rarm);
     zcorr->Mzt_L(param[0],rarm);    
     MTParam_x(param[1],rarm);
-    MTParam_y(param[2],rarm);    
-
+    //    MTParam_y(param[2],rarm);    
     ras_x=true;//raster-x correction 
-  
-  
+
+    
 }
 
 
@@ -179,12 +187,13 @@ void rascalib::MTParam_x(string matrix_x_name, bool rarm){
 
   }
 
-  
+
   for(int i=0;i<nParamTx;i++){
     par[i]=parX[i];
-    Opt_Par[i]=Opt_Par_x[i];}
+    Opt_Par[i]=Opt_Par_x[i];
+  }
   
-  
+
   Mx.close();    
 
 
@@ -220,21 +229,34 @@ void rascalib::MTParam_y(string matrix_y_name, bool rarm){
 
 ///////////////////////////////////////////////////
 
-void rascalib::SetRoot(string ifname, bool rarm){
+void rascalib::SetRoot(string ifname,bool sin){
 
   //  SetTree(ifname);
-  Chain_Tree(ifname);
+
+  if(sin){ cout<<"===== Single mode ======="<<endl;SetTree(ifname);}
+  else {  Chain_Tree(ifname); }
+ 
   SetBranch();
-  
-  
+  t1->SetBranchAddress("R.tr.vz_tuned", ztR_opt); // raster current
+  //    t1->SetBranchAddress("L.tr.vz_tuned", ztR_opt); // raster current
+  //    if(sieve){
+  //    t1->SetBranchAddress("ss_x",&ssx);
+  //    t1->SetBranchAddress("ss_y",&ssy);
+  //  }
+
 }
 
 ///////////////////////////////////////////////////
 
 void rascalib::NewRoot(string ofname){
 
+
+  
   ofp = new TFile(Form("%s",ofname.c_str()),"recreate");
-  tnew=new TTree("T","Raster matrix tuning");
+
+  
+  
+  //  tnew=new TTree("T","Raster matrix tuning");
   tnew =t1->CloneTree(0);
 
 
@@ -242,11 +264,13 @@ void rascalib::NewRoot(string ofname){
    //------ RHRS ---------//
   tnew->Branch("R.tr.vx_c"              , R_tr_vx_c    ,"R.tr.vx_c[10]/D"   );
   tnew->Branch("R.tr.vy_c"              , R_tr_vy_c    ,"R.tr.vy_c[10]/D"   );
-  tnew->Branch("R.tr.vx_ras"            , R_tr_vz_ras    ,"R.tr.vz_ras[10]/D"   );
+  tnew->Branch("R.tr.vz_ras"            , R_tr_vz_ras    ,"R.tr.vz_ras[10]/D"   );
+  //  tnew->Branch("R.tr.vz_tuned"          , R_tr_vz_ras    ,"R.tr.vz_tuned[10]/D"   );
   //------ LHRS --------// 
+  //  tnew->Branch("L.tr.vz"                , L_tr_vz_ras    ,"L.tr.vz[10]/D"   );
   tnew->Branch("L.tr.vx_c"              , L_tr_vx_c    ,"L.tr.vx_c[10]/D"   );
   tnew->Branch("L.tr.vy_c"              , L_tr_vy_c    ,"L.tr.vy_c[10]/D"   );
-  tnew->Branch("L.tr.vx_ras"            , L_tr_vz_ras    ,"L.tr.vz_ras[10]/D"   );
+  //  tnew->Branch("L.tr.vz_tuned"            , L_tr_vz_ras    ,"L.tr.vz_tuned[10]/D"   );
   
 
 }
@@ -268,9 +292,29 @@ void rascalib::MakeHist(){
   hz=new TH1F("hz","",1000,-0.2,0.2);
   set->SetTH1(hz,"w/o Raster correction z hist","[m]","Counts");
   hz->SetLineColor(1);
+  hz_cut=new TH1F("hz_cut","",1000,-0.2,0.2);
+  set->SetTH1(hz_cut,"w/o Raster correction z hist","[m]","Counts");
+  hz_cut->SetLineColor(1);
+  hz_cut_r=new TH1F("hz_cut_r","",1000,-0.2,0.2);
+  set->SetTH1(hz_cut_r,"w/o Raster correction z hist","[m]","Counts");
+  hz_cut_r->SetLineColor(2);
+
+
+  hz_cut_c=new TH1F("hz_cut_c","",1000,-0.2,0.2);
+  set->SetTH1(hz_cut_c,"w/o Raster correction z hist","[m]","Counts");
+  hz_cut_c->SetLineColor(1);
+  hz_cut_rc=new TH1F("hz_cut_rc","",1000,-0.2,0.2);
+  set->SetTH1(hz_cut_rc,"w/o Raster correction z hist","[m]","Counts");
+  hz_cut_rc->SetLineColor(2);    
+
+  
   hz_r=new TH1F("hz_r","",1000,-0.2,0.2);
   set->SetTH1(hz_r,"w/ Raster correction z hist","[m]","Counts");
-
+  hz_r->SetLineColor(3);
+  hz_c=new TH1F("hz_c","",1000,-0.2,0.2);
+  set->SetTH1(hz_c,"w/ z correction z hist","[m]","Counts");
+  hz_c->SetLineColor(4);
+  
   hz_rc=new TH1F("hz_rc","",1000,-0.2,0.2);
   set->SetTH1(hz_rc,"Afeter Tuning w/ Raster correction z hist","[m]","Counts");
   hz_rc->SetLineColor(2);
@@ -287,53 +331,50 @@ void rascalib::MakeHist(){
 
 /////////////////////////////////////////////////////////////
 
-void rascalib::RasCorr(bool rarm){
+void rascalib::zCorr(bool rarm){
 
 
-      
+  
       //========== nomalization =================//
       XFP  = (XFP-XFPm)/XFPr; 
       XpFP = (XpFP-XpFPm)/XpFPr;
       YFP  = (YFP-YFPm)/YFPr;
       YpFP = (YpFP-YpFPm)/YpFPr;
-      if(rarm)ztR[0] = Calc_z(Pzt, XFP, XpFP, YFP, YpFP); // calculated z position in RHRS
-      else ztR[0] = Calc_z(Pzt_L, XFP, XpFP, YFP, YpFP); // calculated z position in LHRS
-
-
-      //==== Raster Tunng =====//
-      if(ras_x) RasterCor = Calc_ras(Ras_x, Opt_Par[2], Opt_Par[0]);
-      else RasterCor = Calc_ras(Ras_y, Opt_Par[2], Opt_Par[0]);
       
-
+      if(rarm)Zt = Calc_z(Pzt, XFP, XpFP, YFP, YpFP); // calculated z position in RHRS
+      else Zt = Calc_z(Pzt, XFP, XpFP, YFP, YpFP); // calculated z position in LHRS
       
       //============ scaling ====================//
       XFP = XFP * XFPr + XFPm;
       XpFP = XpFP * XpFPr + XpFPm;
       YFP = YFP * YFPr + YFPm;
       YpFP = YpFP * YpFPr + YpFPm;
-      ztR[0] = ztR[0] * Ztr + Ztm; 
+      //      ztR[0] = ztR[0] * Ztr + Ztm;
+      Zt = Zt * Ztr + Ztm; 
+      //      cout<<"Zt "<<Zt<<endl;
+}
+
+/////////////////////////////////////////////////////////////
+
+void rascalib::RasCorr(bool rarm){
 
 
+      
+      //==== Raster Tunng =====//
+      if(ras_x) RasterCor = Calc_ras(Ras_x, Opt_Par[2], Opt_Par[0]);
+      else RasterCor = Calc_ras(Ras_y, Opt_Par[2], Opt_Par[0]);
+      //      cout<<"Opt_Par[2] "<<Opt_Par[2]<<" Opt_Par[0] "<<Opt_Par[0]<<endl;
       // ----------------------------------------------------------- //
       // ------ Converting raster current to raster position ------- //
       // ----------------------------------------------------------- //
       
       RasterCor = RasterCor/tan(hrs_ang);
       Zt_r = Zt + RasterCor;
-	//    cout<<"RasterCor: "<<RasterCor<<endl;
-	//    cout<<"Zt_r: "<<Zt_r<<endl;
-      if(rarm)Rvz[0]=Zt_r;
-      else {Lvz[0]=Zt_r;}
-
       
-      /*
-      if(rarm){
-	Zt_r = Zt - RasterCor;	
-	Rvz[0]=Zt_r;
-      }else {
-	Zt_r = Zt + RasterCor;
-	Lvz[0]=Zt_r;}
-      */
+      //      if(rarm)Rvz[0]=Zt_r;
+      //      else {Lvz[0]=Zt_r;}
+
+
 }
 
 
@@ -351,6 +392,7 @@ void rascalib::EventSelection(bool rarm, bool ras_x){
    if(ENum<10000)d=div(nmax,1000);
    else   d=div(nmax,1000);
 
+   //   if(ENum>300000)ENum=300000;
    
   for(int i=0 ; i<nmax ; i++){
     x[i]    = -2222.0; // x at FP
@@ -362,8 +404,8 @@ void rascalib::EventSelection(bool rarm, bool ras_x){
 
 
 
-  for (int i=0 ; i<nmax ; i++){
-
+  //  for (int i=0 ; i<nmax ; i++){
+  for (int i=0 ; i<ENum ; i++){
 
 
     ///===========================//
@@ -384,14 +426,17 @@ void rascalib::EventSelection(bool rarm, bool ras_x){
     
      Ras_x=-2222.0;
      Ras_y=-2222.0;
-
+     if(sieve){
+       ssx=-100.;
+       ssy=-100;
+     }
     
     rtrig = false;
     ltrig = false;
     
-    //t1->GetEntry(i);
-    if(i+evshift<ENum) t1->GetEntry(i+evshift); 
-    else t1->GetEntry(i-ENum+evshift);
+    t1->GetEntry(i);
+    //    if(i+evshift<ENum) t1->GetEntry(i+evshift); 
+    //    else t1->GetEntry(i-ENum+evshift);
 
     if(trig1>1.0) ltrig = true;
     else ltrig = false;
@@ -403,6 +448,7 @@ void rascalib::EventSelection(bool rarm, bool ras_x){
     XpFP  = r_th_fp[0];
     YFP   = r_y_fp[0];
     YpFP  = r_ph_fp[0];
+    //    Ras_x = L_Ras_x;
     Ras_x = R_Ras_x;
     Ras_y = R_Ras_y;
     Zt    = Rvz[0];
@@ -416,28 +462,37 @@ void rascalib::EventSelection(bool rarm, bool ras_x){
     Zt    = Lvz[0];      
      }
 
-    hz->Fill(Zt); //w/o raster correction
-    RasCorr(rarm);
-    hz_r->Fill(Zt_r); //w raster correction
-
-
     
+
+    zCorr(rarm);
+    RasCorr(rarm);
+    hz_r->Fill(Zt); //w raster correction
+    bool Sieve=false;
+    //    if(fabs(Rth[0])<0.01 &&fabs(Rph[0])<0.01)Sieve=true;
+    if(fabs(ssx)<1. &&fabs(ssy)<1.)Sieve=true;
+
+    //    cout<<"ssx "<<ssx<<" ss "<<ssy<<" Z "<<Zt<<endl;
+
+
     if(((ltrig==true && rarm==false)|| (rarm==true && rtrig ==true))
        && fabs(XFP)  <2.0 
        && fabs(XpFP) <0.1
        && fabs(YFP)  <0.5
        && fabs(YpFP) <0.1
-       && L_gs_asum>1800   // pi^{-} rejection with gas Cherenkov 
+       && (L_gs_asum>1800 || (rarm && fabs(Rth[0])<0.01 &&fabs(Rph[0])<0.01 )) // pi^{-} rejection with gas Cherenkov 
        ){
-
-      
+      //    if(rarm && Sieve){
+      //      cout<<"z "<<Zt<<" z_rc "<<Zt_r<<" Rasx "<<Ras_x<<endl;
       // ------------------------------------------- //
       // ------- Event selection for tuning -------- //
       // ------------------------------------------- //
+
       if(nite>0){
 	for(int j=0 ; j<nfoil ; j++){
-	  if(fcent[j]-selection_width<Zt+RasterCor 
-	     && Zt+RasterCor<fcent[j]+selection_width){
+	  if(j<=4 && j<=6 || j==0 || j==9){
+	    //	    if(fcent[j]-selection_width<Zt+RasterCor 
+	    //	       && Zt+RasterCor<fcent[j]+selection_width){
+	    if((-0.03<Zt && Zt<-0.01 && j==4) || (-0.003<Zt && Zt<0.01 && j==5) || (0.02<Zt && Zt<0.04 && j==6) || (j==0 && -0.13<Zt && Zt<-0.11) || (j==9 && 0.15<Zt && Zt<0.13)){
 	    h2[j]->Fill(Zt+RasterCor);
 	    if(j+2!=10) h2[j]->SetLineColor(j+2);
 	    else h2[j]->SetLineColor(2);
@@ -454,16 +509,22 @@ void rascalib::EventSelection(bool rarm, bool ras_x){
 	      Ras_cury[ntune_event] = Ras_y;
 	      if(ras_x)Ras_cur[ntune_event] = Ras_x;
 	      else Ras_cur[ntune_event] = Ras_y;
-	     
+	      hz_cut->Fill(Zt); // w/o raster correction
+	      hz_cut_r->Fill(Zt_r); // w/ raster correction	     
 	      ntune_event++;
+	      if(ntune_event %  1000 == 0)cout<<"tune_events "<<ntune_event<<" / "<<nmax<<endl;
 	    }
 	  }
 	}
       } // nite>0
     }
-        if(i % (d.quot * 1000) == 0)cout<<i<<" / "<<nmax<<endl;
+    }
+    if(i % (100000) == 0)cout<<i<<" / "<<nmax<<endl;
   }
-  
+
+  cout<<"================"<<endl;
+  cout<<"   ntune_event "<<ntune_event<<endl;
+  cout<<"================"<<endl;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -502,23 +563,25 @@ double rascalib::Chi(double *pa, int j){
     start[i] = pa[i]; // initial parameters
     //step[i] = 1.0e-5;      
     if(i==0){       // offset parameter for raster x
-      step[i] = 1.0e-5;
+      step[i] = 1.0e-3;
     }
     else if(i==2){  // gradient parameters for raster x
-      step[i] = 1.0e-10;
+      step[i] = 1.0e-8;
     }
     else step[i] = 0.0; // raster y is not tuned here
     
     //LLim[i] = pa[i] - pa[i]*0.8;
     //ULim[i] = pa[i] + pa[i]*0.8;
     
-    LLim[i] = pa[i] -1.0; // temporary 
-    ULim[i] = pa[i] +1.0; // temporary 
+    LLim[i] = pa[i] -0.5; // temporary 
+    ULim[i] = pa[i] +0.5; // temporary 
+
     minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
   }
 
     // ~~~~ Strategy ~~~~
-  arglist[0] = 2.0;
+  //  arglist[0] = 2.0;
+  arglist[0] = 1.0;
   minuit->mnexcm("SET STR",arglist,1,ierflg);
   
   
@@ -598,15 +661,15 @@ void rascalib::Fill(bool rarm, bool ras_x){
   cout<<"Fill Event: "<<ENum<<endl;
   if(ENum<10000)d=div(ENum,1000);
   else   d=div(ENum,1000);
+  //  if(ENum>1000000)ENum=1000000;
 
-  
   for (int i=0 ; i< ENum ; i++){
 
     
     ///===========================//
     //==== Initialization ========//
     //============================//
-    
+
      for(int j=0 ; j<MAX ; j++){
       r_x_fp[j]  = -2222.0;
       r_th_fp[j] = -2222.0;
@@ -615,17 +678,19 @@ void rascalib::Fill(bool rarm, bool ras_x){
       l_x_fp[j]  = -2222.0;
       l_th_fp[j] = -2222.0;
       l_y_fp[j]  = -2222.0;
-      l_ph_fp[j] = -2222.0;      
+      l_ph_fp[j] = -2222.0;
+      R_tr_vz_ras[j]=-2222.0;
+      ztR_opt[j]=-100.;
     }
 
      Ras_x=-2222.0;
      Ras_y=-2222.0;
      Zt=-2222.0;
+     Zt_r=-2222.0;
 
-     
    //============================//
 
-         t1->GetEntry(i);    
+     t1->GetEntry(i);    
      
     if(rarm){
     XFP   = r_x_fp[0];
@@ -635,6 +700,7 @@ void rascalib::Fill(bool rarm, bool ras_x){
     Ras_x = R_Ras_x;
     Ras_y = R_Ras_y;
     Zt    = Rvz[0];
+
     }else{
     XFP   = l_x_fp[0];
     XpFP  = l_th_fp[0];
@@ -644,30 +710,70 @@ void rascalib::Fill(bool rarm, bool ras_x){
     Ras_y = L_Ras_y;
     Zt    = Lvz[0];      
      }
-     
 
- 
 
+
+    hz->Fill(Zt); //w/o raster correction
+    zCorr(rarm);
+    hz_c->Fill(Zt); //after tuning hist
     RasCorr(rarm); //raster tuning
     hz_rc->Fill(Zt_r); //after tuning hist
-   
-    if(i % (d.quot * 1000) == 0)cout<<i<<" / "<<ENum<<endl;  
-    tnew->Fill();
-      
+
+    
+
+    //    if(i % (d.quot * 1000) == 0)cout<<i<<" / "<<ENum<<endl;
+
+
+    if(
+       //       ((ltrig==true && rarm==false)|| (rarm==true && rtrig ==true)) &&
+       fabs(XFP)  <2.0 
+       && fabs(XpFP) <0.1
+       && fabs(YFP)  <0.5
+       && fabs(YpFP) <0.1
+       && (L_gs_asum>1800 || (rarm && fabs(Rth[0])<0.01 &&fabs(Rph[0])<0.01 ))
+       ){
+	for(int j=0 ; j<nfoil ; j++){
+	  if(fcent[j]-selection_width<Zt+RasterCor 
+	     && Zt+RasterCor<fcent[j]+selection_width){
+
+	      hz_cut_c->Fill(Zt); //w/o raster correction
+	      hz_cut_rc->Fill(Zt_r); //w/o raster correction	     
+	  } // nite>0
+	}
     }
+
+
+    if(rarm){
+      R_tr_vz_ras[0]=Zt_r;
+      //      Rvz[0]=Zt_r;
+      ztR_opt[0]=Zt_r;
+    }else {
+      L_tr_vz_ras[0]=Zt_r;
+      ztR_opt[0]=Zt_r;
+      //      Lvz[0]=Zt_r;
+    }    
+    if(i%100000==0)cout<<i<<" / "<<ENum<<endl;
+    tnew->Fill();   
+  }
 
 }
 ////////////////////////////////////////////////////////////////////////
 void rascalib::Close(){
 
+
   tnew->Write();
   hz->Write();
+  hz_cut->Write();
+  hz_cut_r->Write();
+  hz_cut_c->Write();
+  hz_cut_rc->Write();
   hz_r->Write();
+  hz_c->Write();
   hz_rc->Write();
   gchi->SetName("gchi");
   gchi->Write();
   
-   ofp->Close();
+  ofp->Close();
 
 }
 
@@ -742,6 +848,8 @@ void func(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
     chi2[i] = 0.0;
     w[i]    = 1.0;
   }
+  w[0]=5.0;
+  w[9]=5.0;
 
 
   for(int i=0 ; i<ntune_event ; i++){
@@ -757,9 +865,13 @@ void func(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
     // ----------------------------- //
     double Ras_para= Ras_cur[i];//Ras_curx[i]; // x correction
     double Ras_Cor = Calc_ras(Ras_para, param[2], param[0]); 
+
     Ras_Cor = Ras_Cor/tan(hrs_ang);
     double ztR_wRC; 
     ztR_wRC = ztR + Ras_Cor; // z with raster correction
+
+    //  cout<<"Par0 "<<param[0]<<" Par2 "<<param[2]<<" Ras_para "<<Ras_para
+    //      <<" zt "<<ztR<<" Ras "<<Ras_Cor<<" zt_r "<<ztR_wRC<<" refz "<<refz<<endl;
     
     // ------------------- //
     // --- Residual ------ //

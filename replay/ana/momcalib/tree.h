@@ -23,7 +23,6 @@ class tree{
   TChain* T;
   int ent;
   int ENum;
-
   //------ SetBranch -------//
   
   double runnum;
@@ -37,8 +36,8 @@ class tree{
   double Rs2r_tc[Max],Rs2l_tc[Max],Ls2r_tc[Max],Ls2l_tc[Max];
   double Rtrn,Ltrn;
   //----- PID Detectors --------------------//
-  double Ra1t[Max],Ra1a[Max],Ra1a_p[Max],Ra1a_c[Max],Ra1sum;
-  double Ra2t[Max],Ra2a[Max],Ra2a_p[Max],Ra2a_c[Max],Ra2sum;
+  double Ra1t[Max],Ra1a[Max],Ra1a_p[Max],Ra1a_c[Max],Ra1sum,Ra1sum_p;
+  double Ra2t[Max],Ra2a[Max],Ra2a_p[Max],Ra2a_c[Max],Ra2sum,Ra2sum_p;
   double La1t[Max],La1a[Max],La1a_p[Max],La1a_c[Max],La1sum;
   double La2t[Max],La2a[Max],La2a_p[Max],La2a_c[Max],La2sum;
   double Rgssum;

@@ -1,4 +1,4 @@
-#ifndef VDCt0_h
+ifndef VDCt0_h
 #define VDCt0_h 1
 #include <TString.h>
 #include <TCanvas.h>

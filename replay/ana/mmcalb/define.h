@@ -48,4 +48,5 @@ const double MSm = 1.197449;           // Sigma Minus  mass (GeV/c2)
 const double MSp = 1.18937;            // Sigma Plus   mass (GeV/c2)
 const double MT  = 2.808921112;        // Triton       mass (GeV/c2)
 const double MAl = 25.13314157;        // Alminium    mass (GeV/c2)
+const double MnnL= 2.9948138266;       // nnL mass  (GeV/c2)
 #endif

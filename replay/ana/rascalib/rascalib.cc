@@ -63,6 +63,7 @@ int main(int argc, char** argv){
   bool root_flag=false;
   bool calib_x=true;
   bool calib_y=false;
+  bool single=false;
   // bool RHRS_flag=true;
   bool RHRS_flag=false; 
   string pngname;
@@ -76,13 +77,20 @@ int main(int argc, char** argv){
   string matrix="matrix/zt_RHRS_2.dat";
   string itel;
   string MTname="matrix/rascalib_Rmatrix.list";
-  while((ch=getopt(argc,argv,"h:f:x:y:o:r:m:i:RLbcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:f:o:r:m:t:i:s:xyRLbcop"))!=-1){
     switch(ch){
+
     case 'f':
       ifname = optarg;
       cout<<"input filename : "<<ifname<<endl;
       break;
-      
+
+    case 's':
+      ifname = optarg;
+      single=true;
+      cout<<"input root : "<<ifname<<endl;
+      break;      
+
     case 't':
       ofMTPname = optarg;
       cout<<"output new parameter filename : "<<ofMTPname<<endl;      
@@ -113,8 +121,6 @@ int main(int argc, char** argv){
       ofname =root_init+ ofname+ root_end;
       ofMTPname=optarg;
       ofMTPname = dat_init + ofMTPname;//+ dat_end;
-
-
       cout<<"output root filename : "<<ofname<<endl;      
       cout<<"output new parameter filename : "<<ofMTPname<<endl;      
       break;
@@ -171,11 +177,11 @@ int main(int argc, char** argv){
   gSystem->Load("libMinuit");
 
   rascalib * Ras=new rascalib();
-
-  Ras->SetRoot(ifname,RHRS_flag);
-  Ras->MakeHist();
+  
+   Ras->MTRead(MTname,RHRS_flag);
+  Ras->SetRoot(ifname,single);
   Ras->NewRoot(ofname);
-  Ras->MTRead(MTname,RHRS_flag);
+  Ras->MakeHist();
   //  if(calib_x)Ras->MTParam_x(matrix_x,RHRS_flag);
   //  if(calib_y)Ras->MTParam_y(matrix_y,RHRS_flag);
   if(nite>0)Ras-> EventSelection(RHRS_flag, calib_x);
@@ -183,8 +189,8 @@ int main(int argc, char** argv){
   Ras->Fill(RHRS_flag, calib_x);
   if(root_flag)Ras->Close();
 
-   gSystem->Exit(1);
-   theApp->Run();
+  gSystem->Exit(1);
+  theApp->Run();
 
    cout<<endl;
    cout<<"============ Oputput files =============="<<endl;
