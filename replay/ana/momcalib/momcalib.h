@@ -284,7 +284,7 @@ class momcalib : public tree
  //----  ParamCorr -----//
  int nPC=0;
  bool PC_flag=false;
- 
+ bool Lp_scale=false; 
 };
 
 //=====================================//
@@ -326,18 +326,20 @@ int momcalib::mode(string arm, char* Target, int F1tdc){
     //    cout<<"F1tdc_mode : "<<typeid(F1tdc).name()<<endl;
   if(F1tdc==1){tdc_time=0.056;// [ns]
     tdc_mode=1;
+    Lp_scale=false;
     //    coin_offset=464.13; // H1 mode
     coin_offset=464.73; // H1 mode
   }else if(F1tdc==2){tdc_time=0.058; //[ns]
     tdc_mode=2;
     //    coin_offset=470.13; // H2 mode
     coin_offset=470.63; // H2 mode
-    
+    Lp_scale=true;
   }else{cout<<"Error F1tdc modes "<<F1tdc<<endl;exit(1);}
 
   cout<<"tdc resolution [ns]"<<tdc_time<<endl;
   cout<<"Target : "<<target<<endl;
   cout<<"Momentum order : "<<nnp<< " #Param: "<<nParamTp*2<<endl;
+  cout<<"Lp scale mode "<<Lp_scale<<endl;
   cout<<"Initial matrix mode : "<<Initial<<endl;
   return MODE;
 }
@@ -792,31 +794,34 @@ void momcalib::MTParam(string mtparam){
 
   if(single==0 && Initial){
   MT[0] = true;  // RHRS z correction
-  //  MT[1] = true;  // RHRS raster correction
+  MT[1] = true;  // RHRS raster correction
   MT[2] = true;  // RHRS theta correction
   MT[3] = true;  // RHRS phi correction
   //--------- LHRS -----------------------//
   MT[4] = true;  // LHRS z correction
-  //  MT[5] = true;  // LHRS raster correction
+  MT[5] = true;  // LHRS raster correction
   MT[6] = true;  // LHRS theta correction
   MT[7] = true;  // LHRS phi correction
   //-------- momentum calibration ---------//
   MT[8] = true; // RHRS momentum correction  
   MT[9] = true; // LHRS momentum correction  
-
+  //  }
   //================================================//
 
   MT_f[0] = true;  // RHRS z correction
-  //  MT_f[1] = true;  // RHRS raster correction
+  MT_f[1] = true;  // RHRS raster correction
   MT_f[2] = true;  // RHRS theta correction
   MT_f[3] = true;  // RHRS phi correction
   //--------- LHRS -----------------------//
   MT_f[4] = true;  // LHRS z correction
-  //  MT_f[5] = true;  // LHRS raster correction
+  MT_f[5] = true;  // LHRS raster correction
   MT_f[6] = true;  // LHRS theta correction
   MT_f[7] = true;  // LHRS phi correction
   }
 
+
+  //  MT[8] = true; // RHRS momentum correction  
+  //  MT[9] = true; // LHRS momentum correction  
   ploss = true;  // Energy Loss  
   //-------- momentum calibration ---------//
   MT_f[8] = true; // RHRS momentum correction  
@@ -824,8 +829,6 @@ void momcalib::MTParam(string mtparam){
   ploss_f = true;  // Energy Loss
   //================================================//
 
-  //  MT[8] = true; // RHRS momentum correction  
-  //  MT[9] = true; // LHRS momentum correction  
    
   
   cout<<endl;
@@ -1141,7 +1144,9 @@ void momcalib::rasCorr(bool rarm, bool larm){
     RasterCor_L = RasterCor_L/tan(hrs_ang);
     //    Lz[0]   = Lz[0]*Ztr +Ztm;     // scaled
     Lz[0]   = Lz[0] + RasterCor_L;
+    //    cout<<"Lz "<<Lz[0]<<" RasL "<<RasterCor_L<<" Par2 "<<Pras_L[2]<<" Par0 "<<Pras_L[0]<<" rasx "<<L_Ras_x<<endl;
     //    Lz[0]    =  (Lz[0]  -  Ztm)/Ztr;    // nomalization
+    
     }
     //====================================================//
 
@@ -1290,7 +1295,8 @@ void momcalib::momCorr(bool rarm, bool larm){
     //    if(larm)Lp[0] = calcf2t_mom(Opt_par_L, Lx_fp[0], Lth_fp[0], Ly_fp[0], Lph_fp[0],Lz[0]);    
     
     //  Lp 2.2 GeV //
-    //    Lp[0]=2.21807/2.10*Lp[0];
+    if(Lp_scale)Lp[0]=2.10/2.21807*Lp[0];
+      //Lp[0]=2.21807/2.10*Lp[0];
 
 
     
@@ -2626,8 +2632,8 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
     // conditon //
 
-    if(fabs( rp[i] -ref_rp )>0.1 || fabs( lp[i] - ref_lp) >0.1 )residual=residual*2.0;
-    if(fabs( rp[i] -rp_ref )>0.1 || fabs( lp[i] - lp_ref) >0.1 )residual=residual*2.0;
+    //    if(fabs( rp[i] -ref_rp )>0.1 || fabs( lp[i] - ref_lp) >0.1 )residual=residual*2.0;
+    //    if(fabs( rp[i] -rp_ref )>0.1 || fabs( lp[i] - lp_ref) >0.1 )residual=residual*2.0;
     //    if(mass_ref[i]==MS0)residual=residual*3.0;
     
     //    if(fabs(lp[i]-rp[i])-0.3<0.1)residual=residual*2.0;

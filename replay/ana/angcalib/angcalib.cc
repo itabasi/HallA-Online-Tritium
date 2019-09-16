@@ -194,6 +194,7 @@ int main(int argc, char** argv){
   gSystem->Load("libMinuit");
   angcalib * Ang=new angcalib();
   cout<<"root flag "<<root_flag<<endl;
+  cout<<"RHRS mode "<<RHRS_flag<<endl;
    Ang->SetBranch(ifname,RHRS_flag);
    if(root_flag && draw_flag==0)Ang->NewBranch(ofname,RHRS_flag);
    //   Ang->HolePosi(RHRS_flag);
@@ -202,7 +203,7 @@ int main(int argc, char** argv){
    Ang->Scale_corr(opt_file);
    Ang->Mxpt(matrix_xp);
    Ang->Mypt(matrix_yp);
-   if(nite != 0 || draw_flag)Ang->EventSelect(RHRS_flag);
+   if(nite != 0 || draw_flag || fill_flag==0)Ang->EventSelect(RHRS_flag);
    //Ang->EventSelect(RHRS_flag);
    if(nite>0 && draw_flag==0)Ang->Tuning(ofMTPname);
    if(nite >=0 && draw_flag==0 && fill_flag) Ang->Fill(RHRS_flag);

@@ -19,7 +19,7 @@ extern  double Calc_ras(double a,double b,double c){return  a *b + c;};
 extern double calcf2t_ang(double* P,double xf, double xpf, double yf, double fpf,double z);
 extern double calcf2t_zt(double* P, double xf, double xpf, double yf, double ypf);
 extern double calcf2t_mom(double* P, double xf, double xpf, double yf, double ypf, double zt);
-
+extern double Num_Al(double a);
 
 
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
@@ -323,6 +323,7 @@ void ana::Calib(int rt, int lt ){
 
     RasterCor = Calc_ras(R_Ras_x, Pras[2], Pras[0]);
     RasterCor = RasterCor/tan(hrs_ang);
+    
     R_tr_vz[rt]  = R_tr_vz[rt]*Ztr +Ztm; // scaled     
     if(MT_p[1])    R_tr_vz[rt]  = R_tr_vz[rt] + RasterCor; // correction
     R_tr_vz[rt]  = (R_tr_vz[rt]-Ztm)/Ztr;    // nomalization     
@@ -370,7 +371,7 @@ void ana::Calib(int rt, int lt ){
     L_p             = L_p * PLr + PLm; // scaled    
     
     // Lp = 2.2 GeV mode //
-    //    L_p=2.21807/2.1*L_p;
+    if(Lp_scale)L_p=2.21807/2.1*L_p;
     //L_p=2.2/2.1*L_p;
     //=========== Energy Loss ===================//
     B_p     = B_p + Eloss(0.0,R_tr_vz[0],"0");
@@ -477,10 +478,6 @@ void ana::Loop(){
 
   cout<<"Events : "<<ENum<<endl;
   
-
-
-
-
 
   for(int n=0;n<ENum;n++){
 
@@ -1000,8 +997,6 @@ void ana::Loop(){
            mass_Al = sqrt( (Ee + MAl - L_E - R_E)*(Ee + MAl - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_Al=mass_Al - MAl;
-
-
 	    
 	    
 	    if( Kaon && (fabs(ct-30.)<10. || fabs(ct+30.)<10.) ){
@@ -1055,6 +1050,14 @@ void ana::Loop(){
                 h_Rp_Lp   ->Fill( L_tr_p[lt], R_tr_p[rt] );
                 h_ct_Rp->Fill(R_tr_p[rt],ct);
               }
+
+	      if(fabs(R_tr_vz[rt]-0.125)<0.01 || fabs(R_tr_vz[rt] +0.125 )<0.01){
+		tr.missing_mass_Al_bg=mm;
+		h_mm_Al_bg->Fill(mm);
+		h_Rz_cut->Fill(R_tr_vz[rt]);
+	      }
+
+	      
               if( fabs( L_tr_vz[lt] ) < 0.1 && fabs( R_tr_vz[rt] ) < 0.1 ){
 
 		//                h_mm      ->Fill( mm );
@@ -1063,6 +1066,8 @@ void ana::Loop(){
 	       tr.missing_mass_L = mm_L;
 	       tr.missing_mass_nnL = mm_nnL;
 	       tr.missing_mass_b=mm_b;
+
+
 	       
                 h_mm_L    ->Fill( mm_L );
                 h_mm_L_ec    ->Fill( mass_pc);		
@@ -1085,8 +1090,9 @@ void ana::Loop(){
 	      if(Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) 
                  && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15)) 
 		 && ((-0.15<(R_tr_vz[rt]-0.01) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15)))h_mm_Al_acc->Fill(mm_Al);
-	   
+	      
 
+	      
 	     if( Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) && fabs( L_tr_vz[lt] ) < 0.1 
 		 && fabs( R_tr_vz[rt] ) < 0.1 &&fabs( L_tr_vz[lt] ) < 0.1){
                 h_acc_nnL     ->Fill(mm_nnL);
@@ -1146,8 +1152,7 @@ void ana::Loop(){
 
  
  			    
-			    
- 
+			     
     if(n%100000==0){
       end = time(NULL);
       time(&end);
@@ -1159,12 +1164,39 @@ void ana::Loop(){
     //   if(n % 100000 == 0){ cout<<n<<" / "<<ENum<<endl; }
   } // for ENum
 
-    h_peak_L  -> Add(h_mm_L,h_acc_L,1,-1.8/40.);
-    h_peak_nnL-> Add(h_mm_nnL,h_acc_nnL,1,-1.8/40.);
-    h_peak_mm -> Add(h_mm,h_mm_acc,1,-1.8/40.);
-    h_peak_Al->  Add(h_mm_Al,h_mm_Al_acc,1.,-1.8/40.);
 
-  
+
+    h_acc_L->Scale(2.0/40.);
+    h_mm_Al_acc->Scale(2.0/40.);
+    //    h_acc_Al->Scale(2.0/40.);
+    h_acc_nnL->Scale(2.0/40.);
+    h_mm_acc->Scale(2.0/40.);
+    h_mmallbg->Scale(1./20.);
+    h_mmfoilbg->Scale(1./20.);
+    h_ct_acc->Scale(6.0/96.);
+
+
+    //    h_mm_acc->Scale(2.0/40.);
+    //    h_acc_L->Scale(2.0/40.);
+    //    h_acc_nnL->Scale(2.0/40.);
+    //    
+    
+    h_peak_L  -> Add(h_mm_L,h_acc_L,1,-1.0);
+    h_peak_nnL-> Add(h_mm_nnL,h_acc_nnL,1,-1.0);
+    h_peak_mm -> Add(h_mm,h_mm_acc,1,-1.0);
+    h_peak_Al->  Add(h_mm_Al,h_mm_Al_acc,1.,-1.0);
+
+    //    h_peak_L  -> Add(h_mm_L,h_acc_L,1,-2.0/40.);
+    //    h_peak_nnL-> Add(h_mm_nnL,h_acc_nnL,1,-2.0/40.);
+    //    h_peak_mm -> Add(h_mm,h_mm_acc,1,-2.0/40.);
+    //    h_peak_Al->  Add(h_mm_Al,h_mm_Al_acc,1.,-1.8/40.);
+    
+    double Al_peak=h_Rz_cut->GetBinContent(h_Rz_cut->GetMaximumBin());
+    double EAl=Num_Al(Al_peak);
+    double EAl_all=h_Rz_cut->GetEntries();
+    h_mm_Al_bg->Scale(EAl/EAl_all);
+
+
 }
 
 
@@ -1372,23 +1404,23 @@ void ana::Draw(){
     c13->cd(7)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogz(); h_ct_Rp   ->Draw("colz");
     c13->cd(8)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy();
     h_ct_acc->SetFillColor(2); h_ct_acc->SetFillStyle(3001); h_ct_acc->SetLineColor(2);
-                                     h_ct_acc->Scale(6.0/96.);  h_ct_acc ->Draw(); 
+    h_ct_acc ->Draw(); 
    
  TCanvas *c14 = new TCanvas("c14","Missing Mass 1",1000,800);
     c14->Divide(3,3,1E-5,1E-5);
     c14->cd(1)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mmall   ->Draw();
-                                       h_mmallbg->Scale(1./20.);  h_mmallbg ->Draw("same");
+    h_mmallbg ->Draw("same");
     c14->cd(2)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mmfoil  ->Draw();
-                                      h_mmfoilbg->Scale(1./20.);  h_mmfoilbg->Draw("same");
+    h_mmfoilbg->Draw("same");
     c14->cd(3)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mm      ->Draw();
-                                       h_mm_acc->Scale(2.0/40.);  h_mm_acc ->Draw("same"); 
+    h_mm_acc ->Draw("same"); 
     c14->cd(4)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mm_L      ->Draw();
-                                        h_acc_L->Scale(2.0/40.);  h_acc_L ->Draw("same");
+    h_acc_L ->Draw("same");
     c14->cd(5)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mm_nnL      ->Draw();
-                                      h_acc_nnL->Scale(2.0/40.);  h_acc_nnL ->Draw("same");
+    h_acc_nnL ->Draw("same");
     c14->cd(6)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_mm_Al       ->Draw();
-                                     h_mm_Al_acc->Scale(2.0/40.); h_mm_Al_acc   ->Draw("same");
-                                                                  h_peak_Al     ->Draw("same");
+    h_mm_Al_acc   ->Draw("same");
+    h_peak_Al     ->Draw("same");
     c14->cd(7)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_peak_nnL    ->Draw();
     c14->cd(8)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_peak_L      ->Draw();
     c14->cd(9)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_peak_mm     ->Draw();
@@ -1458,7 +1490,10 @@ void ana::MakeHist(){
   tree_out ->Branch("mm_nnL",&tr.missing_mass_nnL ,"missing_mass_nnL/D");
   tree_out ->Branch("mm_cut",&tr.missing_mass_cut ,"missing_mass_cut/D");
   tree_out ->Branch("mm_Al",&tr.missing_mass_Al ,"missing_mass_Al/D");
+  tree_out ->Branch("mm_Al_bg",&tr.missing_mass_Al_bg ,"missing_mass_Al_bg/D");
   tree_out ->Branch("mm_acc",&tr.missing_mass_acc ,"missing_mass_acc/D");
+
+  
   tree_out ->Branch("ct"   ,&tr.coin_time ,"coin_time/D");
   tree_out ->Branch("Rp"        ,&tr.momR      ,"momR/D"     );
   tree_out ->Branch("Lp"        ,&tr.momL      ,"momL/D"     );
@@ -1744,6 +1779,7 @@ void ana::MakeHist(){
   h_mm_pi       = new TH1D("h_mm_pi"      ,"h_mm_pi"      , bin_mm,min_mm,max_mm); //Lambda Pion mass range bin=2 MeV
   h_mm_Al      = new TH1D("h_mm_Al","h_mm_Al",bin_mm,min_mm,max_mm); //Alminium mass bin=4 MeV
   h_mm_Al_acc      = new TH1D("h_mm_Al_acc","h_mm_Al_acc",bin_mm,min_mm,max_mm); //Alminium mass bin=4 MeV
+  h_mm_Al_bg      = new TH1D("h_mm_Al_bg","h_mm_Al_bg",bin_mm,min_mm,max_mm); //Alminium mass bin=4 MeV
   h_peak_Al      = new TH1D("h_peak_Al","h_peak_Al",bin_mm,min_mm,max_mm); //Alminium mass bin=4 MeV
 
   h_mm_L       = new TH1D("h_mm_L"      ,"h_mm_L"      , bin_mm,min_mm,max_mm ); //Lambda mass range bin=2 MeV
@@ -1757,6 +1793,7 @@ void ana::MakeHist(){
 
   h_Rz     = new TH1D("h_Rz", "h_Rz",1000,-0.2,0.2);
   h_Rz_c   = new TH1D("h_Rz_c", "h_Rz_c",1000,-0.2,0.2);
+  h_Rz_cut   = new TH1D("h_Rz_cut", "h_Rz_cut",1000,-0.2,0.2);
   h_Lz     = new TH1D("h_Lz", "h_Lz",1000,-0.2,0.2);
   h_Lz_c   = new TH1D("h_Lz_c", "h_Lz_c",1000,-0.2,0.2);
 
@@ -1823,12 +1860,17 @@ void ana::MakeHist(){
   set->SetTH1(h_mm      ,"Lambda Binding Energy w/o AC cut"          ,"Missing mass [GeV/c^2]","Counts/2 MeV");
   set->SetTH1(h_mm_acc   ,"Lambda Binding Energy ACC"          ,"Missing mass [GeV/c^2]","Counts/2 MeV");
   set->SetTH1(h_mm_Al_acc  ,"#Alminium Missing Mass(ACC)"          ,"Missing mass [GeV/c^2]","Counts/2 MeV");
+  set->SetTH1(h_mm_Al_bg  ,"#Missing Mass( Al Back Ground)"          ,"Missing mass [GeV/c^2]","Counts/2 MeV");
   set->SetTH1(h_mm_pi     ,"Lambda(Pi mass) Binding Energy w/o AC cut"          ,"Missing mass [GeV/c^2]","Counts/2 MeV");
   set->SetTH1(h_mm_pi,"Lambda (Pi mass) Binding Energy w/o AC cut","Missing mass [GeV/c^2]","Counts/2 MeV");
   set->SetTH2(h_Ly_mm   ,"LHRS FP Y v.s B_{Lambda}"             ,"-B_{Lambda} (GeV/c^{2})","Y_{FP} (m)");
   set->SetTH2(h_Lth_mm  ,"LHRS FP theta v.s B_{Lambda}"        ,"-B_{Lambda} (GeV/c^{2})","theta_{FP} (rad)");
   set->SetTH2(h_Lph_mm  ,"LHRS FP phi v.s B_{Lambda}"          ,"-B_{Lambda} (GeV/c^{2})","phi_{FP} (rad)");
   set->SetTH2(h_Rp_Lp   ,"RHRS momentum v.s LHRS momentum"       ,"Lp (GeV/c)"              ,"Rp (GeV/c)");
+
+  TF1* fAl_R=new TF1("fAl_R","gausn(0)",-0.135,-0.115);
+
+
 } // makehist()
 
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
@@ -1846,32 +1888,25 @@ void ana::ReadParam(string name){
   param = new ParamMan(name.c_str());
   cout<<"param name : "<<name<<endl;
   if(param -> SetVal())cout<<"F1TDC parameter setted"<<endl; 
+  tdc_time=param->F1Res();
 
+  
 }
 
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
-void ana::Swich(bool nnL){
+void ana::Swich(bool nnL, bool scale){
 
-
-  if(nnL){
+  string target_name, Lpe_val;
+  
+  if(nnL){ // nnLambda
     mt=MT; //target mass
-    mh=ML;
-   
-    //  min_mm=2.5;
-    //  max_mm=3.5;
-
-    //  min_Lp=1.8;
-    //  max_Lp=2.8;
-
-
-  }else {
+    mh=MnnL;
+    target_name="Tritium target";
+  }else { // Lambda
 
   mt=Mp; //target mass
-  mh=MnnL;
-  //  min_mm=0.5;
-  //  max_mm=1.5;
-
-
+  mh=ML;
+    target_name="Hydrogen target";
   } 
 
     min_mm=-0.5;
@@ -1880,7 +1915,16 @@ void ana::Swich(bool nnL){
     max_Lp=2.8;
     bin_mm=(int)( (max_mm-min_mm)*500 ); // 2MeV/bin;
 
-
+    
+    if(scale){Lp_scale=true;     Lpe_val="2.2 GeV/c";    }
+    else {Lp_scale=false;        Lpe_val="2.1 GeV/c";    }
+    
+    cout<<endl;
+    cout<<"=============================="<<endl;
+    cout<<"========= MODE ==============="<<endl;
+    cout<<"=============================="<<endl;
+    cout<<"Target : "<<target_name<<endl;
+    cout<<"Lpe "<<Lpe_val<<" Lp_scale "<<Lp_scale<<endl;
   
 }
 
@@ -1907,8 +1951,8 @@ int main(int argc, char** argv){
   bool nnL=false;
     RHRS= true;
     LHRS= true;
-    
-  while((ch=getopt(argc,argv,"hHTf:p:s:w:r:m:o:b:M:"))!=-1){
+    bool scale=false;    
+  while((ch=getopt(argc,argv,"hHT12f:p:s:w:r:m:o:b:M:"))!=-1){
     switch(ch){
 
     case 's':
@@ -1954,8 +1998,21 @@ int main(int argc, char** argv){
     cout<<"================================"<<endl;
     cout<<"===== nnL missing mass ========="<<endl;
     cout<<"================================"<<endl;
+    cout<<"Lp=2.2 GeV mode "<<endl;
+    scale=true;
     break;    
-    
+
+    case'1':
+      cout<<"Lp=2.1 GeV mode "<<endl;
+      scale=false;
+    break;
+
+    case'2':
+      cout<<"Lp=2.2 GeV mode "<<endl;
+      scale=true;
+    break;
+
+
     case 'r':
       ofroot = optarg;
             gROOT->SetBatch(1);
@@ -2004,7 +2061,7 @@ int main(int argc, char** argv){
   ana *Ana = new ana();
 
   TApplication theApp("App", &argc, argv);
-  Ana->Swich(nnL);
+  Ana->Swich(nnL,scale);
   Ana->matrix(mtparam);
   Ana->SetMaxEvent(MaxNum);  // Set Maximum event roop
   Ana->MakeHist();           // Initialize histograms
@@ -2119,7 +2176,6 @@ double calcf2t_ang(double* P, double xf, double xpf,
 	for (c=0;c<n+1;c++){ 
 	  for (b=0;b<n+1;b++){
 	    for (a=0;a<n+1;a++){ 
-	      
 	      if (a+b+c+d+e==n){
 		if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt){
 		  x = pow(xf,double(a))*pow(xpf,double(b))*
@@ -2191,3 +2247,19 @@ double calcf2t_zt(double* P, double xf, double xpf,
 }
 
 
+// #################################################
+double Num_Al(double a){
+
+
+
+  double p0=a/9965.;
+  TF1* fAl=new TF1("fAl","[0]*(152.557 + x*-4.11848 + x*x*-1067.08 + pow(x,3.0)*53118.2 +pow(x,4.0)*2.58378e+06)",-0.1,0.1);
+  fAl->SetParameter(0,p0);
+
+  
+  double y=fAl->Integral(-0.1,0.1);
+  //  y=y/double(bin);
+  
+  return y;            
+}
+// ###############################################

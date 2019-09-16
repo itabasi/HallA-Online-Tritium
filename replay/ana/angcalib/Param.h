@@ -26,13 +26,13 @@ const double  Ztm = -0.15,Ztr=0.35;
 //const int nnz = 3; // 3th order matrix using zt
 //const int nParamT = 56;  // Number of parameters
 
-//const int nn =  4; // 4th order matrix using xf, xpf, y, ypf, and zt
-//const int nnz = 4; // 3th order matrix using zt
-//const int nParamT = 126;  // Number of parameters
-
-const int nn =  5; // 4th order matrix using xf, xpf, y, ypf, and zt
+const int nn =  4; // 4th order matrix using xf, xpf, y, ypf, and zt
 const int nnz = 4; // 3th order matrix using zt
-const int nParamT = 252;  // Number of parameters
+const int nParamT = 126;  // Number of parameters
+
+//const int nn =  5; // 4th order matrix using xf, xpf, y, ypf, and zt
+//const int nnz = 4; // 3th order matrix using zt
+//const int nParamT = 252;  // Number of parameters
 
 const int nParamT2=nParamT*2;
 
@@ -44,8 +44,8 @@ const int nParamT2=nParamT*2;
   double Opt_par[nParamT2];
 
 //const int nmax = 300; // Number of events used for tuning
-//const int nmax=10000;// Number of events used for tuning;
 const int nmax=20000;// Number of events used for tuning;
+//const int nmax=100000;// Number of events used for tuning;
 //const int nmax = 50000; // Number of events used for tuning
 //const int nite =0;
 const int nfoil = 10;
@@ -55,11 +55,14 @@ double fcent_real[nfoil] = {-0.125, -0.100, -0.075, -0.050, -0.025,
 			    0.000, 0.025, 0.050, 0.100, 0.125};
 //double selection_width = 0.0125; 
 double selection_width = 0.01; // event selection width for z
-
+//const double l0 = 100.3;
+const double l0 = 1.03;
+double dth[nfoil];
 
 const double step = 0.492 * 2.54;
 const int nrow = 11; // the number of row in SS pattern
-const int ncol = 7;  // the number of column in SS pattern
+//const int ncol = 7;  // the number of column in SS pattern
+const int ncol = 8;  // the number of column in SS pattern
 const int nsshole = nrow*ncol; // the number of holes to consider 
 double w[nfoil][nsshole];
 double refx[nsshole];
@@ -69,6 +72,7 @@ double refy_real[nsshole][nfoil];
 double ssy_off[nsshole][nfoil];
 double ssx_off[nsshole][nfoil];
 bool TFlag[nsshole][nfoil];
+bool RHRSTrue;
 //double selec_widthx = 0.60; // selection width in x (dispersive plane)
 //double selec_widthy = 0.45; // selection width in y
 double selec_widthx = 0.60; // selection width in x (dispersive plane) initial

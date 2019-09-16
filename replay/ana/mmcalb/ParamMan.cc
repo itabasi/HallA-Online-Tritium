@@ -518,3 +518,12 @@ void ParamMan::WriteToFile(const char* OutputFileName)   //wrinting param file
   if(fout.is_open()) fout.close();
   cout << OutputFileName << " was written"<<endl;
 }
+
+
+double ParamMan::F1Res(){
+
+  F1res=F1reso;
+  cout<<"F1 TDC Resolution "<<F1res<<endl;
+  return F1res;
+
+}

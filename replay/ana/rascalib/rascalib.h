@@ -78,6 +78,7 @@ class rascalib :public tree{
   TH1F* hz_cut_r;
   TH1F* hz_cut_c;
   TH1F* hz_cut_rc;  
+  TH1F* hz_ac;
   TH1F* hz_r;
   TH1F* hz_rc;
   TH1F* hz_c;
@@ -319,6 +320,10 @@ void rascalib::MakeHist(){
   set->SetTH1(hz_rc,"Afeter Tuning w/ Raster correction z hist","[m]","Counts");
   hz_rc->SetLineColor(2);
 
+  hz_ac=new TH1F("hz_ac","",1000,-0.2,0.2);
+  set->SetTH1(hz_ac,"Afeter Tuning w/ Raster correction z hist","[m]","Counts");
+  hz_ac->SetLineColor(3);
+
 
   gchi->SetFillColor(2);
   gchi->SetMarkerStyle(20);
@@ -490,9 +495,12 @@ void rascalib::EventSelection(bool rarm, bool ras_x){
       if(nite>0){
 	for(int j=0 ; j<nfoil ; j++){
 	  if(j<=4 && j<=6 || j==0 || j==9){
-	    //	    if(fcent[j]-selection_width<Zt+RasterCor 
-	    //	       && Zt+RasterCor<fcent[j]+selection_width){
-	    if((-0.03<Zt && Zt<-0.01 && j==4) || (-0.003<Zt && Zt<0.01 && j==5) || (0.02<Zt && Zt<0.04 && j==6) || (j==0 && -0.13<Zt && Zt<-0.11) || (j==9 && 0.15<Zt && Zt<0.13)){
+	  	    if(fcent[j]-selection_width<Zt+RasterCor 
+	  	       && Zt+RasterCor<fcent[j]+selection_width){
+	    //	    if((-0.03<Zt && Zt<-0.01 && j==4) || (-0.003<Zt && Zt<0.01 && j==5) || (0.02<Zt && Zt<0.04 && j==6) || (j==0 && -0.13<Zt && Zt<-0.11) || (j==9 && 0.15<Zt && Zt<0.13)){ // RHRS
+
+	    //	    if()
+	    
 	    h2[j]->Fill(Zt+RasterCor);
 	    if(j+2!=10) h2[j]->SetLineColor(j+2);
 	    else h2[j]->SetLineColor(2);
@@ -687,7 +695,8 @@ void rascalib::Fill(bool rarm, bool ras_x){
      Ras_y=-2222.0;
      Zt=-2222.0;
      Zt_r=-2222.0;
-
+     R_a1_asum=-2222.0;
+     R_a2_asum=-2222.0;
    //============================//
 
      t1->GetEntry(i);    
@@ -719,7 +728,7 @@ void rascalib::Fill(bool rarm, bool ras_x){
     RasCorr(rarm); //raster tuning
     hz_rc->Fill(Zt_r); //after tuning hist
 
-    
+    if(R_a1_asum<50 && R_a2_asum>2000)hz_ac->Fill(Zt_r);
 
     //    if(i % (d.quot * 1000) == 0)cout<<i<<" / "<<ENum<<endl;
 
@@ -770,6 +779,7 @@ void rascalib::Close(){
   hz_r->Write();
   hz_c->Write();
   hz_rc->Write();
+  hz_ac->Write();
   gchi->SetName("gchi");
   gchi->Write();
   

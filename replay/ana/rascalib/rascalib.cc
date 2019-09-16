@@ -66,6 +66,7 @@ int main(int argc, char** argv){
   bool single=false;
   // bool RHRS_flag=true;
   bool RHRS_flag=false; 
+  bool fill_flag=false;
   string pngname;
   extern char *optarg;
   //  char *root_init="/w/halla-scifs17exp/triton/itabashi/rootfiles/calib_root/";//ifarm
@@ -104,6 +105,7 @@ int main(int argc, char** argv){
     case 'i':
       itel= optarg;
       nite= atoi(itel.c_str());
+      fill_flag=true;
       break;
 
 
@@ -169,24 +171,23 @@ int main(int argc, char** argv){
     }
   }
 
-
-
-
   
   TApplication *theApp =new TApplication("App",&argc,argv);
   gSystem->Load("libMinuit");
 
   rascalib * Ras=new rascalib();
   
-   Ras->MTRead(MTname,RHRS_flag);
+  Ras->MTRead(MTname,RHRS_flag);
   Ras->SetRoot(ifname,single);
   Ras->NewRoot(ofname);
   Ras->MakeHist();
   //  if(calib_x)Ras->MTParam_x(matrix_x,RHRS_flag);
   //  if(calib_y)Ras->MTParam_y(matrix_y,RHRS_flag);
-  if(nite>0)Ras-> EventSelection(RHRS_flag, calib_x);
+
+  if(nite>0 || fill_flag==false)Ras-> EventSelection(RHRS_flag, calib_x);
+
   if(nite>0)Ras->Tuning(ofMTPname);
-  Ras->Fill(RHRS_flag, calib_x);
+  if(fill_flag)Ras->Fill(RHRS_flag, calib_x);
   if(root_flag)Ras->Close();
 
   gSystem->Exit(1);

@@ -20,6 +20,7 @@ struct TreeBranch{
   double missing_mass_Lb;
   double missing_mass_nnLb;
   double missing_mass_b;
+  double missing_mass_Al_bg;
   double mm_tuned;
   double momR, momL;
   double zR, zL;
@@ -57,7 +58,7 @@ class ana : public Tree
     void ReadParam(string name);
     void Loop();
     void Draw();
-    void Swich(bool nnL);
+    void Swich(bool nnL,bool scale);
     bool Close();
     void MakeHist();
     void SetRoot(string ifname);
@@ -69,7 +70,6 @@ class ana : public Tree
     void MTParam_L();
     void MTP_mom();
     void Calib(int rt, int lt);
-
     double Eloss(double yp,double z,char* arm);
     
  private:
@@ -114,6 +114,7 @@ class ana : public Tree
 //// RHRS ////
     TH1D *h_R_trig;
 
+    
     TH1D *h_R_tr_n, *h_R_tr_ch2;
     TH1D *h_R_p, *h_R_pathl, *h_R_px, *h_R_py, *h_R_pz;
     TH1D *h_R_tgy, *h_R_tgth, *h_R_tgph;
@@ -173,9 +174,10 @@ class ana : public Tree
     TH1D *h_mm_pi;
     TH1D* h_ct_wK_z_all;
     TH1D* h_ct_acc;
-
+    TH1D* h_mm_Al_bg;
     /// Added by itabashi ///
     TH1D*h_Rz;
+    TH1D*h_Rz_cut;
     TH1D*h_Rth;
     TH1D*h_Rph;
     TH1D*h_Rp;
@@ -191,7 +193,8 @@ class ana : public Tree
     TH1D*h_Lth_c;
     TH1D*h_Lph_c;
     TH1D*h_Lp_c;    
-    
+
+    TF1* fAl_R;
 
  private:
     double L_s0l_toff    , L_s0r_toff;
@@ -215,8 +218,9 @@ class ana : public Tree
     string param_mt[100];
     bool MT_p[100];
     bool ploss;
-
-    
+    double tdc_time;
+    bool Lp_scale=false;
+    bool nnL_flag=false;
 };
 
 #endif

@@ -166,8 +166,10 @@ void tree::SetBranch(){
   t1->SetBranchAddress("R.sh.asum_c", &R_sh_asum);
   t1->SetBranchAddress("L.cer.asum_c",&L_gs_asum);
   t1->SetBranchAddress("R.cer.asum_c",&R_gs_asum);
-  t1->SetBranchAddress("R.a1.asum_c", &R_a1_asum);
-  t1->SetBranchAddress("R.a2.asum_c", &R_a2_asum);
+  //  t1->SetBranchAddress("R.a1.asum_c", &R_a1_asum);
+  //  t1->SetBranchAddress("R.a2.asum_c", &R_a2_asum);
+  t1->SetBranchAddress("R.a1.asum_p", &R_a1_asum);
+  t1->SetBranchAddress("R.a2.asum_p", &R_a2_asum);
   t1->SetBranchAddress("Lrb.Raster2.rawcur.x", &L_Ras_x); // raster current
   t1->SetBranchAddress("Lrb.Raster2.rawcur.y", &L_Ras_y); // raster current
   t1->SetBranchAddress("Rrb.Raster2.rawcur.x", &R_Ras_x); // raster current
