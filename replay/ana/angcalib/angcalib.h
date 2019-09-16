@@ -42,7 +42,7 @@ class angcalib
 
  public:
   //  void HolePosi(bool rarm);
-  void SSHole(string paraname, bool rarm);
+  //  void SSHole(string paraname, bool rarm);
   void Mxpt(string matrix_xp);  
   void Mypt(string matrix_yp);  
   void Scale_corr(string offset_file);  
