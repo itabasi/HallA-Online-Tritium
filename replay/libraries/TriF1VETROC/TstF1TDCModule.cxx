@@ -32,7 +32,7 @@ namespace Decoder {
   const Int_t MAXHIT   = 20;
   const Int_t nF1   = 2; //Number of F1 tdc modules used.
   Int_t nwarnings = 0;
-
+  Int_t maxwarnings =10;
   Module::TypeIter_t TstF1TDCModule::fgThisType =
     DoRegister( ModuleType( "Decoder::TstF1TDCModule" , 3204 ));
 
@@ -249,27 +249,27 @@ Int_t TstF1TDCModule::LoadSlot(THaSlotData *sldat, const UInt_t *evbuffer, const
 	     // Handling with warnings
 	     //
 	     if (okslot && f1slot!=30 && ((*loc) & DATA_CHK) != F1_RES_LOCK ) {
-	       if(nwarnings<10000) {
+	       if(nwarnings<maxwarnings) {
                   cout << "\tWarning: F1 TDC " << hex << (*loc) << dec;
 	          cout << "\tSlot (Ch) = " << f1slot << "(" << chan << ")";
                }
                
 	          if ( (*loc) & F1_HIT_OFLW ) {
                       fWarnings[chSlot] |= 1UL << 0; // 1st bit
-		      if(nwarnings<10) cout << "\tHit-FIFO overflow";
+		      if(nwarnings<maxwarnings) cout << "\tHit-FIFO overflow";
 	          }
 	          if ( (*loc) & F1_OUT_OFLW ) {
                       fWarnings[chSlot] |= 1UL << 1; // 2nd bit
-		      if(nwarnings<10000) cout << "\tOutput FIFO overflow";
+		      if(nwarnings<maxwarnings) cout << "\tOutput FIFO overflow";
 	          }
 	          if ( ! ((*loc) & F1_RES_LOCK ) ) {
                       fWarnings[chSlot] |= 1UL << 2; // 3rd bit
-                      if(nwarnings<10000) cout << "\tWarning: F1 TDC " << hex << (*loc) << dec << "\tResolution lock failure!";
+                      if(nwarnings<10) cout << "\tWarning: F1 TDC " << hex << (*loc) << dec << "\tResolution lock failure!";
 	          }
-	          if(nwarnings<10000) cout << endl;
+	          if(nwarnings<maxwarnings) cout <<" ( comemnt out "<<nwarnings<<" / "<<maxwarnings<<" )" << endl;
                if ( (*loc) & F1_HIT_OFLW || (*loc) & F1_OUT_OFLW || ! ((*loc) & F1_RES_LOCK )) {
                   nwarnings++;
-                  if(nwarnings==10000) {
+                  if(nwarnings==maxwarnings) {
 			cout << "  (Omitting next warnings of \"Hit-FIFO overflow\" or \"Output FIFO overflow\" or \"Resolution lock failure\" from F1 tdc)" << endl;
 			nwarnings++;
                   }
