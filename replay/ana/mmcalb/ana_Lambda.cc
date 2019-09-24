@@ -323,6 +323,7 @@ void ana::Calib(int rt, int lt ){
 
     RasterCor = Calc_ras(R_Ras_x, Pras[2], Pras[0]);
     RasterCor = RasterCor/tan(hrs_ang);
+
     
     R_tr_vz[rt]  = R_tr_vz[rt]*Ztr +Ztm; // scaled     
     if(MT_p[1])    R_tr_vz[rt]  = R_tr_vz[rt] + RasterCor; // correction
@@ -541,7 +542,7 @@ void ana::Loop(){
   bool R_Tr = false; // RHRS Tracking Chi2 cut
   bool R_FP = false; // RHRS FP plane cut
   bool Kaon = false; // Kaon cut
-    
+  bool zcut = false; // z-vertex cut
     //h_rbay_rbax->Fill( rbax, rbay );
     //h_rbby_rbbx->Fill( rbbx, rbby );
     //h_rby_rbx  ->Fill( rbx , rby );
@@ -780,7 +781,11 @@ void ana::Loop(){
 	  //	  if( R_a1_asum_p<400 && R_a2_asum_p>1000 && R_a2_asum_p<4000) Kaon = true;
 	  if( R_a1_asum_p<a1_th && R_a2_asum_p>a2_th) Kaon = true;
 	  //	  if( R_a1_asum_p<1.0 && R_a2_asum_p>3.0 && R_a2_asum_p<7.0) Kaon = true;	  
-          if( L_Tr && L_FP && R_Tr && R_FP ){
+
+	  if(fabs(R_tr_vz[rt])<0.1 && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
+
+	  
+	  if( L_Tr && L_FP && R_Tr && R_FP ){
 
 
 
@@ -1004,7 +1009,8 @@ void ana::Loop(){
               if( fabs( L_tr_vz[lt] + 0.125 ) < 0.015 || fabs( L_tr_vz[lt] - 0.125 ) < 0.015 ){ 
                 h_mmfoilbg->Fill( mm );
               }
-              if( fabs( L_tr_vz[lt] ) < 0.1 ){ 
+	      //              if( fabs( L_tr_vz[lt] ) < 0.1 ){
+	      if(zcut ){ 
                 h_mmbg->Fill( mm );
               }
 	    }
@@ -1058,7 +1064,8 @@ void ana::Loop(){
 	      }
 
 	      
-              if( fabs( L_tr_vz[lt] ) < 0.1 && fabs( R_tr_vz[rt] ) < 0.1 ){
+	      //              if( fabs( L_tr_vz[lt] ) < 0.1 && fabs( R_tr_vz[rt] ) < 0.1 ){
+	      if(zcut){
 
 		//                h_mm      ->Fill( mm );
 
@@ -1084,7 +1091,7 @@ void ana::Loop(){
 
 				    
 
-              if(Kaon && fabs(ct)<0.9 && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15)) 
+              if(Kaon && fabs(ct)<1.0 && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15)) 
 		 && ((-0.15<(R_tr_vz[rt]) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15)))h_mm_Al->Fill(mm_Al);
 
 	      if(Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) 
@@ -1093,8 +1100,8 @@ void ana::Loop(){
 	      
 
 	      
-	     if( Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) && fabs( L_tr_vz[lt] ) < 0.1 
-		 && fabs( R_tr_vz[rt] ) < 0.1 &&fabs( L_tr_vz[lt] ) < 0.1){
+	      if( Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) && zcut){
+		 //		 fabs( L_tr_vz[lt] ) < 0.1 && fabs( R_tr_vz[rt] ) < 0.1 &&fabs( L_tr_vz[lt] ) < 0.1){
                 h_acc_nnL     ->Fill(mm_nnL);
                 h_acc_L       ->Fill(mm_L);
                 h_ct_wK_z_acc ->Fill( ct );
@@ -1103,8 +1110,8 @@ void ana::Loop(){
 	 
               double ctime=-1000.;
 	     //--------------------------------------------------------------------------------//
-              if( Kaon && fabs( L_tr_vz[lt] ) < 0.1 
-		 && fabs( R_tr_vz[rt] ) < 0.1 &&fabs( L_tr_vz[lt] ) < 0.1){
+              if( Kaon && zcut){
+		  //		  fabs( L_tr_vz[lt] ) < 0.1 && fabs( R_tr_vz[rt] ) < 0.1 &&fabs( L_tr_vz[lt] ) < 0.1){
                h_ct_wK_z_all->Fill(ct);
             
 
@@ -1135,12 +1142,14 @@ void ana::Loop(){
     	      //--------------------------------------------------------------------------------------//
 
 
-	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 &&fabs(ct)<1.0)
+	     //	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 &&fabs(ct)<1.0)
+	     if( zcut && fabs(ct)<1.0)
 	       h_mm->Fill( mm ); //No Kaon Cut
-	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 && 2.0<ct && ct<4.0)
+	     //	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 && 2.0<ct && ct<4.0)
+	     if( zcut && 2.0<ct && ct<4.0)
 	       h_mm_pi->Fill( mm ); //No Kaon Cut
-	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 
-		 && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35))){
+	     //	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1
+	     if(  zcut && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35))){
 	       h_mm_acc->Fill( mm ); //No Kaon Cut
 	       tr.missing_mass_acc=mm;
 	     }

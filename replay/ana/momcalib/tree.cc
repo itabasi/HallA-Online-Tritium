@@ -81,8 +81,10 @@ void tree::SetBranch(){
  T->SetBranchAddress("R.s2.trpath",rs2pathl); 
  T->SetBranchStatus("R.tr.pathl",1);  
  T->SetBranchAddress("R.tr.pathl",rtrpathl);
- // target positon information //
+ // target positon information // 
+ T->SetBranchStatus("Rrb.Raster2.rawcur.x",1);  
  T->SetBranchAddress("Rrb.Raster2.rawcur.x", &R_Ras_x); // raster current
+ T->SetBranchStatus("Lrb.Raster2.rawcur.x",1);  
  T->SetBranchAddress("Lrb.Raster2.rawcur.x", &L_Ras_x); // raster current 
  T->SetBranchStatus("R.tr.p",1);
  T->SetBranchAddress("R.tr.p",Rp);

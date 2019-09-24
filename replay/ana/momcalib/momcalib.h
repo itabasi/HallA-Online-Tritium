@@ -805,7 +805,7 @@ void momcalib::MTParam(string mtparam){
   //-------- momentum calibration ---------//
   MT[8] = true; // RHRS momentum correction  
   MT[9] = true; // LHRS momentum correction  
-  //  }
+  }
   //================================================//
 
   MT_f[0] = true;  // RHRS z correction
@@ -817,7 +817,7 @@ void momcalib::MTParam(string mtparam){
   MT_f[5] = true;  // LHRS raster correction
   MT_f[6] = true;  // LHRS theta correction
   MT_f[7] = true;  // LHRS phi correction
-  }
+  //  }
 
 
   //  MT[8] = true; // RHRS momentum correction  
@@ -1144,7 +1144,7 @@ void momcalib::rasCorr(bool rarm, bool larm){
     RasterCor_L = RasterCor_L/tan(hrs_ang);
     //    Lz[0]   = Lz[0]*Ztr +Ztm;     // scaled
     Lz[0]   = Lz[0] + RasterCor_L;
-    //    cout<<"Lz "<<Lz[0]<<" RasL "<<RasterCor_L<<" Par2 "<<Pras_L[2]<<" Par0 "<<Pras_L[0]<<" rasx "<<L_Ras_x<<endl;
+    // cout<<"Lz "<<Lz[0]<<" RasL "<<RasterCor_L<<" Par2 "<<Pras_L[2]<<" Par0 "<<Pras_L[0]<<" rasx "<<L_Ras_x<<endl;
     //    Lz[0]    =  (Lz[0]  -  Ztm)/Ztr;    // nomalization
     
     }
@@ -1442,7 +1442,7 @@ void momcalib::ParamCorr(){
     RasterCor_L = RasterCor_L/tan(hrs_ang);
     Lz[0]   = Lz[0]*Ztr +Ztm;     // scaled
     Lz[0] = Lz[0]+RasterCor_L;
-    hLz_c->Fill(Lz[0]);    
+    //    hLz_c->Fill(Lz[0]);    
     Lz[0]    =  (Lz[0]  -  Ztm)/Ztr;    // nomalization
 
     }
@@ -1548,8 +1548,8 @@ void momcalib::EventSelection(){
 
 
     Lshsum=-2222.0;
-    R_Ras_x=-2222.0;
-    L_Ras_x=-2222.0;
+    R_Ras_x=-222222.0;
+    L_Ras_x=-222222.0;
     coin_t=-2222.0;
     
     //---- Events Flag -----//
@@ -1581,6 +1581,7 @@ void momcalib::EventSelection(){
     pe=hallap/1000.;
 
 
+    
     hLz_es  ->Fill(Lz[0]);
     hLth_es ->Fill(Lth[0]);
     hLph_es ->Fill(Lph[0]);    
@@ -2101,7 +2102,9 @@ void momcalib::Fill(){
     Lpssum =-2222.0;    
     Lshsum =-2222.0;
     coin_time=-2222.0;
-
+    R_Ras_x=-100010.;
+    L_Ras_x=-100000.;
+    
     //---- Events Flag -----//
     Rs2_flag=false;
     Ls2_flag=false;
@@ -2129,6 +2132,7 @@ void momcalib::Fill(){
 
     T->GetEntry(i);
 
+    
     if(tevent[t]==i){
       tev=1;
       t++;}
@@ -2158,18 +2162,17 @@ void momcalib::Fill(){
     
  //===== Parameter Tuning ============//
 
-    //    if(single==0)
+
     zCorr(MT_f[0],MT_f[4]);
-    //    if(single==0)
-    rasCorr(MT_f[1],MT_f[5]);
     hLz_c->Fill(Lz[0]);
-    hRz_c->Fill(Rz[0]);    
+    hRz_c->Fill(Rz[0]);        
+
+    rasCorr(MT_f[1],MT_f[5]);
     hLz_rc->Fill(Lz[0]);
     hRz_rc->Fill(Rz[0]);
 
-    //    if(single==0)
+
     angCorr(MT_f[2],MT_f[3],MT_f[6],MT_f[7]);
-    //    if(single==0)angCorr(false,false,true,true);
     hLth_c->Fill(Lth[0]);
     hRth_c->Fill(Rth[0]);
     hLph_c->Fill(Lph[0]);
@@ -2182,7 +2185,6 @@ void momcalib::Fill(){
     hRss_c->Fill(rssy_c,rssx_c);
 
 
-    //if(single==0)
     momCorr(MT_f[8],MT_f[9]);
     hRp_c->Fill(Rp[0]);
     hLp_c->Fill(Lp[0]);
