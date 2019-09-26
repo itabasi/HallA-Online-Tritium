@@ -1660,13 +1660,28 @@ void momcalib::EventSelection(){
     lpath_corr=lpathl/lbeta/c;
 
 
-    double Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + Lph[0]*Lph[0] );    
-    double Lp_x = Lp_z*Lth[0];
-    double Lp_y = Lp_z*(-Lph[0] -13.2/180.*PI );
     
-    double Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + Rph[0]*Rph[0] );    
+    //    double Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + Lph[0]*Lph[0] );    
+    //    double Lp_x = Lp_z*Lth[0];
+    //    double Lp_y = Lp_z*(-Lph[0] -13.2/180.*PI );
+    
+    //    double Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + Rph[0]*Rph[0] );    
+    //    double Rp_x = Rp_z*Rth[0];
+    //    double Rp_y = Rp_z*( Rph[0] +13.2/180.*PI ); 
+
+    
+    //==== Right Hand Coorinate ====//
+   
+    double Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + pow(Lph[0] + 13.2/180.*PI, 2.0) );
+    double Lp_x = Lp_z*Lth[0];
+    double Lp_y = Lp_z*(Lph[0] + 13.2/180.*PI );
+
+    double Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + pow(Rph[0] - 13.2/180.*PI, 2.0) );    
     double Rp_x = Rp_z*Rth[0];
-    double Rp_y = Rp_z*( Rph[0] +13.2/180.*PI ); 
+    double Rp_y = Rp_z*(Rph[0] - 13.2/180.*PI ); 
+
+
+
 
 
     TVector3 L_v, R_v, B_v;
@@ -2210,11 +2225,21 @@ void momcalib::Fill(){
 
 
 
-    double Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + pow(-Lph[0] -13.2/180.*PI ,2.0) );
+ 
+ //    double Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + pow(-Lph[0] -13.2/180.*PI ,2.0) );
+ //    double Lp_x = Lp_z*Lth[0];
+ //    double Lp_y = Lp_z*(-Lph[0] -13.2/180.*PI ); 
+ //    double Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + pow( Rph[0] +13.2/180.*PI , 2.0) );     double Rp_x = Rp_z*Rth[0];
+ //    double Rp_y = Rp_z*( Rph[0] +13.2/180.*PI ); 
+
+
+  //==== Right Hand Coordinate ======//
+    double Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + pow(Lph[0] +13.2/180.*PI ,2.0) );
     double Lp_x = Lp_z*Lth[0];
-    double Lp_y = Lp_z*(-Lph[0] -13.2/180.*PI ); 
-    double Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + pow( Rph[0] +13.2/180.*PI , 2.0) );     double Rp_x = Rp_z*Rth[0];
-    double Rp_y = Rp_z*( Rph[0] +13.2/180.*PI ); 
+    double Lp_y = Lp_z*( Lph[0] + 13.2/180.*PI ); 
+    double Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + pow(Rph[0] -13.2/180.*PI , 2.0) );
+    double Rp_x = Rp_z*Rth[0];
+    double Rp_y = Rp_z*( Rph[0] - 13.2/180.*PI ); 
 
     
     TVector3 L_v, R_v, B_v;
@@ -2597,18 +2622,28 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     //    lp_y = lp[i]*(-lph[i] -13.2/180.*PI ); 
     //    lp_z = lp[i]/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
     //    lp_z = lp[i]/sqrt(1.0*1.0 + lth[i]*lth[i] + pow(- lph[i] -13.2/180.*PI, 2.0) );
-    lp_z = lp[i]/sqrt(1.0*1.0 + lth[i]*lth[i] + pow(- lph[i] -13.2/180.*PI, 2.0) );
-    lp_x = lp_z*lth[i];
-    lp_y = lp_z*(-lph[i] -13.2/180.*PI ); 
+    
+    //    lp_z = lp[i]/sqrt(1.0*1.0 + lth[i]*lth[i] + pow(- lph[i] -13.2/180.*PI, 2.0) );
+    //    lp_x = lp_z*lth[i];
+    //    lp_y = lp_z*(-lph[i] -13.2/180.*PI ); 
 
     //    rp_x = rp[0]*rth[0];
     //    rp_y = rp[0]*( rph[0] +13.2/180.*PI );
-    rp_z = rp[i]/sqrt(1.0*1.0 + rth[i]*rth[i] + pow(  rph[i] +13.2/180.*PI,2.0) );
+    //    rp_z = rp[i]/sqrt(1.0*1.0 + rth[i]*rth[i] + pow(  rph[i] +13.2/180.*PI,2.0) );
     //    rp_z = rp[0]/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i] );
+    //    rp_x = rp_z*rth[i];
+    //    rp_y = rp_z*(rph[i] +13.2/180.*PI );
+    
+    //==== Right Hand coordinate =====//
+
+    lp_z = lp[i]/sqrt(1.0*1.0 + lth[i]*lth[i] + pow(lph[i] + 13.2/180.*PI, 2.0) );
+    lp_x = lp_z*lth[i];
+    lp_y = lp_z*(lph[i] +13.2/180.*PI ); 
+
+    rp_z = rp[i]/sqrt(1.0*1.0 + rth[i]*rth[i] + pow(rph[i] - 13.2/180.*PI, 2.0) );
     rp_x = rp_z*rth[i];
-    rp_y = rp_z*(rph[i] +13.2/180.*PI );
-
-
+    rp_y = rp_z*(rph[i] - 13.2/180.*PI );
+    
     
     B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
     L_v.SetXYZ(lp_x, lp_y, lp_z);
