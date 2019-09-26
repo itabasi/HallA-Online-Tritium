@@ -866,26 +866,30 @@ void ana::Loop(){
 	    double L_Eb = sqrt( Me*Me + L_p*L_p );
 	    double R_Eb = sqrt( MK*MK + R_p*R_p );
 
-	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
+	    //	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
+	    //	    double R_px_b=R_pz_b*R_tr_tg_th[rt];
+	    //	    double R_py_b=R_pz_b*( R_tr_tg_ph[rt] + 13.2/180.*PI);
+
+	    //	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow(-L_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
+	    //	    double L_px_b=L_pz_b*L_tr_tg_th[rt];
+	    //	    double L_py_b=L_pz_b*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
+
+
+
+	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
 	    double R_px_b=R_pz_b*R_tr_tg_th[rt];
-	    double R_py_b=R_pz_b*( R_tr_tg_ph[rt] + 13.2/180.*PI);
+	    double R_py_b=R_pz_b*( R_tr_tg_ph[rt] - 13.2/180.*PI);
 
-	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow(-L_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
+	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow( L_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
 	    double L_px_b=L_pz_b*L_tr_tg_th[rt];
-	    double L_py_b=L_pz_b*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
+	    double L_py_b=L_pz_b*( L_tr_tg_ph[rt] + 13.2/180.*PI);
 
+	    
 	    //	    TVector3 L_vb, R_vb, B_vb;
 	    B_vb.SetXYZ(0.0,0.0,B_p);
 	    L_vb.SetXYZ(L_px_b, L_py_b, L_pz_b);
 	    R_vb.SetXYZ(R_px_b, R_py_b, R_pz_b);
 
-	    //            L_vb.SetMagThetaPhi( L_p, L_tr_tg_th[lt],  L_tr_tg_ph[lt] );
-	    //            R_vb.SetMagThetaPhi( R_p, R_tr_tg_th[rt], -R_tr_tg_ph[rt] );
-	    //	    R_vb.SetMagThetaPhi( R_p, R_tr_tg_th[rt],  -R_tr_tg_ph[rt] );
-	    //	    L_vb.SetMagThetaPhi( L_p, L_tr_tg_th[lt],  -L_tr_tg_ph[lt] );
-	    //            B_vb.SetMagThetaPhi( B_p, 0, 0 );	    	    
-	    //	    L_vb.RotateZ( -13.2 / 180. * PI );
-	    //	    R_vb.RotateZ(  13.2 / 180. * PI );
 	    
 	    double mass_b, mm_b, mm_Lb;
             mass_b = sqrt( (Ee_b + mt - L_Eb - R_Eb)*(Ee_b + mt - L_Eb - R_Eb)
@@ -925,30 +929,31 @@ void ana::Loop(){
 	    R_E =sqrt(R_p*R_p + MK*MK);
 	    L_E =sqrt(L_p*L_p + Me*Me);
 
-	    double R_pz=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
-	    double R_px=R_pz*R_tr_tg_th[rt];
-	    double R_py=R_pz*( R_tr_tg_ph[rt] + 13.2/180.*PI);
 
-	    double L_pz=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow(-L_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
-	    double L_px=L_pz*L_tr_tg_th[rt];
-	    double L_py=L_pz*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
+	    //	    double R_pz=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
+	    //	    double R_px=R_pz*R_tr_tg_th[rt];
+	    //	    double R_py=R_pz*( R_tr_tg_ph[rt] + 13.2/180.*PI);
+
+	    //	    double L_pz=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow(-L_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
+	    //	    double L_px=L_pz*L_tr_tg_th[rt];
+	    //	    double L_py=L_pz*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
 	    
-	    //            L_v.SetMagThetaPhi( L_p, L_tr_tg_th[lt], L_tr_tg_ph[lt] );
-	    //            R_v.SetMagThetaPhi( R_p, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
+	    //===== Right Hand Coordinate ====//
+	    
+	    double R_pz=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
+	    double R_px=R_pz*R_tr_tg_th[rt];
+	    double R_py=R_pz*( R_tr_tg_ph[rt] - 13.2/180.*PI);
 
-	    //	    aL_v.SetMagThetaPhi( L_p, L_tr_tg_th[lt], -L_tr_tg_ph[lt] );
-	    //	    R_v.SetMagThetaPhi( R_p, R_tr_tg_th[rt], -R_tr_tg_ph[rt] );
-	    //            B_v.SetMagThetaPhi( B_p, 0, 0 );	    
-	    //	    L_v.RotateZ( -13.2 / 180. * PI );
-	    //	    R_v.RotateZ(  13.2 / 180. * PI );
+	    double L_pz=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow( L_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
+	    double L_px=L_pz*L_tr_tg_th[rt];
+	    double L_py=L_pz*( L_tr_tg_ph[rt] + 13.2/180.*PI);
+
 
 
             TVector3 L_v, R_v, B_v;
 	    B_v.SetXYZ(0.0,0.0,B_p);
 	    L_v.SetXYZ(L_px, L_py, L_pz);
 	    R_v.SetXYZ(R_px, R_py, R_pz);
-
-
 	    
 	    //======= W/ Matrix & Energy Loss calibraiton ============//
             TVector3 L_vc, R_vc, B_vc;
@@ -958,13 +963,7 @@ void ana::Loop(){
 	    double Eec =sqrt(B_p*B_p + Me*Me);
 	    double R_Ec =sqrt(R_p*R_p + MK*MK);
 	    double L_Ec =sqrt(L_p*L_p + Me*Me);
-	    //	    L_vc.SetMagThetaPhi( L_p, L_tr_tg_th[lt], - L_tr_tg_ph[lt] );
-	    //	    R_vc.SetMagThetaPhi( R_p, R_tr_tg_th[rt], - R_tr_tg_ph[rt] );
-	    //R_vc.SetMagThetaPhi( R_p, R_tr_tg_th[rt], R_tr_tg_ph[rt] );
-	    // L_vc.SetMagThetaPhi( L_p, L_tr_tg_th[lt],  L_tr_tg_ph[lt] );
-	    //            B_vc.SetMagThetaPhi( B_p, 0, 0 );	    
-	    //	    L_vc.RotateZ( -13.2 / 180. * PI );
-	    //	    R_vc.RotateZ(  13.2 / 180. * PI );
+
 
 	   	    
             double mass,mass_c, mm,mm_c,mass_L,mass_nnL,mm_L,mm_nnL,mm_Al,mass_Al,mass2,mm2;
