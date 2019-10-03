@@ -331,7 +331,8 @@ void VDCt0::SetRun(int runnum, int nrun){
   //  cout<<"TChain run number : "<<runnum<<" - "<<runnum+sum_run-1<<endl;
 
   //  const string ROOTfilePath="/data/opt_small/VDC/initial";
-  const string ROOTfilePath="/data2/opt_small/VDC/initial/";  
+  //  const string ROOTfilePath="/data2/opt_small/VDC/initial/";
+  const string ROOTfilePath="/data2/opt_small/VDC/small/";    
   const string root =".root";
   ostringstream str;
   int run;
