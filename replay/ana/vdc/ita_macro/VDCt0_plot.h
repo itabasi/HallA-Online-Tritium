@@ -104,6 +104,7 @@ void VDCt0_plot::SetPoint(string ifname){
   string line;
   int j=0;
   int jmax=0;
+  string runname_err;
   ifstream ifp(Form("%s",ifname.c_str()),ios::in);
   
   if(!ifp){ cout<<"no input file "<<ifname<<endl; exit(1); }
@@ -238,6 +239,9 @@ void VDCt0_plot::SetPointError(string ifname){
   string buf, runname, run;
   string buf_min,buf_max;
   string buf_err;
+  string runname_err;
+
+  
   while(    getline(ifp,buf)  ){
     //    getline(ifp,buf);
     if( buf[0]=='#' ){ continue; }
@@ -246,6 +250,17 @@ void VDCt0_plot::SetPointError(string ifname){
     sbuf >> runname;
    cout<<"param file : "<<runname<<endl;
 
+    for(int i=0;i<(int)runname.length();i++){
+      string   st=runname.substr(i,1);
+      if(st=="1"){
+	string run_test0=runname.substr(i,6);
+	  int run_test=atoi(run_test0.c_str());
+	  if(run_test>111111)runnum[j]=run_test;
+      }
+      if(st==".")runname_err=runname.substr(0,i);
+    }
+
+    /*
     //===== Param file ======//
    // ita_macro/param/ = 101
    int num_end=103;
@@ -264,14 +279,23 @@ void VDCt0_plot::SetPointError(string ifname){
   //  cout<<"error file: "<<ifname_err<<endl;
   //  cout<<"min file: "<<ifname_min<<endl;
   //  cout<<"max file: "<<ifname_max<<endl;
+  */
   
-  if (ifparam.fail()){ cerr << "failed open files " <<runname<<endl; break;}
-  if (ifparam_err.fail()){ cerr << "failed open dT0 files " <<ifname_err.c_str()<<endl; break;}  
+    runname_err += ".dat";
+    
+  ifstream ifparam(runname.c_str());
+  ifstream ifparam_err(Form("%s",runname_err.c_str()),ios::in);        
+  //  ifstream ifparam_err(Form("%s",ifname_err.c_str()),ios::in);
+  if (ifparam.fail()){ cerr << "failed open files " <<runname<<endl; exit(1);}
+  if (ifparam_err.fail()){ cerr << "failed open dT0 files " <<runname_err.c_str()<<endl; exit(1);}    
+  //  if (ifparam_err.fail()){ cerr << "failed open dT0 files " <<ifname_err.c_str()<<endl; exit(1);}  
+
+
   //  if (ifparam_min.fail()){ cerr << "failed open T0min files " <<ifname_min.c_str()<<endl; break;}
   //  if (ifparam_max.fail()){ cerr << "failed open T0max files " <<ifname_max.c_str()<<endl; break;}  
   //  run=runname.substr(82,6);
- run=runname.substr(num_start,6);
- runnum[j]=atoi(run.c_str());
+  // run=runname.substr(num_start,6);
+  // runnum[j]=atoi(run.c_str());
     cout<<"run num "<<runnum[j]<<endl;
   int plane=-1;
   int i=0;

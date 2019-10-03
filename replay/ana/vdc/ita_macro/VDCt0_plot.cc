@@ -70,9 +70,9 @@ int main(int argc, char** argv){
       draw_flag=false;
       print_flag=true;
       ofname = optarg;
-      //      root_name="./../../rootfiles/VDC/" + ofname + ".root";
-      //      print_name="./../../pdf/VDC/ita_mac/" +ofname + ".pdf";
-      root_name="./" + ofname + ".root";
+      root_name="./../../rootfiles/VDC/" + ofname + ".root";
+      print_name="./../../pdf/VDC/ita_mac/" +ofname + ".pdf";
+      //      root_name="./" + ofname + ".root";
       //      print_name="./../../pdf/VDC/ita_mac/" +ofname + ".pdf";      
       break;
 

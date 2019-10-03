@@ -17,6 +17,6 @@ j=`expr $end`
 	  offset="./bin/VDCt0_raw -i $i -n $k"	  
 #	  echo $offset
 	  eval $offset
-	i=$((i+k-1));
+	i=$((i+k));
     done
 
