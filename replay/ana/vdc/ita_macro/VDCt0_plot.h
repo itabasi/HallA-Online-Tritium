@@ -281,7 +281,7 @@ void VDCt0_plot::SetPointError(string ifname){
   //  cout<<"max file: "<<ifname_max<<endl;
   */
   
-    runname_err += ".dat";
+    runname_err += "_err.dat";
     
   ifstream ifparam(runname.c_str());
   ifstream ifparam_err(Form("%s",runname_err.c_str()),ios::in);        
