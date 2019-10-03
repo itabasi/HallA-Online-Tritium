@@ -130,9 +130,9 @@ int main(int argc, char** argv){
   //  print_init="../../pdf/VDC/ita_mac/initial_3run/";
   //  root_init="../../rootfiles/VDC/initial_3run/";
 
-  param_init=Form("./param/t0tuned_%dns/",Nrun  );
-  print_init=Form("../../pdf/VDC/ita_mac/t0tuned_%dns/",Nrun);
-  root_init=Form("../../rootfiles/VDC/t0tuned_%dns/",Nrun);    
+  param_init=Form("./param/initial_%drun/",Nrun  );
+  print_init=Form("../../pdf/VDC/ita_mac/initial_%drun/",Nrun);
+  root_init=Form("../../rootfiles/VDC/initial_%drun/",Nrun);    
 
   if(test_flag){
     param_init="./param/test/";

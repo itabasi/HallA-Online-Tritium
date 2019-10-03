@@ -1,3 +1,8 @@
+/////////////////////////////////
+// Aurther Itabashi 2019
+// VDC t0 run dependence sutdy
+////////////////////////////////
+
 #include <iostream>
 #include <fstream>
 using namespace std;
