@@ -19,9 +19,10 @@ void chi2(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
 int nmax=500;
 void vdc_track(){
   
-  //  string root_name="/data/VDC/root/LU1t0_100ns/tritium_111500_Lu1t0_100ns.root"; //100 ns shift
+  string root_name="/data2/VDC/small/root/LU1t0_100ns/tritium_111500_Lu1t0_100ns.root"; //100 ns shift
   //   string root_name="/data/VDC/small/initial/tritium_111500_initial.root"; // w/o shift
-  string root_name="/data/VDC/root/LU1t0tuned/tritium_111500_Lu1t0tuned.root"; //Lu0 tuned    
+  //  string root_name="/data/VDC/root/LU1t0tuned/tritium_111500_Lu1t0tuned.root"; //Lu0 tuned
+  //  string root_name="/data2/VDC/small/root/LU1t0tuned/tritium_111500_Lu1t0tuned.root"; //Lu0 tuned
  //  TFile* fin=new TFile(root_name.c_str(),"read");
   TChain* T=new TChain("T");
     T->Add(root_name.c_str());
@@ -111,31 +112,37 @@ void vdc_track(){
   TH2F* hLu1tdc_nhit=new TH2F("hLu1tdc_nhit","",bin_nhit,min_nhit,max_nhit,bin_time,min_time,max_time);
   TH1F* hLu1tdc[5];
   TF1* fit[5];
-  TF1* ftdc=new TF1("ftdc","[0]*x+[1]",0,5);
+  TF1* ftdc =new TF1("ftdc","[0]*x+[1]",0,5);
+  TF1* ftdc2=new TF1("ftdc2","fabs([0]*x+[1])",0,5);
+  TF1* ftdc3=new TF1("ftdc3","[0]*x+[1]",0,5);
+  TF1* ftdc4=new TF1("ftdc4","[0]*x+[1]",0,5);
 
-    int ENum =T->GetEntries();
+  int ENum =T->GetEntries();
   cout<<"Entry : "<<ENum<<endl;
 
-  int MAX=10000;
+  int MAX=1000;
   TF1* fhit[MAX];
+  TF1* fhit2[MAX];
+  TF1* fhit3[MAX];
+  TF1* fhit4[MAX];
   TGraph* gLu1_ev[MAX];
+  TGraph* gLu1_ev2[MAX];
   TH2F* hLu1_ev[MAX];
   
   for(int i=0;i<5;i++){
     hLu1tdc[i]=new TH1F(Form("hLu1tdc_%d",i),"",bin_time,min_time,max_time);
     hLu1tdc[i]->SetTitle("LU1 TDC [ns] ; TDC [ns] ; Counts ");
     fit[i]=new TF1(Form("fit_%d",i),"gausn(0)",min_time,max_time);
-
-
   }
 
+  
   TGraphErrors* gLu1=new TGraphErrors();
   gLu1->SetTitle("LHRS U1 VDC TDC peak ; #hits ; TDC peak [ns] ");
   
   double time[MAX][5];
   double ns=1.0e9;
 
-
+  //  ENum=200;
   int nn=0;
   
   for(int k=0;k<ENum;k++){
@@ -166,7 +173,17 @@ void vdc_track(){
       time[nn][1]=-Lu1_time[1]*ns;      
       time[nn][2]= Lu1_time[2]*ns;
       time[nn][3]= Lu1_time[3]*ns;
-      time[nn][4]= Lu1_time[4]*ns;      
+      time[nn][4]= Lu1_time[4]*ns;
+
+      gLu1_ev2[nn]=new TGraph();
+      gLu1_ev2[nn]->SetTitle("LU1 5hists TDC [ns] ; #hits ; TDC [ns]");
+      gLu1_ev2[nn]->SetPoint(0,0.0,Lu1_time[0]*ns);
+      gLu1_ev2[nn]->SetPoint(1,1.0,Lu1_time[1]*ns);
+      gLu1_ev2[nn]->SetPoint(2,2.0,Lu1_time[2]*ns);
+      gLu1_ev2[nn]->SetPoint(3,3.0,Lu1_time[3]*ns);
+      gLu1_ev2[nn]->SetPoint(4,4.0,Lu1_time[4]*ns);
+
+      
     }
     
     nn++;
@@ -180,6 +197,7 @@ void vdc_track(){
   double dist[MAX],a[MAX],b[MAX];
   double conv=4.24; //[mm]
   TGraph* gdist=new TGraph();
+  TGraph* gdist2=new TGraph();
   TH1F* hchi2=new TH1F("hchi2","",1000,0.0,5000);
   TH1F* hdist=new TH1F("hdist","",400,-2.0,4.0);
   hchi2->SetTitle("Tracking #chi^{2} ; #chi^{2};Counts");  
@@ -222,15 +240,23 @@ void vdc_track(){
   
   for(int i=0;i<MAX;i++){
 
-    fhit[i]=new TF1(Form("fhit_%d",i),"[0]*x+[1]",0,5);  
-    gLu1_ev[i]->Fit(Form("fhit_%d",i),"QR","",0.0,4.0);
-    chi2[i]= fhit[i]->GetChisquare();
+    fhit[i]=new TF1(Form("fhit_%d",i),"[0]*x+[1]",0,5);
+    fhit2[i]=new TF1(Form("fhit2_%d",i),"fabs( [0]*x+[1] )",0,5);
+    fhit3[i]=new TF1(Form("fhit3_%d",i)," [0]*x+[1] ",0,5);  
+    fhit4[i]=new TF1(Form("fhit4_%d",i)," [0]*x+[1] ",0,5);  
 
+    gLu1_ev[i]->Fit(Form("fhit_%d",i),"QR","",0.0,4.0);
+    gLu1_ev2[i]->Fit(Form("fhit3_%d",i),"QR","",0.0,1.5);
+    gLu1_ev[i]->Fit(Form("fhit4_%d",i),"QR","",2.5,5);
+
+    chi2[i]= fhit[i]->GetChisquare();
+    fhit2[i]->SetParameters(fhit[i]->GetParameter(0),fhit[i]->GetParameter(1));
     
     a[i]=fhit[i]->GetParameter(0);
     b[i]=fhit[i]->GetParameter(1);
     dist[i]=b[i]/a[i];
     gdist->SetPoint(i,i,dist[i]);
+    gdist2->SetPoint(i,i,fabs(dist[i]));
     hchi2->Fill(chi2[i]);
     hdist->Fill(-(dist[i]+2.)*conv);    
     //    cout<<"dist : "<<dist[i]<<endl;
@@ -273,15 +299,31 @@ void vdc_track(){
   gLu1_ev[100]->SetMarkerColor(2);
   gLu1_ev[100]->SetMarkerStyle(20);  
   gLu1_ev[100]->Draw("AP");
+  gLu1_ev2[100]->SetMarkerSize(1.0);
+  gLu1_ev2[100]->SetMarkerColor(4);
+  gLu1_ev2[100]->SetMarkerStyle(20);  
+  gLu1_ev2[100]->Draw("P");
   //  gLu1->Fit("ftdc","RQ","",0,5); 
   fhit[100]->Draw("same");
 
 
   TCanvas* c3=new TCanvas("c3","c3");
   c3->cd();
-  gdist->SetMarkerSize(1.0);
-  gdist->SetMarkerColor(2);
-  gdist->SetMarkerStyle(20);  
+  gLu1_ev2[100]->SetMarkerSize(1.0);
+  gLu1_ev2[100]->SetMarkerColor(4);
+  gLu1_ev2[100]->SetMarkerStyle(20);  
+  fhit2[100]->Draw("");
+
+  gLu1_ev2[100]->Draw("P");
+  //  gLu1_ev[100]->GetYaxis()->SetRangeUser(0.0,400);
+  //  gLu1_ev[100]->GetYaxis()->SetLimits(0.0,400);
+  fhit3[100]->SetLineColor(2);
+  fhit4[100]->SetLineColor(4);
+  fhit3[100]->Draw("same");
+  fhit4[100]->Draw("same");
+  //  gdist->SetMarkerSize(1.0);
+  //  gdist->SetMarkerColor(2);
+  //  gdist->SetMarkerStyle(20);  
   //  gdist->Draw("AP");
-  hdist->Draw();
+  //  hdist->Draw();
 }

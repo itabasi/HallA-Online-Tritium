@@ -1,4 +1,4 @@
-ifndef VDCt0_h
+#ifndef VDCt0_h
 #define VDCt0_h 1
 #include <TString.h>
 #include <TCanvas.h>
@@ -295,10 +295,23 @@ void VDCt0::SetRunList(string ifname){
     if( ifp.eof() ) break;
     istringstream sbuf(buf);
     sbuf >> runname;
-    runnum = runname.substr(35,6);
-    num =atoi(runnum.c_str());
-    runnum_group = runname.substr(35,5);    
-    run_group=atoi(runnum_group.c_str());
+
+    for(int i=0;i<(int)runname.length();i++){
+      string   st=runname.substr(i,1);
+      if(st=="1"){
+	   string run_test0=runname.substr(i,6);
+	  int run_test=atoi(run_test0.c_str());
+	  if(run_test>111111)num=run_test;
+      }
+    }
+
+
+    
+    
+    //    runnum = runname.substr(35,6);
+    //    num =atoi(runnum.c_str());
+    //    runnum_group = runname.substr(35,5);    
+    //    run_group=atoi(runnum_group.c_str());
     
     T->Add(runname.c_str());
   }
@@ -318,7 +331,7 @@ void VDCt0::SetRun(int runnum){
   //  cout<<"TChain run number : "<<runnum<<" - "<<runnum+sum_run-1<<endl;
 
   //  const string ROOTfilePath="/data/opt_small/VDC/initial";
-  const string ROOTfilePath="/data/opt_small/VDC/initial/";  
+  const string ROOTfilePath="/data2/opt_small/VDC/initial/";  
   const string root =".root";
   ostringstream str;
   int run;
@@ -1119,7 +1132,7 @@ void VDCt0::Deft0(string ifname){
 	yb = hnew->GetBinContent(sdbin-1);
 	ya = hnew->GetBinContent(sdbin+1);
 	slope = (ya-yb)/(2.*dx);
-	y0= y - slope_min*x;
+	y0= y - slope*x;
 
 	
 	//       	if(ya==0 || yb==0 || slope_min==0 || y==0 || dt0<-1.0)dt0=100.0;
@@ -1129,7 +1142,8 @@ void VDCt0::Deft0(string ifname){
 	else dy=1./sqrt(y);
 	dt0=y/fabs(slope)*sqrt(  dy +pow( (sqrt(ya) + sqrt(yb))/fabs(slope) ,2 )  );
 	
-	//	cout<<"dt0: "<<dt0<<" yn "<<y<<" xn "<<x<<" a "<<slope<<" yn+1 "<<ya<<" yn-1 "<<yb<<" calc dt0 "<<y/fabs(slope)*sqrt(  dy +pow( (sqrt(ya) + sqrt(yb))/fabs(slope) ,2 )  )<<endl;
+	//       	cout<<"dt0: "<<dt0<<" yn "<<y<<" xn "<<x<<" a "<<slope<<" yn+1 "<<ya<<" yn-1 "<<yb<<" calc dt0 "<<DT0<<endl;
+	  //y/fabs(slope)*sqrt(  dy +pow( (sqrt(ya) + sqrt(yb))/fabs(slope) ,2 )  )<<endl;
     }
 
 

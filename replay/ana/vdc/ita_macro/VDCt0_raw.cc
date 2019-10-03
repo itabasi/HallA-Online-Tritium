@@ -115,13 +115,13 @@ int main(int argc, char** argv){
   //  param_init="./param/t0tuned_1ns/";
   //  print_init="../../pdf/VDC/ita_mac/t0tuned_1ns/";
   //  root_init="../../rootfiles/VDC/t0tuned_1ns/";    
-  param_init="./param/initial_3run/";
-  print_init="../../pdf/VDC/ita_mac/initial_3run/";
-  root_init="../../rootfiles/VDC/initial_3run/";
+  //  param_init="./param/initial_3run/";
+  //  print_init="../../pdf/VDC/ita_mac/initial_3run/";
+  //  root_init="../../rootfiles/VDC/initial_3run/";
 
-  //  param_init="./param/test/";
-  //  print_init="../../pdf/VDC/ita_mac/test/";
-  //  root_init="../../rootfiles/VDC/test/";
+  param_init="./param/test/";
+  print_init="../../pdf/VDC/ita_mac/test/";
+  root_init="../../rootfiles/VDC/test/";
   
   print_end=".pdf";
   param_end=".dat";
