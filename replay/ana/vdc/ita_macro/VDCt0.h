@@ -51,7 +51,7 @@ class VDCt0{
   
  public:
   void SetRunList(string ifname);
-  void SetRun(int runnum);
+  void SetRun(int runnum, int nrun);
   void SetBranch();
   void NewRoot(string ofname);
   void MakeHist();
@@ -323,10 +323,10 @@ void VDCt0::SetRunList(string ifname){
 
 //////////////////////////////////////////////////////////
 
-void VDCt0::SetRun(int runnum){
+void VDCt0::SetRun(int runnum, int nrun){
   T=new TChain("T");
   //####################
-  int sum_run=3;
+  int sum_run=nrun;
   //#####################
   //  cout<<"TChain run number : "<<runnum<<" - "<<runnum+sum_run-1<<endl;
 

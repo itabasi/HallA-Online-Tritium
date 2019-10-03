@@ -45,9 +45,12 @@ int main(int argc, char** argv){
   bool batch_flag=true;
   string root_name;
   string print_name;
-   extern char *optarg;
+   int Nrun=0;
+   bool test_flag=false;
+  extern char *optarg;
+
    //  extern string optarg;   
-  while((ch=getopt(argc,argv,"h:f:w:s:n:i:r:p:o:bcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:f:w:s:n:i:r:p:o:Tbcop"))!=-1){
     switch(ch){
             
 
@@ -57,6 +60,16 @@ int main(int argc, char** argv){
       cout<<"Run num : "<<runnum<<endl;
       break;      
 
+    case 'n':
+      Nrun=atoi(optarg);
+      cout<<"Branch num "<<Nrun<<endl;
+      break;
+      
+    case 'T':
+      cout<<"Test mode !"<<endl;
+      test_flag=true;
+      break;
+      
     case 'h':
       cout<<"-i :Run number"<<endl;
       return 0;
@@ -76,14 +89,22 @@ int main(int argc, char** argv){
   string param_end;
   string root_init;
   string root_end;
-  
 
-  param_init="./param/initial_2run/";
+
+  param_init=Form("./param/t0tuned_%dns/",Nrun  );
+  root_init=Form("../../rootfiles/VDC/t0tuned_%dns/",Nrun);    
+
+  if(test_flag){
+    param_init="./param/test/";
+    root_init="../../rootfiles/VDC/test/";
+  }  
+
+  //  param_init="./param/initial_2run/";
   param_end=".dat";
-  root_init="../../rootfiles/VDC/initial_2run/";
+  //  root_init="../../rootfiles/VDC/initial_2run/";
   root_end=".root";
   ostringstream run;
-  run<<runnum<<"-"<<runnum+1;
+  run<<runnum<<"-"<<runnum+Nrun-1;
   string def_param = "./param/def_t0.dat";
 
   string paraname = param_init + run.str() + param_end;
@@ -100,7 +121,7 @@ int main(int argc, char** argv){
 
    gROOT->SetBatch(1);
    vdct0->Deft0(def_param);   
-   vdct0->SetRun(runnum);
+   vdct0->SetRun(runnum,Nrun);
    vdct0->GetOffset(paraname);
    vdct0->NewRoot(root_name);
    vdct0->SetBranch();

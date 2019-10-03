@@ -51,10 +51,11 @@ int main(int argc, char** argv){
   bool print_flag=false;
   //  istringstream runnum;
    int runnum; 
-  
+   int Nrun=0;
+   bool test_flag=false;
    extern char *optarg;
    //  extern string optarg;   
-  while((ch=getopt(argc,argv,"h:f:w:s:n:i:r:o:m:bcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:f:w:s:n:i:r:o:m:Tbcop"))!=-1){
     switch(ch){
 
     case 'i':
@@ -64,6 +65,16 @@ int main(int argc, char** argv){
       print_flag=true;
       runlist_flag=false;
       break;      
+
+    case 'n':
+      Nrun=atoi(optarg);
+      cout<<"Branch num "<<Nrun<<endl;
+      break;
+      
+    case 'T':
+      cout<<"Test mode !"<<endl;
+      test_flag=true;
+      break;
       
     case 'f':
       ifname = optarg;
@@ -121,17 +132,26 @@ int main(int argc, char** argv){
   //  print_init="../../pdf/VDC/ita_mac/initial/";
   //  root_init="../../rootfiles/VDC/initial/";
 
-  param_init="./param/t0tuned_1ns/";
-  print_init="../../pdf/VDC/ita_mac/t0tuned_1ns/";
-  root_init="../../rootfiles/VDC/t0tuned_1ns/";
+  //  param_init="./param/t0tuned_1ns/";
+  //  print_init="../../pdf/VDC/ita_mac/t0tuned_1ns/";
+  //  root_init="../../rootfiles/VDC/t0tuned_1ns/";
+
+  param_init=Form("./param/t0tuned_%dns/",Nrun  );
+  print_init=Form("../../pdf/VDC/ita_mac/t0tuned_%dns/",Nrun);
+  root_init=Form("../../rootfiles/VDC/t0tuned_%dns/",Nrun);    
+
+  if(test_flag){
+    param_init="./param/test/";
+    print_init="../../pdf/VDC/ita_mac/test/";
+    root_init="../../rootfiles/VDC/test/";
+  }
   
   print_end=".pdf";
   param_end=".dat";
   root_end=".root";
-
   
   ostringstream run;
-  run<<runnum<<"-"<<runnum+9;
+  run<<runnum<<"-"<<runnum+Nrun-1;
   string def_param = "./param/def_t0.dat";
  
 
@@ -155,7 +175,7 @@ int main(int argc, char** argv){
     gROOT->SetBatch(1);
    vdct0->Deft0(def_param);   
    if(runlist_flag) vdct0->SetRunList(ifname);
-   else   vdct0->SetRun(runnum);
+   else   vdct0->SetRun(runnum,Nrun);
    vdct0->SetBranch();
    vdct0->MakeHist();
    vdct0->Fill();
