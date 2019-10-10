@@ -63,6 +63,7 @@ class VDCt0{
   void Deft0(string ifname);
   void SetRawt0();
   void Sett0();
+  void Sett0_hist();
   void Write(string ofname);
   void Write_time(string ofname);
   void MakeRoot(string ofname);
@@ -1397,6 +1398,7 @@ void VDCt0::SetRawt0(){
 
 }
 
+
 /////////////////////////////////////////////////////
 
 void VDCt0::Sett0(){
@@ -1466,6 +1468,100 @@ void VDCt0::Sett0(){
     }
 
 }
+
+/////////////////////////////////////////////////////
+
+void VDCt0::Sett0_hist(){
+
+  bool Ru1t0_flag[nwire],Rv1t0_flag[nwire],Ru2t0_flag[nwire],Rv2t0_flag[nwire],Lu1t0_flag[nwire],Lv1t0_flag[nwire],Lu2t0_flag[nwire],Lv2t0_flag[nwire];
+
+
+  for(int i=0;i<nwire;i++){
+    Ru1t0_flag[i]=true;
+    Ru2t0_flag[i]=true;
+    Rv1t0_flag[i]=true;
+    Rv2t0_flag[i]=true;
+    Lu1t0_flag[i]=true;
+    Lu2t0_flag[i]=true;
+    Lv1t0_flag[i]=true;
+    Lv2t0_flag[i]=true;
+
+
+    //=== Defolt t0 parameters =====//
+
+    if(i<=40 || 330<=i){
+    Ru1t0_flag[i]=false;
+    Ru2t0_flag[i]=false;
+    Rv1t0_flag[i]=false;
+    Rv2t0_flag[i]=false;
+    Lu1t0_flag[i]=false;
+    Lu2t0_flag[i]=false;
+    Lv1t0_flag[i]=false;
+    Lv2t0_flag[i]=false;
+
+    }
+    
+    
+  }
+  
+  
+  //==== Fill ====//
+    for(int i=0;i<nwire;i++){
+     Ru1t0[i]=Findt0(true,"U1",i);
+     if(Ru1t0_flag[i]==0)Ru1t0[i]=T0_def[i][0];
+     Ru1t0_err[i]=dt0;
+     gRu1->SetPoint(i,i,Ru1t0[i]);
+     gRu1->SetPointError(i,0,Ru1t0_err[i]);     
+
+     Ru2t0[i]=Findt0(true,"U2",i);     
+     if(Ru2t0_flag[i]==0)Ru2t0[i]=T0_def[i][1];
+     Ru2t0_err[i]=dt0;     
+     gRu2->SetPoint(i,i,Ru2t0[i]);
+     gRu2->SetPointError(i,0,Ru2t0_err[i]);     
+
+     Rv1t0[i]=Findt0(true,"V1",i);
+     if(Rv1t0_flag[i]==0)Rv1t0[i]=T0_def[i][2];
+     Rv1t0_err[i]=dt0;
+     gRv1->SetPoint(i,i,Rv1t0[i]);
+     gRv1->SetPointError(i,0,Rv1t0_err[i]);     
+     
+     Rv2t0[i]=Findt0(true,"V2",i);
+     if(Rv2t0_flag[i]==0)Rv2t0[i]=T0_def[i][3];
+     Rv2t0_err[i]=dt0;
+     gRv2->SetPoint(i,i,Rv2t0[i]);
+     gRv2->SetPointError(i,0,Rv2t0_err[i]);     
+     
+     Lu1t0[i]=Findt0(false,"U1",i);
+     if(Lu1t0_flag[i]==0)Lu1t0[i]=T0_def[i][4];
+     Lu1t0_err[i]=dt0;
+     gLu1->SetPoint(i,i,Lu1t0[i]);
+     gLu1->SetPointError(i,0,Lu1t0_err[i]);     
+     
+     Lu2t0[i]=Findt0(false,"U2",i);
+     if(Lu2t0_flag[i]==0)Lu2t0[i]=T0_def[i][5];     
+     Lu2t0_err[i]=dt0;
+     gLu2->SetPoint(i,i,Lu2t0[i]);
+     gLu2->SetPointError(i,0,Lu2t0_err[i]);     
+     
+     Lv1t0[i]=Findt0(false,"V1",i);
+     if(Lv1t0_flag[i]==0)Lv1t0[i]=T0_def[i][6];
+     Lv1t0_err[i]=dt0;          
+     gLv1->SetPoint(i,i,Lv1t0[i]);
+     gLv1->SetPointError(i,0,Lv1t0_err[i]);     
+
+     Lv2t0[i]=Findt0(false,"V2",i);
+     if(Lv2t0_flag[i]==0)Lv2t0[i]=T0_def[i][7];     
+     Lv2t0_err[i]=dt0;     
+     gLv2->SetPoint(i,i,Lv2t0[i]);
+     gLv2->SetPointError(i,0,Lv2t0_err[i]);     
+
+    }
+
+
+
+}
+
+
 
 //////////////////////////////////////////////////////
 
