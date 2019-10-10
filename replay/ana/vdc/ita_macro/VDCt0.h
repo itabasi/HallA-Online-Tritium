@@ -243,7 +243,7 @@ class VDCt0{
   //=== Def param ====//
   double  Ru1t0_def[nwire],Ru2t0_def[nwire],Rv1t0_def[nwire],Rv2t0_def[nwire];
   double  Lu1t0_def[nwire],Lu2t0_def[nwire],Lv1t0_def[nwire],Lv2t0_def[nwire];  
-  double T0_def[nwire][4];
+  double T0_def[nwire][8];
   //==== Write ====//
   double Ru1t0[nwire],Ru2t0[nwire],Rv1t0[nwire],Rv2t0[nwire];
   double Lu1t0[nwire],Lu2t0[nwire],Lv1t0[nwire],Lv2t0[nwire];
@@ -1038,12 +1038,11 @@ void VDCt0::Deft0(string ifname){
   string buf;
   
   while( getline(ifparam,buf) ){
- 
     if( buf[0]=='#' ){ i=0; plane++;}
     
     if( ifparam.eof() || i>nwire-1)continue;
     ifparam >> T0_def[i][plane] >> T0_def[i+1][plane] >> T0_def[i+2][plane] >> T0_def[i+3][plane] >> T0_def[i+4][plane] >> T0_def[i+5][plane] >> T0_def[i+6][plane] >> T0_def[i+7][plane];
-    //    cout<<"T0: "<<"i " <<i<<" "<< T0_def[i][plane] <<" "<< T0_def[i+1][plane] <<" "<< T0_def[i+2][plane] <<" "<< T0_def[i+3][plane] <<" "<< T0_def[i+4][plane] <<" "<< T0_def[i+5][plane] <<" "<< T0_def[i+6][plane] <<" "<< T0_def[i+7][plane]<<endl;    
+    //    cout<<"T0: "<<"i " <<i<<" plane "<<plane <<" "<< T0_def[i][plane] <<" "<< T0_def[i+1][plane] <<" "<< T0_def[i+2][plane] <<" "<< T0_def[i+3][plane] <<" "<< T0_def[i+4][plane] <<" "<< T0_def[i+5][plane] <<" "<< T0_def[i+6][plane] <<" "<< T0_def[i+7][plane]<<endl;    
     i=i+8;
 
 
@@ -1503,7 +1502,7 @@ void VDCt0::Sett0_hist(){
     
     
   }
-  
+
   
   //==== Fill ====//
     for(int i=0;i<nwire;i++){
@@ -1512,7 +1511,8 @@ void VDCt0::Sett0_hist(){
      Ru1t0_err[i]=dt0;
      gRu1->SetPoint(i,i,Ru1t0[i]);
      gRu1->SetPointError(i,0,Ru1t0_err[i]);     
-
+     cout<<"RU1 "<<" i "<<i<<" flag "<<Ru1t0_flag[i]<<" t0 "<<Findt0(true,"U1",i)<<" deft0 "<<T0_def[i][0]<<endl;
+     
      Ru2t0[i]=Findt0(true,"U2",i);     
      if(Ru2t0_flag[i]==0)Ru2t0[i]=T0_def[i][1];
      Ru2t0_err[i]=dt0;     
@@ -1568,10 +1568,6 @@ void VDCt0::Sett0_hist(){
 void VDCt0::Write(string ofname){
 
 
-
-  //  string ofname_main = ofname.substr(0,21);
-  //  
-
   string ofname_main=ofname;
   ofname= ofname_main + ".dat"; 
   string ofname_err =ofname_main + "_err.dat";
@@ -1600,7 +1596,8 @@ void VDCt0::Write(string ofname){
     else {cout<<"faled to write"<<endl; break;}
          ofs << vdc_name  <<endl;
 	 ofs_err << vdc_name <<"T0 Error "<<endl;    
-    for(int i=0;i<nwire;i++){
+
+	 for(int i=0;i<nwire;i++){
       if(j==0){T0= Ru1t0[i]; dT0=Ru1t0_err[i];}
       else if(j==1){T0= Ru2t0[i]; dT0=Ru2t0_err[i];}
       else if(j==2){T0= Rv1t0[i]; dT0=Rv1t0_err[i];}
@@ -1615,7 +1612,9 @@ void VDCt0::Write(string ofname){
       else ofs << 0.0 <<" ";
       if(fabs(T0_min)<1000)  ofs_err << dT0 <<" ";    
       else ofs_err << 0.0 <<" ";          
-   
+
+      //      cout<<"plane "<<j<<" i "<<i<<" t0 "<<T0<<" dt0 "<<dT0<<endl;
+      
     if((i+1)%8==0){
       ofs << endl;
       ofs_err << endl;}
