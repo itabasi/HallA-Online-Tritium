@@ -1,8 +1,8 @@
 #! /bin/sh
 
 
-init=111555
-end=111576
+init=111160
+end=111220
 
 i=`expr $init`
 j=`expr $end`

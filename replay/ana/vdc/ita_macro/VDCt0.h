@@ -64,6 +64,7 @@ class VDCt0{
   void SetRawt0();
   void Sett0();
   void Write(string ofname);
+  void Write_time(string ofname);
   void MakeRoot(string ofname);
   void MakeRoot_c(string ofname);  
   void Draw();
@@ -961,7 +962,7 @@ void VDCt0::Fill(){
     }
 
 
-    tnew->Fill();
+    //    tnew->Fill();
     
     if(k%(ENum/10)==0){
       int fill=k/(ENum/10)*10;
@@ -1284,8 +1285,13 @@ void VDCt0::Deft0(string ifname){
 	double dy;
 	if(y==0)dy=0.0;
 	else dy=1./sqrt(y);
-	dt0=y/fabs(slope)*sqrt(  dy +pow( (sqrt(ya) + sqrt(yb))/fabs(slope) ,2 )  );
 	
+	dt0=y/fabs(slope)*sqrt(  dy +pow( (sqrt(ya) + sqrt(yb))/fabs(slope) ,2 )  );
+
+	if(slope<=0){
+	  dt0=0.0;
+	  t0=-100.0;
+	}
     }
 
     
@@ -1323,7 +1329,10 @@ void VDCt0::Deft0(string ifname){
       fLv2_t0[wire]->SetParameters(slope_max,y0);}
   
    t0offset=t0;
-  
+
+
+   //   cout<<"plane "<<plane<<" rarm "<<rarm<<" t0 "<<t0offset<<" dt0 "<<dt0<<endl;
+   
       return t0;
   }
 
@@ -1524,6 +1533,72 @@ void VDCt0::Write(string ofname){
   ofs_err.close();
   
 }
+
+//////////////////////////////////////////////////////
+
+void VDCt0::Write_time(string ofname){
+
+  
+  string ofname_main=ofname;
+  ofname= ofname_main + ".dat"; 
+  string ofname_err =ofname_main + "_err.dat";
+  string ofname_def="./param/def_t0.dat";
+  ofstream ofs(ofname.c_str());
+  ofstream ofs_err(ofname_err.c_str());
+
+  cout<<"Pram file : "<<ofname<<endl;
+  cout<<"Param Error : "<<ofname_err<<endl;
+  
+  double T0,T0_min,T0_max;
+  double dT0;
+  string vdc_name;
+  
+  //       if(Ru1t0_c[i]==0)Ru1t0_c[i]=100.;
+  //     Ru1t0_err_c[i]=dt0;
+  
+  for(int j=0;j<8;j++){
+    if(j==0)vdc_name="# RVDC U1 t0 parameters ";
+    else if(j==1)vdc_name="# RVDC U2 t0 parameters ";
+    else if(j==2)vdc_name="# RVDC V1 t0 parameters ";
+    else if(j==3)vdc_name="# RVDC V2 t0 parameters ";
+    else if(j==4)vdc_name="# LVDC U1 t0 parameters ";
+    else if(j==5)vdc_name="# LVDC U2 t0 parameters ";
+    else if(j==6)vdc_name="# LVDC V1 t0 parameters ";
+    else if(j==7)vdc_name="# LVDC V2 t0 parameters ";
+    else {cout<<"faled to write"<<endl; break;}
+         ofs << vdc_name  <<endl;
+	 ofs_err << vdc_name <<"T0 Error "<<endl;    
+    for(int i=0;i<nwire;i++){
+      if(j==0){T0= Ru1t0_c[i]; dT0=Ru1t0_err_c[i];}
+      else if(j==1){T0= Ru2t0_c[i]; dT0=Ru2t0_err_c[i];}
+      else if(j==2){T0= Rv1t0_c[i]; dT0=Rv1t0_err_c[i];}
+      else if(j==3){T0= Rv2t0_c[i]; dT0=Rv2t0_err_c[i];}
+      else if(j==4){T0= Lu1t0_c[i]; dT0=Lu1t0_err_c[i];}
+      else if(j==5){T0= Lu2t0_c[i]; dT0=Lu2t0_err_c[i];}
+      else if(j==6){T0= Lv1t0_c[i]; dT0=Lv1t0_err_c[i];}
+      else if(j==7){T0= Lv2t0_c[i]; dT0=Lv2t0_err_c[i];}
+      else {cout<<"faled to write"<<endl; break;}      
+      
+      if(fabs(T0)<10000) ofs << T0 <<" ";
+      else ofs << 0.0 <<" ";
+      if(fabs(T0_min)<1000)  ofs_err << dT0 <<" ";    
+      else ofs_err << 0.0 <<" ";          
+   
+    if((i+1)%8==0){
+      ofs << endl;
+      ofs_err << endl;}
+    
+    }
+  }
+  
+
+  
+  ofs.close();
+  ofs_err.close();
+  
+}
+
+
 
 
 //////////////////////////////////////////////////////

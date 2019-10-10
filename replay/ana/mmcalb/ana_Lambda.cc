@@ -65,7 +65,8 @@ void ana::matrix(string mtparam){
   MTParam_L();cout<<" Input LHRS Matrix parameter "<<endl;
   MTP_mom();
 
-  for(int i=0;i<10;i++)MT_p[i]=false;  
+  for(int i=0;i<10;i++)MT_p[i]=false;
+
   //======= Tuning selection flag =====================//
   //--------- RHRS ------------------------//
   MT_p[0] = true;  // RHRS z correction
@@ -303,16 +304,19 @@ void ana::Calib(int rt, int lt ){
   R_tr_th[rt]   = (R_tr_th[rt]-XpFPm)/XpFPr;
   R_tr_y[rt]    = (R_tr_y[rt]-YFPm)/YFPr;
   R_tr_ph[rt]   = (R_tr_ph[0]-YpFPm)/YpFPr;
+  R_tr_vz[rt]   = (R_tr_vz[rt]-Ztm)/Ztr;
   R_tr_tg_th[rt]= (R_tr_tg_th[rt] - Xptm)/Xptr;
   R_tr_tg_ph[rt]= (R_tr_tg_ph[rt] - Yptm)/Yptr;
   R_p = (R_p - PRm)/PRr;
   L_tr_x[lt]    = (L_tr_x[lt]-XFPm)/XFPr; 
   L_tr_th[lt]   = (L_tr_th[lt]-XpFPm)/XpFPr;
   L_tr_y[lt]    = (L_tr_y[lt]-YFPm)/YFPr;
+  L_tr_vz[lt]   = (L_tr_vz[rt]-Ztm)/Ztr;
   L_tr_ph[lt]   = (L_tr_ph[lt]-YpFPm)/YpFPr;
   L_tr_tg_th[lt]= (L_tr_tg_th[lt] - Xptm)/Xptr;
   L_tr_tg_ph[lt]= (L_tr_tg_ph[lt] - Yptm)/Yptr;  
   L_p = (L_p - PLm)/PLr;
+
   //========================================//
   
   if(MT_p[0]) R_tr_vz[rt]   = calcf2t_zt(Pzt, R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt]); // nomalized
@@ -875,6 +879,8 @@ void ana::Loop(){
 	    //	    double L_py_b=L_pz_b*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
 
 
+	    
+	    //==== Right Hand Coordinate ========//
 
 	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
 	    double R_px_b=R_pz_b*R_tr_tg_th[rt];
@@ -895,7 +901,7 @@ void ana::Loop(){
             mass_b = sqrt( (Ee_b + mt - L_Eb - R_Eb)*(Ee_b + mt - L_Eb - R_Eb)
 			 - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) );
 
-	    mm_b=mass_b;
+	    mm_b=mass_b - mh;
 
 	    
 	    //=====  calibration =========//

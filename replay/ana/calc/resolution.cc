@@ -103,6 +103,8 @@ void resolution(){
 		  dth_ee_*dth_ee_ + dth_ek*dth_ek + dth_e_k*dth_e_k);
   
 
+
+  
   cout<<"dEe "<<dEe*1000.<<" dEe_ "<<dEe_*1000.<<" dEk "<<dEk*1000.<<" [keV] (FWHM)"<<endl;
   cout<<"dth_ee_ "<<dth_ee_<<" dth_ek "<<dth_ek<<" dth_e_k "<<dth_e_k<<endl;
   cout<<"dpe "<<dpe*1000.<<" dpe_ "<<dpe_*1000.<<" dpk "<<dpk*1000.<<" [keV] (FWHM)"<<endl;

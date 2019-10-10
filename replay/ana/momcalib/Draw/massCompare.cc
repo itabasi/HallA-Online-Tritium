@@ -9,8 +9,8 @@ void massCompare(){
   //  TFile*f1=new TFile("../root/Lambda_small_H_woMomcalib_new.root");
   TFile* f1=new TFile(Form("/home/itabashi/ana/E12-17-003/HallA-Online-Tritium/replay/ana/rootfiles/mmass/ana_Lambda/Lambda_small_H_0th.root"));
   //  TFile*f1=new TFile("../root/Lambda_small_H_woMomcalib_new.root");
-  TFile*f2=new TFile("../root/momcalib_4th_0909_0.root" );
-
+  //  TFile*f2=new TFile("../root/momcalib_4th_0909_0.root" );
+ TFile*f2=new TFile("../../rootfiles/mmass/ana_Lambda/Lambda_small_H_0916.root" );
 
   TH1F* hist_a=(TH1F*)f1->Get("h_mm_L");
   TH1F* hist_b=(TH1F*)f2->Get("hmm_cut");    
