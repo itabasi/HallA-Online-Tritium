@@ -49,6 +49,7 @@ int main(int argc, char** argv){
   bool runlist_flag=false;
   bool root_flag=false;
   bool print_flag=false;
+  bool param_flag=false;
   //  istringstream runnum;
    int runnum; 
    int Nrun=0;
@@ -99,8 +100,10 @@ int main(int argc, char** argv){
       ofname = optarg;
       print_flag=true;
       root_flag=true;
-      root_name="./../../rootfiles/VDC/t0tuned/" + ofname + ".root";
-      print_name="./../../pdf/VDC/ita_mac/t0tuned/" +ofname + ".pdf";
+      param_flag=true;
+      root_name="./../../rootfiles/VDC/t0tuned_all/" + ofname + ".root";
+      print_name="./../../pdf/VDC/ita_mac/t0tuned_all/" +ofname + ".pdf"; 
+      param_name="./param/t0tuned_all/"+ofname;//+ ".dat";     
       break;
       
     case 'h':
@@ -159,7 +162,7 @@ int main(int argc, char** argv){
   ostringstream run;
   run<<runnum<<"-"<<runnum+Nrun-1;
   string def_param = "./param/def_t0.dat";
- 
+  //  if(param_flag)  param_name+=param_end;
 
 
   
@@ -169,7 +172,7 @@ int main(int argc, char** argv){
   param_name = param_init + run.str() + param_end;
   cout<<"root file: "<<root_name<<endl;
   cout<<"print file: "<<print_name<<endl;
-  cout<<"param file: "<<param_name<<endl;
+  //  cout<<"param file: "<<param_name<<endl;
   
   }
 
@@ -186,15 +189,15 @@ int main(int argc, char** argv){
    vdct0->MakeHist();
    vdct0->Fill();
    vdct0->Sett0();   
-   //   vdct0->Write(param_name);
+   if(param_flag)   vdct0->Write_time(param_name);
    vdct0->Draw();
    if(print_flag)vdct0->Print_c(print_name);
    if(root_flag)vdct0->MakeRoot_c(root_name);
 
    cout<<"======= Output File ========"<<endl;
-   if(root_flag)   cout<<"root files : "<<root_name<<endl;
-   if(print_flag)   cout<<"pdf name : "<<print_name<<endl;
-
+   if(root_flag)  cout<<"root files : "<<root_name<<endl;
+   if(print_flag) cout<<"pdf name : "<<print_name<<endl;
+   if(param_flag) cout<<"param name : "<<param_name +".dat"<<endl;
 
    gSystem->Exit(1);
    theApp->Run();
