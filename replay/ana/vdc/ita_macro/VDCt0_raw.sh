@@ -2,9 +2,9 @@
 
 	    
 init=111160
-end=111600
+end=111840
 
-k=10 # Branch Num
+k=50 # Branch Num
 i=`expr $init`
 j=`expr $end`
     echo start run: $i

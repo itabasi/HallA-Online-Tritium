@@ -56,6 +56,7 @@ class VDCt0{
   void NewRoot(string ofname);
   void MakeHist();
   void Fill();
+  void GetHist(string ifname);
   void GetOffset(string paraname);
   double Findt0(bool rarm,char* plane, int wire);
   double Findt0_time(bool rarm, char* plane, int wire);
@@ -101,6 +102,8 @@ class VDCt0{
   double Ru1_rt_p[500],Ru2_rt_p[500],Rv1_rt_p[500],Rv2_rt_p[500];
   double Lu1_rt_p[500],Lu2_rt_p[500],Lv1_rt_p[500],Lv2_rt_p[500];
 
+  TFile* fin;
+  bool GetHist_flag=false;
 
   //===== MakeHist =====//
   TH2F* hRu1;
@@ -551,16 +554,16 @@ void VDCt0::NewRoot(string ofname){
 
   
   fnew = new TFile(Form("%s",ofname.c_str()),"recreate");
-  tnew =new TTree("T",ofname.c_str());
+  //  tnew =new TTree("T",ofname.c_str());
 
-  tnew->Branch("Ru1_rt_p",Ru1_rt_p,"Ru1_rt_p[500]/D");
-  tnew->Branch("Ru2_rt_p",Ru2_rt_p,"Ru2_rt_p[500]/D");
-  tnew->Branch("Rv1_rt_p",Rv1_rt_p,"Rv1_rt_p[500]/D");
-  tnew->Branch("Rv2_rt_p",Rv2_rt_p,"Rv2_rt_p[500]/D");
-  tnew->Branch("Lu1_rt_p",Lu1_rt_p,"Lu1_rt_p[500]/D");
-  tnew->Branch("Lu2_rt_p",Lu2_rt_p,"Lu2_rt_p[500]/D");
-  tnew->Branch("Lv1_rt_p",Lv1_rt_p,"Lv1_rt_p[500]/D");
-  tnew->Branch("Lv2_rt_p",Lv2_rt_p,"Lv2_rt_p[500]/D");
+  //  tnew->Branch("Ru1_rt_p",Ru1_rt_p,"Ru1_rt_p[500]/D");
+  //  tnew->Branch("Ru2_rt_p",Ru2_rt_p,"Ru2_rt_p[500]/D");
+  //  tnew->Branch("Rv1_rt_p",Rv1_rt_p,"Rv1_rt_p[500]/D");
+  //  tnew->Branch("Rv2_rt_p",Rv2_rt_p,"Rv2_rt_p[500]/D");
+  //  tnew->Branch("Lu1_rt_p",Lu1_rt_p,"Lu1_rt_p[500]/D");
+  //  tnew->Branch("Lu2_rt_p",Lu2_rt_p,"Lu2_rt_p[500]/D");
+  //  tnew->Branch("Lv1_rt_p",Lv1_rt_p,"Lv1_rt_p[500]/D");
+  //  tnew->Branch("Lv2_rt_p",Lv2_rt_p,"Lv2_rt_p[500]/D");
 
  
 }
@@ -815,6 +818,26 @@ void VDCt0::MakeHist(){
 
 ///////////////////////////////////////////////////
 
+void VDCt0::GetHist(string ifname){
+
+  fin=new TFile(ifname.c_str(),"read");
+  for(int i=0;i<nwire;i++){
+    hRu1_rtime[i]=(TH1D*)fin->Get(Form("hRu1_rtime_%d",i));
+    hRv1_rtime[i]=(TH1D*)fin->Get(Form("hRv1_rtime_%d",i));
+    hRu2_rtime[i]=(TH1D*)fin->Get(Form("hRu2_rtime_%d",i));
+    hRv2_rtime[i]=(TH1D*)fin->Get(Form("hRv2_rtime_%d",i));
+
+    hLu1_rtime[i]=(TH1D*)fin->Get(Form("hLu1_rtime_%d",i));
+    hLv1_rtime[i]=(TH1D*)fin->Get(Form("hLv1_rtime_%d",i));
+    hLu2_rtime[i]=(TH1D*)fin->Get(Form("hLu2_rtime_%d",i));
+    hLv2_rtime[i]=(TH1D*)fin->Get(Form("hLv2_rtime_%d",i));    
+  }
+  GetHist_flag=true;
+  //  fin->Close();
+}
+
+//////////////////////////////////////////////////
+
 void VDCt0::Fill(){
 
   int counts=0;
@@ -1039,17 +1062,20 @@ void VDCt0::Deft0(string ifname){
     slope_1=0.0; slope_2=0.0;
     dt0=0.0;
 
+
     TH1D* hnew;
-  if(rarm && plane=="U1")hnew=(TH1D*)hRu1_rtime[wire]->Clone();
-  else if(rarm && plane=="U2")hnew=(TH1D*)hRu2_rtime[wire]->Clone();
-  else if(rarm && plane=="V1")hnew=(TH1D*)hRv1_rtime[wire]->Clone();
-  else if(rarm && plane=="V2")hnew=(TH1D*)hRv2_rtime[wire]->Clone();
-  else if(rarm==0 && plane=="U1")hnew=(TH1D*)hLu1_rtime[wire]->Clone();
-  else if(rarm==0 && plane=="U2")hnew=(TH1D*)hLu2_rtime[wire]->Clone();
-  else if(rarm==0 && plane=="V1")hnew=(TH1D*)hLv1_rtime[wire]->Clone();
-  else if(rarm==0 && plane=="V2")hnew=(TH1D*)hLv2_rtime[wire]->Clone();
-  else {cout<<"Failed to call hist "<<endl;}
-  
+    if(rarm && plane=="U1")hnew=(TH1D*)hRu1_rtime[wire]->Clone();
+    else if(rarm && plane=="U2")hnew=(TH1D*)hRu2_rtime[wire]->Clone();
+    else if(rarm && plane=="V1")hnew=(TH1D*)hRv1_rtime[wire]->Clone();
+    else if(rarm && plane=="V2")hnew=(TH1D*)hRv2_rtime[wire]->Clone();
+    else if(rarm==0 && plane=="U1")hnew=(TH1D*)hLu1_rtime[wire]->Clone();
+    else if(rarm==0 && plane=="U2")hnew=(TH1D*)hLu2_rtime[wire]->Clone();
+    else if(rarm==0 && plane=="V1")hnew=(TH1D*)hLv1_rtime[wire]->Clone();
+    else if(rarm==0 && plane=="V2")hnew=(TH1D*)hLv2_rtime[wire]->Clone();
+    else {cout<<"Failed to call hist "<<endl;}
+
+
+    
   hnew->SetName("hnew");
   
     if (!hnew) {
@@ -1160,9 +1186,10 @@ void VDCt0::Deft0(string ifname){
     
     
     return t0;
-}
+  }
 
 //////////////////////////////////////////////////////
+
 
 
   double VDCt0::Findt0_time(bool rarm,char* plane,int wire){
@@ -1306,7 +1333,6 @@ void VDCt0::Deft0(string ifname){
 void VDCt0::SetRawt0(){
 
   //==== Fill ====//
-  
     for(int i=0;i<nwire;i++){
      Ru1t0[i]=Findt0(true,"U1",i);
      if(Ru1t0[i]==0)Ru1t0[i]=T0_def[i][0];
@@ -1668,7 +1694,8 @@ void VDCt0::MakeRoot(string ofname){
   
   //======= Write ========//
 
-
+  fnew->cd();
+  
   for(int i=0;i<nwire;i++){
 
     hRu1_rtime[i]->Write();
@@ -1679,6 +1706,7 @@ void VDCt0::MakeRoot(string ofname){
     hLu2_rtime[i]->Write();
     hLv1_rtime[i]->Write();
     hLv2_rtime[i]->Write();
+
     fLu1_rt0[i]->Write();
     fLu2_rt0[i]->Write();
     fLv1_rt0[i]->Write();
@@ -1687,6 +1715,7 @@ void VDCt0::MakeRoot(string ofname){
     fRu2_rt0[i]->Write();
     fRv1_rt0[i]->Write();
     fRv2_rt0[i]->Write();    
+
   }
   
   hLu1->Write();
@@ -1714,8 +1743,7 @@ void VDCt0::MakeRoot(string ofname){
     gLv2->SetName("gLv2");
     gLv2->Write();  
 
-    tnew->Write();
-    
+    //    tnew->Write();
    fnew->Close();
 }
 

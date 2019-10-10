@@ -117,22 +117,12 @@ int main(int argc, char** argv){
   string root_init;
   string root_end;
   
-  //  param_init="./param/t0tuned/";
-  //  print_init="../../pdf/VDC/ita_mac/t0tuned";
-  //  root_init="../../rootfiles/VDC/t0tuned";
-  //  param_init="./param/";
-  //  print_init="../../pdf/VDC/ita_mac/initial/";
-  //  root_init="../../rootfiles/VDC/initial/";
-  //  param_init="./param/t0tuned_1ns/";
-  //  print_init="../../pdf/VDC/ita_mac/t0tuned_1ns/";
-  //  root_init="../../rootfiles/VDC/t0tuned_1ns/";    
-  //  param_init="./param/initial_3run/";
-  //  print_init="../../pdf/VDC/ita_mac/initial_3run/";
-  //  root_init="../../rootfiles/VDC/initial_3run/";
 
+ 
   param_init=Form("./param/initial_%drun/",Nrun  );
   print_init=Form("../../pdf/VDC/ita_mac/initial_%drun/",Nrun);
   root_init=Form("../../rootfiles/VDC/initial_%drun/",Nrun);    
+
 
   if(test_flag){
     param_init="./param/test/";

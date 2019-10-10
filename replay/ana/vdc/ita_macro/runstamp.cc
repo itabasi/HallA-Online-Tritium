@@ -44,7 +44,8 @@ void runstamp(){
     string init,end;
     //    string paraname="./param/111500-111509.dat";
     string paraname="./param/initial_10run/111500-111509.dat";
-paraname="./param/initial_10run/111510-111519.dat";
+    paraname="./param/initial_10run/111510-111519.dat";
+    paraname="./param/initial_all/VDCt0_all.dat";
     bool init_flag=false;
     int run_test;
     for(int i=0;i<(int)paraname.length();i++){
@@ -68,11 +69,20 @@ paraname="./param/initial_10run/111510-111519.dat";
 
     cout<<"run_int "<<run_init<<" run_end "<<run_end<<endl;
 
+    bool all_flag=false;
+    all_flag=true;
+    if(all_flag){
+      run_init=111140;
+      run_end=111840;
+    }
 
-    string ofname="./DB/db_R.vdc.dat";
-    ofstream ofs(ofname.c_str(),std::ios::app);
+    string ofname;
     bool RVDC_flag=true;
-    
+    RVDC_flag=false;    
+    if(RVDC_flag)ofname="./DB/db_R.vdc.dat";
+    else ofname="./DB/db_L.vdc.dat";
+    ofstream ofs(ofname.c_str(),std::ios::app);
+   
     ifstream ifp(paraname.c_str());
     if (ifp.fail()){ cerr << "failed open files" <<paraname<<endl; exit(1);}    
     int plane=-1;
@@ -140,7 +150,7 @@ paraname="./param/initial_10run/111510-111519.dat";
     
     ofs<<Date.c_str()<<endl;
     for(int j=0;j<4;j++){
-      if(RVDC_flag)ofs<<vdc[j]<<endl<<endl;
+      if(RVDC_flag)ofs<<vdc[j]<<endl;
       else ofs<<vdc[j+4]<<endl;
       int trans=0;
       for(int i=0;i<nwire/8;i++){
@@ -151,6 +161,7 @@ paraname="./param/initial_10run/111510-111519.dat";
 	else 	ofs <<offset[i][j+4]<<" "<<offset[i+1][j+4]<<" "<<offset[i+2][j+4]<<" "<<offset[i+3][j+4]<<" "<<
 			  offset[i+4][j+4]<<" "<<offset[i+5][j+4]<<" "<<offset[i+6][j+4]<<" "<<offset[i+7][j+4]<<" "<<endl;
       }
+      ofs<<endl;
     }
 
     ifp.close();

@@ -20,12 +20,15 @@ TARGET3= VDCt0_raw
 OBJS3=   VDCt0_raw.o Setting.o
 TARGET4= vdct0_off
 OBJS4=   vdct0_off.o Setting.o
+TARGET5= VDCt0_hist
+OBJS5=   VDCt0_hist.o Setting.o
 
 .PHONY: all
 all:$(TARGET1)\
     $(TARGET2)\
     $(TARGET3)\
-    $(TARGET4)	
+    $(TARGET4)\
+    $(TARGET5)	
 
 $(LIBDIR)/%.o : %.cc
 	$(CXX) $(CFLAGS) -c -o $@ $< -MMD $(CXXFLAGS)
@@ -37,6 +40,8 @@ $(TARGET2): $(patsubst %,$(LIBDIR)/%,$(OBJS2))
 $(TARGET3): $(patsubst %,$(LIBDIR)/%,$(OBJS3))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 $(TARGET4): $(patsubst %,$(LIBDIR)/%,$(OBJS4))
+	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
+$(TARGET5): $(patsubst %,$(LIBDIR)/%,$(OBJS5))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 
 .PHONY: clean

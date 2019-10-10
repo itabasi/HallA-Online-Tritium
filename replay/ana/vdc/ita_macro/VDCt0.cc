@@ -140,6 +140,12 @@ int main(int argc, char** argv){
   print_init=Form("../../pdf/VDC/ita_mac/t0tuned_%dns/",Nrun);
   root_init=Form("../../rootfiles/VDC/t0tuned_%dns/",Nrun);    
 
+  //======== T0 tuned (all) ========//  
+  param_init=Form("./param/t0tuned_all/",Nrun  );
+  print_init=Form("../../pdf/VDC/ita_mac/t0tuned_all/",Nrun);
+  root_init=Form("../../rootfiles/VDC/t0tuned_all/",Nrun);    
+
+  
   if(test_flag){
     param_init="./param/test/";
     print_init="../../pdf/VDC/ita_mac/test/";
