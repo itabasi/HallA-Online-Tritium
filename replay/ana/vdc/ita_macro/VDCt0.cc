@@ -101,9 +101,9 @@ int main(int argc, char** argv){
       print_flag=true;
       root_flag=true;
       param_flag=true;
-      root_name="./../../rootfiles/VDC/t0tuned_all/" + ofname + ".root";
-      print_name="./../../pdf/VDC/ita_mac/t0tuned_all/" +ofname + ".pdf"; 
-      param_name="./param/t0tuned_all/"+ofname;//+ ".dat";     
+      root_name="./../../rootfiles/VDC/t0tuned_H1/" + ofname + ".root";
+      print_name="./../../pdf/VDC/ita_mac/t0tuned_H1/" +ofname + ".pdf"; 
+      param_name="./param/t0tuned_H1/"+ofname;//+ ".dat";     
       break;
       
     case 'h':

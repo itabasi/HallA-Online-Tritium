@@ -15,7 +15,7 @@ void vdc_xtcurve(){
   double DR_evtypebits,R_vdc_u1_rawtime[nmax],R_vdc_u1_wire[nmax], R_vdc_u1_time[nmax];
   int Ndata_R_vdc_u1_wire;
   double R_tr_th[nmax],L_tr_th[nmax];
-  double R_vdc_u1_slope[nmax],R_vdc_u1_ddist[nmax],R_vdc_u1_dist[nmax];
+  double R_vdc_u1_slope[nmax],R_vdc_u1_ddist[nmax],R_vdc_u1_dist[nmax],R_vdc_u1_trdist[nmax];
   T->SetBranchStatus("*",0);
   T->SetBranchStatus("DR.evtypebits"        ,1);    T->SetBranchAddress("DR.evtypebits"        ,&DR_evtypebits);
   T->SetBranchStatus("R.vdc.u1.rawtime"     ,1);    T->SetBranchAddress("R.vdc.u1.rawtime"     ,R_vdc_u1_rawtime);
@@ -24,7 +24,8 @@ void vdc_xtcurve(){
   T->SetBranchStatus("Ndata.R.vdc.u1.wire"  ,1);    T->SetBranchAddress("Ndata.R.vdc.u1.wire"  ,&Ndata_R_vdc_u1_wire);
   T->SetBranchStatus("R.vdc.u1.slope"  ,1);             T->SetBranchAddress("R.vdc.u1.slope"  ,R_vdc_u1_slope);
   T->SetBranchStatus("R.vdc.u1.ddist"  ,1);             T->SetBranchAddress("R.vdc.u1.ddist"  ,R_vdc_u1_ddist);
-  T->SetBranchStatus("R.vdc.u1.dist"  ,1);             T->SetBranchAddress("R.vdc.u1.dist"  ,R_vdc_u1_dist);    
+  T->SetBranchStatus("R.vdc.u1.dist"  ,1);             T->SetBranchAddress("R.vdc.u1.dist"  ,R_vdc_u1_dist);
+  T->SetBranchStatus("R.vdc.u1.trdist"  ,1);             T->SetBranchAddress("R.vdc.u1.trdist"  ,R_vdc_u1_trdist);    
   T->SetBranchStatus("R.tr.d_th"  ,1);             T->SetBranchAddress("R.tr.d_th"  ,R_tr_th);
   T->SetBranchStatus("L.tr.d_th"  ,1);             T->SetBranchAddress("L.tr.d_th"  ,L_tr_th);  
 
@@ -43,6 +44,13 @@ void vdc_xtcurve(){
   TH2F*hu1=new TH2F("hu1","Drift velocity [mm/ns];TDC [ns] ; Drift dist [mm]",bin_time,min_time,max_time,bin_dist,min_dist,max_dist);
   TH2F*hu1_c=new TH2F("hu1_c","Drift velocity w/ Drift correction [mm/ns];TDC [ns] ; Drift dist [mm]",bin_time,min_time,max_time,bin_dist,min_dist,max_dist);  
   TH2F* hslope_dist=new TH2F("hslope_dist","Slope vs Dist correlation ; slope [tan] ; distance [mm]",1000,0.0,5.0,1000,0,20);
+
+  TH1F*hres=new TH1F ("hres","Residual ;Residual [mm]",1000,-10,10);
+		      //,-1.0e-6,1.0e-6);
+
+  TH2F*hdd=new TH2F("hdd","Drift velocity [mm/ns];Dist [mm] ; Drift dist [mm]",1000,0.0,20,bin_dist,min_dist,max_dist);
+
+  
   int ENum=T->GetEntries();
   cout<<"Events "<<ENum<<endl;
 
@@ -61,11 +69,15 @@ void vdc_xtcurve(){
 	//	double	ddist=Calc_ddist(dist,R_vdc_u1_time[j+2],R_tr_th[j+2],true);
 	//	double	ddist=Calc_ddist(dist,time,R_tr_th[0],true);
 	double	ddist=Calc_ddist(dist,time,R_vdc_u1_slope[0],true);		
-	 hu1_c->Fill(time,ddist);
+	//	 hu1_c->Fill(time,ddist);
+	hu1_c->Fill(time,R_vdc_u1_dist[j+2]*1000.);
 	 //	 cout<<"dist "<<dist<<" calc_dist "<<ddist<<" Driftdist "<<R_vdc_u1_dist[j+2]*1000.<<endl;
 	//	hu1_c->Fill(time,R_vdc_u1_dist[2+j]*1000.);	
 	 hslope_dist->Fill(R_vdc_u1_slope[0],dist);
-
+	 hres->Fill(dist-R_vdc_u1_trdist[j+2]*1000.);
+	 hdd->Fill(dist,R_vdc_u1_trdist[j+2]*1000.);
+	 //	 hres->Fill(R_vdc_u1_dist[j+2]*1000.-R_vdc_u1_trdist[j+2]*1000.);
+	 //	 hdd->Fill(R_vdc_u1_dist[j+2]*1000.,R_vdc_u1_trdist[j+2]*1000.);
       }
     }
   }
@@ -81,6 +93,14 @@ void vdc_xtcurve(){
   TCanvas*c1=new TCanvas("c1","c1");
   c1->cd();
   hslope_dist->Draw("colz");
+
+  TCanvas*c2=new TCanvas("c2","c2");
+  c2->cd();
+  hres->Draw();
+
+  TCanvas*c3=new TCanvas("c3","c3");
+  c3->cd();
+  hdd->Draw("colz");
   
 }
 
@@ -127,7 +147,7 @@ double Calc_ddist(double dist, double time, double theta, bool RVDC){
   double fDriftVel=50000.;// [m/s]
   double ddist = fDriftVel * time/1.0e9;
   //  cout<<"dist "<<dist<<" ddist"<<ddist<<endl;
-  dist=ddist;
+  //dist=ddist;
 
    
   if (dist < 0) {

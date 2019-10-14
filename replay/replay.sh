@@ -1,7 +1,7 @@
 #! /bin/sh
 
 
-init=111160
+init=111206
 end=111220
 
 i=`expr $init`

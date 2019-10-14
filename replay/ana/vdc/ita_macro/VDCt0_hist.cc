@@ -81,13 +81,17 @@ int main(int argc, char** argv){
       runlist_flag=true;
       break;
 
-      
     case 'o':
       ofname = optarg;
 
-      root_name="./../../rootfiles/VDC/initial_all/" + ofname + ".root";
-      print_name="./../../pdf/VDC/ita_mac/initial_all/" +ofname + ".pdf";
-      param_name="./param/initial_all/" + ofname;
+      root_name="./../../rootfiles/VDC/initial_T2/" + ofname + ".root";
+      print_name="./../../pdf/VDC/ita_mac/initial_T2/" +ofname + ".pdf";
+      param_name="./param/initial_T2/" + ofname;
+
+      //      root_name="./../../rootfiles/VDC/initial_all/" + ofname + ".root";
+      //      print_name="./../../pdf/VDC/ita_mac/initial_all/" +ofname + ".pdf";
+      //      param_name="./param/initial_all/" + ofname;      
+      
       outname=false;
       break;
       
@@ -129,10 +133,11 @@ int main(int argc, char** argv){
   root_end=".root";
   ostringstream run;
   run<<runnum<<"-"<<runnum+Nrun-1;
+
   string def_param = "./param/def_t0.dat";
+  def_param ="./param/initial_all/VDCt0_all.dat";
 
-
- 
+  
   if(outname==true){
   print_name = print_init + run.str() + print_end;
   root_name = root_init + run.str() + root_end;
@@ -147,15 +152,19 @@ int main(int argc, char** argv){
   
  TApplication *theApp =new TApplication("App",&argc,argv);  
  VDCt0* vdct0= new VDCt0();
-   vdct0->Deft0(def_param);   
+
+
+ vdct0->Deft0(def_param);   
    //   if(runlist_flag) vdct0->SetRunList(ifname);
    //   else   vdct0->SetRun(runnum,Nrun);
    gROOT->SetBatch(1);
-   //   vdct0->SetBranch();
+  //   vdct0->SetBranch();
+   //  vdct0->Deft0(def_param);
+
    vdct0->NewRoot(root_name);
    vdct0->MakeHist();
    vdct0->GetHist(ifname);
-   vdct0->SetRawt0();   
+   vdct0->Sett0_hist();   
    vdct0->Write(param_name);
    vdct0->Draw();
    vdct0->Print(print_name);

@@ -238,6 +238,7 @@ class VDCt0{
   //  TCanvas* c14= new TCanvas("c14","c14");
   //  TCanvas* c15= new TCanvas("c15","c15");  
 
+  TCanvas*cc[nwire];
 
   
   //=== Def param ====//
@@ -1511,7 +1512,6 @@ void VDCt0::Sett0_hist(){
      Ru1t0_err[i]=dt0;
      gRu1->SetPoint(i,i,Ru1t0[i]);
      gRu1->SetPointError(i,0,Ru1t0_err[i]);     
-     cout<<"RU1 "<<" i "<<i<<" flag "<<Ru1t0_flag[i]<<" t0 "<<Findt0(true,"U1",i)<<" deft0 "<<T0_def[i][0]<<endl;
      
      Ru2t0[i]=Findt0(true,"U2",i);     
      if(Ru2t0_flag[i]==0)Ru2t0[i]=T0_def[i][1];
@@ -1705,6 +1705,87 @@ void VDCt0::Draw(){
   cout<<"==================================="<<endl;  
 
 
+  for(int i=0;i<nwire;i++){
+    string temp=Form("cc%d",i);
+    cc[i]=new TCanvas(temp.c_str(),temp.c_str());
+    cc[i]->Divide(4,2);
+    cc[i]->cd(1);
+    hRu1_rtime[i]->GetXaxis()->SetRangeUser(2600,2700);
+    hRu1_rtime[i]->Draw();
+    fRu1_rt0[i]->SetLineColor(kRed);
+    fRu1_rt0[i]->Draw("same");
+    line_rtime[i]= new TLine(T0_def[i][0],0,T0_def[i][0],hRu1_rtime[i]->GetMaximum());
+    line_rtime[i]->SetLineColor(kBlue);
+    line_rtime[i]->SetLineWidth(2);
+    line_rtime[i]->Draw("same");
+    cc[i]->cd(2);
+    hRv1_rtime[i]->GetXaxis()->SetRangeUser(2600,2700);
+    hRv1_rtime[i]->Draw();
+    fRv1_rt0[i]->SetLineColor(kRed);
+    fRv1_rt0[i]->Draw("same");
+    line_rtime[i]= new TLine(T0_def[i][2],0,T0_def[i][2],hRv1_rtime[i]->GetMaximum());
+    line_rtime[i]->SetLineColor(kBlue);
+    line_rtime[i]->SetLineWidth(2);
+    line_rtime[i]->Draw("same");    
+    cc[i]->cd(3);
+    hRu2_rtime[i]->GetXaxis()->SetRangeUser(2600,2700);
+    hRu2_rtime[i]->Draw();
+    fRu2_rt0[i]->SetLineColor(kRed);
+    fRu2_rt0[i]->Draw("same");
+    line_rtime[i]= new TLine(T0_def[i][1],0,T0_def[i][1],hRu2_rtime[i]->GetMaximum());
+    line_rtime[i]->SetLineColor(kBlue);
+    line_rtime[i]->SetLineWidth(2);
+    line_rtime[i]->Draw("same");
+    cc[i]->cd(4);
+    hRv2_rtime[i]->GetXaxis()->SetRangeUser(2600,2700);
+    hRv2_rtime[i]->Draw();
+    fRv2_rt0[i]->SetLineColor(kRed);
+    fRv2_rt0[i]->Draw("same");
+    line_rtime[i]= new TLine(T0_def[i][3],0,T0_def[i][3],hRv2_rtime[i]->GetMaximum());
+    line_rtime[i]->SetLineColor(kBlue);
+    line_rtime[i]->SetLineWidth(2);
+    line_rtime[i]->Draw("same");
+    cc[i]->cd(5);
+    hLu1_rtime[i]->GetXaxis()->SetRangeUser(2900,3000);
+    hLu1_rtime[i]->Draw();
+    fLu1_rt0[i]->SetLineColor(kRed);
+    fLu1_rt0[i]->Draw("same");
+    line_rtime[i]= new TLine(T0_def[i][4],0,T0_def[i][4],hLu1_rtime[i]->GetMaximum());
+    line_rtime[i]->SetLineColor(kBlue);
+    line_rtime[i]->SetLineWidth(2);
+    line_rtime[i]->Draw("same");    
+    cc[i]->cd(6);
+    hLv1_rtime[i]->GetXaxis()->SetRangeUser(2900,3000);
+    hLv1_rtime[i]->Draw();
+    fLv1_rt0[i]->SetLineColor(kRed);
+    fLv1_rt0[i]->Draw("same");
+    line_rtime[i]= new TLine(T0_def[i][6],0,T0_def[i][6],hLv1_rtime[i]->GetMaximum());
+    line_rtime[i]->SetLineColor(kBlue);
+    line_rtime[i]->SetLineWidth(2);
+    line_rtime[i]->Draw("same");        
+    cc[i]->cd(7);
+    hLu2_rtime[i]->GetXaxis()->SetRangeUser(2900,3000);
+    hLu2_rtime[i]->Draw();
+    fLu2_rt0[i]->SetLineColor(kRed);
+    fLu2_rt0[i]->Draw("same");
+    line_rtime[i]= new TLine(T0_def[i][5],0,T0_def[i][5],hLu2_rtime[i]->GetMaximum());
+    line_rtime[i]->SetLineColor(kBlue);
+    line_rtime[i]->SetLineWidth(2);
+    line_rtime[i]->Draw("same");        
+    cc[i]->cd(8);
+    hLv2_rtime[i]->GetXaxis()->SetRangeUser(2900,3000);
+    hLv2_rtime[i]->Draw();
+    fLv2_rt0[i]->SetLineColor(kRed);
+    fLv2_rt0[i]->Draw("same");
+    line_rtime[i]= new TLine(T0_def[i][7],0,T0_def[i][7],hLv2_rtime[i]->GetMaximum());
+    line_rtime[i]->SetLineColor(kBlue);
+    line_rtime[i]->SetLineWidth(2);
+    line_rtime[i]->Draw("same");        
+  }
+
+
+
+  
   for(int j=0;j<11;j++){
     c0[j] =new TCanvas(Form("c0_%d",j),Form("LVDC-U1_%d",j));
     c0[j]->Divide(4,8);
@@ -1749,6 +1830,8 @@ void VDCt0::Draw(){
 
   //================ time hist Draw ==============================//
 
+
+  
   for(int j=0;j<11;j++){
     c4[j] =new TCanvas(Form("c4_%d",j),Form("LVDC-U1_%d",j));
     c4[j]->Divide(4,8);
@@ -1817,6 +1900,7 @@ void VDCt0::Print(string ofname){
   cout<<"Print is starting "<<endl;
   cout<<"pdf name : "<<ofname<<endl;
 
+  /*
   for(int j=0;j<4;j++){
   for(int i=0;i<11;i++){
     if(i==0 && j==0)c0[i]->Print(Form("%s[",ofname.c_str()));
@@ -1827,6 +1911,13 @@ void VDCt0::Print(string ofname){
     //    if(i==10 && j==3)c3[i]->Print(Form("%s]",ofname.c_str()));
   }
   }
+
+  */
+  
+  cc[0]->Print(Form("%s[",ofname.c_str()));
+  for(int i=0;i<nwire;i++){
+    cc[i]->Print(Form("%s",ofname.c_str()));}
+  //  cc[nwire]->Print(Form("%s]",ofname.c_str()));
   c10->Print(Form("%s",ofname.c_str()));      
   c10->Print(Form("%s]",ofname.c_str()));
   cout<<"Print is done !"<<endl;

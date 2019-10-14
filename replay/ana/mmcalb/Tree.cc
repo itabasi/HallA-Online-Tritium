@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-
 #include <string>
 #include <math.h>
 using namespace std;
@@ -23,8 +22,6 @@ void Tree::pack_tree()
  
   ENum = tree->GetEntries();  
   tree->SetBranchStatus("*" ,0);
-
-
   //  tree->SetBranchStatus("fEvtHdr.fRun"               ,1);  tree->SetBranchAddress("fEvtHdr.fRun", &runnum    );
   //  tree->SetBranchStatus("fEvtHdr.fEvtNu"               ,1);   tree->SetBranchAddress("fEvtHdr.fEvtNum", &evid    );
   tree->SetBranchStatus("HALLA_p"               ,1);  tree->SetBranchAddress("HALLA_p", &HALLA_p );

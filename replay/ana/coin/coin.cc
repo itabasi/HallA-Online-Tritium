@@ -49,10 +49,14 @@ void coin(){
     T->Add(runname.c_str());
     //    cout<<buf<<endl;
   }
+
   ENum =T->GetEntries();
   cout<<"Get Entries: "<<ENum<<endl;
 
 
+
+
+  
 
   
 }

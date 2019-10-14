@@ -23,9 +23,7 @@ void runstamp(){
       if(buf[0]=='-'){
 	date[iii]=buf;
 	ifrun >> p >> p >> p >> p >> p >>run[iii]; 
-      
-	//      cout<<"date "<<date[iii]<<endl;
-	//	cout<<"run "<<run[iii]<<endl;
+
       }
 
       
@@ -46,6 +44,9 @@ void runstamp(){
     string paraname="./param/initial_10run/111500-111509.dat";
     paraname="./param/initial_10run/111510-111519.dat";
     paraname="./param/initial_all/VDCt0_all.dat";
+    paraname="./param/initial_T1/111221-111368.dat";
+    paraname="./param/initial_T2/vdc_111370-111479.dat";    
+    //    paraname="./param/initial_H1/VDCt0_H1.dat";
     bool init_flag=false;
     int run_test;
     for(int i=0;i<(int)paraname.length();i++){
@@ -70,22 +71,33 @@ void runstamp(){
     cout<<"run_int "<<run_init<<" run_end "<<run_end<<endl;
 
     bool all_flag=false;
-    all_flag=true;
+    //    all_flag=true;
     if(all_flag){
       run_init=111140;
       run_end=111840;
+      //===== H1 ========//
+      //      run_init=111160;
+      //      run_end=111220;      
+      
     }
 
-    string ofname;
-    bool RVDC_flag=true;
-    RVDC_flag=false;    
-    if(RVDC_flag)ofname="./DB/db_R.vdc.dat";
-    else ofname="./DB/db_L.vdc.dat";
-    ofstream ofs(ofname.c_str(),std::ios::app);
-   
+    string ofname, ofname_L;
+    //    bool RVDC_flag=true;
+    //        RVDC_flag=false;    
+    //    if(RVDC_flag)ofname="./DB/db_R.vdc_all.dat";
+    //    else ofname="./DB/db_L.vdc_all.dat";
+    ofname=Form("./DB/db_R.vdc_%d-%d.dat",run_init,run_end);
+    ofname_L=Form("./DB/db_L.vdc_%d-%d.dat",run_init,run_end);
+    ofstream ofs(ofname.c_str());
+    ofstream ofs_L(ofname_L.c_str());
+    //    ofstream ofs(ofname.c_str(),std::ios::app);
+    //    ofstream ofs_L(ofname_L.c_str(),std::ios::app);
     ifstream ifp(paraname.c_str());
-    if (ifp.fail()){ cerr << "failed open files" <<paraname<<endl; exit(1);}    
+    //    ifstream ifp_L(paraname_L.c_str());
+    
+    if (ifp.fail()){ cerr << "failed open files" <<paraname<<endl; exit(1);}
     int plane=-1;
+
     // plane 0 : RVDC U1  plane 5 : LVDC U1
     // plane 1 : RVDC U2  plane 6 : LVDC U2 
     // plane 2 : RVDC V1  plane 7 : LVDC V1
@@ -103,6 +115,8 @@ void runstamp(){
       
       ifp >> off[ii][plane] >> off[ii+1][plane] >> off[ii+2][plane] >> off[ii+3][plane]
 	      >> off[ii+4][plane] >> off[ii+5][plane] >> off[ii+6][plane] >> off[ii+7][plane];
+      //      cout<<"i "<<ii<< off[ii][plane] <<" "<< off[ii+1][plane] <<" "<< off[ii+2][plane] <<" "<< off[ii+3][plane]
+      //	  <<" "<< off[ii+4][plane] <<" "<< off[ii+5][plane] <<" "<< off[ii+6][plane] <<" "<< off[ii+7][plane]<<endl;
       ii=ii+8;
     }//end while dat file
 
@@ -149,23 +163,32 @@ void runstamp(){
     }
     
     ofs<<Date.c_str()<<endl;
+    ofs_L<<Date.c_str()<<endl;
     for(int j=0;j<4;j++){
-      if(RVDC_flag)ofs<<vdc[j]<<endl;
-      else ofs<<vdc[j+4]<<endl;
+
+      ofs<<vdc[j]<<endl;
+      ofs_L<<vdc[j+4]<<endl;
+
+      //      if(RVDC_flag)ofs<<vdc[j]<<endl;
+      //      else ofs<<vdc[j+4]<<endl;
       int trans=0;
       for(int i=0;i<nwire/8;i++){
-	
-	if(RVDC_flag)	ofs <<offset[i][j]<<" "<<offset[i+1][j]<<" "<<offset[i+2][j]<<" "<<offset[i+3][j]<<" "<<
-			  offset[i+4][j]<<" "<<offset[i+5][j]<<" "<<offset[i+6][j]<<" "<<offset[i+7][j]<<" "<<endl;
+	int k=8*i;
+	ofs <<offset[k][j]<<" "<<offset[k+1][j]<<" "<<offset[k+2][j]<<" "<<offset[k+3][j]<<" "<<
+			  offset[k+4][j]<<" "<<offset[k+5][j]<<" "<<offset[k+6][j]<<" "<<offset[k+7][j]<<" "<<endl;
 
-	else 	ofs <<offset[i][j+4]<<" "<<offset[i+1][j+4]<<" "<<offset[i+2][j+4]<<" "<<offset[i+3][j+4]<<" "<<
-			  offset[i+4][j+4]<<" "<<offset[i+5][j+4]<<" "<<offset[i+6][j+4]<<" "<<offset[i+7][j+4]<<" "<<endl;
+	ofs_L <<offset[k][j+4]<<" "<<offset[k+1][j+4]<<" "<<offset[k+2][j+4]<<" "<<offset[k+3][j+4]<<" "<<
+			  offset[k+4][j+4]<<" "<<offset[k+5][j+4]<<" "<<offset[k+6][j+4]<<" "<<offset[k+7][j+4]<<" "<<endl;
+
       }
       ofs<<endl;
+      ofs_L<<endl;
     }
 
     ifp.close();
     ofs.close();
-    
+    ofs_L.close();
+    cout<<"ofname "<<ofname.c_str()<<endl;
+    cout<<"ofname "<<ofname_L.c_str()<<endl;    
     
 }

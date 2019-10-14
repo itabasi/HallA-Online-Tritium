@@ -19,6 +19,7 @@ class coin{
  public:
   double CoinT();
   void DefParam();
+  void Fill();
  Setting* set=new Setting();
 
  
@@ -38,7 +39,7 @@ void coin::DefParam(){
 }
 
 //===================================================//
-void coin::CoinT{
+double coin::CoinT{
 
      //--- Set Coincidence time ---------//
      int Ls2pads=(int)Ls2tpads[0];
@@ -58,3 +59,10 @@ void coin::CoinT{
 
 }
 
+void coin::Fill(){
+
+
+  
+
+
+}

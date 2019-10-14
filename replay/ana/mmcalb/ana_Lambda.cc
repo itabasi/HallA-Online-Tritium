@@ -837,7 +837,7 @@ void ana::Loop(){
 
 	    if(Kaon)tr.pid_cut=1;
 	    if(fabs(ct)<1.0)tr.ct_cut=1;
-	    if(fabs(R_tr_vz[rt])<0.1 && fabs(L_tr_vz[lt]<0.1) )tr.z_cut=1;
+	    if(fabs(R_tr_vz[rt])<0.1 && fabs(L_tr_vz[lt])<0.1 )tr.z_cut=1;
 
 
 	    //cout<<ct<<endl;
