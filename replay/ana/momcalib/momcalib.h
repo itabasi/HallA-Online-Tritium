@@ -1706,7 +1706,8 @@ void momcalib::EventSelection(){
  
  //---- Event Selection ----------//
   if(coin_t<1.0 && -1.0<coin_t)coin_flag=true;
-  if((Rvz_cutmin<Rz[0] && Rz[0]<Rvz_cutmax) &&  ( Lvz_cutmin<Lz[0] && Lz[0]<Lvz_cutmax)) z_flag=true;
+  //  if((Rvz_cutmin<Rz[0] && Rz[0]<Rvz_cutmax) &&  ( Lvz_cutmin<Lz[0] && Lz[0]<Lvz_cutmax)) z_flag=true;
+  if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 < 0.1 ) z_flag=true;
   if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads) track_flag=true;
   if(rpathl_cutmin<rpathl && rpathl<rpathl_cutmax) Rpathl_flag=true;
   if(lpathl_cutmin<lpathl && lpathl<lpathl_cutmax) Lpathl_flag=true;
@@ -2278,7 +2279,8 @@ void momcalib::Fill(){
  
  //---- Event Selection ----------//
   if(coin_t<1.0 && -1.0<coin_t)coin_flag=true;
-  if(Rvz_cutmin<Rz[0] && Rz[0]<Rvz_cutmax && Lvz_cutmin<Lz[0] && Lz[0]<Lvz_cutmax) z_flag=true; 
+  //  if(Rvz_cutmin<Rz[0] && Rz[0]<Rvz_cutmax && Lvz_cutmin<Lz[0] && Lz[0]<Lvz_cutmax) z_flag=true; 
+  if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 < 0.1 ) z_flag=true;
   if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads) track_flag=true;
   if(rpathl_cutmin<rpathl && rpathl<rpathl_cutmax) Rpathl_flag=true;
   if(lpathl_cutmin<lpathl && lpathl<lpathl_cutmax) Lpathl_flag=true;

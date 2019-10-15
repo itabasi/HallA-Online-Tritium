@@ -787,7 +787,7 @@ void ana::Loop(){
 	  //	  if( R_a1_asum_p<1.0 && R_a2_asum_p>3.0 && R_a2_asum_p<7.0) Kaon = true;	  
 	  //	  if(fabs(R_tr_vz[rt])<0.1
 	  //         && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
-	  if(fabs(R_tr_vz[rt]-L_tr_vz[lz]<0.025) && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<1.0)zcut=true;
+	  if(fabs(R_tr_vz[rt]-L_tr_vz[lt]<0.025) && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1)zcut=true;
 	  if( L_Tr && L_FP && R_Tr && R_FP ){
 
 
@@ -835,7 +835,7 @@ void ana::Loop(){
 
 	    if(Kaon)tr.pid_cut=1;
 	    if(fabs(ct)<1.0)tr.ct_cut=1;
-	    if(fabs(R_tr_vz[rt])<0.1 && fabs(L_tr_vz[lt])<0.1 )tr.z_cut=1;
+	    if(zcut)tr.z_cut=1;
 
 
 	    //cout<<ct<<endl;
