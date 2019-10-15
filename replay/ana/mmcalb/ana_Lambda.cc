@@ -785,10 +785,9 @@ void ana::Loop(){
 	  //	  if( R_a1_asum_p<400 && R_a2_asum_p>1000 && R_a2_asum_p<4000) Kaon = true;
 	  if( R_a1_asum_p<a1_th && R_a2_asum_p>a2_th) Kaon = true;
 	  //	  if( R_a1_asum_p<1.0 && R_a2_asum_p>3.0 && R_a2_asum_p<7.0) Kaon = true;	  
-
-	  if(fabs(R_tr_vz[rt])<0.1 && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
-
-	  
+	  //	  if(fabs(R_tr_vz[rt])<0.1
+	  //         && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
+	  if(fabs(R_tr_vz[rt]-L_tr_vz[lz]<0.025) && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<1.0)zcut=true;
 	  if( L_Tr && L_FP && R_Tr && R_FP ){
 
 
@@ -817,7 +816,6 @@ void ana::Loop(){
 	    L_pc = L_p + tr.dpe_[lt];
 	    B_pc = B_p - tr.dpe;
 
-	    
 	    //===================================//	    
 	    double B_E     = sqrt( Me*Me + B_p*B_p );
             int L_s2pad = (int)L_s2_trpad[lt];
@@ -861,8 +859,7 @@ void ana::Loop(){
 	    h_Lph->Fill(L_tr_tg_ph[lt]);	    	    
 	    h_Lp->Fill(L_p);	    
 
-	    
- 
+	     
 	    //======== w/o momentum correction ============//
 
             TVector3 L_vb, R_vb, B_vb; // Energy loss correction
@@ -873,11 +870,9 @@ void ana::Loop(){
 	    //	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
 	    //	    double R_px_b=R_pz_b*R_tr_tg_th[rt];
 	    //	    double R_py_b=R_pz_b*( R_tr_tg_ph[rt] + 13.2/180.*PI);
-
 	    //	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow(-L_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
 	    //	    double L_px_b=L_pz_b*L_tr_tg_th[rt];
 	    //	    double L_py_b=L_pz_b*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
-
 
 	    
 	    //==== Right Hand Coordinate ========//
