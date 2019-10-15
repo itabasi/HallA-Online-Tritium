@@ -4,8 +4,8 @@
 ###nnL_small_2 #######
 ### 111369 -111412 ###
 
-init=111210
-end=111220
+init=111205
+end=111210
 
 i=`expr $init`
 j=`expr $end`
