@@ -423,8 +423,16 @@ double ana::Eloss(double yp,double z,char* arm){
   double hrs_ang=13.2*3.14159/180.;
   
   double x;
-  if(arm) x= - tan(hrs_ang-yp); //yp : phi [rad] right arm
-  else    x= - tan(hrs_ang+yp); //yp : phi [rad]  left arm
+  //  if(arm) x= - tan(hrs_ang-yp); //yp : phi [rad] right arm
+  //  else    x= - tan(hrs_ang+yp); //yp : phi [rad]  left arm
+  //----- Original coordinate  -------//
+  // Definition by K. Suzuki  (fixed Oct. 23rd, 2019)//
+  // R-HRS : right hand coordinate (Unticlockwise rotation)//
+  // L-HRS : left  hand coordinate (    Clockwise rotation)//
+  
+  if(arm) x = - hrs_ang + yp; //yp : phi [rad] RHRS
+  else    x = - hrs_ang - yp; //yp : phi [rad] LHRS
+
   double ph[3],pl[2];
   double dEloss=0.0;
   bool high;
