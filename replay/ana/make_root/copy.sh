@@ -4,8 +4,8 @@
 ###nnL_small_2 #######
 ### 111369 -111412 ###
 
-init=111205
-end=111210
+init=111200
+end=111220
 
 i=`expr $init`
 j=`expr $end`
@@ -35,4 +35,6 @@ j=`expr $end`
 delete="find /data2/small/*.root -size -1000 -delete"
 echo $delete
 eval $delete #delete empty files
-    
+
+
+

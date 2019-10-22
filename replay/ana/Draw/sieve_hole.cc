@@ -7,7 +7,8 @@ void sieve_hole(){
   TFile*f1 ;
   //  if(rarm)f1=new TFile(Form("../rootfiles/angcalib/ang_RHRS_woRas.root"));
   //  else {f1=new TFile(Form("../rootfiles/angcalib/ang_LHRS_woRas.root"));}
-  f1=new TFile(Form("../rootfiles/zcalib/zt_RHRS_sieve.root"));
+  //  f1=new TFile(Form("../rootfiles/zcalib/zt_RHRS_sieve.root"));
+f1=new TFile(Form("../rootfiles/angcalib/ang_LHRS_woRas.root"));
   //  f1=new TFile(Form("../angcalib/rootfile/ang_RHRS_5th_0830_0.root"));
   TTree* t1=(TTree*)f1->Get("T");
 
@@ -107,9 +108,9 @@ double selec_widthy = 0.45; // selection width in y
 
       mark[nhole]->SetMarkerColor(1);
       c0->cd();
-      mark[nhole]->Draw("same");
+      //      mark[nhole]->Draw("same");
       c1->cd();
-      mark[nhole]->Draw("same");      
+      //      mark[nhole]->Draw("same");      
       nhole++;
 
     }

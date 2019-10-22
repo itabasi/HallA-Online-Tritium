@@ -50,8 +50,8 @@ const char* REPLAY_DIR_PREFIX = "./%s";
 //const char* ROOTFILE_DIR_PREFIX = "/data1/vdc/Ltuned_2run";
 
 //const char* ROOTFILE_DIR_PREFIX = "./rootfiles/";
-//const char* ROOTFILE_DIR_PREFIX = "/data2/test";
-const char* ROOTFILE_DIR_PREFIX = "/data2/opt_small/VDC/t0tuned/t0tuned_all";
+const char* ROOTFILE_DIR_PREFIX = "/data2/test";
+//const char* ROOTFILE_DIR_PREFIX = "/data2/opt_small/VDC/t0tuned/t0tuned_all";
   //"/volatile/halla/triton/eep_Rootfiles/%s";
 
 typedef struct _sReplaySetUp
