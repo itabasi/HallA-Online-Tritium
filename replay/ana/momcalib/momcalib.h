@@ -1242,7 +1242,6 @@ void momcalib::plossCorr(bool PLoss){
     Rp[0] = Rp[0] + dpk;
     }// Energy loss
 
-  
 
 }
 
@@ -2021,8 +2020,19 @@ double momcalib::Eloss(double yp, double z,char* arm){
 
   
   double x;
-  if(arm) x = - tan(hrs_ang-yp); //yp : phi [rad] RHRS
-  else    x = - tan(hrs_ang+yp); //yp : phi [rad] LHRS
+  //  if(arm) x = - tan(hrs_ang-yp); //yp : phi [rad] RHRS
+  //  else    x = - tan(hrs_ang+yp); //yp : phi [rad] LHRS
+
+  //----- Original coordinate  -------//
+  // Definition by K. Suzuki //
+  // R-HRS : right hand coordinate (Unticlockwise rotation)//
+  // L-HRS : left  hand coordinate (    Clockwise rotation)//
+  
+  if(arm) x = - hrs_ang + yp; //yp : phi [rad] RHRS
+  else    x = - hrs_ang - yp; //yp : phi [rad] LHRS
+
+
+  
   double ph[3],pl[2];
   double dEloss;
   bool high;
