@@ -2024,21 +2024,20 @@ double momcalib::Eloss(double yp, double z,char* arm){
   //  else    x = - tan(hrs_ang+yp); //yp : phi [rad] LHRS
 
   //----- Original coordinate  -------//
-  // Definition by K. Suzuki //
-  // R-HRS : right hand coordinate (Unticlockwise rotation)//
-  // L-HRS : left  hand coordinate (    Clockwise rotation)//
+  // Definition by K. Suzuki  (fixed Oct. 23rd, 2019)       //
+  // R-HRS : right hand coordinate (Unticlockwise rotation) //
+  // L-HRS : left  hand coordinate (    Clockwise rotation) //
   
-  if(arm) x = - hrs_ang + yp; //yp : phi [rad] RHRS
-  else    x = - hrs_ang - yp; //yp : phi [rad] LHRS
+  if(arm=="R")        x = - hrs_ang + yp; //yp : phi [rad] RHRS
+  else if(arm=="L")   x = - hrs_ang - yp; //yp : phi [rad] LHRS
+  else x=0.0;
 
-
-  
   double ph[3],pl[2];
   double dEloss;
   bool high;
   
-  if(z>0.08)high=false;
-  else high=true;
+  if(z>0.08)high=false; //low : low  energy Loss (z> 8 cm)  pol1 function
+  else high=true;       //high  : high  energy Loss (z< 8 cm) sin function
   
     //==== thickness 0.400 mm ========//
 
@@ -2062,6 +2061,7 @@ double momcalib::Eloss(double yp, double z,char* arm){
   
   if(high)dEloss = dEloss_h;
   else dEloss = dEloss_l;
+  
   //==== thickness 0.4 mm in beam energy loss ======//
   if(arm=="B")dEloss=0.23; //[MeV/c]
   dEloss=dEloss/1000.; // [GeV/c]
