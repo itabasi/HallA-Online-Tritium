@@ -379,7 +379,7 @@ void ana::Calib(int rt, int lt ){
     if(Lp_scale)L_p=2.21807/2.1*L_p;
     //L_p=2.2/2.1*L_p;
     //=========== Energy Loss ===================//
-    B_p     = B_p + Eloss(0.0,R_tr_vz[0],"0");
+    B_p     = B_p + Eloss(0.0,R_tr_vz[0],"B");
     R_p     = R_p + Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
     L_p     = L_p + Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
 
@@ -430,9 +430,9 @@ double ana::Eloss(double yp,double z,char* arm){
   // R-HRS : right hand coordinate (Unticlockwise rotation)//
   // L-HRS : left  hand coordinate (    Clockwise rotation)//
   
-  if(arm) x = - hrs_ang + yp; //yp : phi [rad] RHRS
-  else    x = - hrs_ang - yp; //yp : phi [rad] LHRS
-
+  if(arm=="R")       x = - hrs_ang + yp; //yp : phi [rad] RHRS
+  else if(arm=="L")   x = - hrs_ang - yp; //yp : phi [rad] LHRS
+  else x=0.0;
   double ph[3],pl[2];
   double dEloss=0.0;
   bool high;
@@ -465,7 +465,7 @@ double ana::Eloss(double yp,double z,char* arm){
     dEloss_l = pl[0]*x +pl[1];    
     dEloss = dEloss_l;}
   //==== thickness 0.4 mm in beam energy loss ======//
-  if(arm=="0")dEloss=0.23; //[MeV/c]
+  if(arm=="B")dEloss=0.23; //[MeV/c]
   dEloss=dEloss/1000.; // [GeV/c]
   return dEloss;
 
@@ -816,7 +816,7 @@ void ana::Loop(){
 
 	    double B_pc,R_pc,L_pc;
 
-	    tr.dpe     = Eloss(0.0,R_tr_vz[0],"0");
+	    tr.dpe     = Eloss(0.0,R_tr_vz[0],"B");
 	    tr.dpk[rt] = Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
 	    tr.dpe_[lt]= Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
 	    
