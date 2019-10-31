@@ -464,7 +464,7 @@ void Tree::convertF1TDCR(ParamMan *param)
   for(int i=0;i<RS0;i++){
     RS0T_F1TDC[i]  =  RTDC_F1FirstHit[i+43];
     RS0B_F1TDC[i]  =  RTDC_F1FirstHit[i+44];
-    RS0T_F1time[i] = param->time(2,i,1,0, RS0T_F1TDC[i] - RTDC_F1FirstHit[46]  );
+    RS0T_F1time[i] = param->time(2,i,1,0, RS0T_F1TDC[i] - RTDC_F1FirstHit[46] );
     RS0B_F1time[i] = param->time(2,i,1,1, RS0B_F1TDC[i] - RTDC_F1FirstHit[46] );
     RS0_F1time[i]  = 0.5*(RS0T_F1time[i] + RS0B_F1time[i]);
   }

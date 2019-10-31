@@ -379,7 +379,7 @@ void ana::Calib(int rt, int lt ){
     if(Lp_scale)L_p=2.21807/2.1*L_p;
     //L_p=2.2/2.1*L_p;
     //=========== Energy Loss ===================//
-    B_p     = B_p + Eloss(0.0,R_tr_vz[0],"B");
+    B_p     = B_p + Eloss(0.0,0,"B");
     R_p     = R_p + Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
     L_p     = L_p + Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
 
@@ -417,6 +417,30 @@ void ana::SetRunList(string ifname){
   readtreeHRSL();
 }
 ////////////////////////////////////////////////////////////////////////////
+
+double ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
+
+  double cointime=0.0;
+  
+  convertF1TDCR(param);
+  convertF1TDCL(param);
+  
+  double Rpathl=R_tr_pathl[rhit]+R_s2_trpath[rhit];
+  double Lpathl=L_tr_pathl[lhit]+L_s2_trpath[lhit];
+  double Beta_L=L_tr_p[0]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
+  double Beta_R=R_tr_p[0]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+Mpi*Mpi);
+  double tof_r=RS2_F1time[RS2_seg] - Rpathl/(Beta_R*LightVelocity);
+  double tof_l=LS2_F1time[LS2_seg] - Lpathl/(Beta_L*LightVelocity);
+
+
+  
+  if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.)cointime=-tof_r-tof_l+coin_offset;
+  else cointime=-1000;
+  return cointime;
+  
+}
+///////////////////////////////////////////////////////////////////////////
+
 
 double ana::Eloss(double yp,double z,char* arm){
 
@@ -465,7 +489,7 @@ double ana::Eloss(double yp,double z,char* arm){
     dEloss_l = pl[0]*x +pl[1];    
     dEloss = dEloss_l;}
   //==== thickness 0.4 mm in beam energy loss ======//
-  if(arm=="B")dEloss=0.23; //[MeV/c]
+  if(arm=="B")dEloss=0.184; //[MeV/c]
   dEloss=dEloss/1000.; // [GeV/c]
   return dEloss;
 
@@ -800,9 +824,6 @@ void ana::Loop(){
 
 
 
-	    //	    double B_p     = HALLA_p/1000.0;// [GeV/c]	    
-	    //            double L_p     = L_tr_p[lt];
-	    //            double R_p     = R_tr_p[rt];
 
 	    B_p     = HALLA_p/1000.0;// [GeV/c]	    
 	    L_p     = L_tr_p[lt];
@@ -834,19 +855,23 @@ void ana::Loop(){
 	    double R_Epi   = sqrt( Mpi*Mpi + R_p*R_p );
             double R_betaK = R_p / sqrt(MK*MK + R_p*R_p);
 	    double R_betaPi =R_p/ sqrt(Mpi*Mpi + R_p*R_p);
-            //double L_rftime = (L_F1Fhit[47] - L_F1Fhit[37]) * TDCtoT;
-            //double R_rftime = (R_F1Fhit[15] - R_F1Fhit[9] ) * TDCtoT;
+
+	    double ct =CoinCalc(R_s2pad,L_s2pad,rt,lt);
+	    
+
+	    //================= ===================== ======================================//
             double L_tgt = L_s2_t[L_s2pad] - (L_tr_pathl[lt] + L_s2_trpath[lt])/c;
             double R_tgt = R_s2_t[R_s2pad] - (R_tr_pathl[rt] + R_s2_trpath[rt])/R_betaK/c;
-            double R_tgt_pi = R_s2_t[R_s2pad] - (R_tr_pathl[rt] + R_s2_trpath[rt])/R_betaPi/c;
-            double ct = L_tgt - R_tgt;
+	    //            double R_tgt_pi = R_s2_t[R_s2pad] - (R_tr_pathl[rt] + R_s2_trpath[rt])/R_betaPi/c;
+	    //	    double ct = L_tgt - R_tgt;
+	    //ct = L_tgt - R_tgt -1.6; // nnL_small4 
+	    //================= ===================== ======================================//
+
 
 	    if(Kaon)tr.pid_cut=1;
 	    if(fabs(ct)<1.0)tr.ct_cut=1;
 	    if(zcut)tr.z_cut=1;
 
-
-	    //cout<<ct<<endl;
             h_ct   ->Fill( ct );
 	    h_Rs2  ->Fill(R_tgt);
 	    h_Ls2  ->Fill(L_tgt);
@@ -1906,7 +1931,7 @@ void ana::ReadParam(string name){
   cout<<"param name : "<<name<<endl;
   if(param -> SetVal())cout<<"F1TDC parameter setted"<<endl; 
   tdc_time=param->F1Res();
-
+  coin_offset=param->GetF1CoinOffset();
   
 }
 

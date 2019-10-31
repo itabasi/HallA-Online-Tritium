@@ -71,7 +71,7 @@ class ana : public Tree
     void MTP_mom();
     void Calib(int rt, int lt);
     double Eloss(double yp,double z,char* arm);
-    
+    double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
  private:
     int ENumMax;
     int ENum;
@@ -214,7 +214,7 @@ class ana : public Tree
     double mh;
     int bin_mm;
     int bin_Lp=200;
-
+    double coin_offset;
     string param_mt[100];
     bool MT_p[100];
     bool ploss;
