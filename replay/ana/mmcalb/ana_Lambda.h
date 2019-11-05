@@ -25,7 +25,7 @@ struct TreeBranch{
   double momR, momL;
   double zR, zL;
   double AC1_sum, AC2_sum;
-  double ct_acc; 
+  double ct_acc,ct_b; 
   double Rs0ra_p,Rs0la_p,Rs0a_p;
   double Rs2ra_p[16],Rs2la_p[16],Rs2a_p[16];
   double Rvdc_u1,Rvdc_u2,Rvdc_v1,Rvdc_v2;
@@ -36,7 +36,12 @@ struct TreeBranch{
   double LXt,LYt,LXpt,LYpt;
   double Lp[100],Rp[100],Bp;
   double Lp_c[100],Rp_c[100],Bp_c;  
-  double dpe,dpe_[10],dpk[10];
+  double dpe,dpe_[100],dpk[100];
+  int Rs2_pad[100],Ls2_pad[100];
+  double RS2T_F1[16],RS2B_F1[16],RS2T_ref,RS2B_ref;
+  double LS2T_F1[16],LS2B_F1[16],LS2T_ref,LS2B_ref;
+  double Rtof[16],Ltof[16];
+  int runnum;
 };
 static TreeBranch tr;
 

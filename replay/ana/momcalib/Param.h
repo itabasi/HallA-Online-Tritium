@@ -20,10 +20,10 @@ const double  PRm =1.74   ,PRr=0.2;
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
 
-//const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
-//const int nParamT = 126;  // Number of parameters
-const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamT = 252;  // Number of parameters in angles
+const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
+const int nParamT = 126;  // Number of parameters
+//const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamT = 252;  // Number of parameters in angles
 const int nnz =3;
 const int nParamTz=35;
 const int nParamT_ras=4;

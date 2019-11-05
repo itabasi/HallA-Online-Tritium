@@ -122,6 +122,9 @@ int main(int argc, char** argv){
     case 'O':
       F1tdc= optarg;
       f1tdc=atoi(F1tdc.c_str());
+      //if F1tdc=1 tdc resolution 0.056
+      //if F1tdc=2 tdc resolution 0.058
+      //if F1tdc=3 tdc resolution 0.058 & Lp scale ON
       cout<<"F1 resolution mode : "<<f1tdc<<endl;      
       break;
 

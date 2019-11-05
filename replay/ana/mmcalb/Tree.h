@@ -254,13 +254,16 @@ public:
   double RS0_F1time[RS0], RS0T_F1time[RS0], RS0B_F1time[RS0];
   double RRF_F1time;
   double LF1Ref[2];
+  double LS2T_F1[16],LS2B_F1[16];
   double LTDC_F1FirstHit[LF1TDC];
   double LS2T_F1TDC[LS2], LS2B_F1TDC[LS2];
   double LS2_F1time[LS2], LS2T_F1time[LS2], LS2B_F1time[LS2];
   double LS0_F1time[LS0], LS0T_F1time[LS0], LS0B_F1time[LS0];
   double LS0T_F1TDC[LS0], LS0B_F1TDC[LS0];
   double LRF_F1time;
-
+  double RS2T_F1[16],RS2B_F1[16];
+  double coint,rtof[16],ltof[16];
+  double coint_c,rtof_c[16],ltof_c[16];  
 public:
   TChain *tree;
 
@@ -270,6 +273,8 @@ public:
   void chain_tree(string ifname);
   void new_tree(string ofname);
   void readtreeHRSLR();
+  bool F1Shift(bool RHRS, bool F1TOP,int seg);
+  
   ////////
   //Left//
   ////////

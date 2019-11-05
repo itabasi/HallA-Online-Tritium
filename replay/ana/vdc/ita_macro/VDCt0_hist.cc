@@ -84,9 +84,9 @@ int main(int argc, char** argv){
     case 'o':
       ofname = optarg;
 
-      root_name="./../../rootfiles/VDC/initial_T2/" + ofname + ".root";
-      print_name="./../../pdf/VDC/ita_mac/initial_T2/" +ofname + ".pdf";
-      param_name="./param/initial_T2/" + ofname;
+      root_name="./../../rootfiles/VDC/initial_H3/" + ofname + ".root";
+      print_name="./../../pdf/VDC/ita_mac/initial_H3/" +ofname + ".pdf";
+      param_name="./param/initial_H3/" + ofname;
 
       //      root_name="./../../rootfiles/VDC/initial_all/" + ofname + ".root";
       //      print_name="./../../pdf/VDC/ita_mac/initial_all/" +ofname + ".pdf";

@@ -46,16 +46,14 @@ void cherenkov_mom_vs_NPE_cal(){
    // wave length calculation //
     double wave_min,wave_max;
 
-   wave_min=300e-9; //wave minimum [m]
+   wave_min=298e-9; //wave minimum [m]
    wave_max=650e-9; // wave maximum [m]
 
    lam=1/wave_min-1/wave_max;
    //  cout<<"wave  "<<lam<<endl;
    
-
    //  double gamma[100];
    //   double N[100];
-
    double Np[5000],Npi[5000],Nk[5000];
    double Ep[5000],Epi[5000],Ek[5000]; // Energy [MeV]
    double beta_p[5000],beta_pi[5000],beta_k[5000]; //beta
@@ -80,7 +78,7 @@ void cherenkov_mom_vs_NPE_cal(){
     cout<<"PEN of cosmic ray "<<inf<<endl;
 
     //==============================================================//
-    //===== for ==========================================================//
+    //===== for ====================================================//
     //==============================================================//
 
  for(int i=pmin/plot_width/c;i<pmax/plot_width/c; i++){

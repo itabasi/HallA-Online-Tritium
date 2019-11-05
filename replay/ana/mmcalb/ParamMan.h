@@ -74,6 +74,7 @@ public:
   void SetF1CoinOffset( string &sline, string &name);
   double F1Res();  
   double GetF1CoinOffset();
+  double GetF1reso();  
   bool SetVal( void );
   double GetTdcOffset( int cid, int seg, int lr, int tb );
   double GetTdcGain(   int cid, int seg, int lr, int tb );

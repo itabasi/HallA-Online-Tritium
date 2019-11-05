@@ -197,7 +197,10 @@ double ParamMan::GetF1CoinOffset(){
   
 }
 
+double ParamMan::GetF1reso(){
 
+  return   F1reso ;
+}
 
 
 ///////////////////////////////////

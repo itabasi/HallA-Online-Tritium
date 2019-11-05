@@ -24,6 +24,7 @@ void Tree::pack_tree()
   tree->SetBranchStatus("*" ,0);
   //  tree->SetBranchStatus("fEvtHdr.fRun"               ,1);  tree->SetBranchAddress("fEvtHdr.fRun", &runnum    );
   //  tree->SetBranchStatus("fEvtHdr.fEvtNu"               ,1);   tree->SetBranchAddress("fEvtHdr.fEvtNum", &evid    );
+  tree->SetBranchStatus("runnum"               ,1);  tree->SetBranchAddress("runnum", &runnum );
   tree->SetBranchStatus("HALLA_p"               ,1);  tree->SetBranchAddress("HALLA_p", &HALLA_p );
   tree->SetBranchStatus("L.tr.n"               ,1);  tree->SetBranchAddress("L.tr.n"               ,&L_tr_n              );
   tree->SetBranchStatus("R.tr.n"               ,1);  tree->SetBranchAddress("R.tr.n"               ,&R_tr_n              );
@@ -210,14 +211,53 @@ void Tree::convertF1TDCL(ParamMan *param)
 
   LF1Ref[0] = LTDC_F1FirstHit[30];
   LF1Ref[1] = LTDC_F1FirstHit[37];
+  bool F1Shift_L=true;
+  double LS2T_off, LS2B_off;
+  LS2T_off = 350.;
+  LS2B_off = 350.-3.0;
+
+  double F1res=  param->GetF1reso();
+
+  if(F1res>0.057){
+    LS2T_off = 350 + 280.0 -5.0;
+    LS2B_off = 350 + 280.0 -5.0;
+  }
+    
+  
   //S2
   for(int i=0;i<LS2;i++){
     LS2T_F1TDC[i]  =  LTDC_F1FirstHit[i];
     LS2B_F1TDC[i]  =  LTDC_F1FirstHit[i+48];
     if(LF1Ref[0]>1. && LF1Ref[1]>1. && LS2T_F1TDC[i]>1. && LS2B_F1TDC[i]>1.){
+      LS2T_F1[i] = LS2T_F1TDC[i] - LF1Ref[0] ;
+      LS2B_F1[i] = LS2B_F1TDC[i] - LF1Ref[1] ;
+
+      LS2T_F1time[i] = param->time(1,i,0,0, LS2T_F1[i]  , L_s2_ra_p[i]);
+      LS2B_F1time[i] = param->time(1,i,0,1, LS2B_F1[i]  , L_s2_la_p[i]);
+      LS2_F1time[i]  = 0.5*(LS2T_F1time[i] + LS2B_F1time[i]);
+
+      ltof[i]=LS2_F1time[i];
+
+      
+      //====== modified by itabashi ========//
+      if(F1Shift_L){
+      if(LS2T_F1[i] > pow(2,15) )LS2T_F1[i] = LS2T_F1[i] - pow(2.0,16.) + LS2T_off;
+      else if(LS2T_F1[i] < -pow(2,15) )LS2T_F1[i] = LS2T_F1[i] + pow(2.0,16.) - LS2T_off;
+      if(LS2B_F1[i] > pow(2,15) )LS2B_F1[i] = LS2B_F1[i] - pow(2.0,16.) + LS2B_off;
+      else if(LS2B_F1[i] < -pow(2,15) )LS2B_F1[i] = LS2B_F1[i] + pow(2.0,16.) - LS2B_off;  
+      
+      LS2T_F1time[i] = param->time(1,i,0,0, LS2T_F1[i]  , L_s2_ra_p[i]);
+      LS2B_F1time[i] = param->time(1,i,0,1, LS2B_F1[i]  , L_s2_la_p[i]);
+      LS2_F1time[i]  = 0.5*(LS2T_F1time[i] + LS2B_F1time[i]);
+      ltof_c[i]=LS2_F1time[i];                                                               }
+      //=====================================//
+      
+      /*
       LS2T_F1time[i] = param->time(1,i,0,0, LS2T_F1TDC[i] - LTDC_F1FirstHit[30]  , L_s2_ra_p[i] );
       LS2B_F1time[i] = param->time(1,i,0,1, LS2B_F1TDC[i] - LTDC_F1FirstHit[37]  , L_s2_la_p[i]);
       LS2_F1time[i]  = 0.5*(LS2T_F1time[i] + LS2B_F1time[i]);
+      */
+      
     }
     else {
       LS2T_F1time[i] = -9999.;
@@ -442,14 +482,60 @@ void Tree::convertF1TDCR(ParamMan *param)
 
   RF1Ref[0]=RTDC_F1FirstHit[9] ;
   RF1Ref[1]=RTDC_F1FirstHit[46];
+
+  bool F1Shift_R=true;
+  double RS2T_off = 350.0;
+  double RS2B_off = 350.0-2.0;
+  
   //S2
   for(int i=0;i<RS2;i++){
     RS2T_F1TDC[i]  =  RTDC_F1FirstHit[i+16];
     RS2B_F1TDC[i]  =  RTDC_F1FirstHit[i+48];
+    
     if(RF1Ref[0]>1. && RF1Ref[1]>1. && RS2T_F1TDC[i]>1. && RS2B_F1TDC[i]>1.){
+      RS2T_F1[i]=RS2T_F1TDC[i] - RF1Ref[0] ;
+      RS2B_F1[i]=RS2B_F1TDC[i] - RF1Ref[1] ;
+
+      RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1[i]  , R_s2_ra_p[i]);
+      RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1[i]  , R_s2_la_p[i]);
+      RS2_F1time[i]  = 0.5*(RS2T_F1time[i] + RS2B_F1time[i]);      
+
+      rtof[i]=RS2_F1time[i];
+
+      //====== modified by itabashi ========//
+      
+      if(F1Shift_R){
+	if(RS2T_F1[i] > pow(2,15) )RS2T_F1[i] = RS2T_F1[i] - pow(2.0,16.) + RS2T_off;
+	else if(RS2T_F1[i] < -pow(2,15) )RS2T_F1[i] = RS2T_F1[i] + pow(2.0,16.) - RS2T_off;
+	if(RS2B_F1[i] > pow(2,15) )RS2B_F1[i] = RS2B_F1[i] - pow(2.0,16.) + RS2B_off;
+	else if(RS2B_F1[i] < -pow(2,15) )RS2B_F1[i] = RS2B_F1[i] + pow(2.0,16.) - RS2B_off;  
+      
+      
+      RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1[i]  , R_s2_ra_p[i]);
+      RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1[i]  , R_s2_la_p[i]);
+      RS2_F1time[i]  = 0.5*(RS2T_F1time[i] + RS2B_F1time[i]);
+
+      rtof_c[i]=RS2_F1time[i];
+      }
+      
+      /*
+      RS2T_F1[i]=- RS2T_F1TDC[i] + RF1Ref[0] ;
+      RS2B_F1[i]=- RS2B_F1TDC[i] + RF1Ref[1] ;
+      if(RS2T_F1[i] > pow(2,15) )RS2T_F1[i] = RS2T_F1[i] - pow(2.0,16.) + 350.0;
+      else if(RS2T_F1[i] < -pow(2,15) )RS2T_F1[i] = RS2T_F1[i] + pow(2.0,16.) - 350.0;
+      if(RS2B_F1[i] > pow(2,15) )RS2B_F1[i] = RS2B_F1[i] - pow(2.0,16.) + 350.0;
+      else if(RS2B_F1[i] < -pow(2,15) )RS2B_F1[i] = RS2B_F1[i] + pow(2.0,16.) - 350.0;      
+      RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1[i]  , R_s2_ra_p[i]);
+      RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1[i]  , R_s2_la_p[i]);
+      RS2_F1time[i]  = 0.5*(RS2T_F1time[i] + RS2B_F1time[i]);
+      //=====================================//
+      
+      /*
       RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1TDC[i] - RTDC_F1FirstHit[9]  , R_s2_ra_p[i]);
       RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1TDC[i] - RTDC_F1FirstHit[46] , R_s2_la_p[i]);
       RS2_F1time[i]  = 0.5*(RS2T_F1time[i] + RS2B_F1time[i]);
+      */
+      
     }
     else{
       RS2T_F1TDC[i]  = -9999.;
@@ -480,5 +566,18 @@ double Tree::GetBeta_S0S2wF1TDCR(int itrack)
   betaR = (R_s2_trpath[itrack] - R_s0_trpath[itrack])/(RS2_F1time[(int)R_s2_trpad[itrack]] - RS0_F1time[(int)R_s0_trpad[itrack]])/LightVelocity;
 
   return betaR;
+}
+
+bool Tree::F1Shift(bool RHRS, bool F1TOP, int seg){
+
+  //======= RHRS =================//
+
+  RF1Ref[0]=RTDC_F1FirstHit[9] ;
+  RF1Ref[1]=RTDC_F1FirstHit[46];
+  RS2T_F1TDC[seg]  =  RTDC_F1FirstHit[seg+16];
+  RS2B_F1TDC[seg]  =  RTDC_F1FirstHit[seg+48];
+
+  
+  
 }
 

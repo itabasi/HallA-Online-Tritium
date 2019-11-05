@@ -421,21 +421,50 @@ void ana::SetRunList(string ifname){
 double ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
   double cointime=0.0;
+
   
   convertF1TDCR(param);
   convertF1TDCL(param);
-  
+
   double Rpathl=R_tr_pathl[rhit]+R_s2_trpath[rhit];
   double Lpathl=L_tr_pathl[lhit]+L_s2_trpath[lhit];
-  double Beta_L=L_tr_p[0]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
-  double Beta_R=R_tr_p[0]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+Mpi*Mpi);
+  double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
+  double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
   double tof_r=RS2_F1time[RS2_seg] - Rpathl/(Beta_R*LightVelocity);
   double tof_l=LS2_F1time[LS2_seg] - Lpathl/(Beta_L*LightVelocity);
 
+  if(lhit==0 && rhit==0){
+    tr.RS2T_ref=RF1Ref[0];
+    tr.RS2B_ref=RF1Ref[1];
+    tr.LS2T_ref=LF1Ref[0];
+    tr.LS2B_ref=LF1Ref[1];
+      tr.RS2T_F1[RS2_seg]=RS2T_F1[RS2_seg];
+      tr.RS2B_F1[RS2_seg]=RS2B_F1[RS2_seg];
+      tr.LS2T_F1[LS2_seg]=LS2T_F1[LS2_seg];
+      tr.LS2B_F1[LS2_seg]=LS2B_F1[LS2_seg];
+      tr.Rtof[RS2_seg]=tof_r;
+      tr.Ltof[LS2_seg]=tof_l;
+
+  }
 
   
-  if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.)cointime=-tof_r-tof_l+coin_offset;
-  else cointime=-1000;
+  if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.){
+    cointime= - tof_r + tof_l - coin_offset;
+    tr.ct_b= - (rtof[RS2_seg] - Rpathl/(Beta_R*LightVelocity))
+      + (ltof[LS2_seg] - Lpathl/(Beta_L*LightVelocity))        - coin_offset;
+
+  }
+  else{
+    cointime=-1000;
+    tr.ct_b =-1000;
+  }
+
+  
+  //   cout<<"RS2_F1time "<<RS2_F1time[RS2_seg]<<" LS2_F1time "<<LS2_F1time[LS2_seg]<<endl;
+  //       cout<<"Rs2_seg "<<RS2_seg<<" Ls2_seg "<<LS2_seg<<" Rpath "<<Rpathl/(Beta_R*LightVelocity)
+	 ///        <<" Lpath "<<LS2_F1time[LS2_seg] + Lpathl/(Beta_L*LightVelocity)<<" tof_r "<<tof_r<<" tof_l "<<tof_l<<" Rpahtl "<<Rpathl<<" Lpathl "<<Lpathl<<" betaR "<<Beta_R<<" betaL "<<Beta_L<<" c "<<LightVelocity<<" ct "<<cointime<<endl;
+
+  
   return cointime;
   
 }
@@ -447,6 +476,7 @@ double ana::Eloss(double yp,double z,char* arm){
   double hrs_ang=13.2*3.14159/180.;
   
   double x;
+
   //  if(arm) x= - tan(hrs_ang-yp); //yp : phi [rad] right arm
   //  else    x= - tan(hrs_ang+yp); //yp : phi [rad]  left arm
   //----- Original coordinate  -------//
@@ -565,7 +595,8 @@ void ana::Loop(){
     for(int s=0;s<10;s++){tr.dpe_[s]=-2222.;tr.dpk[s]; }
     for(int s=0;s<100;s++){
       tr.Lp[s]=-2222.;tr.Rp[s]=-2222.;
-      tr.Lp_c[s]=-2222.;tr.Rp_c[s]=-2222.;             }
+      tr.Lp_c[s]=-2222.;tr.Rp_c[s]=-2222.;
+	  tr.Rs2_pad[s]=-1;tr.Ls2_pad[s]=-1;             }
 
     
     tree->GetEntry(n);
@@ -622,6 +653,7 @@ void ana::Loop(){
     tr.LYpt=L_tr_tg_ph[0];
 
 	int s2pad = (int)L_s2_trpad[t];
+    tr.Ls2_pad[t]=(int)L_s2_trpad[t];
         double p    = L_tr_p[t];
         double path = L_s2_trpath[t] - L_s0_trpath[t];
         double beta = -99, m2 = -99;
@@ -708,7 +740,8 @@ void ana::Loop(){
          && R_tr_th[t]<0.4 *R_tr_x[t]+0.13 ) R_FP = true;
       
         int s2pad = (int)R_s2_trpad[t];
-        double p    = R_tr_p[t];
+        tr.Rs2_pad[t] =(int)R_s2_trpad[t];
+	    double p    = R_tr_p[t];
         double path = R_s2_trpath[t] - R_s0_trpath[t];
         double beta = 0, m2 = 0;
 
@@ -857,11 +890,13 @@ void ana::Loop(){
 	    double R_betaPi =R_p/ sqrt(Mpi*Mpi + R_p*R_p);
 
 	    double ct =CoinCalc(R_s2pad,L_s2pad,rt,lt);
+
 	    
 
 	    //================= ===================== ======================================//
             double L_tgt = L_s2_t[L_s2pad] - (L_tr_pathl[lt] + L_s2_trpath[lt])/c;
             double R_tgt = R_s2_t[R_s2pad] - (R_tr_pathl[rt] + R_s2_trpath[rt])/R_betaK/c;
+	    
 	    //            double R_tgt_pi = R_s2_t[R_s2pad] - (R_tr_pathl[rt] + R_s2_trpath[rt])/R_betaPi/c;
 	    //	    double ct = L_tgt - R_tgt;
 	    //ct = L_tgt - R_tgt -1.6; // nnL_small4 
@@ -1480,8 +1515,9 @@ void ana::Draw(){
     c15->cd(7) ->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogz(); h_Lvy_mm  ->Draw("colz");    gPad->SetGridx(1);
     c15->cd(8) ->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogz(); h_Lvz_mm  ->Draw("colz");    gPad->SetGridx(1);
     c15->cd(9) ->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogz(); h_Lx_mm   ->Draw("colz");    gPad->SetGridx(1);
-    c15->cd(10)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogz(); h_Ly_mm   ->Draw("colz");    gPad->SetGridx(1);
-    c15->cd(11)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogz(); h_Lth_mm  ->Draw("colz");    gPad->SetGridx(1);
+
+
+	c15->cd(11)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogz(); h_Lth_mm  ->Draw("colz");    gPad->SetGridx(1);
     c15->cd(12)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogz(); h_Lph_mm  ->Draw("colz");    gPad->SetGridx(1);
     TCanvas *c16 = new TCanvas("c16","Missing Mass ",1000,800);
     c16->Divide(4,3,1E-5,1E-5);
@@ -1534,13 +1570,23 @@ void ana::MakeHist(){
   tree_out ->Branch("mm_Al",&tr.missing_mass_Al ,"missing_mass_Al/D");
   tree_out ->Branch("mm_Al_bg",&tr.missing_mass_Al_bg ,"missing_mass_Al_bg/D");
   tree_out ->Branch("mm_acc",&tr.missing_mass_acc ,"missing_mass_acc/D");
-
-  
+  tree_out ->Branch("runnum",&runnum ,"runnum/I");
+  tree_out ->Branch("ct_b",&tr.ct_b ,"ct_b/D");
+  tree_out ->Branch("rtof"        ,tr.Rtof      ,"rtof[16]/D"     );
+  tree_out ->Branch("ltof"        ,tr.Ltof      ,"ltof[16]/D"     );  
+  tree_out ->Branch("RS2T_F1"        ,tr.RS2T_F1      ,"RS2T_F1[16]/D"     );
+  tree_out ->Branch("RS2B_F1"        ,tr.RS2B_F1      ,"RS2B_F1[16]/D"     );
+  tree_out ->Branch("LS2T_F1"        ,tr.LS2T_F1      ,"LS2T_F1[16]/D"     );
+  tree_out ->Branch("LS2B_F1"        ,tr.LS2B_F1      ,"LS2B_F1[16]/D"     );  
+  tree_out ->Branch("RS2T_ref"        ,&tr.RS2T_ref   ,"RS2T_ref/D"     );
+  tree_out ->Branch("RS2B_ref"        ,&tr.RS2B_ref   ,"RS2B_ref/D"     );
+  tree_out ->Branch("LS2T_ref"        ,&tr.LS2T_ref   ,"LS2T_ref/D"     );
+  tree_out ->Branch("LS2B_ref"        ,&tr.LS2B_ref   ,"LS2B_ref/D"     );  
   tree_out ->Branch("ct"   ,&tr.coin_time ,"coin_time/D");
   tree_out ->Branch("Rp"        ,&tr.momR      ,"momR/D"     );
   tree_out ->Branch("Lp"        ,&tr.momL      ,"momL/D"     );
-
-
+  tree_out ->Branch("Rs2_pad",tr.Rs2_pad,"Rs2_pad[100]/I");
+  tree_out ->Branch("Ls2_pad",tr.Ls2_pad,"Ls2_pad[100]/I");
 
   tree_out ->Branch("Rth_fp"          ,&tr.RXpFP        ,"RXpFP/D"       );  
   tree_out ->Branch("Lth_fp"          ,&tr.LXpFP        ,"LXpFP/D"       );  

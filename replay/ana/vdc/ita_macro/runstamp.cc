@@ -45,7 +45,8 @@ void runstamp(){
     paraname="./param/initial_10run/111510-111519.dat";
     paraname="./param/initial_all/VDCt0_all.dat";
     paraname="./param/initial_T1/111221-111368.dat";
-    paraname="./param/initial_T2/vdc_111370-111479.dat";    
+    //    paraname="./param/initial_T2/vdc_111370-111479.dat";
+    //    paraname="./param/initial_H3/vdc_111480-111542.dat";
     //    paraname="./param/initial_H1/VDCt0_H1.dat";
     bool init_flag=false;
     int run_test;
@@ -156,13 +157,14 @@ void runstamp(){
 
 
     string Date;
-    
+    //    cout<<"run_int "<<run_init<<" run_end "<<run_end<<endl;
+    string run_date=Form(" # Run %d-%d ",run_init,run_end);
     for(int i=0;i<nmax;i++){
       if(atoi(run[i].c_str())==run_init){
 	Date=date[i];	break;}
     }
     
-    ofs<<Date.c_str()<<endl;
+    ofs<<Date.c_str()<<run_date.c_str()<<endl;
     ofs_L<<Date.c_str()<<endl;
     for(int j=0;j<4;j++){
 
@@ -190,5 +192,7 @@ void runstamp(){
     ofs_L.close();
     cout<<"ofname "<<ofname.c_str()<<endl;
     cout<<"ofname "<<ofname_L.c_str()<<endl;    
+
+    gSystem->Exit(1);
     
 }

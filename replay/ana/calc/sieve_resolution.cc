@@ -12,8 +12,8 @@ void sieve_resolution(){
   else {
     
     //    f1=new TFile(Form("../rootfiles/angcalib/ang_LHRS_woRas.root"));}
-    f1=new TFile(Form("../rootfiles/angcalib/ang_LHRS_sieve.root"));}
-
+    //    f1=new TFile(Form("../rootfiles/angcalib/ang_LHRS_sieve.root"));}
+    f1=new TFile(Form("../rootfiles/angcalib/angcalib_LHRS_4th_0915_0.root"));}
     
   TTree* t1=(TTree*)f1->Get("T");
 
@@ -110,7 +110,7 @@ void sieve_resolution(){
 
   
   
-   double hole1_size=0.3;// hole radius [cm]
+   double hole1_size=0.4;// hole radius [cm]
    double hole2_size=0.2;// hole radius [cm]
 
   double min, max;
@@ -163,7 +163,8 @@ void sieve_resolution(){
   sig_th[i]=fth[i]->GetParameter(2);
   sig_th_err[i]=fth[i]->GetParError(2);  
   gth->SetPoint(i,i,sig_th[i]);
-  if(sig_th[i]!=hole2_size)gth->SetPointError(i,0,sig_th_err[i]);
+  //  if(sig_th[i]!=hole2_size)
+    gth->SetPointError(i,0,sig_th_err[i]);
   }
 
 

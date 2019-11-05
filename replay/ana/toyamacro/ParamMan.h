@@ -54,7 +54,7 @@ private:
   };
 
   double F1reso;
-
+  double coin_F1_offset;
   S2param L_F1S2T, L_F1S2B, R_F1S2T, R_F1S2B;
   S0param L_F1S0T, L_F1S0B, R_F1S0T, R_F1S0B;
   RFparam L_RF   ,          R_RF;
@@ -70,14 +70,16 @@ public:
   void SetTimeTune(  int cid, int seg, int lr, int tb, double tdcGain   );
   void SetTimeTune(  int cid, int seg, int lr, double tdcGain   );
   void SetF1reso( string &sline, string &name);
-  
-  
+  void SetF1CoinOffset( string &sline, string &name);
+  double GetF1CoinOffset();
+  double GetF1reso();
   bool SetVal( void );
   double GetTdcOffset( int cid, int seg, int lr, int tb );
   double GetTdcGain(   int cid, int seg, int lr, int tb );
   double time(         int cid, int seg, int lr, int tb, double tdc, double adc=-1.);
   double TimewalkCorrection(double par, double adc, double peak=2000.);
   void WriteToFile( const char* OutputFileName );
+  bool SetF1CoinOffset_flag=false;
 };
 
 

@@ -59,18 +59,24 @@ class s2_t0_calib : public Tree
   void SetRoot(string ifname);
   void SetInputParam(string ifname);
   void SetLR(int lr){LR=lr;}
-
+  void OutParameter(string ifname, string ofname);
+  
   private:
     int GetMaxEvent() { return ENumMax; }
     int ENumMax;
     bool anaL_oneevent();
     bool anaR_oneevent();
 
+
     TH1F *h_s2s0_beta[16], *h_s2s0_beta_FB[16];
     TH1F *h_s2s0_tof[16], *h_s2s0_tdiff[16], *h_s2s0_tof_FB[16], *h_s2s0_tdiff_FB[16];
+  
     TH2F *h2_s2s0_f1beta_fbbeta[16], *h2_s2s0_f1tof_fbtof[16];
     TF1 *ga_tdiffF1[16], *ga_tdiffFB[16];
     TH2F *h_frame[4];
+    TH1F* hcoin;
+    TH1F* hcoin_c;
+  
     int LR;//L = 0, R = 1
     int run_num;
     Setting *set;
@@ -78,11 +84,9 @@ class s2_t0_calib : public Tree
     TCanvas *c[NCanvas];
     TGraphErrors *tg_tdiffFB_pos, *tg_tdiffFB_wid;
     TGraphErrors *tg_tdiffF1_pos, *tg_tdiffF1_wid;
-
+  
     double tdiffFB_pos[16], tdiffFB_wid[16], etdiffFB_pos[16], etdiffFB_wid[16];
     double tdiffF1_pos[16], tdiffF1_wid[16], etdiffF1_pos[16], etdiffF1_wid[16];
-
-
 
     int tr_n;//num. of track
     double beta[MAX],betaF1[MAX],s2_trpad[MAX],paths2s0[MAX];
@@ -91,6 +95,8 @@ class s2_t0_calib : public Tree
     double S2_F1time[16],S0_F1time[1];
     double S2_lt[16],S2_rt[16],S0_lt[1],S0_rt[1];
     double S2_time[16],S0_time[1];
+
+  
 
 };
 
@@ -140,9 +146,14 @@ s2_t0_calib::~s2_t0_calib(){
 void s2_t0_calib::SetRoot(string ifname){
   add_tree(ifname);
   pack_tree();
-  if(LR==0)     readtreeHRSL();
-  else if(LR==1)readtreeHRSR();
-
+  if(LR==0){
+    readtreeHRSL();
+    readtreeTrackL();
+  }else if(LR==1){
+      readtreeHRSR();
+      readtreeTrackR();
+      readtreeA1R();
+      readtreeA2R();}
 }
 ////////////////////////////////////////////////////////////////////////////
 void s2_t0_calib::SetInputParam(string ifname){
@@ -167,13 +178,16 @@ void s2_t0_calib::makehist(){
     set->SetTH1(h_s2s0_beta_FB[i]   ,Form("#beta S2%s%d - S0 (FB)"             ,LorR.c_str(),i),"#beta"    ,"counts");
     set->SetTH1(h_s2s0_tof_FB[i]    ,Form("ToF S2%s%d - S0 (FB)"               ,LorR.c_str(),i),"ToF[ns]"  ,"counts");
     set->SetTH1(h_s2s0_tdiff_FB[i]  ,Form("TDiff (S2%s%d - S0) - ToF calc (FB)",LorR.c_str(),i),"Tdiff[ns]","counts");
-
     h2_s2s0_f1tof_fbtof[i]    = new TH2F(Form("h2_s2s0_f1tof_fbtof%d",i)  ,Form("h2_s2s0_f1tof_fbtof%d",i), 100, -20, 20, 100, -20, 20);
     h2_s2s0_f1beta_fbbeta[i]  = new TH2F(Form("h2_s2s0_f1beta_fbbeta%d",i),Form("h2_s2s0_f1beta_fbbeta%d",i), 200, -1, 1.5, 200, -1, 1.5);
     set->SetTH2(h2_s2s0_f1tof_fbtof[i],Form("ToF F1 vs Fbus S2%s%d",LorR.c_str(),i),"ToF(F1)[ns]","ToF(Fbus)[ns]");
     set->SetTH2(h2_s2s0_f1beta_fbbeta[i],Form("#beta F1 vs Fbus S2%s%d",LorR.c_str(),i),"#beta(F1)","#beta(Fbus)");
   }
 
+  //==== coin hist =====//
+  hcoin=new TH1F("hcoin","Coin time ; coin time [ns];Counts",10000,-100000,100000);
+
+  
 }
 ////////////////////////////////////////////////////////////////////////////
 void s2_t0_calib::loop(){
@@ -181,25 +195,39 @@ void s2_t0_calib::loop(){
   if( GetMaxEvent()>0 && GetMaxEvent()<ENum) ENum = GetMaxEvent();
   for(int n=0;n<ENum;n++){
     if(n%10000==0)cout<<n <<" / "<<ENum<<endl;
+
     tree->GetEntry(n);
-    if(LR==0 && anaL_oneevent());
-    else if(LR==1&&anaR_oneevent());
-    else continue;
+    
+    if(LR==0)anaL_oneevent();
+    else if(LR==1)anaR_oneevent();
 
     for(int i=0;i<16;i++){
       for(int j=0;j<tr_n;j++){
         bool F1Hits = false, FbusHits = false;
+	bool pid_flag=false;
+	double Beta=0.0;
+
+	if(LR==0)Beta=L_tr_p[j]/sqrt(L_tr_p[j]*L_tr_p[j]+Me*Me);
+	else if(LR==1)Beta=R_tr_p[j]/sqrt(R_tr_p[j]*R_tr_p[j]+Mpi*Mpi);
+
+	
+	//====== PID =======//
+	if(LR==0)pid_flag=true;
+	else if(LR==1 && R_a1_asum_p>50. && R_a2_asum_p>2000)pid_flag=true; // pion selection
+
+
         if(s2_trpad[j]==i){
+
+	  //anaR	  cout<<"S2T "<<S2T_F1TDC[i]<<" S2B "<<S2B_F1TDC[i]<<" S0T "<<S0T_F1TDC[i]<<" S0B "<<S0B_F1TDC[i]<<endl;
           if(S2T_F1TDC[i]>0 && S2B_F1TDC[i]>0 && S0T_F1TDC[0]>0. && S0B_F1TDC[0]>0.)F1Hits=true;
           if(S2_lt[i]>0. && S2_rt[i]>0. && S0_lt[0]>0 && S0_rt[0]>0)FbusHits=true;
-          if(F1Hits){
-            h_s2s0_tdiff[i] ->Fill(S2_F1time[i] - S0_F1time[0] - paths2s0[j]/LightVelocity);
+          if(F1Hits && pid_flag){
+            h_s2s0_tdiff[i] ->Fill(S2_F1time[i] - S0_F1time[0] - paths2s0[j]/(Beta*LightVelocity));
             h_s2s0_tof[i]   ->Fill(S2_F1time[i] - S0_F1time[0]);
             h_s2s0_beta[i]  ->Fill(betaF1[j]);
           }
-          if(FbusHits){
-            //cout<<"Fbus hit " <<S2_time[i] - S0_time[0]<<endl;
-            h_s2s0_tdiff_FB[i] ->Fill(S2_time[i] - S0_time[0] + paths2s0[j]/LightVelocity);
+          if(FbusHits && pid_flag){
+            h_s2s0_tdiff_FB[i] ->Fill(S2_time[i] - S0_time[0] + paths2s0[j]/(Beta*LightVelocity));
             h_s2s0_tof_FB[i]   ->Fill(S2_time[i] - S0_time[0]);
             h_s2s0_beta_FB[i]  ->Fill(beta[j]);
           }
@@ -280,6 +308,7 @@ void s2_t0_calib::fit(){
   //  tg_tdiffF1_pos ->SetPointError(i,0,etdiffF1_pos[i]); 
   //  tg_tdiffF1_wid ->SetPointError(i,0,etdiffF1_wid[i]);
   //}
+  
   for(int i=0;i<16;i++){
     ga_tdiffF1[i] = new TF1(Form("ga_tdiffF1%d",i+1),"gaus",-2,2);
     set->SetTF1(ga_tdiffF1[i],2,1,1);
@@ -350,6 +379,7 @@ void s2_t0_calib::draw(){
     c[8]->cd(i+1);gPad->SetLogz(1);h2_s2s0_f1beta_fbbeta[i] ->Draw("colz");
   }
 
+  
   param->WriteToFile("param/tmp.param");
   
 }
@@ -408,9 +438,8 @@ bool s2_t0_calib::anaR_oneevent(){
   //cout<<"s2_t0_calib::anaR_oneevent"<<endl;
 
   convertF1TDCR(param);
-
   tr_n = (int)R_tr_n;
-  //cout<<"tr_n" <<tr_n<<endl;
+  
   if(tr_n>MAX)tr_n=MAX;
 
   for(int i=0;i<tr_n;i++){
@@ -446,6 +475,64 @@ bool s2_t0_calib::anaR_oneevent(){
   if(DR_T5>0. ) return true;
   else return false;
 }
+
+///////////////////////////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////////////////////////
+
+void s2_t0_calib:: OutParameter(string ifname,string ofname){
+
+    ifstream ifp(ifname.c_str());
+    ofstream ofp(ofname.c_str(),std::ios::out);
+
+    string title;
+    int l=0;
+    string st;
+    string p;
+    string F1_s2L,F1_s2R;
+    string t0_st[16];
+    double t0_s2R[16],t0_s2L[16];
+    double gain[16];
+    string buf;
+    for(int i=0;i<16;i++)gain[i]=56e-3;//[ns]
+    
+    if(LR==0){F1_s2R="L.s2.R.off_F1";F1_s2L="L.s2.L.off_F1";
+    }else if(LR==1){F1_s2R="R.s2.R.off_F1";F1_s2L="R.s2.L.off_F1";}
+
+
+    while(!ifp.eof()){
+      ifp >> title;
+
+      if(title==F1_s2R || title==F1_s2L){	
+	ifp >> p;// >> p; >> p;
+	ofp<<title<<" = ";
+	for(int k=0;k<16;k++){
+	  ifp>> t0_st[k];
+	  if(title==F1_s2R){
+	    t0_s2R[k]=atoi(t0_st[k].c_str());
+	    ofp<<tdiffF1_pos[k]/gain[k]+t0_s2R[k]<<" ";
+	  }else if(title==F1_s2L){
+	    t0_s2L[k]=atoi(t0_st[k].c_str());
+	    ofp<<tdiffF1_pos[k]/gain[k]+t0_s2L[k]<<" ";
+	  }
+	}//for
+	ofp<<endl;
+	
+      }else{
+      getline(ifp,buf);
+      ofp <<title<<buf<<endl;
+
+      }
+      
+    }//while
+
+
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////
 //////////////////////////// main //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
@@ -454,6 +541,7 @@ int main(int argc, char** argv){
   string ifname = "Rootfiles/tritium_94003.root";
   string ofname = "/pdf/test.pdf";
   string paramname = "param/94003.param";
+  string ofparam;
   int ch;
   int lr=0;
   int MaxNum = 0;
@@ -461,9 +549,9 @@ int main(int argc, char** argv){
   bool output_tree_flag = false;
   bool draw_flag = true;
   bool coin_flag = false;
-  string pngname;
+  bool new_param_flag=false;
   extern char *optarg;
-  while((ch=getopt(argc,argv,"hf:w:n:bcop:LR"))!=-1){
+  while((ch=getopt(argc,argv,"hf:w:n:P:bcop:LR"))!=-1){
     switch(ch){
     case 'f':
       ifname = optarg;
@@ -489,6 +577,11 @@ int main(int argc, char** argv){
       draw_flag = false;
       paramname = optarg;
       cout<<"input param name : "<<paramname<<endl;
+      break;
+    case 'P':
+      new_param_flag=true;
+      ofparam = optarg;
+      cout<<"output param name : "<<ofparam<<endl;
       break;
     case 'L':
       lr = 0;
@@ -525,6 +618,8 @@ int main(int argc, char** argv){
   calib->makehist();
   calib->loop();
   calib->fit();
+  if(new_param_flag)calib->OutParameter(paramname,ofparam);
+
   calib->draw();
   if(output_flag)calib->savecanvas(ofname);
   delete calib;

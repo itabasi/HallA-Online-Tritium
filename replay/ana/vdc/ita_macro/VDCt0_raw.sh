@@ -1,8 +1,8 @@
 #! /bin/sh
 
 	    
-init=111160
-end=111840
+init=111552
+end=111599
 
 k=1 # Branch Num
 i=`expr $init`

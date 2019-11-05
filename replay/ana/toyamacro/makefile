@@ -41,6 +41,8 @@ TARGET14=     s2f1_twc
 OBJS14=       s2f1_twc.o Tree.o Setting.o ParamMan.o
 TARGET15=     ana_Lambda_bg
 OBJS15=       ana_Lambda_bg.o Tree.o Setting.o ParamMan.o
+TARGET16=     coin_t0_calib
+OBJS16=       coin_t0_calib.o Tree.o Setting.o ParamMan.o
 all: $(TARGET1) \
      $(TARGET2) \
      $(TARGET3) \
@@ -55,7 +57,8 @@ all: $(TARGET1) \
      $(TARGET12) \
      $(TARGET13) \
      $(TARGET14) \
-     $(TARGET15) 
+     $(TARGET15) \
+     $(TARGET16) 
 $(LIBDIR)/%.o : %.cc
 	$(CXX) $(CFLAGS) -c -o $@ $< $(CXXFLAGS)
 
@@ -101,6 +104,8 @@ $(TARGET13): $(patsubst %,$(LIBDIR)/%,$(OBJS13))
 $(TARGET14): $(patsubst %,$(LIBDIR)/%,$(OBJS14))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 $(TARGET15): $(patsubst %,$(LIBDIR)/%,$(OBJS15))
+	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
+$(TARGET16): $(patsubst %,$(LIBDIR)/%,$(OBJS16))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 .PHONY: clean
 clean:

@@ -122,6 +122,7 @@ bool ParamMan::SetVal( void )
     
 
     name = "F1TDC.reso =";                          SetF1reso(line,name);
+    name = "Coin.off_F1 =";                         SetF1CoinOffset(line,name);
     //time walk correction parameters style is different from replay DB. Sorry.
     name = "R.s2.R.timewalk_params =" ;    npar=16; SetAParam(line,name,R_FbS2T.timeWalk ,npar);
     name = "R.s2.L.timewalk_params =" ;    npar=16; SetAParam(line,name,R_FbS2B.timeWalk ,npar);
@@ -168,6 +169,47 @@ void ParamMan::SetF1reso( string &line, string &name)
   }
 
 }
+
+///////////////////////////////////
+
+double ParamMan::GetF1reso(){
+
+  return F1reso;
+  
+}
+
+///////////////////////////////////
+
+void ParamMan::SetF1CoinOffset( string &line, string &name)
+{
+
+  double offset=0.0;
+  if ( line.compare(0,name.size(),name) != 0 ) {
+   return;
+  }
+
+
+  istringstream sline(line);
+  sline >> name;
+  sline >> name;
+  sline >> offset;
+
+  coin_F1_offset = offset;
+  SetF1CoinOffset_flag=true;
+
+}
+
+///////////////////////////////////
+
+double ParamMan::GetF1CoinOffset(){
+
+  double offset;
+  if(SetF1CoinOffset_flag)offset=coin_F1_offset;
+  else offset=0.0;
+    return coin_F1_offset;
+  
+}
+
 
 ///////////////////////////////////
 void ParamMan::SetAParam( string &line, string &name, double *par, int &npar )

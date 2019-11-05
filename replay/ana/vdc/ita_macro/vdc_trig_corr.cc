@@ -6,7 +6,8 @@ extern double vdc_off(int wire);
 
 void vdc_trig_corr(){
 
-  string fname="/data1/root/tritium_111160.root";
+  //  string fname="/data1/root/tritium_111160.root";
+    string fname="/data2/small/tritium_111160-111220.root";
   //  TFile* f1=new TFile(fname.c_str());
   TChain* T=new TChain("T");
   T->Add(fname.c_str());
@@ -20,6 +21,7 @@ void vdc_trig_corr(){
   double DR_evtype,R_s2_time[nmax],L_s2_time[nmax],R_vdc_u1_wire[nmax],R_vdc_u1_ritme[nmax],Ndata_R_vdc_u1_rtime,R_vdc_u1_rtime[nmax],R_vdc_u1_time[nmax];
   double R_s2_rt[nmax],R_s2_rt_c[nmax],R_s2_t_pads[nmax],L_s2_rt[nmax],L_s2_rt_c[nmax],L_s2_t_pads[nmax];
   int Ndata_R_vdc_u1_wire,Ndata_R_vdc_rtime;
+  
   T->SetBranchStatus("*",0);  
   T->SetBranchStatus("DR.evtype",1);                 T->SetBranchAddress("DR.evtypebits",&DR_evtype);
   T->SetBranchStatus("R.s2.time"            ,1);     T->SetBranchAddress("R.s2.time"            , R_s2_time           );
@@ -50,13 +52,29 @@ void vdc_trig_corr(){
   // T->SetBranchStatus("R.vdc.v1.time"          ,1);         T->SetBranchAddress("R.vdc.v1.time"          ,R_vdc_v1_time);         
   // T->SetBranchStatus("R.vdc.v2.time"          ,1);         T->SetBranchAddress("R.vdc.v2.time"          ,R_vdc_v2_time);         
 
+  //==========================================================================//
+  double ct[100],Rz[100],a1,a2;
+  T->SetBranchStatus("R.tr.vz"          ,1);         T->SetBranchAddress("R.tr.vz"          ,Rz);       
+  T->SetBranchStatus("ct"          ,1);         T->SetBranchAddress("ct"          ,ct);         
+  T->SetBranchStatus("R.a1.asum_p"          ,1);         T->SetBranchAddress("R.a1.asum_p"          ,&a1);
+  T->SetBranchStatus("R.a2.asum_p"          ,1);         T->SetBranchAddress("R.a2.asum_p"          ,&a2);         
+
+  
+  
   double min_tdc=-0.5e-6; //[sec]
   double max_tdc= 0.5e-6; //[sec]
   int    bin_tdc= 1000;//(int)((max_tdc - min_tdc)/5.0e-10);
   TH1F* h_vdc_u1_t=new TH1F("h_vdc_u1_t","VDC U1 Time hist w/o Trigger time correction [sec]; TDC [sec] ; Counts ",bin_tdc,min_tdc,max_tdc);
   TH1F* h_vdc_u1_tc=new TH1F("h_vdc_u1_tc","VDC U1 Time hist [sec] w/ Trigger time correction [sec]; TDC [sec] ; Counts",bin_tdc,min_tdc,max_tdc);
 
-  
+  TH1F* h_vdc_u1_k=new TH1F("h_vdc_u1_k","VDC U1 Time hist w/ Trigger time correction with Kaon Events [sec]; TDC [sec] ; Counts ",bin_tdc,min_tdc,max_tdc);
+  TH1F* h_vdc_u1_p=new TH1F("h_vdc_u1_p","VDC U1 Time hist w/ Trigger time correction with Proton Events [sec]; TDC [sec] ; Counts ",bin_tdc,min_tdc,max_tdc);
+  TH1F* h_vdc_u1_pi=new TH1F("h_vdc_u1_pi","VDC U1 Time hist w/ Trigger time correction with Pion Events [sec]; TDC [sec] ; Counts ",bin_tdc,min_tdc,max_tdc);
+
+  bool pion_flag=false;
+  bool kaon_flag=false;
+  bool proton_flag=false;
+
   
   //================================//
   //======= Fill Event =============//
@@ -80,16 +98,24 @@ void vdc_trig_corr(){
     }
     Ndata_R_vdc_u1_rtime = -1000.0;
     Ndata_R_vdc_u1_wire  = -1000.0;
+
+    kaon_flag=false;
+    proton_flag=false;
+    pion_flag=false;
+
+
     
-      
     T->GetEntry(i);
 
+    if(a1<50. && a2>2000 && fabs(ct[0])<1.)kaon_flag=true;
+    if(a1<50. && a2>2000 && fabs(ct[0]-3.0)<1.)pion_flag=true;
+    if(a1<50. && a2>2000 && fabs(ct[0]+8.0)<1.)proton_flag=true;
+    //    if(a1<50. && a2<2000)proton_flag=true;
+    //    if(a1>50. && a2>2000.)pion_flag=true;
     
     double conv_tdc = 5.0e-10; // [ch] -> [sec]
     double T_trig   = L_s2_rt_c[(int)L_s2_t_pads[0]] - R_s2_rt_c[(int)R_s2_t_pads[0]];
 
-    //    cout<<"DR_evtype "<<DR_evtype<<" Ndata_R_vdc_u1_wire "<<Ndata_R_vdc_u1_wire<<" T_trig "<<T_trig<<endl;
-    //    if(DR_evtype==32 && Ndata_R_vdc_u1_wire==5 && R_vdc_u1_wire[0]==305){
     if(DR_evtype==32){
       double T_corr[Ndata_R_vdc_u1_wire];
       for(int j=0;j<Ndata_R_vdc_u1_wire;j++){
@@ -97,6 +123,10 @@ void vdc_trig_corr(){
 	T_corr[j]=-conv_tdc*(R_vdc_u1_rtime[j]-vdc_off((int)R_vdc_u1_wire[j]))-T_trig;  
 	h_vdc_u1_t ->Fill(R_vdc_u1_time[j]);
 	h_vdc_u1_tc->Fill(T_corr[j]);
+
+	if(kaon_flag)h_vdc_u1_k->Fill(T_corr[j]);
+	if(pion_flag)h_vdc_u1_pi->Fill(T_corr[j]);
+	if(proton_flag)h_vdc_u1_p->Fill(T_corr[j]);
 	
       } // end if
     } // end if
@@ -111,7 +141,15 @@ void vdc_trig_corr(){
   h_vdc_u1_tc->Draw();
   h_vdc_u1_t->Draw("same");
 
-  
+  TCanvas*c1=new TCanvas("c1","c1");  
+  c1->cd();
+  h_vdc_u1_k->SetLineColor(kBlue);
+  h_vdc_u1_p->SetLineColor(kRed);
+  h_vdc_u1_pi->SetLineColor(kGreen);
+  h_vdc_u1_tc->Draw();
+  h_vdc_u1_pi->Draw("same");
+  h_vdc_u1_k->Draw("same");
+  h_vdc_u1_p->Draw("same");
 
   
 }
