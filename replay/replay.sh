@@ -15,7 +15,7 @@ j=`expr $end`
 do
 	echo run number: $i
 
-	analyzer="analyzer \"replay_coinc_new.C($i,-1)\""
+	analyzer="analyzer -l \"replay_coinc_new.C($i,-1)\""
 	echo $analyzer
 	eval $analyzer
 

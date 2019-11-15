@@ -11,6 +11,7 @@ using namespace std;
 
 struct TreeBranch{
   int z_cut,pid_cut,ct_cut;
+  int nev,nrun;
   double missing_mass, coin_time;
   double missing_mass_acc;
   double missing_mass_L;
@@ -25,9 +26,12 @@ struct TreeBranch{
   double momR, momL;
   double zR, zL;
   double AC1_sum, AC2_sum;
+  double AC1_npe_sum,AC2_npe_sum;
+  double AC1_npe[24],AC2_npe[26];
   double ct_acc,ct_b; 
   double Rs0ra_p,Rs0la_p,Rs0a_p;
   double Rs2ra_p[16],Rs2la_p[16],Rs2a_p[16];
+  double Ls2ra_p[16],Ls2la_p[16],Ls2a_p[16];
   double Rvdc_u1,Rvdc_u2,Rvdc_v1,Rvdc_v2;
   double trig;
   double RXFP,RYFP,RXpFP,RYpFP;
@@ -40,8 +44,8 @@ struct TreeBranch{
   int Rs2_pad[100],Ls2_pad[100];
   double RS2T_F1[16],RS2B_F1[16],RS2T_ref,RS2B_ref;
   double LS2T_F1[16],LS2B_F1[16],LS2T_ref,LS2B_ref;
-  double Rtof[16],Ltof[16];
-  int runnum;
+  double Rtof[100],Ltof[100];
+  //int runnum;
 };
 static TreeBranch tr;
 
@@ -74,6 +78,8 @@ class ana : public Tree
     void MTParam_R();
     void MTParam_L();
     void MTP_mom();
+    void GetACParam();
+    double  AC_npe(int nac, int seg, double adc);
     void Calib(int rt, int lt);
     double Eloss(double yp,double z,char* arm);
     double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
@@ -225,7 +231,8 @@ class ana : public Tree
     bool ploss;
     double tdc_time;
     bool Lp_scale=false;
-    bool nnL_flag=false;
+  bool nnL_flag=false;
+  double ac1_off[24],ac1_1pe[24],ac2_off[26],ac2_1pe[26];
 };
 
 #endif

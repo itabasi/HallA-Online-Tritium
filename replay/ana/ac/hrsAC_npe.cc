@@ -2,8 +2,10 @@ void hrsAC_npe(){
 
   gStyle->SetOptLogy(1);
   //  TFile* f1= new TFile("/adaqfs/home/a-onl/tritium_work/itabashi/ita_macro/rootfiles/tritium_new93403.root");
+  TFile* f1= new TFile("/data2/AC/tritium_93403.root");
   TTree* t1 =(TTree*)f1->Get("tree");
 
+  
   TH1F *hac1a[100]; //AC1 Ch24 Right &Left ADC
   TH1F *hac2a[100]; // AC2 ch26 Right & Left ADC
   TF1 *fac1a[100][2]; //AC1 Fitting func.
@@ -20,7 +22,7 @@ void hrsAC_npe(){
 
     hac1a[i]=new TH1F(Form("hac1a[%d]",i),Form("hac1a[%d]",i),abin,amin,amax);
     t1->Project(Form("hac1a[%d]",i),Form("Ra1a_c[%d]",i)); //AC1 Right PMT
-
+  }
 
   //------ AC2 ----------------//
   for(int i=0;i<26;i++){
@@ -32,7 +34,7 @@ void hrsAC_npe(){
     //  fac2a[i][1]=new TF1(Form("fac2a[%d][1]",i),gaus,Form("fac2min[%d][1]",i),Form("fac2max[%d][1]",i)); //1PE
  
 
-}
+  }
 
 
 //====== Pedestal and 1PE position ===============//
@@ -101,7 +103,7 @@ gain2[25]=368.;
   hac2a[0]->Draw();
   c0->cd(4); 
   hac2a[1]->Draw();
-
+  
 
   //======== Converce NPE ==========//
 
@@ -115,7 +117,7 @@ gain2[25]=368.;
     t1->Project(Form("hac1npe[%d]",i),
 		Form("Ra1a_c[%d]/%lf",i,gain1[i])); //AC1 Right PMT
 		//Form("Ra1a_c[%d]/%lf",i,400.)); //AC1 Right PMT
-}
+  }
   //------ AC2 ----------------//
   for(int i=0;i<26;i++){
     hac2npe[i]=new TH1F(Form("hac2npe[%d]",i),Form("hac2npe[%d]",i),300,-10.,50.);
@@ -134,5 +136,6 @@ gain2[25]=368.;
   hac2npe[1]->Draw();
 
 
-}
+ 
 
+}

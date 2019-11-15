@@ -15,8 +15,9 @@ void F1Shift_corr(){
   //  string ifname="../run_list/nnlambda/Lambda_small_opt_H2.list";
   //  string ifname="../run_list/nnlambda/nnL_small_opt4.list";
   //   string ifname="../run_list/nnlambda/Lambda_small_optH2_test.list";
-  //  string ifname="../run_list/nnlambda/Lambda_small_optH1_test.list";
-string ifname="../run_list/nnlambda/nnL_small_opt4.list";
+  string ifname="../run_list/nnlambda/Lambda_small_optH1test.list";
+  //  string ifname="../run_list/nnlambda/test.list";
+  //string ifname="../run_list/nnlambda/nnL_small_opt4.list";
   ifstream ifp(Form("%s",ifname.c_str()),ios::in);
   if(!ifp){cout<<"no input file "<<ifname<<endl; exit(1); }
   string buf, runname;
@@ -44,9 +45,11 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
   double Rs2_pads[100],Ls2_pads[100];
   double R_s2_trpad[100],L_s2_trpad[100];
   double R_tr_pathl[100],L_tr_pathl[100],R_s2_trpath[100],L_s2_trpath[100];
-  double ct,ct_c,ct_p,rtof,ltof,L_tr_p[100],R_tr_p[100];
+  double ct,ct_c,ct_p,ct_r,rtof,ltof,L_tr_p[100],R_tr_p[100];
   double Rzt[100],Lzt[100];
   double Ra1sum,Ra2sum;
+  double Rs2_ra[100],Rs2_la[10],Ls2_ra[100],Ls2_la[100];
+  double Rs2_rt[100],Rs2_lt[10],Ls2_rt[100],Ls2_lt[100];
   int runnum;
   T->SetBranchStatus("*",0);    
   T->SetBranchStatus("RTDC.F1FirstHit",1);
@@ -69,12 +72,29 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
   T->SetBranchAddress("L.s2.trpad",L_s2_trpad);
   T->SetBranchStatus("L.s2.trpath"     ,1);
   T->SetBranchAddress("L.s2.trpath",L_s2_trpath);
-
   
+  T->SetBranchStatus("L.s2.ra_p",1);
+  T->SetBranchAddress("L.s2.ra_p",Ls2_ra);
+  T->SetBranchStatus("L.s2.la_p",1);
+  T->SetBranchAddress("L.s2.la_p",Ls2_la);  
+  T->SetBranchStatus("L.s2.rt_c",1);
+  T->SetBranchAddress("L.s2.rt_c",Ls2_rt);
+  T->SetBranchStatus("L.s2.lt_c",1);
+  T->SetBranchAddress("L.s2.lt_c",Ls2_lt);  
+
+  T->SetBranchStatus("R.s2.ra_p",1);
+  T->SetBranchAddress("R.s2.ra_p",Rs2_ra);
+  T->SetBranchStatus("R.s2.la_p",1);
+  T->SetBranchAddress("R.s2.la_p",Rs2_la);  
+  T->SetBranchStatus("R.s2.rt_c",1);
+  T->SetBranchAddress("R.s2.rt_c",Rs2_rt);
+  T->SetBranchStatus("R.s2.lt_c",1);
+  T->SetBranchAddress("R.s2.lt_c",Rs2_lt);  
+
   T->SetBranchStatus("R.s2.t_pads",1);
   T->SetBranchAddress("R.s2.t_pads",Rs2_pads);
   T->SetBranchStatus("R.s2.trpad"      ,1);
-  T->SetBranchAddress("R.s2.trpad",R_s2_trpad);
+  T->SetBranchAddress("R.s2.trpad",R_s2_trpad);  
   T->SetBranchStatus("R.tr.p"          ,1);
   T->SetBranchAddress("R.tr.p" ,R_tr_p );
   T->SetBranchStatus("R.s2.trpath"     ,1);
@@ -93,7 +113,8 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
   //  ofname="F1shift_corr_optH2_1.root";
   //  ofname="F1shift_corr_optnnL_4.root";
   //  ofname="F1shift_corr_optH2_test2.root";
-  ofname="F1shift_corr_optnnL4.root";  
+  //  ofname="F1shift_corr_optnnL4.root";
+  ofname="../rootfiles/tcoin/F1_Lambda_small_optH1.root";  
   TFile* ofp = new TFile(Form("%s",ofname.c_str()),"recreate");
 
   TTree* tnew=new TTree("T","F1TDC Calibration");//=T->CloneTree(0);
@@ -120,12 +141,23 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
   tnew->Branch("ct",&ct,"ct/D");
   tnew->Branch("ct_c",&ct_c,"ct_c/D");
   tnew->Branch("ct_p",&ct_p,"ct_p/D");
+  tnew->Branch("ct_r",&ct_r,"ct_r/D");
   tnew->Branch("rtof",&rtof,"rtof/D");
   tnew->Branch("ltof",&ltof,"ltof/D");
   tnew->Branch("pid_cut",&ac_cut,"ac_cut/i");
   tnew->Branch("z_cut",&z_cut,"z_cut/i");
   tnew->Branch("Rzt",Rzt,"Rzt[100]/D");  
   tnew->Branch("Lzt",Lzt,"Lzt[100]/D");  
+
+  tnew->Branch("Rs2_rt_p",Rs2_rt,"Rs2_rt[100]/D");  
+  tnew->Branch("Rs2_lt_p",Rs2_lt,"Rs2_lt[100]/D");
+  tnew->Branch("Rs2_ra_p",Rs2_ra,"Rs2_ra[100]/D");  
+  tnew->Branch("Rs2_la_p",Rs2_la,"Rs2_la[100]/D");
+  tnew->Branch("Ls2_rt_p",Ls2_rt,"Ls2_rt[100]/D");  
+  tnew->Branch("Ls2_lt_p",Ls2_lt,"Ls2_lt[100]/D");
+  tnew->Branch("Ls2_ra_p",Ls2_ra,"Ls2_ra[100]/D");  
+  tnew->Branch("Ls2_la_p",Ls2_la,"Ls2_la[100]/D");  
+  
   tnew->Branch("runnum",&runnum);
   
   for(int i=0;i<ENum;i++){
@@ -142,9 +174,12 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
     z_cut=-1;
     Rs2_pad=-1;
     Ls2_pad=-1;
+    bool Rs2_adc=false;
+    bool Ls2_adc=false;
+
     
     T->GetEntry(i);
-
+    
     RS2T_ref = 0.0;
     RS2B_ref = 0.0;
     LS2T_ref = 0.0;
@@ -155,8 +190,24 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
     LS2T_ref = LF1[30];
     LS2B_ref = LF1[37];
 
+    
+    //    RS2T_ref = RF1[15]; //Reference signal
+    //    RS2B_ref = RF1[15]; //Reference signal
+    //    LS2T_ref = LF1[47]; //Reference signal
+    //    LS2B_ref = LF1[47]; //Reference signal
+    double RF_L=LF1[47];
+    double RF_R=LF1[15];
+    
+    //    RS2T_ref = RF1[9];  // L1A_R
+    //    RS2B_ref = RF1[9];  // L1A_R
+    //    LS2T_ref = LF1[30]; // L1A remote
+    //    LS2B_ref = LF1[30]; // L1A remote
+  
+
+
 
     for(int j=0;j<16;j++){
+
       RS2T[j]= 0.0;
       RS2B[j]= 0.0;
       LS2T[j]= 0.0;
@@ -173,12 +224,17 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
       LS2T_c[j]= -LS2T[j] + LS2T_ref;
       LS2B_c[j]= -LS2B[j] + LS2B_ref;
 
+      RS2T_c[j]= -RS2T[j] + RS2T_ref ;
+      RS2B_c[j]= -RS2B[j] + RS2B_ref ;
+      LS2T_c[j]= -LS2T[j] + LS2T_ref ;
+      LS2B_c[j]= -LS2B[j] + LS2B_ref ;      
+
     }
 
 
     const double mk= 0.493677;
     const double cc = 0.299792458;          // speed of light in vacuum (m/ns)
-    int mode=2;
+    int mode=1;
     double tdc_time;
     double coin_offset;
     if(mode==1){
@@ -190,14 +246,20 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
     }
 
 
+    Rs2_pad = (int)Rs2_pads[0];
+    Ls2_pad = (int)Ls2_pads[0];    
+
+    
     if(Ra1sum<50. && Ra2sum>2000)ac_cut=1;
     else ac_cut=0;
     if(fabs(Rzt[0]+Lzt[0])/2.0<0.1 && fabs(Rzt[0]-Lzt[0])<0.03)z_cut=1;
     else z_cut=0;
-			       
 
-    Rs2_pad = (int)Rs2_pads[0];
-    Ls2_pad = (int)Ls2_pads[0];    
+
+    if(Rs2_ra[Rs2_pad]>100 && Rs2_la[Rs2_pad]>100)Rs2_adc=true;
+    if(Ls2_ra[Ls2_pad]>100 && Ls2_la[Ls2_pad]>100)Ls2_adc=true;
+
+    
     double Rs2_off = s2f1_off(Rs2_pad,"R",mode);
     double Ls2_off = s2f1_off(Ls2_pad,"L",mode);
     double tof_rb=( ( RS2T_c[Rs2_pad] + RS2B_c[Rs2_pad] + Rs2_off )/2.0 )*tdc_time;
@@ -205,32 +267,49 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
     double R_betaK=R_tr_p[0]/sqrt(mk*mk + R_tr_p[0]*R_tr_p[0]);      
     double L_tgt_b = tof_lb + ( L_tr_pathl[0] + L_s2_trpath[0] )/cc;
     double R_tgt_b = tof_rb + ( R_tr_pathl[0] + R_s2_trpath[0] )/R_betaK/cc;
-    ct = - L_tgt_b + R_tgt_b - coin_offset;
 
-    if(ct> 3500.) ct_p=ct-3.65049e3;
-    if(ct<-3500.) ct_p=ct+3.65063e3;
+    
+    //    if(Rs2_adc && Ls2_adc)
+      ct = - L_tgt_b + R_tgt_b - coin_offset;
+      //    if(Rs2_adc && Ls2_adc)
+      ct_r=  R_tgt_b - ( L_tr_pathl[0] + L_s2_trpath[0] )/cc + Ls2_off/2.0*tdc_time -coin_offset ;
+    
+    //    if(ct> 3500.) ct_p=ct-3.65049e3;
+    //    if(ct<-3500.) ct_p=ct+3.65063e3;
 
     
     //===== F1 Correction =======//
 
       double F1off=350;
+      F1off=0.0;
       double F1off_LS2B;
       double F1off_LS2T;
       double F1off_RS2T;
       double F1off_RS2B;
       if(mode==1){
+	//	F1off_RS2T=0.0;
+	//	F1off_RS2B=-2.0;
+	
+	//	F1off_LS2T=0.0;
+	//	F1off_LS2B=-3.0;
 	F1off_RS2T=0.0;
-	F1off_RS2B=-2.0;
+	F1off_RS2B=0.0;
 	
 	F1off_LS2T=0.0;
-	F1off_LS2B=-3.0;
+	F1off_LS2B=0.0;
+	
 
       }else if(mode==2){
-	F1off_RS2T=0.0;
-	F1off_RS2B=-2.0;
+	//	F1off_RS2T=0.0;
+	//	F1off_RS2B=-2.0;
 	
-	F1off_LS2T=+280.-5.0;
-	F1off_LS2B=+280.-5.0;
+	//	F1off_LS2T=+280.-5.0;
+	//	F1off_LS2B=+280.-5.0;
+	F1off_RS2T=0.0;
+	F1off_RS2B=0.0;	
+	F1off_LS2T=0.0;
+	F1off_LS2B=0.0;
+	
 
 
       }
@@ -240,19 +319,22 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
       bool F1shift_flag=true;
 
       if(F1shift_flag){
+
+
 	if(RS2T_c[j]>pow(2,15))RS2T_c[j]=RS2T_c[j] -pow(2.0,16) + (F1off + F1off_RS2T);
 	else if(RS2T_c[j]<-pow(2,15))RS2T_c[j]=RS2T_c[j] + pow(2.0,16) - (F1off + F1off_RS2T);
 	if(RS2B_c[j]>pow(2,15))RS2B_c[j]=RS2B_c[j] -pow(2.0,16) + (F1off + F1off_RS2B);
       else if(RS2B_c[j]<-pow(2,15))RS2B_c[j]=RS2B_c[j] + pow(2.0,16) - (F1off + F1off_RS2B);
 
+      
       if(LS2T_c[j]>pow(2,15))LS2T_c[j]=LS2T_c[j] -pow(2.0,16) + ( F1off + F1off_LS2T);
       else if(LS2T_c[j]<-pow(2,15))LS2T_c[j]=LS2T_c[j] + pow(2.0,16) - ( F1off +F1off_LS2T);
       if(LS2B_c[j]>pow(2,15))LS2B_c[j]=LS2B_c[j] -pow(2.0,16) + ( F1off + F1off_LS2B);
       else if(LS2B_c[j]<-pow(2,15))LS2B_c[j]=LS2B_c[j] + pow(2.0,16) - ( F1off + F1off_LS2B);
-      }
-      
-    }//F1shift_flag
 
+	
+      }//F1shift_flag
+    }  
 
 
        
@@ -269,7 +351,7 @@ string ifname="../run_list/nnlambda/nnL_small_opt4.list";
     ltof= L_tgt;
     ct_c = - L_tgt + R_tgt - coin_offset;
     //    if(Rs2_pad==8)ct_c=ct_c-1000.0 +35.3;
-
+    
     tnew->Fill();
 
     if(i%100000==0)cout<<"Filled Events "<<i<<" / "<<ENum<<endl;

@@ -362,9 +362,9 @@ void Tree::readtreeS2R()
 }                                 
 //////////////////////////////////////////////////
 void Tree::readtreeA1R(){
-  //  tree->SetBranchStatus("R.a1.a"               ,1);  tree->SetBranchAddress("R.a1.a"               , R_a1_a              ); 
+  tree->SetBranchStatus("R.a1.a"               ,1);  tree->SetBranchAddress("R.a1.a"               , R_a1_a              ); 
   //  tree->SetBranchStatus("R.a1.a_c"             ,1);  tree->SetBranchAddress("R.a1.a_c"             , R_a1_a_c            ); 
-  //  tree->SetBranchStatus("R.a1.a_p"             ,1);  tree->SetBranchAddress("R.a1.a_p"             , R_a1_a_p            ); 
+  tree->SetBranchStatus("R.a1.a_p"             ,1);  tree->SetBranchAddress("R.a1.a_p"             , R_a1_a_p            ); 
   //  tree->SetBranchStatus("R.a1.t"               ,1);  tree->SetBranchAddress("R.a1.t"               , R_a1_t              ); 
   //  tree->SetBranchStatus("R.a1.t_c"             ,1);  tree->SetBranchAddress("R.a1.t_c"             , R_a1_t_c            ); 
   tree->SetBranchStatus("R.a1.asum_p"          ,1);  tree->SetBranchAddress("R.a1.asum_p"          ,&R_a1_asum_p         ); 
@@ -383,9 +383,9 @@ void Tree::readtreeA1R(){
 }
 //////////////////////////////////////////////////
 void Tree::readtreeA2R(){
-  //  tree->SetBranchStatus("R.a2.a"               ,1);  tree->SetBranchAddress("R.a2.a"               , R_a2_a              ); 
+  tree->SetBranchStatus("R.a2.a"               ,1);  tree->SetBranchAddress("R.a2.a"               , R_a2_a              ); 
   //  tree->SetBranchStatus("R.a2.a_c"             ,1);  tree->SetBranchAddress("R.a2.a_c"             , R_a2_a_c            ); 
-  //  tree->SetBranchStatus("R.a2.a_p"             ,1);  tree->SetBranchAddress("R.a2.a_p"             , R_a2_a_p            ); 
+  tree->SetBranchStatus("R.a2.a_p"             ,1);  tree->SetBranchAddress("R.a2.a_p"             , R_a2_a_p            ); 
   //  tree->SetBranchStatus("R.a2.t"               ,1);  tree->SetBranchAddress("R.a2.t"               , R_a2_t              ); 
   //  tree->SetBranchStatus("R.a2.t_c"             ,1);  tree->SetBranchAddress("R.a2.t_c"             , R_a2_t_c            ); 
   tree->SetBranchStatus("R.a2.asum_p"          ,1);  tree->SetBranchAddress("R.a2.asum_p"          ,&R_a2_asum_p         ); 

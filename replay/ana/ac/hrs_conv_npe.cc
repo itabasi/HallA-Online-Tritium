@@ -48,7 +48,7 @@ extern double ac1_offset(int ch);
 int main(int argc, char** argv){
   gStyle->SetOptLogy(1);
   int ch; char* mode="H";
-  string ifname ="/data/opt_small/pre_run/tritium_93403.root";
+  string ifname ="/data2/AC/tritium_93403.root";
   string ofname = "..//pdf/ac/hydro1_AC_eff_test.pdf";
   bool output_flag = false;
   bool output_tree_flag = false;

@@ -5,7 +5,7 @@
 ### 111369 -111412 ###
 
 init=111160
-end=111220
+end=111210
 
 i=`expr $init`
 j=`expr $end`
@@ -17,8 +17,8 @@ j=`expr $end`
     do
 	echo run number: $i
 	# 	copy="./bin/copy -f /data1/root/tritium\_$i.root -w /data1/small/tritium\_$i.root"
-	copy="./bin/copy -f /data1/root/tritium\_$i.root -w /data2/test/small/tritium\_$i.root"
-
+#	copy="./bin/copy -f /data1/root/tritium\_$i.root -w /data2/test/small/tritium\_$i.root"
+	copy="./bin/copy -f /data2/test/root/tritium\_$i.root -w /data2/test/small_opt/tritium\_$i.root"
 		#  	copy="./bin/copy -f /data1/root/tritium\_$i.root -w /data2/rootfiles/small/tritium\_$i.root"
 	#	copy="./bin/copy -f /data1/root/tritium\_$i.root -w /data2/opt_small/tritium\_$i.root"
 #	copy="./bin/copy -f /data2/opt_small/VDC/t0tuned/t0tuned_all/tritium\_$i.root -w /data2/small/tritium\_$i.root"
@@ -28,9 +28,9 @@ j=`expr $end`
 	eval $copy
 	for((k=1;k<7;k++))
 	do
-
 	    #	    	    copy_sub="./bin/copy -f /data1/root/tritium\_$i\_$k.root -w /data1/small/tritium\_$i\_$k.root"
-	    	    	    copy_sub="./bin/copy -f /data1/root/tritium\_$i\_$k.root -w /data2/test/small/tritium\_$i\_$k.root"
+	    #	    	    	    copy_sub="./bin/copy -f /data1/root/tritium\_$i\_$k.root -w /data2/test/small/tritium\_$i\_$k.root"
+	    copy_sub="./bin/copy -f /data2/test/root/tritium\_$i\_$k.root -w /data2/test/small_opt/tritium\_$i\_$k.root"
 	    #	    copy_sub="./bin/copy -f /data1/root/tritium\_$i\_$k.root -w /data2/rootfiles/small/tritium\_$i\_$k.root"
 #	    copy_sub="./bin/copy -f /data1/root/tritium\_$i\_$k.root -w /data2/opt_small/tritium\_$i\_$k.root"	    
 #	    copy_sub="./bin/copy -f /data2/opt_small/VDC/t0tuned/t0tuned_all/tritium\_$i\_$k.root -w /data2/small/tritium\_$i\_$k.root"
@@ -43,7 +43,7 @@ j=`expr $end`
 
 #delete="find /data1/nnL_small/*.root -size -1000 -delete"
     #delete="find /data2/rootfiles/small/*.root -size -1000 -delete"
-    delete="find /data2/test/small/*.root -size -1000 -delete"
+    delete="find /data2/test/small_coin/*.root -size -1000 -delete"
 echo $delete
 eval $delete #delete empty files
 

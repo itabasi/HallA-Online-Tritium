@@ -533,7 +533,7 @@ void ana::Loop(){
   time_t start, end;
   start = time(NULL);
   time(&start);
-
+  int NEV=0;
 
   cout<<"========================================"<<endl;
   cout<<"========= Start Loop analysis =========="<<endl;
@@ -544,9 +544,10 @@ void ana::Loop(){
   if(MNum>0)ENum=MNum;
 
   cout<<"Events : "<<ENum<<endl;
-  
+  int Run=0;
 
   for(int n=0;n<ENum;n++){
+
 
     //===== Initialization =====//
 
@@ -563,6 +564,8 @@ void ana::Loop(){
     tr.zL=-100.;
     tr.AC1_sum=-100.;
     tr.AC2_sum=-100.;
+    tr.AC1_npe_sum=0.0;
+    tr.AC2_npe_sum=0.0;
     tr.ct_acc=-2222.;
     tr.Rs0ra_p=-2222.;
     tr.Rs0la_p=-2222.;
@@ -598,12 +601,30 @@ void ana::Loop(){
       tr.Lp_c[s]=-2222.;tr.Rp_c[s]=-2222.;
 	  tr.Rs2_pad[s]=-1;tr.Ls2_pad[s]=-1;             }
 
-    
+    //===== Get Entry ==========//
     tree->GetEntry(n);
     tr.trig=R_evtype;
+    tr.nrun=runnum;
+    tr.nev=NEV;
+    NEV++;
+
+    //==== AC ADC convert ch to npe =======//
+    for(int seg=0;seg<24;seg++){
+      tr.AC1_npe[seg]=AC_npe(1,seg,R_a1_a_p[seg]);
+      tr.AC1_npe_sum+=tr.AC1_npe[seg];
+    }
+    for(int seg=0;seg<26;seg++){
+      tr.AC2_npe[seg]=AC_npe(2,seg,R_a2_a_p[seg]);
+      tr.AC2_npe_sum+=tr.AC2_npe[seg];
+    }    
 
     
+  if(runnum>Run){
+    Run=runnum;
+    cout<<"Fill Run : "<<Run<<endl; }    
 
+
+   
   bool L_Tr = false; // LHRS Tracking Chi2 cut
   bool L_FP = false; // LHRS FP plane cut
   bool R_Tr = false; // RHRS Tracking Chi2 cut
@@ -614,6 +635,7 @@ void ana::Loop(){
     //h_rbby_rbbx->Fill( rbbx, rbby );
     //h_rby_rbx  ->Fill( rbx , rby );
 
+  
     
 //////////////
 //// LHRS ////
@@ -634,14 +656,15 @@ void ana::Loop(){
 
       h_L_tr_n->Fill( L_tr_n );
       for(int t=0;t<NLtr;t++){
+
+	
         L_Tr = L_FP = false;
         // Cuts
         if( L_tr_chi2[t]<0.01 ) L_Tr = true;
         if( L_tr_th[t]<0.17*L_tr_x[t]+0.025
          && L_tr_th[t]>0.17*L_tr_x[t]-0.035
          && L_tr_th[t]<0.4 *L_tr_x[t]+0.13 ) L_FP = true;
-      
-
+	
 
     tr.LXFP=L_tr_x[0];
     tr.LXpFP=L_tr_th[0];
@@ -653,7 +676,9 @@ void ana::Loop(){
     tr.LYpt=L_tr_tg_ph[0];
 
 	int s2pad = (int)L_s2_trpad[t];
-    tr.Ls2_pad[t]=(int)L_s2_trpad[t];
+	tr.Ls2ra_p[s2pad]=L_s2_ra_p[s2pad];
+	tr.Ls2la_p[s2pad]=L_s2_la_p[s2pad];
+	tr.Ls2_pad[t]=(int)L_s2_trpad[t];
         double p    = L_tr_p[t];
         double path = L_s2_trpath[t] - L_s0_trpath[t];
         double beta = -99, m2 = -99;
@@ -738,13 +763,16 @@ void ana::Loop(){
         if( R_tr_th[t]<0.17*R_tr_x[t]+0.025
          && R_tr_th[t]>0.17*R_tr_x[t]-0.035
          && R_tr_th[t]<0.4 *R_tr_x[t]+0.13 ) R_FP = true;
-      
+	
         int s2pad = (int)R_s2_trpad[t];
+	if(s2pad<0)break;
         tr.Rs2_pad[t] =(int)R_s2_trpad[t];
 	    double p    = R_tr_p[t];
         double path = R_s2_trpath[t] - R_s0_trpath[t];
         double beta = 0, m2 = 0;
 
+
+	
     tr.Rs2ra_p[s2pad]=R_s2_ra_p[s2pad];
     tr.Rs2la_p[s2pad]=R_s2_la_p[s2pad];
     tr.Rs0ra_p=R_s0_ra_p[0];
@@ -757,7 +785,6 @@ void ana::Loop(){
     tr.RYt=R_tr_vy[0];
     tr.RXpt=R_tr_tg_th[0];
     tr.RYpt=R_tr_tg_ph[0];
-    
         if( R_s2_t[s2pad]>0 && R_s0_t>0 && s2pad>=0 ){
           beta = path / ( R_s2_t[s2pad] - R_s0_t ) / c;
           m2 = ( 1./beta/beta - 1. ) * p * p;
@@ -765,7 +792,7 @@ void ana::Loop(){
 //        double betaK = p / sqrt(MK*MK + p*p);
 
         h_R_tr_ch2   ->Fill( R_tr_chi2[t] );
-      
+	
         if( R_Tr && R_FP && s2pad>=0 ){
           h_R_p        ->Fill( R_tr_p[t] );
           h_R_pathl    ->Fill( R_tr_pathl[t] );
@@ -827,6 +854,8 @@ void ana::Loop(){
 /////////////////////
 
 
+	   
+
 
     if(LHRS && RHRS && R_evtype==5){
       int NLtr = (int)L_tr_n;  if(NLtr>MAX) NLtr = MAX;
@@ -838,7 +867,7 @@ void ana::Loop(){
         if( L_tr_th[lt]<0.17*L_tr_x[lt]+0.025
          && L_tr_th[lt]>0.17*L_tr_x[lt]-0.035
          && L_tr_th[lt]<0.40*L_tr_x[lt]+0.130 ) L_FP = true;
-
+	
         for(int rt=0;rt<NRtr;rt++){
           R_Tr = R_FP = false;
 	  Kaon = false;
@@ -854,8 +883,6 @@ void ana::Loop(){
 	  //         && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
 	  if(fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1)zcut=true;
 	  if( L_Tr && L_FP && R_Tr && R_FP ){
-
-
 
 
 	    B_p     = HALLA_p/1000.0;// [GeV/c]	    
@@ -888,10 +915,8 @@ void ana::Loop(){
 	    double R_Epi   = sqrt( Mpi*Mpi + R_p*R_p );
             double R_betaK = R_p / sqrt(MK*MK + R_p*R_p);
 	    double R_betaPi =R_p/ sqrt(Mpi*Mpi + R_p*R_p);
-
 	    double ct =CoinCalc(R_s2pad,L_s2pad,rt,lt);
 
-	    
 
 	    //================= ===================== ======================================//
             double L_tgt = L_s2_t[L_s2pad] - (L_tr_pathl[lt] + L_s2_trpath[lt])/c;
@@ -1221,8 +1246,7 @@ void ana::Loop(){
 	       h_mm_acc->Fill( mm ); //No Kaon Cut
 	       tr.missing_mass_acc=mm;
 	     }
-	     
-          } // if L_Tr && L_FP && R_Tr && R_FP
+          } // if L_Tr && L_FP && R_Tr && R_FP	  
         } // for NRtr
       } // for NLtr
     } // if LHRS && RHRS
@@ -1561,7 +1585,8 @@ void ana::MakeHist(){
   tree_out ->Branch("pid_cut"        ,&tr.pid_cut      ,"pid_cut/I"     );
   tree_out ->Branch("ct_cut"        ,&tr.ct_cut      ,"ct_cut/I"     );
   tree_out ->Branch("z_cut"        ,&tr.z_cut      ,"z_cut/I"     );
-  
+  tree_out ->Branch("nrun"        ,&tr.nrun      ,"nrun/I"     );
+  tree_out ->Branch("nev"        ,&tr.nev      ,"nev/I"     );
   tree_out ->Branch("mm",&tr.missing_mass ,"missing_mass/D");
   tree_out ->Branch("mm_b",&tr.missing_mass_b ,"missing_mass_b/D");
   tree_out ->Branch("mm_L",&tr.missing_mass_L ,"missing_mass_L/D");
@@ -1610,11 +1635,17 @@ void ana::MakeHist(){
 
   tree_out ->Branch("ac1_sum"     ,&tr.AC1_sum   ,"AC1_sum/D"  );
   tree_out ->Branch("ac2_sum"     ,&tr.AC2_sum   ,"AC2_sum/D"  );
+  tree_out ->Branch("ac1_npe_sum"     ,&tr.AC1_npe_sum   ,"AC1_npe_sum/D"  );
+  tree_out ->Branch("ac2_npe_sum"     ,&tr.AC2_npe_sum   ,"AC2_npe_sum/D"  );
+  tree_out ->Branch("ac1_npe"     ,tr.AC1_npe   ,"AC1_npe[24]/D"  );
+  tree_out ->Branch("ac2_npe"     ,tr.AC2_npe   ,"AC2_npe[26]/D"  );    
   tree_out ->Branch("ct_acc"     ,&tr.ct_acc   ,"ct_acc/D"  );
   tree_out ->Branch("Rs0ra_p"     ,&tr.Rs0ra_p   ,"Rs0ra_p/D"  );
   tree_out ->Branch("Rs0la_p"     ,&tr.Rs0la_p   ,"Rs0la_p/D"  );
-  tree_out ->Branch("Rs2ra_p"     ,tr.Rs2ra_p   ,"Rs2ra_p/D"  );
-  tree_out ->Branch("Rs2la_p"     ,tr.Rs2la_p   ,"Rs2la_p/D"  );
+  tree_out ->Branch("Rs2ra_p"     ,tr.Rs2ra_p   ,"Rs2ra_p[16]/D"  );
+  tree_out ->Branch("Rs2la_p"     ,tr.Rs2la_p   ,"Rs2la_p[16]/D"  );
+  tree_out ->Branch("Ls2ra_p"     ,tr.Ls2ra_p   ,"Ls2ra_p[16]/D"  );
+  tree_out ->Branch("Ls2la_p"     ,tr.Ls2la_p   ,"Ls2la_p[16]/D"  );  
   tree_out->Branch("Bp"     ,&tr.Bp   ,"Bp/D"  );
   //  tree_out->Branch("Lp"     ,tr.Lp   ,"Lp[100]/D"  );
   //  tree_out->Branch("Rp"     ,tr.Rp   ,"Rp[100]/D"  );
@@ -2016,6 +2047,45 @@ void ana::Swich(bool nnL, bool scale){
   
 }
 
+// ##############################################
+
+void ana::GetACParam(){
+
+  cout<<"==================================="<<endl;
+  cout<<"========== GetACParam ============="<<endl;
+  cout<<"==================================="<<endl;
+  // taken by /ac/param/offset_ac.dat 
+  string pname="/home/itabashi/ana/E12-17-003/HallA-Online-Tritium/replay/ana/ac/param/offset_ac.dat";
+  ifstream ifp(pname.c_str(),ios::in);
+  if (ifp.fail()){ cerr << "failed open files" <<pname.c_str()<<endl; exit(1);}
+  cout<<" Param file : "<<pname.c_str()<<endl;
+  
+  string buf;
+  int AC,Seg;
+  double off,pe;
+  while(1){
+    getline(ifp,buf);
+    if( buf[0]=='#' ){ continue; }
+    if( ifp.eof() ) break;
+    stringstream sbuf(buf);
+    sbuf >> AC >> Seg >> off >> pe;
+
+    if(AC==1){
+      ac1_off[Seg]=off;
+      ac1_1pe[Seg]=pe;
+    }else if(AC==2){
+      ac2_off[Seg]=off;
+      ac2_1pe[Seg]=pe;
+    }else{
+      cout<<"Error :"<<endl; exit(1);
+    }
+
+  }
+
+  }
+
+
+
 
 
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
@@ -2154,6 +2224,7 @@ int main(int argc, char** argv){
   Ana->SetMaxEvent(MaxNum);  // Set Maximum event roop
   Ana->MakeHist();           // Initialize histograms
   Ana->ReadParam(pname);
+  Ana->GetACParam();
   if(single_flag)Ana->SetRoot(ifname);
   else Ana-> SetRunList(runlistname);
 
@@ -2351,3 +2422,26 @@ double Num_Al(double a){
   return y;            
 }
 // ###############################################
+
+
+// ##############################################
+
+double ana::AC_npe(int nac, int seg, double adc){
+
+
+
+  double npe,ac_off,ac_1pe;
+
+  if(nac==1){
+    ac_off=ac1_off[seg];
+    ac_1pe=ac1_1pe[seg];
+  }else if(nac==2){
+    ac_off=ac2_off[seg];
+    ac_1pe=ac2_1pe[seg];
+  }else {
+    cout<<"Error : falid Get AC parameters "<<endl; exit(1);}
+
+  //  npe=(adc- ac_off)/(ac_1pe - ac_off);
+  npe=(adc)/(ac_1pe - ac_off); // Just correct gain
+  return npe;  
+}

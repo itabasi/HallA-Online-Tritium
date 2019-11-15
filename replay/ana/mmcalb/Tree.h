@@ -54,7 +54,7 @@ public:
   
 
 //// Event num & Run num ///
-  double runnum;
+  int runnum;
   double evid;
   double HALL_p;
   
@@ -159,7 +159,8 @@ public:
   double R_tr_tg_dp[MAX], R_tr_tg_y[MAX], R_tr_tg_th[MAX], R_tr_tg_ph[MAX];      // dp, y, theta, phi at target
   double R_tr_vx[MAX], R_tr_vy[MAX], R_tr_vz[MAX]; // vertex X, Y, Z
 
-  double R_rtRFtime[6];
+  //  double R_rtRFtime[6];
+  double R_rtRFtime[MAX];
 
 ///////////////////
 // HRS Light Arm //

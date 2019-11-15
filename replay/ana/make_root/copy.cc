@@ -533,7 +533,8 @@ int main(int argc, char** argv){
 	double RS2B = -RF1[48+Rs2pads]+RF1[46];
 	double LS2T = -LF1[Ls2pads]+LF1[30];
 	double LS2B = -LF1[Ls2pads+48]+LF1[37];
-	
+
+	/*
 	if(RS2T>pow(2,15))RS2T=RS2T -pow(2.0,16) + 350.;
 	else if(RS2T<-pow(2,15))RS2T=RS2T + pow(2.0,16) -350.;
 	if(RS2B>pow(2,15))RS2B=RS2B -pow(2.0,16) + 350.;
@@ -542,7 +543,7 @@ int main(int argc, char** argv){
 	else if(LS2T<-pow(2,15))LS2T=LS2T + pow(2.0,16) -350.;
 	if(LS2B>pow(2,15))LS2B=LS2B -pow(2.0,16) + 350.;
 	else if(LS2B<-pow(2,15))LS2B=LS2B + pow(2.0,16) -350.;
-
+	*/
       
 	double tof_r=( ( RS2T + RS2B + Rs2_off )/2.0 )*tdc_time;
 	double tof_l=( ( LS2T + LS2B + Ls2_off )/2.0 )*tdc_time;
@@ -560,9 +561,9 @@ int main(int argc, char** argv){
     }
     
     if( LOK && ROK ){
-      newtree->Fill();
+      //      newtree->Fill();
     }
-    //    newtree->Fill(); //optics run
+    newtree->Fill(); //optics run
     if(n % 100000 == 0){ cout<<n<<" / "<<ENum<<endl; }
 
   } // for ENum
@@ -605,7 +606,7 @@ double s2f1_off(int i,string ARM, int KINE){
 
   if(KINE==1){
 
-double  RS2_off_H1[16]={-16828.7,-16863,-16894,-16893.3,-16870.9,-16867.2,-16900.3,-16876.8,-17554.1,-16861.6,-16895,-16890.7,-16854.6,-16852.9,-16850.5,-16861.9};
+double  RS2_off_H1[16]={-16828.7,-16863,-16894,-16893.3,-16870.9,-16867.2,-16900.3,-16876.8,-16895.6,-16861.6,-16895,-16890.7,-16854.6,-16852.9,-16850.5,-16861.9};
 double  LS2_off_H1[16]={-25335,-25385.6,-25367,-25392.1,-25391.7,-25386.4,-25422.1,-25428.9,-25414.9,-25424.7,-25436.9, -25381.2,-25390,-25413.4,-25428.7,-26640.8};
   LS2_offset[i]=LS2_off_H1[i];
   RS2_offset[i]=RS2_off_H1[i];
