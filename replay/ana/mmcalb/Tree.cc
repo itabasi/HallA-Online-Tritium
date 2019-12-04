@@ -22,7 +22,7 @@ void Tree::pack_tree()
  
   ENum = tree->GetEntries();  
   tree->SetBranchStatus("*" ,0);
-  //  tree->SetBranchStatus("fEvtHdr.fRun"               ,1);  tree->SetBranchAddress("fEvtHdr.fRun", &runnum    );
+  //tree->SetBranchStatus("fEvtHdr.fRun"               ,1);  tree->SetBranchAddress("fEvtHdr.fRun", &runnum    );
   //  tree->SetBranchStatus("fEvtHdr.fEvtNu"               ,1);   tree->SetBranchAddress("fEvtHdr.fEvtNum", &evid    );
   tree->SetBranchStatus("runnum"               ,1);  tree->SetBranchAddress("runnum", &runnum );
   tree->SetBranchStatus("HALLA_p"               ,1);  tree->SetBranchAddress("HALLA_p", &HALLA_p );
@@ -110,7 +110,7 @@ void Tree::readtreeS0L()
   tree->SetBranchStatus("L.s0.time"            ,1);  tree->SetBranchAddress("L.s0.time"            , L_s0_time           );
   tree->SetBranchStatus("L.s0.dedx"            ,1);  tree->SetBranchAddress("L.s0.dedx"            , L_s0_dedx           );
   tree->SetBranchStatus("L.s0.trdy"            ,1);  tree->SetBranchAddress("L.s0.trdy"            , L_s0_trdy           );
-    tree->SetBranchStatus("L.s0.troff"           ,1);  tree->SetBranchAddress("L.s0.troff"           , L_s0_troff          );
+  //    tree->SetBranchStatus("L.s0.troff"           ,1);  tree->SetBranchAddress("L.s0.troff"           , L_s0_troff          );
     tree->SetBranchStatus("L.s0.trpad"           ,1);  tree->SetBranchAddress("L.s0.trpad"           , L_s0_trpad          );
   tree->SetBranchStatus("L.s0.trpath"          ,1);  tree->SetBranchAddress("L.s0.trpath"          , L_s0_trpath         );
   tree->SetBranchStatus("L.s0.trx"             ,1);  tree->SetBranchAddress("L.s0.trx"             , L_s0_trx            );
@@ -147,7 +147,7 @@ void Tree::readtreeS2L()
     tree->SetBranchStatus("L.s2.time"            ,1);  tree->SetBranchAddress("L.s2.time"            , L_s2_time           );
   tree->SetBranchStatus("L.s2.dedx"            ,1);  tree->SetBranchAddress("L.s2.dedx"            , L_s2_dedx           );
   tree->SetBranchStatus("L.s2.trdx"            ,1);  tree->SetBranchAddress("L.s2.trdx"            , L_s2_trdx           );
-    tree->SetBranchStatus("L.s2.troff"           ,1);  tree->SetBranchAddress("L.s2.troff"           , L_s2_troff          );
+  //    tree->SetBranchStatus("L.s2.troff"           ,1);  tree->SetBranchAddress("L.s2.troff"           , L_s2_troff          );
   tree->SetBranchStatus("L.s2.trpad"           ,1);  tree->SetBranchAddress("L.s2.trpad"           , L_s2_trpad          );
   tree->SetBranchStatus("L.s2.trpath"          ,1);  tree->SetBranchAddress("L.s2.trpath"          , L_s2_trpath         );
   tree->SetBranchStatus("L.s2.trx"             ,1);  tree->SetBranchAddress("L.s2.trx"             , L_s2_trx            );
@@ -228,6 +228,8 @@ void Tree::convertF1TDCL(ParamMan *param)
   for(int i=0;i<LS2;i++){
     LS2T_F1TDC[i]  =  LTDC_F1FirstHit[i];
     LS2B_F1TDC[i]  =  LTDC_F1FirstHit[i+48];
+
+    //       cout<<"seg "<<i<<" LF1ref0 "<<LF1Ref[0]<<" LF1Ref1 "<<LF1Ref[1]<<" LS2T_F1TDC "<<LS2T_F1TDC[i]<<" LS2B_F1TDC "<<LS2B_F1TDC[i]<<endl;
     if(LF1Ref[0]>1. && LF1Ref[1]>1. && LS2T_F1TDC[i]>1. && LS2B_F1TDC[i]>1.){
       LS2T_F1[i] = LS2T_F1TDC[i] - LF1Ref[0] ;
       LS2B_F1[i] = LS2B_F1TDC[i] - LF1Ref[1] ;
@@ -324,7 +326,6 @@ void Tree::readtreeS0R()
 //////////////////////////////////////////////////
 void Tree::readtreeS2R()
 {
-  cout<<"Tree::readtreeS2R"<<endl;
     tree->SetBranchStatus("R.s2.la"              ,1);  tree->SetBranchAddress("R.s2.la"              , R_s2_la             );
     tree->SetBranchStatus("R.s2.la_c"            ,1);  tree->SetBranchAddress("R.s2.la_c"            , R_s2_la_c           );
   tree->SetBranchStatus("R.s2.la_p"            ,1);  tree->SetBranchAddress("R.s2.la_p"            , R_s2_la_p           );
@@ -480,8 +481,9 @@ void Tree::readtreeF1TDCR()
 void Tree::convertF1TDCR(ParamMan *param)
 {
 
-  RF1Ref[0]=RTDC_F1FirstHit[9] ;
+  RF1Ref[0]=RTDC_F1FirstHit[9];
   RF1Ref[1]=RTDC_F1FirstHit[46];
+  
 
   bool F1Shift_R=true;
   double RS2T_off = 350.0;
@@ -491,6 +493,9 @@ void Tree::convertF1TDCR(ParamMan *param)
   for(int i=0;i<RS2;i++){
     RS2T_F1TDC[i]  =  RTDC_F1FirstHit[i+16];
     RS2B_F1TDC[i]  =  RTDC_F1FirstHit[i+48];
+
+    //  cout<<"seg "<<i<<" RF1ref0 "<<RF1Ref[0]<<" RF1Ref1 "<<RF1Ref[1]<<" RS2T_F1TDC "<<RS2T_F1TDC[i]<<" RS2B_F1TDC "<<RS2B_F1TDC[i]<<endl;
+
     
     if(RF1Ref[0]>1. && RF1Ref[1]>1. && RS2T_F1TDC[i]>1. && RS2B_F1TDC[i]>1.){
       RS2T_F1[i]=RS2T_F1TDC[i] - RF1Ref[0] ;
@@ -514,7 +519,6 @@ void Tree::convertF1TDCR(ParamMan *param)
       RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1[i]  , R_s2_ra_p[i]);
       RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1[i]  , R_s2_la_p[i]);
       RS2_F1time[i]  = 0.5*(RS2T_F1time[i] + RS2B_F1time[i]);
-
       rtof_c[i]=RS2_F1time[i];
       }
       

@@ -23,8 +23,8 @@ void cherenkov_mom_vs_NPE_cal(){
   // Given value
 
 
-
-  n=1.055; // Aerogel reflactive index HRS A2 
+  n=1.05; // Aerogel reflactive index HRS A2 
+  //  n=1.055; // Aerogel reflactive index HRS A2 
   //   n=1.015; // Aerogel reflective index HRS A1
   //n=1.05; //Aerogel reflective index HKS AC 
   //  n=1.33;// Water reflactive index HKS WC

@@ -1,6 +1,6 @@
 #! /bin/sh
 
-days="1105"
+days="1119"
 
 H1="./bin/ana_Lambda -f ../run_list/nnlambda/Lambda_small_optH1.list -p param/f1_tuned_Lambda_twc.param -H1 -m ../matrix/matrix.list -r ../rootfiles/mmass/ana_Lambda/Lambda_small_optH1_$days.root -w ../pdf/mmass/ana_Lambda/Lambda_small_optH1_$days.pdf"
 
@@ -19,7 +19,7 @@ T3="./bin/ana_Lambda -f ../run_list/nnlambda/nnL_small_opt3.list -p param/f1_Lam
 
 T4="./bin/ana_Lambda -f ../run_list/nnlambda/nnL_small_opt4.list -p param/f1_Lambda_phase2_tuned.param -T -m ../matrix/matrix.list -r ../rootfiles/mmass/ana_Lambda/nnL_small_opt4_$days.root -w ../pdf/mmass/ana_Lambda/nnL_small_opt4_$days.pdf"
 
-hadd_T="hadd ../rootfiles/mmass/ana_Lambda/nnL_small_optopt_$days.root ../rootfiles/mmass/ana_Lambda/nnL_small_opt1_$days.root ../rootfiles/mmass/ana_Lambda/nnL_small_opt2_$days.root 
+hadd_T="hadd ../rootfiles/mmass/ana_Lambda/nnL_small_opt_$days.root ../rootfiles/mmass/ana_Lambda/nnL_small_opt1_$days.root ../rootfiles/mmass/ana_Lambda/nnL_small_opt2_$days.root 
  ../rootfiles/mmass/ana_Lambda/nnL_small_opt3_$days.root ../rootfiles/mmass/ana_Lambda/nnL_small_opt4_$days.root"
 
 

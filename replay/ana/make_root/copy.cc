@@ -561,9 +561,9 @@ int main(int argc, char** argv){
     }
     
     if( LOK && ROK ){
-      //      newtree->Fill();
+      newtree->Fill();
     }
-    newtree->Fill(); //optics run
+    //newtree->Fill(); //optics run
     if(n % 100000 == 0){ cout<<n<<" / "<<ENum<<endl; }
 
   } // for ENum

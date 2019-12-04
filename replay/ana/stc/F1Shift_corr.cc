@@ -15,9 +15,12 @@ void F1Shift_corr(){
   //  string ifname="../run_list/nnlambda/Lambda_small_opt_H2.list";
   //  string ifname="../run_list/nnlambda/nnL_small_opt4.list";
   //   string ifname="../run_list/nnlambda/Lambda_small_optH2_test.list";
-  string ifname="../run_list/nnlambda/Lambda_small_optH1test.list";
+  string ifname="../run_list/nnlambda/Lambda_small_optH1.list";
+  
   //  string ifname="../run_list/nnlambda/test.list";
   //string ifname="../run_list/nnlambda/nnL_small_opt4.list";
+  //  TChain *T = new TChain("T");
+
   ifstream ifp(Form("%s",ifname.c_str()),ios::in);
   if(!ifp){cout<<"no input file "<<ifname<<endl; exit(1); }
   string buf, runname;
@@ -33,7 +36,8 @@ void F1Shift_corr(){
 
   }
 
-
+  
+  //  T->Add("../rootfiles/mmass/ana_Lambda/nnL_small_optopt_1119.root");
   
 
   ENum =T->GetEntries();
@@ -51,7 +55,10 @@ void F1Shift_corr(){
   double Rs2_ra[100],Rs2_la[10],Ls2_ra[100],Ls2_la[100];
   double Rs2_rt[100],Rs2_lt[10],Ls2_rt[100],Ls2_lt[100];
   int runnum;
-  T->SetBranchStatus("*",0);    
+  double trig;
+  T->SetBranchStatus("*",0);
+  T->SetBranchStatus("DR.evtypebits",1);
+  T->SetBranchAddress("DR.evtypebits",&trig);  
   T->SetBranchStatus("RTDC.F1FirstHit",1);
   T->SetBranchAddress("RTDC.F1FirstHit",RF1);
   T->SetBranchStatus("LTDC.F1FirstHit",1);
@@ -114,14 +121,17 @@ void F1Shift_corr(){
   //  ofname="F1shift_corr_optnnL_4.root";
   //  ofname="F1shift_corr_optH2_test2.root";
   //  ofname="F1shift_corr_optnnL4.root";
-  ofname="../rootfiles/tcoin/F1_Lambda_small_optH1.root";  
+  //  ofname="../rootfiles/tcoin/F1_Lambda_small_optH1_1116.root";
+  ofname="../rootfiles/tcoin/F1_Lambda_small_optH1_1129_0.root";  
   TFile* ofp = new TFile(Form("%s",ofname.c_str()),"recreate");
 
   TTree* tnew=new TTree("T","F1TDC Calibration");//=T->CloneTree(0);
   double RS2T[16],RS2B[16],LS2T[16],LS2B[16],RS2T_ref,RS2B_ref,LS2T_ref,LS2B_ref;
   double RS2T_c[16],RS2B_c[16],LS2T_c[16],LS2B_c[16];
   int Rs2_pad,Ls2_pad;
-  int ac_cut,z_cut;
+  int ac_cut,z_cut,f1_cut;
+  int T5,lhit,rhit;
+  tnew->Branch("T5",&T5,"T5/I");
   tnew->Branch("RF1",RF1,"RF1[500]");
   tnew->Branch("LF1",LF1,"LF1[500]");
   tnew->Branch("RS2T_ref",&RS2T_ref,"RS2T_ref/D");
@@ -146,9 +156,11 @@ void F1Shift_corr(){
   tnew->Branch("ltof",&ltof,"ltof/D");
   tnew->Branch("pid_cut",&ac_cut,"ac_cut/i");
   tnew->Branch("z_cut",&z_cut,"z_cut/i");
+  tnew->Branch("f1_cut",&f1_cut,"f1_cut/i");
   tnew->Branch("Rzt",Rzt,"Rzt[100]/D");  
   tnew->Branch("Lzt",Lzt,"Lzt[100]/D");  
-
+  tnew->Branch("lhit",&lhit,"lhit/I");
+  tnew->Branch("rhit",&rhit,"rhit/I");
   tnew->Branch("Rs2_rt_p",Rs2_rt,"Rs2_rt[100]/D");  
   tnew->Branch("Rs2_lt_p",Rs2_lt,"Rs2_lt[100]/D");
   tnew->Branch("Rs2_ra_p",Rs2_ra,"Rs2_ra[100]/D");  
@@ -174,8 +186,14 @@ void F1Shift_corr(){
     z_cut=-1;
     Rs2_pad=-1;
     Ls2_pad=-1;
+    f1_cut=-1;
+    T5=-1;
+    rhit=-1;
+    lhit=-1;
     bool Rs2_adc=false;
     bool Ls2_adc=false;
+
+
 
     
     T->GetEntry(i);
@@ -190,6 +208,7 @@ void F1Shift_corr(){
     LS2T_ref = LF1[30];
     LS2B_ref = LF1[37];
 
+    if(trig==32)T5=1;
     
     //    RS2T_ref = RF1[15]; //Reference signal
     //    RS2B_ref = RF1[15]; //Reference signal
@@ -203,35 +222,41 @@ void F1Shift_corr(){
     //    LS2T_ref = LF1[30]; // L1A remote
     //    LS2B_ref = LF1[30]; // L1A remote
   
-
+    Rs2_pad = (int)Rs2_pads[0];
+    Ls2_pad = (int)Ls2_pads[0];    
 
 
     for(int j=0;j<16;j++){
 
-      RS2T[j]= 0.0;
-      RS2B[j]= 0.0;
-      LS2T[j]= 0.0;
-      LS2B[j]= 0.0;
-      
+      RS2T[j]= -1000.0;
+      RS2B[j]= -1000.0;
+      LS2T[j]= -1000.0;
+      LS2B[j]= -1000.0;
+
+      if(j==Rs2_pad){
       RS2T[j]= RF1[j+16];
       RS2B[j]= RF1[j+48];
-      LS2T[j]= LF1[j];
-      LS2B[j]= LF1[j+48];
-
-
       RS2T_c[j]= -RS2T[j] + RS2T_ref;
       RS2B_c[j]= -RS2B[j] + RS2B_ref;
+
+      //      RS2T_c[j]= -RS2T[j] + RS2T_ref ;
+      //      RS2B_c[j]= -RS2B[j] + RS2B_ref ;
+
+      }else if(j==Ls2_pad){
+      LS2T[j]= LF1[j];
+      LS2B[j]= LF1[j+48];
       LS2T_c[j]= -LS2T[j] + LS2T_ref;
       LS2B_c[j]= -LS2B[j] + LS2B_ref;
+      //      LS2T_c[j]= -LS2T[j] + LS2T_ref ;
+      //      LS2B_c[j]= -LS2B[j] + LS2B_ref ;      
 
-      RS2T_c[j]= -RS2T[j] + RS2T_ref ;
-      RS2B_c[j]= -RS2B[j] + RS2B_ref ;
-      LS2T_c[j]= -LS2T[j] + LS2T_ref ;
-      LS2B_c[j]= -LS2B[j] + LS2B_ref ;      
-
+      }
+      
     }
+    
 
 
+    
     const double mk= 0.493677;
     const double cc = 0.299792458;          // speed of light in vacuum (m/ns)
     int mode=1;
@@ -246,19 +271,20 @@ void F1Shift_corr(){
     }
 
 
-    Rs2_pad = (int)Rs2_pads[0];
-    Ls2_pad = (int)Ls2_pads[0];    
-
     
     if(Ra1sum<50. && Ra2sum>2000)ac_cut=1;
     else ac_cut=0;
     if(fabs(Rzt[0]+Lzt[0])/2.0<0.1 && fabs(Rzt[0]-Lzt[0])<0.03)z_cut=1;
     else z_cut=0;
+    //    if()f1_cut=1;
+    //    else f1_cut=0;    
 
 
     if(Rs2_ra[Rs2_pad]>100 && Rs2_la[Rs2_pad]>100)Rs2_adc=true;
     if(Ls2_ra[Ls2_pad]>100 && Ls2_la[Ls2_pad]>100)Ls2_adc=true;
 
+    if(RS2T[Rs2_pad]>0)rhit=1;
+    if(LS2T[Ls2_pad]>0)lhit=1;
     
     double Rs2_off = s2f1_off(Rs2_pad,"R",mode);
     double Ls2_off = s2f1_off(Ls2_pad,"L",mode);
@@ -274,23 +300,22 @@ void F1Shift_corr(){
       //    if(Rs2_adc && Ls2_adc)
       ct_r=  R_tgt_b - ( L_tr_pathl[0] + L_s2_trpath[0] )/cc + Ls2_off/2.0*tdc_time -coin_offset ;
     
-    //    if(ct> 3500.) ct_p=ct-3.65049e3;
-    //    if(ct<-3500.) ct_p=ct+3.65063e3;
+      if(ct> 3500.) ct_p=ct-3.65049e3;
+      if(ct<-3500.) ct_p=ct+3.65063e3;
 
     
     //===== F1 Correction =======//
 
-      double F1off=350;
-      F1off=0.0;
+      double F1off=350.0-3.0;
+      F1off=333;
       double F1off_LS2B;
       double F1off_LS2T;
       double F1off_RS2T;
       double F1off_RS2B;
       if(mode==1){
-	//	F1off_RS2T=0.0;
+	F1off_RS2T=0.0;
 	//	F1off_RS2B=-2.0;
-	
-	//	F1off_LS2T=0.0;
+	F1off_LS2T=0.0;
 	//	F1off_LS2B=-3.0;
 	F1off_RS2T=0.0;
 	F1off_RS2B=0.0;

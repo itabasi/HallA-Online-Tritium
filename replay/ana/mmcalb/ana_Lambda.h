@@ -10,12 +10,14 @@ using namespace std;
 //#include "momcalib.h"
 
 struct TreeBranch{
+  
   int z_cut,pid_cut,ct_cut;
   int nev,nrun;
   double missing_mass, coin_time;
   double missing_mass_acc;
   double missing_mass_L;
   double missing_mass_nnL;
+  double missing_mass_H3L;
   double missing_mass_cut;
   double missing_mass_Al;
   double missing_mass_Lb;
@@ -45,6 +47,7 @@ struct TreeBranch{
   double RS2T_F1[16],RS2B_F1[16],RS2T_ref,RS2B_ref;
   double LS2T_F1[16],LS2B_F1[16],LS2T_ref,LS2B_ref;
   double Rtof[100],Ltof[100];
+  int ntrack_r,ntrack_l;
   //int runnum;
 };
 static TreeBranch tr;
@@ -81,6 +84,7 @@ class ana : public Tree
     void GetACParam();
     double  AC_npe(int nac, int seg, double adc);
     void Calib(int rt, int lt);
+    double BG_Al(int events);
     double Eloss(double yp,double z,char* arm);
     double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
  private:
@@ -174,6 +178,9 @@ class ana : public Tree
     TH1D *h_mm_nnL;
     TH1D *h_acc_L;
     TH1D *h_acc_nnL;
+    TH1D *h_mm_H3L;
+    TH1D *h_acc_H3L;
+    TH1D *h_peak_H3L;  
     TH1D *h_mm_Al;
     TH1D *h_mm_Al_acc;
     TH1D *h_peak_Al;

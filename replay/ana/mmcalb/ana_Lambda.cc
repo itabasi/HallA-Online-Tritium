@@ -3,6 +3,7 @@ using namespace std;
 #include "ana_Lambda.h"
 #include "Param.h"
 
+bool herium   = false;
 bool pdf_out  = false;
 bool root_out = false;
 bool batch    = false;
@@ -296,14 +297,11 @@ void ana::Calib(int rt, int lt ){
 
 
 
-  // cout<<"rt "<<rt<<" Rz "<<R_tr_vz[rt]<<" Rth "<<R_tr_tg_th[rt]<<" Rph "<<R_tr_tg_ph[rt]<<" Rp "<<R_tr_p[rt]<<endl;
-  // cout<<"lt "<<lt<<" Lz "<<L_tr_vz[lt]<<" Lth "<<L_tr_tg_th[lt]<<" Lph "<<L_tr_tg_ph[lt]<<" Lp "<<L_tr_p[lt]<<endl;
-
   //======= Nomalization ==================//
   R_tr_x[rt]    = (R_tr_x[rt]-XFPm)/XFPr;
   R_tr_th[rt]   = (R_tr_th[rt]-XpFPm)/XpFPr;
   R_tr_y[rt]    = (R_tr_y[rt]-YFPm)/YFPr;
-  R_tr_ph[rt]   = (R_tr_ph[0]-YpFPm)/YpFPr;
+  R_tr_ph[rt]   = (R_tr_ph[rt]-YpFPm)/YpFPr;
   R_tr_vz[rt]   = (R_tr_vz[rt]-Ztm)/Ztr;
   R_tr_tg_th[rt]= (R_tr_tg_th[rt] - Xptm)/Xptr;
   R_tr_tg_ph[rt]= (R_tr_tg_ph[rt] - Yptm)/Yptr;
@@ -311,7 +309,7 @@ void ana::Calib(int rt, int lt ){
   L_tr_x[lt]    = (L_tr_x[lt]-XFPm)/XFPr; 
   L_tr_th[lt]   = (L_tr_th[lt]-XpFPm)/XpFPr;
   L_tr_y[lt]    = (L_tr_y[lt]-YFPm)/YFPr;
-  L_tr_vz[lt]   = (L_tr_vz[rt]-Ztm)/Ztr;
+  L_tr_vz[lt]   = (L_tr_vz[lt]-Ztm)/Ztr;
   L_tr_ph[lt]   = (L_tr_ph[lt]-YpFPm)/YpFPr;
   L_tr_tg_th[lt]= (L_tr_tg_th[lt] - Xptm)/Xptr;
   L_tr_tg_ph[lt]= (L_tr_tg_ph[lt] - Yptm)/Yptr;  
@@ -358,10 +356,10 @@ void ana::Calib(int rt, int lt ){
     R_tr_y[rt]  = R_tr_y[rt]  * YFPr + YFPm;
     R_tr_ph[rt] = R_tr_ph[rt] * YpFPr + YpFPm;
 
-    L_tr_x[rt]  = L_tr_x[rt]  * XFPr + XFPm;
-    L_tr_th[rt] = L_tr_th[rt] * XpFPr + XpFPm;
-    L_tr_y[rt]  = L_tr_y[rt]  * YFPr + YFPm;
-    L_tr_ph[rt] = L_tr_ph[rt] * YpFPr + YpFPm;    
+    L_tr_x[lt]  = L_tr_x[lt]  * XFPr + XFPm;
+    L_tr_th[lt] = L_tr_th[lt] * XpFPr + XpFPm;
+    L_tr_y[lt]  = L_tr_y[lt]  * YFPr + YFPm;
+    L_tr_ph[lt] = L_tr_ph[lt] * YpFPr + YpFPm;    
 
     //=========== Scaled at Taget =============//
 
@@ -557,8 +555,10 @@ void ana::Loop(){
     tr.missing_mass_acc=-100.0;
     tr.coin_time=-2222.0;
     tr.missing_mass_nnL=-100.0;
+    tr.missing_mass_H3L=-100.0;
     tr.missing_mass_cut=-100.;
     tr.missing_mass_nnLb=-100.;
+    tr.missing_mass_Al=-100.;
     tr.mm_tuned=-100.;
     tr.zR=-100.0;
     tr.zL=-100.;
@@ -594,19 +594,20 @@ void ana::Loop(){
     tr.z_cut=0;
     tr.ct_cut=0;
     tr.pid_cut=0;
-      
+    tr.trig=0;
     for(int s=0;s<10;s++){tr.dpe_[s]=-2222.;tr.dpk[s]; }
     for(int s=0;s<100;s++){
       tr.Lp[s]=-2222.;tr.Rp[s]=-2222.;
       tr.Lp_c[s]=-2222.;tr.Rp_c[s]=-2222.;
-	  tr.Rs2_pad[s]=-1;tr.Ls2_pad[s]=-1;             }
-
+	  tr.Rs2_pad[s]=-1;tr.Ls2_pad[s]=-1;           }
+  
     //===== Get Entry ==========//
+
     tree->GetEntry(n);
     tr.trig=R_evtype;
-    tr.nrun=runnum;
-    tr.nev=NEV;
-    NEV++;
+    tr.nrun=(int)runnum;
+    tr.nev=n;
+    //    NEV++;
 
     //==== AC ADC convert ch to npe =======//
     for(int seg=0;seg<24;seg++){
@@ -644,7 +645,7 @@ void ana::Loop(){
     if(LHRS){
       int NLtr = (int)L_tr_n;  if(NLtr>MAX) NLtr = MAX;
       h_L_trig->Fill( L_evtype);
-
+      tr.ntrack_l=NLtr;
 #ifdef F1TDC
       convertF1TDCL(param);
         L_s0_t = LS0_F1time[0];
@@ -655,9 +656,7 @@ void ana::Loop(){
 #endif
 
       h_L_tr_n->Fill( L_tr_n );
-      for(int t=0;t<NLtr;t++){
-
-	
+      for(int t=0;t<NLtr;t++){	
         L_Tr = L_FP = false;
         // Cuts
         if( L_tr_chi2[t]<0.01 ) L_Tr = true;
@@ -744,7 +743,7 @@ void ana::Loop(){
     if(RHRS){
       int NRtr = (int)R_tr_n;  if(NRtr>MAX) NRtr = MAX;
       h_R_trig->Fill( R_evtype);
-
+      tr.ntrack_r=NRtr;
 #ifdef F1TDC
       convertF1TDCR(param);
       R_s0_t = RS0_F1time[0];
@@ -959,14 +958,6 @@ void ana::Loop(){
 	    double Ee_b = sqrt( Me*Me + B_p*B_p );
 	    double L_Eb = sqrt( Me*Me + L_p*L_p );
 	    double R_Eb = sqrt( MK*MK + R_p*R_p );
-
-	    //	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
-	    //	    double R_px_b=R_pz_b*R_tr_tg_th[rt];
-	    //	    double R_py_b=R_pz_b*( R_tr_tg_ph[rt] + 13.2/180.*PI);
-	    //	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow(-L_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
-	    //	    double L_px_b=L_pz_b*L_tr_tg_th[rt];
-	    //	    double L_py_b=L_pz_b*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
-
 	    
 	    //==== Right Hand Coordinate ========//
 
@@ -991,13 +982,14 @@ void ana::Loop(){
 
 	    mm_b=mass_b - mh;
 
-	    
-	    //=====  calibration =========//
 
-	    //	    if(rt==0 && lr==0){
-	    //	      cout<<"i "<<n<<endl;
-	    //	      Calib(rt, lt);
-	    //	    }
+
+	    //============================//
+	    //=====  calibration =========//
+	    //===========================//
+
+
+
 	    Calib(rt, lt);
 	    h_Rz_c->Fill(R_tr_vz[rt]);
 	    h_Rth_c->Fill(R_tr_tg_th[rt]);
@@ -1012,7 +1004,7 @@ void ana::Loop(){
 	    tr.Rp_c[rt] = R_p;
 	    tr.Bp_c     = B_p;
 	    
-	    //=================================//
+
 
 
 	    //======= W/ Matrix calibraiton ==========================//
@@ -1061,7 +1053,7 @@ void ana::Loop(){
 
 	   	    
             double mass,mass_c, mm,mm_c,mass_L,mass_nnL,mm_L,mm_nnL,mm_Al,mass_Al,mass2,mm2;
-	    double mass_pc;
+	    double mass_pc, mass_H3L,mm_H3L;
 
 	    
             mass = sqrt( (Ee + mt - L_E - R_E)*(Ee + mt - L_E - R_E)
@@ -1076,11 +1068,12 @@ void ana::Loop(){
                               - (B_vc - L_vc - R_vc)*(B_vc - L_vc - R_vc) );
 
 
+	    
 	    mm=mass - mh;
             mm2=mass2 - mh;
 
 
-	    //=== w/o matrix tuning ======//
+	    //=== w/ matrix tuning ======//
 	    
 	    // Lambda Mass //
            mass_L = sqrt( (Ee + Mp - L_E - R_E)*(Ee + Mp - L_E - R_E)
@@ -1091,6 +1084,12 @@ void ana::Loop(){
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_nnL=mass_nnL - MnnL;
 
+	    // H3L Mass //
+           mass_H3L = sqrt( (Ee + MHe3 - L_E - R_E)*(Ee + MHe3 - L_E - R_E)
+                              - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
+	   mm_H3L=mass_H3L - MH3L;	   
+
+	   
 	    // Alminium Mass //
            mass_Al = sqrt( (Ee + MAl - L_E - R_E)*(Ee + MAl - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
@@ -1150,7 +1149,8 @@ void ana::Loop(){
                 h_ct_Rp->Fill(R_tr_p[rt],ct);
               }
 
-	      if(fabs(R_tr_vz[rt]-0.125)<0.01 || fabs(R_tr_vz[rt] +0.125 )<0.01){
+	      //	      if(fabs(R_tr_vz[rt]-0.125)<0.01 || fabs(R_tr_vz[rt] +0.125 )<0.01){
+	      if(fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && (fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0 >0.125 ) ){
 		tr.missing_mass_Al_bg=mm;
 		h_mm_Al_bg->Fill(mm);
 		h_Rz_cut->Fill(R_tr_vz[rt]);
@@ -1165,6 +1165,7 @@ void ana::Loop(){
 	       tr.missing_mass_cut = mm;
 	       tr.missing_mass_L = mm_L;
 	       tr.missing_mass_nnL = mm_nnL;
+	       tr.missing_mass_H3L = mm_H3L;
 	       tr.missing_mass_b=mm_b;
 
 
@@ -1172,6 +1173,7 @@ void ana::Loop(){
                 h_mm_L    ->Fill( mm_L );
                 h_mm_L_ec    ->Fill( mass_pc);		
                 h_mm_nnL  ->Fill( mm_nnL );
+		h_mm_H3L  ->Fill( mm_H3L );
                 h_ct_wK_z->Fill( ct );                
         
 	      }
@@ -1196,6 +1198,7 @@ void ana::Loop(){
 	      if( Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) && zcut){
 		 //		 fabs( L_tr_vz[lt] ) < 0.1 && fabs( R_tr_vz[rt] ) < 0.1 &&fabs( L_tr_vz[lt] ) < 0.1){
                 h_acc_nnL     ->Fill(mm_nnL);
+		h_acc_H3L     ->Fill(mm_H3L);
                 h_acc_L       ->Fill(mm_L);
                 h_ct_wK_z_acc ->Fill( ct );
 	     }
@@ -1271,10 +1274,14 @@ void ana::Loop(){
     h_mm_Al_acc->Scale(2.0/40.);
     //    h_acc_Al->Scale(2.0/40.);
     h_acc_nnL->Scale(2.0/40.);
+    h_acc_H3L->Scale(2.0/40.);
     h_mm_acc->Scale(2.0/40.);
     h_mmallbg->Scale(1./20.);
     h_mmfoilbg->Scale(1./20.);
     h_ct_acc->Scale(6.0/96.);
+
+    int nAl=h_mm_Al_bg->GetEntries();
+    h_mm_Al_bg->Scale(BG_Al(nAl));
 
 
     //    h_mm_acc->Scale(2.0/40.);
@@ -1284,6 +1291,7 @@ void ana::Loop(){
     
     h_peak_L  -> Add(h_mm_L,h_acc_L,1,-1.0);
     h_peak_nnL-> Add(h_mm_nnL,h_acc_nnL,1,-1.0);
+    h_peak_H3L-> Add(h_mm_H3L,h_acc_H3L,1,-1.0);
     h_peak_mm -> Add(h_mm,h_mm_acc,1,-1.0);
     h_peak_Al->  Add(h_mm_Al,h_mm_Al_acc,1.,-1.0);
 
@@ -1587,10 +1595,13 @@ void ana::MakeHist(){
   tree_out ->Branch("z_cut"        ,&tr.z_cut      ,"z_cut/I"     );
   tree_out ->Branch("nrun"        ,&tr.nrun      ,"nrun/I"     );
   tree_out ->Branch("nev"        ,&tr.nev      ,"nev/I"     );
+  tree_out ->Branch("ntr_r",&tr.ntrack_r ,"ntr_r/I");
+  tree_out ->Branch("ntr_l",&tr.ntrack_l ,"ntr_l/I");
   tree_out ->Branch("mm",&tr.missing_mass ,"missing_mass/D");
   tree_out ->Branch("mm_b",&tr.missing_mass_b ,"missing_mass_b/D");
   tree_out ->Branch("mm_L",&tr.missing_mass_L ,"missing_mass_L/D");
   tree_out ->Branch("mm_nnL",&tr.missing_mass_nnL ,"missing_mass_nnL/D");
+  tree_out ->Branch("mm_H3L",&tr.missing_mass_H3L ,"missing_mass_H3L/D");
   tree_out ->Branch("mm_cut",&tr.missing_mass_cut ,"missing_mass_cut/D");
   tree_out ->Branch("mm_Al",&tr.missing_mass_Al ,"missing_mass_Al/D");
   tree_out ->Branch("mm_Al_bg",&tr.missing_mass_Al_bg ,"missing_mass_Al_bg/D");
@@ -1904,10 +1915,13 @@ void ana::MakeHist(){
   h_mm_L       = new TH1D("h_mm_L"      ,"h_mm_L"      , bin_mm,min_mm,max_mm ); //Lambda mass range bin=2 MeV
   h_mm_L_ec       = new TH1D("h_mm_L_ec"      ,"h_mm_L_ec"      , bin_mm,min_mm,max_mm); //Lambda mass range bin=2 MeV  
   h_mm_nnL       = new TH1D("h_mm_nnL"      ,"h_mm_nnL"      , bin_mm,min_mm,max_mm); //nnL mass range bin=2 MeV
+  h_mm_H3L       = new TH1D("h_mm_H3L"      ,"h_mm_H3L"      , bin_mm,min_mm,max_mm); //H3L mass range bin=2 MeV  
   h_acc_L       = new TH1D("h_acc_L"      ,"h_acc_L"      , bin_mm,min_mm,max_mm); //Lambda mass ACC  bin=2 MeV
   h_acc_nnL       = new TH1D("h_acc_nnL"      ,"h_acc_nnL"      , bin_mm,min_mm,max_mm); //nnL mass ACC bin=2 MeV
+  h_acc_H3L       = new TH1D("h_acc_H3L"      ,"h_acc_H3L"      , bin_mm,min_mm,max_mm); //H3L mass ACC bin=2 MeV  
   h_peak_L       = new TH1D("h_peak_L"      ,"h_peak_L"      , bin_mm,min_mm,max_mm); //Lambda mass range bin=2 MeV
   h_peak_nnL       = new TH1D("h_peak_nnL"      ,"h_peak_nnL"      , bin_mm,min_mm,max_mm); //nnL mass range bin=2 MeV
+  h_peak_H3L       = new TH1D("h_peak_H3L"      ,"h_peak_H3L"      , bin_mm,min_mm,max_mm); //H3L mass range bin=2 MeV  
 
 
   h_Rz     = new TH1D("h_Rz", "h_Rz",1000,-0.2,0.2);
@@ -2017,11 +2031,16 @@ void ana::Swich(bool nnL, bool scale){
 
   string target_name, Lpe_val;
   
-  if(nnL){ // nnLambda
+  if(nnL && herium==0){ // nnLambda
     mt=MT; //target mass
     mh=MnnL;
     target_name="Tritium target";
-  }else { // Lambda
+  }else if(herium){
+    mt=MHe3; //target mass
+    mh=MH3L;
+    target_name="Herium target";
+
+  }else{ // Lambda
 
   mt=Mp; //target mass
   mh=ML;
@@ -2110,7 +2129,7 @@ int main(int argc, char** argv){
     RHRS= true;
     LHRS= true;
     bool scale=false;    
-  while((ch=getopt(argc,argv,"hHT12f:p:s:w:r:m:o:b:M:"))!=-1){
+  while((ch=getopt(argc,argv,"hHeT12f:p:s:w:r:m:o:b:M:"))!=-1){
     switch(ch){
 
     case 's':
@@ -2150,6 +2169,14 @@ int main(int argc, char** argv){
     cout<<"==== Lambda missing mass ======="<<endl;
     cout<<"================================"<<endl;
     break;
+
+    case'e':
+    nnL=false;
+    herium=true;
+    cout<<"================================"<<endl;
+    cout<<"==== Herium missing mass ======="<<endl;
+    cout<<"================================"<<endl;
+    break;    
 
     case 'T':
     nnL=true;
@@ -2423,6 +2450,18 @@ double Num_Al(double a){
 }
 // ###############################################
 
+double ana::BG_Al(int events){
+
+  //===== Al Background Estimation ======//
+  double p0=3.332;
+  double p1=0.00151923;
+
+  double bg=p0*events + p1;
+
+  return bg/events;
+
+  
+}
 
 // ##############################################
 

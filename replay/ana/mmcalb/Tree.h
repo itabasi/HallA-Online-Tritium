@@ -15,7 +15,7 @@ using namespace std;
 
 #include "ParamMan.h"
 
-#define MAX 10     // Maximum No. of Tracks
+#define MAX 50     // Maximum No. of Tracks
 #define RS0 1      // No. of Segments of R-S0
 #define RS2 16     // No. of Segments of R-S2
 #define RA1 24     // No. of Segments of R-AC1
@@ -54,6 +54,7 @@ public:
   
 
 //// Event num & Run num ///
+//  double runnum;
   int runnum;
   double evid;
   double HALL_p;

@@ -138,6 +138,7 @@ void ReplayCore(
       analyzer->EnableHelicity();
     }
 
+
   // step 2: setup run information
   cout<<"replay: configuring analyzer ..."<<endl;
   int nrun, nev;
