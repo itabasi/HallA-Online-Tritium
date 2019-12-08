@@ -37,7 +37,8 @@
 //Used for setting paths. %s is necessary so that it can be used to Form the paths.
 //This allows changing the directory in fewer places for ease of portability.
 const char* REPLAY_DIR_PREFIX = "/home/itabashi/ana/E12-17-003/nnL_replay/%s";
-const char* ROOTFILE_DIR_PREFIX = "/data2/test/root"; 
+//const char* ROOTFILE_DIR_PREFIX = "/data2/test/root";
+const char* ROOTFILE_DIR_PREFIX = "/data1/root_ole/"; 
 //const char* ROOTFILE_DIR_PREFIX = "./rootfiles/";
 
   //"/volatile/halla/triton/eep_Rootfiles/%s";
