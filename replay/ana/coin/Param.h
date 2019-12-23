@@ -17,6 +17,8 @@ const double  PLm = 2.0, PLr=0.22;
 const double  PRm =1.74, PRr=0.2;
 const double  PaRm = 29.0, PaRr = 0.4;
 const double  PaLm = 28.9, PaLr = 0.3;
+//const double  PaRm = 25.7, PaRr = 0.4;
+//const double  PaLm = 25.7, PaLr = 0.4;
 
 
 int mode;
@@ -117,7 +119,7 @@ double beam_p[nmax];
 double bp[nmax],rp[nmax],lp[nmax];
 double Mass[nmax];
 double rpathl[nmax],lpathl[nmax];
-
+double rs2_pathl[nmax], ls2_pathl[nmax];
 double dth[nfoil];
 double l[nfoil];
 double projectf[nfoil];

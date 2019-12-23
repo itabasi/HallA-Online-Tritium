@@ -31,7 +31,6 @@ class coincalib : public Tree
   void NewRoot(string ofname);
   void ReadParam(string name);
   void SetMT(bool rhrs);
-
   double SetOff();
   void CoinTuning(string ofname, int MODE);
   void MTParam(string mtparam, int MODE);
@@ -46,7 +45,6 @@ class coincalib : public Tree
   //=== Parameters ===//
   TFile* ofr;
   TTree* tnew;
-  double coin_offset;
   double coint,coint_c;
   double Rp,Rp_c;
   bool z_flag;
@@ -60,13 +58,17 @@ class coincalib : public Tree
   int R_s2pad,L_s2pad;
   double chi_sq1[100],chi_sq2[100],chi_sq[100];
   TH1D* hcoin_cut;
+  TH1D* hcoin;
+  TH1D* hcoin_c;
+  TH1D* hcoin_cut_c;
   double Rtof_c,Ltof_c;
   double Rs2_t,Ls2_t;
   double beta_r,beta_l;
   double R_pathl,L_pathl;
   double R_pathl_c,L_pathl_c;
   double Beta_R,Beta_L;
-  
+  double ac1_sum,ac2_sum;
+  bool cut;
 };
   
   coincalib::coincalib(){

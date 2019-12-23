@@ -229,7 +229,7 @@ void Tree::convertF1TDCL(ParamMan *param)
     LS2T_F1TDC[i]  =  LTDC_F1FirstHit[i];
     LS2B_F1TDC[i]  =  LTDC_F1FirstHit[i+48];
 
-    //       cout<<"seg "<<i<<" LF1ref0 "<<LF1Ref[0]<<" LF1Ref1 "<<LF1Ref[1]<<" LS2T_F1TDC "<<LS2T_F1TDC[i]<<" LS2B_F1TDC "<<LS2B_F1TDC[i]<<endl;
+    //    cout<<"seg "<<i<<" LF1ref0 "<<LF1Ref[0]<<" LF1Ref1 "<<LF1Ref[1]<<" LS2T_F1TDC "<<LS2T_F1TDC[i]<<" LS2B_F1TDC "<<LS2B_F1TDC[i]<<endl;
     if(LF1Ref[0]>1. && LF1Ref[1]>1. && LS2T_F1TDC[i]>1. && LS2B_F1TDC[i]>1.){
       LS2T_F1[i] = LS2T_F1TDC[i] - LF1Ref[0] ;
       LS2B_F1[i] = LS2B_F1TDC[i] - LF1Ref[1] ;
