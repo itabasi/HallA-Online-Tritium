@@ -134,65 +134,13 @@ void coincalib::NewRoot(string ofname){
   tnew->Branch("lpathl",&L_pathl);  
   tnew->Branch("rpathl_c",&R_pathl_c);
   tnew->Branch("lpathl_c",&L_pathl_c);
-  tnew->Branch("Rp",&Rp);
-  tnew->Branch("Beta_R",&Beta_R);
-  tnew->Branch("Beta_L",&Beta_L);
+  tnew->Branch("Rp",&Rp);  
   hcoin_cut=new TH1D("hcoin_cut","Coin with cut ",100,-20.,20.);
 }
 
 
-
 ////////////////////////////////////////////////////////////////////////////
 
-
-void coincalib::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
-
-
-
-  
-  convertF1TDCR(param);
-  convertF1TDCL(param);
-  
-  PathCalc(rhit,lhit);
-  
-  Beta_R = R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
-  Beta_L = L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
-  //====== w/o Path Calibration =========//  
-  Rtof = RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
-  Ltof = LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
-  //====== w/ Path Calibration =========// 
-  Rtof_c = RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
-  Ltof_c = LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity); 
-  
-  if(mode<=0) Rtof_c = RS2_F1time[RS2_seg] - R_pathl_c/(Beta_R*LightVelocity);
-  if(mode>=0) Ltof_c = LS2_F1time[LS2_seg] - L_pathl_c/(Beta_L*LightVelocity);  
- 
-  
-  Rs2_t=RS2_F1time[RS2_seg];
-  Ls2_t=RS2_F1time[LS2_seg];
-
-
-  
-  
-  if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.){
-    coint = - Rtof + Ltof - coin_offset;
-    coint_c = - Rtof_c + Ltof_c - coin_offset;
-
-  }
-  else{
-    coint=-1000;
-    coint_c=-1000;
-  }
-    
-}
-///////////////////////////////////////////////////////////////////////////
-
-
-
-
-////////////////////////////////////////////////////////////////////////////
-
-/*
 double coincalib::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
   double cointime=0.0;
@@ -242,13 +190,32 @@ double coincalib::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
   L_pathl=Lpathl;  
 
 
+      R_tr_x[rhit]  = (R_tr_x[rhit]-XFPm)/XFPr;
+      R_tr_th[rhit] = (R_tr_th[rhit]-XpFPm)/XpFPr;
+      R_tr_y[rhit]  = (R_tr_y[rhit]-YFPm)/YFPr;
+      R_tr_ph[rhit] = (R_tr_ph[rhit]-YpFPm)/YpFPr;
 
+      L_tr_x[lhit]  = (L_tr_x[lhit]-XFPm)/XFPr;
+      L_tr_th[lhit] = (L_tr_th[lhit]-XpFPm)/XpFPr;
+      L_tr_y[lhit]  = (L_tr_y[lhit]-YFPm)/YFPr;
+      L_tr_ph[lhit] = (L_tr_ph[lhit]-YpFPm)/YpFPr;	        
 
       
   
-  PathCalc(rhit,lhit);
+  if(MODE<=0)Rpathl=RHRS_pathl * calcf_path(Pct_R,R_tr_x[rhit],R_tr_th[rhit],R_tr_y[rhit],R_tr_ph[rhit],R_tr_vz[rhit]);
+  if(MODE>=0)Lpathl=LHRS_pathl * calcf_path(Pct_L,L_tr_x[lhit],L_tr_th[lhit],L_tr_y[lhit],L_tr_ph[lhit],L_tr_vz[lhit]);
 
-   
+
+      R_tr_x[rhit] = R_tr_x[rhit] * XFPr + XFPm;
+      R_tr_th[rhit] = R_tr_th[rhit] * XpFPr + XpFPm;
+      R_tr_y[rhit] = R_tr_y[rhit] * YFPr + YFPm;
+      R_tr_ph[rhit] = R_tr_ph[rhit] * YpFPr   + YpFPm;
+      
+      L_tr_x[lhit] = L_tr_x[lhit] * XFPr + XFPm;
+      L_tr_th[lhit] = L_tr_th[lhit] * XpFPr + XpFPm;
+      L_tr_y[lhit] = L_tr_y[lhit] * YFPr + YFPm;
+      L_tr_ph[lhit] = L_tr_ph[lhit] * YpFPr   + YpFPm;
+
   
   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
   double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
@@ -275,10 +242,6 @@ double coincalib::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
   return cointime;
   
 }
-
-*/
-
-
 ///////////////////////////////////////////////////////////////////////////
 
 double coincalib::tune(double* pa, int MODE) 
@@ -428,27 +391,6 @@ void coincalib::EventSelect(){
 
   for(int k=0;k<ENum;k++){
 
-    // Initialization //
-    for(int i=0;i<MAX;i++){
-    R_tr_x[i]  = -2000.0;
-    R_tr_th[i] = -2000.0;
-    R_tr_y[i]  = -2000.0;
-    R_tr_ph[i] = -2000.0;
-    R_tr_p[i]  = -2000.0;
-    L_tr_x[i]  = -2000.0;
-    L_tr_th[i] = -2000.0;
-    L_tr_y[i]  = -2000.0;
-    L_tr_ph[i] = -2000.0;
-    L_tr_p[i]  = -2000.0;
-    }
-    Rtof=-1000.0; Rtof_c=-1000.; Ltof=-1000.; Ltof_c=-1000.;
-    coint=-1000.0; coint_c=-1000.0;
-    R_pathl=-1000.0; R_pathl_c=-1000; L_pathl=-1000.; L_pathl_c=-1000;
-    Rp=-1000.;
-
-
-
-    
     tree->GetEntry(k);
 
     // ===== Initialization ====== //    
@@ -460,8 +402,6 @@ void coincalib::EventSelect(){
     fp_flag=false;
     pion_flag=false;
     kaon_flag=false;
-
-    
  /////////////////////
  //// Coincidence ////
  /////////////////////
@@ -483,53 +423,52 @@ void coincalib::EventSelect(){
 	  
 	  int R_s2pad=(int)R_s2_t_pads[rt];
 	  int L_s2pad=(int)L_s2_t_pads[lt]; 
-	  CoinCalc(R_s2pad,L_s2pad,rt,lt);
-	  if( fabs(coint )<1.0 )kaon_flag=true;
-	  //if( fabs( CoinCalc(R_s2pad,L_s2pad,rt,lt) -3)<1.0 )pion_flag=true;
+	  
+	  if( fabs( CoinCalc(R_s2pad,L_s2pad,rt,lt) )<1.0 )kaon_flag=true;
+	  //  	  if( fabs( CoinCalc(R_s2pad,L_s2pad,rt,lt) -3)<1.0 )pion_flag=true;
 	  
 	  if(ntune_event<nmax && z_flag && pid_flag && fp_flag && (kaon_flag || pion_flag)){
-	    ct[ntune_event]    = coint;
-	    rx_fp[ntune_event] = R_tr_x[rt];
-	    ry_fp[ntune_event] = R_tr_y[rt];
-	    rth_fp[ntune_event] = R_tr_th[rt];
-	    rph_fp[ntune_event] = R_tr_ph[rt];
-	    rz[ntune_event]=R_tr_vz[rt];
-	    lx_fp[ntune_event] = L_tr_x[lt];
-	    ly_fp[ntune_event] = L_tr_y[lt];
-	    lth_fp[ntune_event] = L_tr_th[lt];
-	    lph_fp[ntune_event] = L_tr_ph[lt];
-	    lz[ntune_event]=L_tr_vz[lt];
-	    rpathl[ntune_event]= R_tr_pathl[rt] + R_s2_trpath[rt];
-	    lpathl[ntune_event]= R_tr_pathl[lt] + R_s2_trpath[lt];
-	    rs2_t[ntune_event]=Rs2_t;
-	    ls2_t[ntune_event]=Ls2_t;
-	    rp[ntune_event]=R_tr_p[rt];
-	    lp[ntune_event]=L_tr_p[lt];
-	    if(kaon_flag){
-	      Mass[ntune_event]=MK;
-	      Kaon_nev=+1.0;            }
-	    if(pion_flag){
-	      Mass[ntune_event]=Mpi;
-	      Pion_nev=+1.0;            }
+	  ct[ntune_event]    = CoinCalc(R_s2pad,L_s2pad,rt,lt);
+
+	  rx_fp[ntune_event] = R_tr_x[rt];
+	  ry_fp[ntune_event] = R_tr_y[rt];
+	  rth_fp[ntune_event] = R_tr_th[rt];
+	  rph_fp[ntune_event] = R_tr_ph[rt];
+	  rz[ntune_event]=R_tr_vz[rt];
+	  lx_fp[ntune_event] = L_tr_x[lt];
+	  ly_fp[ntune_event] = L_tr_y[lt];
+	  lth_fp[ntune_event] = L_tr_th[lt];
+	  lph_fp[ntune_event] = L_tr_ph[lt];
+	  lz[ntune_event]=L_tr_vz[lt];
+	  rs2_t[ntune_event]=Rs2_t;
+	  ls2_t[ntune_event]=Ls2_t;
+	  rp[ntune_event]=R_tr_p[rt];
+	  lp[ntune_event]=L_tr_p[lt];
+	  if(kaon_flag){
+	    Mass[ntune_event]=MK;
+	    Kaon_nev=+1.0;            }
+	  if(pion_flag){
+	    Mass[ntune_event]=Mpi;
+	    Pion_nev=+1.0;            }
 	    
-	    beta_K[ntune_event]=beta_r;
-	    beta_e[ntune_event]=beta_l;
-	    RTOF[ntune_event]=Rtof;
-	    LTOF[ntune_event]=Ltof;
-	    hcoin_cut->Fill(ct[ntune_event]);
-	    rs2_seg[ntune_event]=R_s2pad;
-	    ls2_seg[ntune_event]=L_s2pad;
-	    
+	  beta_K[ntune_event]=beta_r;
+	  beta_e[ntune_event]=beta_l;
+	  RTOF[ntune_event]=Rtof;
+	  LTOF[ntune_event]=Ltof;
+	  hcoin_cut->Fill(ct[ntune_event]);
+	  rs2_seg[ntune_event]=R_s2pad;
+	  ls2_seg[ntune_event]=L_s2pad;
+	  
 	  ntune_event++;	  
           if(ntune_event%100==0&& ntune_event>10)cout<<"Event Selection : "<<ntune_event<<" / "<<nmax<<endl;
-	  
+
 
 	  }	    
 	}//end NRtr
       }//end NLtr
       if(k%100000==0)cout<<"Filled : "<<k<<" / "<<ENum<<endl;
       if(ntune_event==nmax)break;
-    }//end loop
+  }//end loop
   }
 
 
@@ -657,59 +596,6 @@ void coincalib::CoinTuning(string ofname,int MODE){
 }
 
 
-
-////////////////////////////////////////////////////////////////////////////
-
-void coincalib::PathCalc(int rhit, int lhit){
-
-
-  R_pathl= R_tr_pathl[rhit] + R_s2_trpath[rhit];
-  L_pathl= L_tr_pathl[lhit] + L_s2_trpath[lhit];
-  
-  
-  R_tr_x[rhit]  = (R_tr_x[rhit]-XFPm)/XFPr;
-  R_tr_th[rhit] = (R_tr_th[rhit]-XpFPm)/XpFPr;
-  R_tr_y[rhit]  = (R_tr_y[rhit]-YFPm)/YFPr;
-  R_tr_ph[rhit] = (R_tr_ph[rhit]-YpFPm)/YpFPr;
-  R_tr_vz[rhit] = (R_tr_vz[rhit] - Ztm)/Ztr;
-  
-  L_tr_x[lhit]  = (L_tr_x[lhit]-XFPm)/XFPr;
-  L_tr_th[lhit] = (L_tr_th[lhit]-XpFPm)/XpFPr;
-  L_tr_y[lhit]  = (L_tr_y[lhit]-YFPm)/YFPr;
-  L_tr_ph[lhit] = (L_tr_ph[lhit]-YpFPm)/YpFPr;
-  L_tr_vz[lhit] = (L_tr_vz[lhit] - Ztm)/Ztr;      
-  
-  
-  
-  //==== Calc Path Length =========//
-  
-      
-  
-  R_pathl_c = calcf_path(Pct_R,R_tr_x[rhit],R_tr_th[rhit],R_tr_y[rhit],R_tr_ph[rhit],R_tr_vz[rhit]); // ns
-  
-  L_pathl_c = calcf_path(Pct_L,L_tr_x[lhit],L_tr_th[lhit],L_tr_y[lhit],L_tr_ph[lhit],L_tr_vz[lhit]); // ns
-  
-      
-  R_tr_x[rhit]  = R_tr_x[rhit] * XFPr + XFPm;
-  R_tr_th[rhit] = R_tr_th[rhit] * XpFPr + XpFPm;
-  R_tr_y[rhit]  = R_tr_y[rhit] * YFPr + YFPm;
-  R_tr_ph[rhit] = R_tr_ph[rhit] * YpFPr   + YpFPm;
-  R_tr_vz[rhit] = R_tr_vz[rhit] * Ztr + Ztm;
-  
-  L_tr_x[lhit]  = L_tr_x[lhit] * XFPr + XFPm;
-  L_tr_th[lhit] = L_tr_th[lhit] * XpFPr + XpFPm;
-  L_tr_y[lhit]  = L_tr_y[lhit] * YFPr + YFPm;
-  L_tr_ph[lhit] = L_tr_ph[lhit] * YpFPr   + YpFPm;
-  L_tr_vz[lhit] = L_tr_vz[lhit] * Ztr + Ztm;
-  
-  R_pathl_c = (R_pathl_c - PaRm )/PaRr;
-  L_pathl_c = (L_pathl_c - PaLm )/PaLr;
-
-
-  
-      
-}
-
 ///////////////////////////////////////////////////////////////////////////
 
 void coincalib::Fill(){
@@ -719,50 +605,42 @@ void coincalib::Fill(){
   cout<<"=================================="<<endl;
   double tof_r,tof_l;
   for(int k;k<ENum;k++){
-
-    // Initialization //
-    for(int i=0;i<MAX;i++){
-    R_tr_x[i]  = -2000.0;
-    R_tr_th[i] = -2000.0;
-    R_tr_y[i]  = -2000.0;
-    R_tr_ph[i] = -2000.0;
-    R_tr_p[i]  = -2000.0;
-    L_tr_x[i]  = -2000.0;
-    L_tr_th[i] = -2000.0;
-    L_tr_y[i]  = -2000.0;
-    L_tr_ph[i] = -2000.0;
-    L_tr_p[i]  = -2000.0;
-    }
-    Rtof=-1000.0; Rtof_c=-1000.;Ltof=-1000., Ltof_c=-1000.;
-    coint=-1000.0; coint_c=-1000.0;
-    R_pathl=-1000.0; R_pathl_c=-1000.; L_pathl=-1000.; L_pathl_c=-1000.;
-    Rp=-1000.;
-
-    
+    tof_r= -2222;
+    tof_l= +2222;
     tree->GetEntry(k);
 
-
-    int NLtr = (int)L_tr_n;  if(NLtr>MAX) NLtr = MAX;
-    int NRtr = (int)R_tr_n;  if(NRtr>MAX) NRtr = MAX;
+    Rp=R_tr_p[0];
+    int NLtr = (int)L_tr_n;  //if(NLtr>MAX) NLtr = MAX;
+    int NRtr = (int)R_tr_n;  //if(NRtr>MAX) NRtr = MAX;
 
     for(int lt=0;lt<NLtr;lt++){
       for(int rt=0;rt<NRtr;rt++){
 
-	int R_s2pad=(int)R_s2_t_pads[rt];
-	int L_s2pad=(int)L_s2_t_pads[lt]; 
+	  int R_s2pad=(int)R_s2_t_pads[rt];
+	  int L_s2pad=(int)L_s2_t_pads[lt]; 
 
-	Rp=R_tr_p[rt];
-	
-	CoinCalc(R_s2pad, L_s2pad, rt, lt);	
-	tnew->Fill();
-	
+
+      coint   = CoinCalc(R_s2pad,L_s2pad,rt,lt);      
+      tof_r=Rtof;
+      tof_l=Ltof;
+
+      
+
+
+      
+      coint_c = CoinCalc_c(R_s2pad,L_s2pad,rt,lt);    
+
+      
+
+      tnew->Fill();
+      
       }
     }
-    if(k%100000==0)cout<<"Event Fill : "<<k<<" / "<<ENum<<endl;
+          if(k%100000==0)cout<<"Event Fill : "<<k<<" / "<<ENum<<endl;
   }// End Fill
   
   
-  
+
 }
   
 //////////////////////////////////////////////////////////////////////////////
@@ -989,6 +867,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
   double ltof_f;
   double Chi2=0.0;
   double chi2;
+  double rpathl,lpathl;
   double par_R[nParamTp];
   double par_L[nParamTp];
   double beta_R;
@@ -1014,8 +893,8 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     rtof_f=-1000.;
     ltof_f=-1000.;
     chi2=10000;
-    rpathl[k]=0.0;
-    lpathl[k]=0.0;
+    rpathl=0.0;
+    lpathl=0.0;
     beta_R=0.0;
  
 
@@ -1034,21 +913,20 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
       ly_fp[k]  = (ly_fp[k]-YFPm)/YFPr;
       lph_fp[k] = (lph_fp[k]-YpFPm)/YpFPr;
       lz[k]     = (lz[k] - Ztm)/Ztr;
-      rpathl[k] = (rpathl[k] - PaRm )/PaRr;
-      lpathl[k] = (lpathl[k] - PaLm )/PaLr;
+      
+      rtof_f=RTOF[k];
+      ltof_f=LTOF[k];
 
       beta_R =rp[k]/sqrt(Mass[k]*Mass[k] + rp[k]*rp[k]);
 
-
-
       
       if(mode<=0){
- 	rpathl[k]= calcf_path(par_R,rx_fp[k],rth_fp[k],ry_fp[k],rph_fp[k],rz[k]);
-      } // ns
-      
+	rpathl=RHRS_pathl * calcf_path(par_R,rx_fp[k],rth_fp[k],ry_fp[k],rph_fp[k],rz[k]);
+	rtof_f = rs2_t[k] - rpathl/(beta_R*LightVelocity );   } // ns
+
       if(mode>=0){
-	lpathl[k]= calcf_path(par_L,lx_fp[k],lth_fp[k],ly_fp[k],lph_fp[k],lz[k]);
-      } // ns
+	lpathl= LHRS_pathl * calcf_path(par_L,lx_fp[k],lth_fp[k],ly_fp[k],lph_fp[k],lz[k]);
+	ltof_f = ls2_t[k] - lpathl/(beta_e[k]*LightVelocity);   } // ns
 
 
 
@@ -1063,13 +941,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
       ly_fp[k]  = ly_fp[k] * YFPr + YFPm;
       lph_fp[k] = lph_fp[k] * YpFPr   + YpFPm;
       lz[k]     = lz[k] * Ztr + Ztm;
-      rpathl[k] = rpathl[k] * PaRr + PaRm;
-      lpathl[k] = lpathl[k] * PaLr + PaLm;
 
-
-      rtof_f = rs2_t[k] - rpathl[k]/(beta_R*LightVelocity ); 
-      ltof_f = ls2_t[k] - lpathl[k]/(beta_e[k]*LightVelocity);      
-	
 
       ct_c=rtof_f-ltof_f;
 

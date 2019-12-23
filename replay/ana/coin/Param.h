@@ -14,14 +14,18 @@ const double  Xptr=0.15,  Yptr=0.08, Momr=0.18;
 const double  Ztm = -0.15,Ztr=0.35;
 //==== momentum scaled  parameters =====//
 const double  PLm = 2.0, PLr=0.22; 
-const double  PRm =1.74   ,PRr=0.2;
+const double  PRm =1.74, PRr=0.2;
+const double  PaRm = 29.0, PaRr = 0.4;
+const double  PaLm = 28.9, PaLr = 0.3;
+
 
 int mode;
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
 const int nnc=2;
 const int nParamTc=21;
-
+//const int nnc=3;
+//const int nParamTc=56;
 const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
 const int nParamT = 126;  // Number of parameters
 //const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
@@ -33,14 +37,14 @@ const int nParamT_ras=4;
 //const int nnp=5;// 4th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=252;
 
-const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamTp=126;
+//const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTp=126;
 
 //const int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=56;
 
-//const int nnp=2;// 2nd order matrix using xf, xpf, yf, ypf, and zt
-//const int nParamTp=21;
+const int nnp=2;// 2nd order matrix using xf, xpf, yf, ypf, and zt
+const int nParamTp=21;
 
 const int nParamTp2=nParamTp*2;
 const int nParamTc2=nParamTc*2;
@@ -91,9 +95,6 @@ double selec_widthx = 0.60; // selection width in x (dispersive plane)
 double selec_widthy = 0.45; // selection width in y 
 int ntune_event;
 
-
-
-
 double tevent[nmax];
 double x[nmax], y[nmax];
 double xp[nmax], yp[nmax];
@@ -105,17 +106,30 @@ int foil_flag[nmax];
 int holegroup[nmax];
 int mass_flag[nmax];
 double mass_ref[nmax];
+int rs2_seg[nmax], ls2_seg[nmax];
 double MM[nmax],rx_fp[nmax],rth_fp[nmax],ry_fp[nmax],rph_fp[nmax],lx_fp[nmax],lth_fp[nmax],ly_fp[nmax],lph_fp[nmax];
 double rx[nmax],ry[nmax],rth[nmax],rph[nmax],rz[nmax],lx[nmax],ly[nmax],lth[nmax],lph[nmax],lz[nmax];
+double rs2_t[nmax],ls2_t[nmax];
+double beta_K[nmax],beta_e[nmax];
+bool kaon_select[nmax];
+bool pion_select[nmax];
 double beam_p[nmax];
 double bp[nmax],rp[nmax],lp[nmax];
+double Mass[nmax];
+double rpathl[nmax],lpathl[nmax];
+
 double dth[nfoil];
 double l[nfoil];
 double projectf[nfoil];
+double Kaon_nev=0.0,Pion_nev=0.0;
 
 const double hrs_ang = 13.2 * 3.14159 / 180.;
-//const double tdc_time =56.0e-3;//[ns]
 
+
+
+//const double tdc_time =56.0e-3;//[ns]
+const double RHRS_pathl=29.0; //[m]
+const double LHRS_pathl=28.9; //[m]
 //======= Coincidence Offset Paramters ===========//
 
 const double  RS2_off_H1[16]={-16828.7,-16863,-16894,-16893.3,-16870.9,-16867.2,-16900.3,-16876.8,17554.1,-16861.6,-16895,-16890.7,-16854.6,-16852.9,-16850.5,-16861.9};

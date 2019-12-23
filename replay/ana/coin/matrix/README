@@ -1,0 +1,19 @@
+###########################
+### Coin calib matrix list
+############################
+
+#### 12/16 ######
+2nd/1216_0 faild 2nd parameters (Lambda_small_H1   )
+2nd/1216_1 faild 2nd parameters (Lambda_small_optH1)
+2nd/1216_2 (test_optH1.list) ch2 ~ 5
+
+coincalib_2nd_1216_4.root 2nd parameters( xfp & thfp) test_optH1.list
+: faild
+
+coincalib_3rd_1216_5.root
+3rd parameters (all of fp parameters and z )
+set initial parameters 1216_2 (2nd)
+
+coincalib_2nd_1216_6.root
+2nd parameters and pion calibration
+

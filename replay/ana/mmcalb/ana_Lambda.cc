@@ -458,15 +458,45 @@ double ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   }
 
   
-  //   cout<<"RS2_F1time "<<RS2_F1time[RS2_seg]<<" LS2_F1time "<<LS2_F1time[LS2_seg]<<endl;
-  //       cout<<"Rs2_seg "<<RS2_seg<<" Ls2_seg "<<LS2_seg<<" Rpath "<<Rpathl/(Beta_R*LightVelocity)
-	 ///        <<" Lpath "<<LS2_F1time[LS2_seg] + Lpathl/(Beta_L*LightVelocity)<<" tof_r "<<tof_r<<" tof_l "<<tof_l<<" Rpahtl "<<Rpathl<<" Lpathl "<<Lpathl<<" betaR "<<Beta_R<<" betaL "<<Beta_L<<" c "<<LightVelocity<<" ct "<<cointime<<endl;
+  return cointime;
+  
+}
+///////////////////////////////////////////////////////////////////////////
+
+
+double ana::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
+
+  double cointime=0.0;
+
+  
+  convertF1TDCR(param);
+  convertF1TDCL(param);
+
+  double Rpathl=R_tr_pathl[rhit]+R_s2_trpath[rhit];
+  double Lpathl=L_tr_pathl[lhit]+L_s2_trpath[lhit];
+  double Beta_R=R_p/sqrt(R_p*R_p+MK*MK);
+  double Beta_L=L_p/sqrt(L_p*L_p+Me*Me);
+  double tof_r=RS2_F1time[RS2_seg] - Rpathl/(Beta_R*LightVelocity);
+  double tof_l=LS2_F1time[LS2_seg] - Lpathl/(Beta_L*LightVelocity);
+
+    
+  if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.){
+    cointime= - tof_r + tof_l - coin_offset;
+    tr.ct_b= - (rtof[RS2_seg] - Rpathl/(Beta_R*LightVelocity))
+      + (ltof[LS2_seg] - Lpathl/(Beta_L*LightVelocity))        - coin_offset;
+
+  }
+  else{
+    cointime=-1000;
+    tr.ct_b =-1000;
+  }
 
   
   return cointime;
   
 }
 ///////////////////////////////////////////////////////////////////////////
+
 
 
 double ana::Eloss(double yp,double z,char* arm){
@@ -914,9 +944,12 @@ void ana::Loop(){
 	    double R_Epi   = sqrt( Mpi*Mpi + R_p*R_p );
             double R_betaK = R_p / sqrt(MK*MK + R_p*R_p);
 	    double R_betaPi =R_p/ sqrt(Mpi*Mpi + R_p*R_p);
+	    
 	    double ct =CoinCalc(R_s2pad,L_s2pad,rt,lt);
 
 
+
+	    
 	    //================= ===================== ======================================//
             double L_tgt = L_s2_t[L_s2pad] - (L_tr_pathl[lt] + L_s2_trpath[lt])/c;
             double R_tgt = R_s2_t[R_s2pad] - (R_tr_pathl[rt] + R_s2_trpath[rt])/R_betaK/c;
@@ -991,6 +1024,8 @@ void ana::Loop(){
 
 
 	    Calib(rt, lt);
+	    tr.ct_c=CoinCalc_c(R_s2pad,L_s2pad,rt,lt);
+
 	    h_Rz_c->Fill(R_tr_vz[rt]);
 	    h_Rth_c->Fill(R_tr_tg_th[rt]);
 	    h_Rph_c->Fill(R_tr_tg_ph[rt]);
@@ -999,7 +1034,6 @@ void ana::Loop(){
 	    h_Lth_c->Fill(L_tr_tg_th[lt]);	    	    
 	    h_Lph_c->Fill(L_tr_tg_ph[lt]);	    	    
 	    h_Lp_c->Fill(L_p);
-
 	    tr.Lp_c[lt] = L_p;
 	    tr.Rp_c[rt] = R_p;
 	    tr.Bp_c     = B_p;
@@ -1608,6 +1642,7 @@ void ana::MakeHist(){
   tree_out ->Branch("mm_acc",&tr.missing_mass_acc ,"missing_mass_acc/D");
   tree_out ->Branch("runnum",&runnum ,"runnum/I");
   tree_out ->Branch("ct_b",&tr.ct_b ,"ct_b/D");
+  tree_out ->Branch("ct_c",&tr.ct_c ,"ct_c/D");
   tree_out ->Branch("rtof"        ,tr.Rtof      ,"rtof[16]/D"     );
   tree_out ->Branch("ltof"        ,tr.Ltof      ,"ltof[16]/D"     );  
   tree_out ->Branch("RS2T_F1"        ,tr.RS2T_F1      ,"RS2T_F1[16]/D"     );

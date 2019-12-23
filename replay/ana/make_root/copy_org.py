@@ -1,10 +1,5 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
-
-
-# Toshiyuki Gogami
-# Nov 2, 2018
-# Modified by itabashi
 
 import sys
 import time, os.path
@@ -21,17 +16,18 @@ import sys
 import os,os.path
 import glob
 
-nworkers=8
+nworkers=5
 
-init=111318
+init=111160
 end=111840
 
 #####################################
-root_dir="/data3/root_ole/201912"
+root_dir="/data3/root_ole/root"
 file_init="tritium_"
+small_dir="/data3/root_ole/small"
 #####################################
 
-def check(RUNNUM):
+def sub_root(RUNNUM):
     i=0
     for f in glob.glob(f"{root_dir}/tritium_{RUNNUM}*"):
         i=i+1
@@ -39,24 +35,21 @@ def check(RUNNUM):
 
 
 
-def cmd(RUNNUM):
-    if check(RUNNUM)>0 :
-        print(f"skipped analyzer in #{RUNNUM}")
-    else:
-        print(f"go anlayzer #{RUNNUM}")
-        rep =f' analyzer -l \"replay_coinc_new.C({RUNNUM})\" '
-        subprocess.run([rep],shell=True)
-
-    
+def copy(RUNNUM):    
+    print(f"go making small root #{RUNNUM}")
+    copy =f' ./bin/copy -f {root_dir}/tritium_{RUNNUM}.root -w {small_dir}/tritium_{RUNNUM}.root'
+    print(copy)
+    subprocess.run([copy],shell=True)
+    for sub in range(1,sub_root(RUNNUM)) :
+        copy_sub=f' ./bin/copy -f {root_dir}/tritium_{RUNNUM}_{sub}.root -w {small_dir}/tritium_{RUNNUM}_{sub}.root'
+        print(copy_sub)
+        subprocess.run([copy_sub],shell=True)
 
 def main():
-
-
     with ProcessPoolExecutor(max_workers=nworkers) as executor:
         for RUNNUM in range(init, end):
-            mappings = {executor.submit(cmd,RUNNUM)}
-
+            mappings = {executor.submit(copy,RUNNUM)}
     
 main()
-
+cmd(111180)
 

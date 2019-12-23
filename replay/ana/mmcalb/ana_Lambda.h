@@ -30,7 +30,7 @@ struct TreeBranch{
   double AC1_sum, AC2_sum;
   double AC1_npe_sum,AC2_npe_sum;
   double AC1_npe[24],AC2_npe[26];
-  double ct_acc,ct_b; 
+  double ct_acc,ct_b,ct_c; 
   double Rs0ra_p,Rs0la_p,Rs0a_p;
   double Rs2ra_p[16],Rs2la_p[16],Rs2a_p[16];
   double Ls2ra_p[16],Ls2la_p[16],Ls2a_p[16];
@@ -87,6 +87,7 @@ class ana : public Tree
     double BG_Al(int events);
     double Eloss(double yp,double z,char* arm);
     double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
+    double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
  private:
     int ENumMax;
     int ENum;
