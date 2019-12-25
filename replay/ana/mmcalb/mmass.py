@@ -20,7 +20,7 @@ import sys
 import os,os.path
 import glob
 import datetime
-nworkers=3
+nworkers=5
 
 
 #####################################
@@ -32,21 +32,50 @@ name=[]
 param=[]
 mode=[]
 num=1
-name.append("Lambda_small_optH1")
+name.append("Lambda_small_OleH1")
 mode.append("H1")
-name.append("nnL_small_opt1")
+name.append("nnL_small_Ole1")
 mode.append("T")
-name.append("Lambda_small_optH2")
+name.append("Lambda_small_OleH2")
 mode.append("H1")
-name.append("Lambda_small_optT")
+name.append("Lambda_small_OleT")
 mode.append("H2")
-name.append("nnL_small_opt2")
+name.append("nnL_small_Ole234")
 mode.append("T")
 param.append("f1_Lambda_twc.param")
 param.append("f1_Lambda_phase2_tuned.param")
 
 #####################################
 
+
+def Add():
+    root_H='{root_dir}/Lambda_small_OleH_all.root'
+    root_T='{root_dir}/nnL_mall_Ole_all.root'
+    add_H=f'hadd {root_H} {root_dir}/{name[0]}.root {root_dir}/{name[2]}'
+    add_T=f'hadd {root_T} {root_dir}/{name[1]}.root {root_dir}/{name[4]}'
+    print(add_H)
+    subprocess.run([add_H],shell=True)
+    print(add_T)
+    subprocess.run([add_H],shell=True)
+def ana(i):
+    if i<=2 :
+        pfile=param[0]
+    else :
+        pfile=param[1]
+            
+    names=name[i]
+    MODE=mode[i]
+    cmd=f'./bin/ana_Lambda -f ../run_list/nnlambda/{names}.list -p param/{pfile} -r {root_dir}/{names}.root -w {pdf_dir}/{names}.pdf -m {matrix} -{MODE}'
+    print(cmd)
+    subprocess.run([cmd],shell=True)
+
+def main():
+
+    with ProcessPoolExecutor(max_workers=nworkers) as executor:
+        for i in range(5):
+            mappings = {executor.submit(ana,i)}
+        
+    
 if os.path.exists(root_dir):
     while  num<100:
         if os.path.exists(root_dir+"_"+str(num)):
@@ -61,26 +90,6 @@ os.mkdir(root_dir)
 print(f"Maked new pdf directory {pdf_dir}")
 os.mkdir(pdf_dir)
 
-
-def ana():
-    if i<=2 :
-        pfile=param[0]
-    else :
-        pfile=param[1]
-            
-    names=name[i]
-    MODE=mode[i]
-    cmd=f'./ana_Lambda -f ../run_list/nnlambda/{names}.list -p param/{pfile} -r {root_dir}/{names}.root -w {pdf_dir}/{names}.pdf -m {matrix} -{MODE}'
-#    print(cmd)
-    subprocess.run([cmd],shell=True)
-
-def main():
-
-
-    with ProcessPoolExecutor(max_workers=nworkers) as executor:
-        for i in range(5):
-            mappings = {executor.submit(ana,i)}
-
-    
 main()
+Add()
 #ana()

@@ -51,4 +51,5 @@ const double MAl = 25.13314157;        // Alminium    mass (GeV/c2)
 const double MnnL= 2.9948138266;       // nnL threshold mass  (GeV/c2)
 const double MHe3= 2.80941;  //Herium 3 mass (GeV/c2)
 const double MH3L= 2.99199; //Hydrogen 3 Lambda threshold mass (GeV/c2)
+const double MMgL= 25.5138;
 #endif

@@ -13,6 +13,8 @@ struct TreeBranch{
   
   int z_cut,pid_cut,ct_cut;
   int nev,nrun;
+  double missing_mass_MgL;
+  double missing_mass_MgL_acc;
   double missing_mass, coin_time;
   double missing_mass_acc;
   double missing_mass_L;
@@ -185,6 +187,9 @@ class ana : public Tree
     TH1D *h_mm_Al;
     TH1D *h_mm_Al_acc;
     TH1D *h_peak_Al;
+    TH1D *h_mm_MgL;
+    TH1D *h_mm_MgL_acc;
+    TH1D *h_peak_MgL;
     TH1D *h_peak_L;
     TH1D *h_peak_nnL;
     TH1D *h_acc_Al;
