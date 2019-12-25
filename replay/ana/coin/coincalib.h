@@ -54,6 +54,8 @@ class coincalib : public Tree
   bool pion_flag;
   bool fp_flag;
   double tdc_time;
+  int pid;
+  double Chi2;
   double Rtof,Ltof;
   int R_s2pad,L_s2pad;
   double chi_sq1[100],chi_sq2[100],chi_sq[100];
@@ -61,6 +63,7 @@ class coincalib : public Tree
   TH1D* hcoin;
   TH1D* hcoin_c;
   TH1D* hcoin_cut_c;
+  TH1D* hcoin_a;
   double Rtof_c,Ltof_c;
   double Rs2_t,Ls2_t;
   double beta_r,beta_l;
@@ -68,7 +71,7 @@ class coincalib : public Tree
   double R_pathl_c,L_pathl_c;
   double Beta_R,Beta_L;
   double ac1_sum,ac2_sum;
-  bool cut;
+  bool cut,tuned;
 };
   
   coincalib::coincalib(){

@@ -13,7 +13,9 @@ bool DEBUG=true;
   const int nXpf=nnc;
   const int nYf=nnc;
   const int nYpf=nnc;
-  const int nZt=nnc;
+//  const int nYpf=0;
+// const int nZt=nnc;
+   const int nZt=0;
 
 double coin_offset;
 ///////////////////////////////////////////////////////////////////////////
@@ -126,6 +128,7 @@ void coincalib::NewRoot(string ofname){
   tnew=new TTree("T","Coincalib matrix tuning");
   //  tnew=tree->CloneTree(0);
   tnew->Branch("ct",&coint);
+  tnew->Branch("pid",&pid);
   tnew->Branch("ct_c",&coint_c);
   tnew->Branch("RS2T",RS2_F1time);
   tnew->Branch("LS2T",LS2_F1time);
@@ -140,6 +143,7 @@ void coincalib::NewRoot(string ofname){
   tnew->Branch("rpathl_c",&R_pathl_c);
   tnew->Branch("lpathl_c",&L_pathl_c);
   tnew->Branch("Rp",&Rp);
+  tnew->Branch("tuned",&tuned);
   tnew->Branch("Beta_R",&Beta_R);
   tnew->Branch("Beta_L",&Beta_L);
   tnew->Branch("ac1_sum",&ac1_sum);
@@ -151,6 +155,8 @@ void coincalib::NewRoot(string ofname){
   hcoin_cut->SetFillStyle(3002);
   hcoin_c= new TH1D("hcoin_c","Coin with c ",100,-20.,20.);
   hcoin_c->SetLineColor(1);
+  hcoin_a= new TH1D("hcoin_a","Coin with cut ",100,-20.,20.);
+  hcoin_a->SetLineColor(1);  
   ///  hcoin_c->SetFillColor(4);
   //  hcoin_c->SetFillStyle(3002);
   hcoin_cut_c= new TH1D("hcoin_cut_c","Coin with cut ",100,-20.,20.);
@@ -188,7 +194,7 @@ void coincalib::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   
   if(mode<=0) Rtof_c = RS2_F1time[RS2_seg] - R_pathl_c/(Beta_R*LightVelocity);
   if(mode>=0) Ltof_c = LS2_F1time[LS2_seg] - L_pathl_c/(Beta_L*LightVelocity);  
- 
+  //  cout<<"Rtof "<<Rtof<<" Rtof_c "<<Rtof_c<<" Ltof "<<Ltof<<" Ltof_c "<<Ltof<<endl;
   
   Rs2_t=RS2_F1time[RS2_seg];
   Ls2_t=LS2_F1time[LS2_seg];
@@ -324,23 +330,12 @@ double coincalib::tune(double* pa, int MODE)
 
   cout<<"mode "<<MODE<<" allParam "<<allparam<<endl;
 
-
   TMinuit* minuit= new TMinuit(allparam);
   minuit->SetFCN(fcn); // fcn Chi-square function
 
   
   double start[allparam];
   double step[allparam];
-
-  /*
-  const int nMatT =nnc;  
-  const int nXf   =nnc;
-  const int nXpf  =nnc;
-  const int nYf   =nnc;
-  const int nYpf  =nnc;
-  const int nZt   =nnc;
-  */
-
 
   int npar=0;
   int a=0,b=0,c=0,d=0,e=0;
@@ -356,7 +351,7 @@ double coincalib::tune(double* pa, int MODE)
 		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt){
 		    start[npar] = pa[npar];
 		    step[npar] = 1.0e-3;
-		    //step[npar] = 0.1;
+
 		    //		    cout<<"n "<<npar<<" start "<<start[npar]<<" step "<<step[npar]<<endl;
 		  }
 		  else{
@@ -387,11 +382,11 @@ double coincalib::tune(double* pa, int MODE)
   char pname[500];
   for(int i=0 ; i<allparam ; i++){
     sprintf(pname,"param_%d",i+1);
- 
-    //    LLim[i] = pa[i] - pa[i]*0.8;
-    //    ULim[i] = pa[i] + pa[i]*0.8;
-    
 
+    //   if(i<56)step[i]=0.0;
+    //    LLim[i] = pa[i] - pa[i]*0.1;
+    //    ULim[i] = pa[i] + pa[i]*0.1;
+    
     LLim[i] = pa[i] - 10.0; // temp
     ULim[i] = pa[i] + 10.0; // temp
 
@@ -401,11 +396,13 @@ double coincalib::tune(double* pa, int MODE)
 
   
   // ~~~~ Strategy ~~~~
-  //arglist[0] = 2.0; // original
-   arglist[0] = 1.0; // test
+  arglist[0] = 4.0; // original
+  //arglist[0] = 1.0; // test
   //arglist[0] = 0.0;   // test
 
-   minuit->mnexcm("SET STR",arglist,1,ierflg);
+  // arglist[0] is inclusing value of 1 sigma
+
+  minuit->mnexcm("SET STR",arglist,1,ierflg);
 
   // ~~~~ Migrad + Simplex  ~~~~ 
   arglist[0] = 20000;
@@ -455,7 +452,7 @@ void coincalib::EventSelect(){
   cout<<"==========================="<<endl;
 
   cout<<"Events : "<<ENum<<endl;
-
+  Chi2=0;
   for(int k=0;k<ENum;k++){
 
     // Initialization //
@@ -483,13 +480,7 @@ void coincalib::EventSelect(){
 
     // ===== Initialization ====== //    
 
-    z_flag=false;
-    pid_flag=false;
-    ct_flag=false;
-    ct_flag=false;
-    fp_flag=false;
-    pion_flag=false;
-    kaon_flag=false;
+
 
     
  /////////////////////
@@ -505,6 +496,15 @@ void coincalib::EventSelect(){
       for(int lt=0;lt<NLtr;lt++){	
         for(int rt=0;rt<NRtr;rt++){
 
+    z_flag=false;
+    pid_flag=false;
+    ct_flag=false;
+    ct_flag=false;
+    fp_flag=false;
+    pion_flag=false;
+    kaon_flag=false;
+
+	  
 	  if(fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1 && fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025)z_flag=true;
 	  if(R_a1_asum_p<50. && R_a2_asum_p>2000. && L_cer_asum_c>2000.)pid_flag=true;
 	  if(fabs(R_tr_x[rt])<10. && fabs(R_tr_th[rt])<10. && fabs(R_tr_y[rt])<10. && fabs(R_tr_ph[rt])<10.
@@ -516,12 +516,15 @@ void coincalib::EventSelect(){
 	  CoinCalc(R_s2pad,L_s2pad,rt,lt);
 
 	  
-	  if( fabs(coint )<1.0 )kaon_flag=true;
+	  if( fabs(coint)<1.0 )kaon_flag=true;
+
+	  //	  if( fabs(coint-3. )<1.0 )pion_flag=true;
 	  if(ntune_event<nmax && z_flag && pid_flag && fp_flag)
 	    hcoin->Fill(coint);
 
-	  
-	  if(ntune_event<nmax && z_flag && pid_flag && fp_flag && (kaon_flag || pion_flag)){
+	  double chi=pow((coint)/0.2,2);
+
+	  if(ntune_event<nmax && z_flag && pid_flag && fp_flag && (kaon_flag || pion_flag )){
 	    ct[ntune_event]    = coint;
 	    rx_fp[ntune_event] = R_tr_x[rt];
 	    ry_fp[ntune_event] = R_tr_y[rt];
@@ -553,20 +556,23 @@ void coincalib::EventSelect(){
 	    hcoin_cut->Fill(ct[ntune_event]);
 	    rs2_seg[ntune_event]=R_s2pad;
 	    ls2_seg[ntune_event]=L_s2pad;
-	    
+	    Chi2+=chi;
+	    //	    cout<<"Chi2 "<<Chi2<<" chi "<<chi<<" ct "<<coint<<" kaon_flag "<<kaon_flag<<" pion "<<pion_flag<<endl;
 	  ntune_event++;	  
           if(ntune_event%100==0&& ntune_event>10)cout<<"Event Selection : "<<ntune_event<<" / "<<nmax<<endl;
-	  
+
 
 	  }	    
 	}//end NRtr
       }//end NLtr
-      if(k%100000==0)cout<<"Filled : "<<k<<" / "<<ENum<<endl;
-      if(ntune_event==nmax)break;
-    }//end loop
-  }
 
+    }
+    if(k%100000==0)cout<<"Filled : "<<k<<" / "<<ENum<<endl;
+    if(ntune_event==nmax)break;
+  }///end loop
 
+  Chi2=Chi2/ntune_event;
+  cout<<"Chi2 : "<<Chi2<<endl;
   cout<<"Events Selection : "<<ntune_event<<endl;
   cout<<"Pion selection : "<<Pion_nev<<" Kaon selection : "<<Kaon_nev<<endl;  
 }
@@ -598,17 +604,19 @@ void coincalib::CoinTuning(string ofname,int MODE){
     cout<<"------- Rp tuning -----"<<endl;
     chi_sq1[i]=0.0;
     chi_sq1[i] = tune(Pct_R,-1);   // Rp
+    cout << " Tuning# = " << i << ": chisq = "<<tune(Pct_R,-1) <<" / "<<Chi2<<endl;
     }else if(MODE==1){
     cout<<"------- Lp tuning -----"<<endl;    
     chi_sq2[i]=0.0;
     chi_sq2[i] = tune(Pct_L,1);  // Lp
+    cout << " Tuning# = " << i << ": chisq = "<<tune(Pct_L,1) <<" / "<<Chi2<<endl;
     }else if(MODE==0){
     cout<<"---------pk & pe tuning ------"<<endl;
     chi_sq[i]=0.0;
     chi_sq[i] = tune(Pct,0);
     }
 
-    cout << " Tuning# = " << i << ": chisq = ";
+
       }
     
     if(MODE==-1 || MODE==0){
@@ -623,12 +631,12 @@ void coincalib::CoinTuning(string ofname,int MODE){
 
     int nppp = 0;
     
-    for(int i=0 ; i<nnp+1 ; i++){
-      for(int e=0 ; e<nnp+1 ; e++){
-	for(int d=0 ; d<nnp+1 ; d++){
-	  for(int c=0 ; c<nnp+1 ; c++){
-	    for(int b=0 ; b<nnp+1 ; b++){
-	      for(int a=0 ; a<nnp+1 ; a++){  
+    for(int i=0 ; i<nnc+1 ; i++){
+      for(int e=0 ; e<nnc+1 ; e++){
+	for(int d=0 ; d<nnc+1 ; d++){
+	  for(int c=0 ; c<nnc+1 ; c++){
+	    for(int b=0 ; b<nnc+1 ; b++){
+	      for(int a=0 ; a<nnc+1 ; a++){  
 		if(a+b+c+d+e==i){
 		  if(MODE==-1){		  
 		  *ofs1 << Pct_R[nppp] 
@@ -772,14 +780,6 @@ void coincalib::Fill(){
     R_pathl=-1000.0; R_pathl_c=-1000.; L_pathl=-1000.; L_pathl_c=-1000.;
     Rp=-1000.;
 
-    z_flag=false;
-    pid_flag=false;
-    ct_flag=false;
-    ct_flag=false;
-    fp_flag=false;
-    pion_flag=false;
-    kaon_flag=false;
-
 
     
     tree->GetEntry(k);
@@ -791,7 +791,16 @@ void coincalib::Fill(){
     for(int lt=0;lt<NLtr;lt++){
       for(int rt=0;rt<NRtr;rt++){
 
-
+    z_flag=false;
+    pid_flag=false;
+    ct_flag=false;
+    ct_flag=false;
+    fp_flag=false;
+    pion_flag=false;
+    kaon_flag=false;
+    pid=0;
+    cut=false;
+    tuned=false;
 
 	if(fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1 && fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025)z_flag=true;
 	if(R_a1_asum_p<50. && R_a2_asum_p>2000. && L_cer_asum_c>2000.)pid_flag=true;
@@ -812,11 +821,16 @@ void coincalib::Fill(){
 	Rp=R_tr_p[rt];
 	
 	CoinCalc(R_s2pad, L_s2pad, rt, lt);
- 	if(ntune_event<nmax && z_flag && pid_flag && fp_flag)
+ 	if(ntune_event<nmax && z_flag && pid_flag && fp_flag){
+	  hcoin_a->Fill(coint);
 	  hcoin_c->Fill(coint_c);
- 	if(ntune_event<nmax && z_flag && pid_flag && fp_flag && fabs(coint)<1.)
+	  cut=true;
+	}
+ 	if(ntune_event<nmax && z_flag && pid_flag && fp_flag && fabs(coint)<1.){
 	  hcoin_cut_c->Fill(coint_c);
-	
+	  tuned=true;
+	  pid=1;
+	}
 	tnew->Fill();
 	
       }
@@ -834,6 +848,7 @@ void coincalib::Write(){
 
    tnew->Write();
    hcoin->Write();
+   hcoin_a->Write();
    hcoin_c->Write();
    hcoin_cut->Write();
    hcoin_cut_c->Write();
@@ -1015,8 +1030,8 @@ int main(int argc, char** argv){
   else Coin->SetRunList(ifname);
   Coin->NewRoot(ofname);
   Coin->ReadParam(pname);
-  Coin->EventSelect();
-  if(matrix_flag)Coin->CoinTuning(matrix_name, MODE);
+  if(nite>0)Coin->EventSelect();
+  if(matrix_flag && nite>0)Coin->CoinTuning(matrix_name, MODE);
   Coin->Fill();
   Coin->Write();
   Coin->Close();
@@ -1108,6 +1123,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     ly_fp[k]  = (ly_fp[k]-YFPm)/YFPr;
     lph_fp[k] = (lph_fp[k]-YpFPm)/YpFPr;
     lz[k]     = (lz[k] - Ztm)/Ztr;
+    
     RpathL = (RpathL - PaRm )/PaRr;
     LpathL = (LpathL - PaLm )/PaLr;
     
@@ -1143,9 +1159,10 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     ct_c = - rtof_f  + ltof_f -coin_offset;
 
     
-      if(Mass[k]>0.3 && Pion_nev>10)chi2= weight * pow((ct_c)/sigma,2) / ntune_event;
-      else if(Mass[k]>0.3 && Pion_nev<10) chi2= pow((ct_c)/sigma,2) / ntune_event;
-      else  chi2=pow((ct_c-3.0)/sigma,2) / ntune_event;
+    //      if(Mass[k]>0.3 && Pion_nev>10)chi2= weight * pow((ct_c)/sigma,2) / ntune_event;
+    if(Mass[k]>0.3 && Pion_nev>10)chi2= weight * pow((ct_c)/sigma,2) / ntune_event;
+    else if(Mass[k]>0.3 && Pion_nev<10) chi2= pow((ct_c)/sigma,2) / ntune_event;
+    else  chi2=pow((ct_c-3.0)/sigma,2) / ntune_event;
 
       
       Chi2+=chi2;
@@ -1155,7 +1172,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
   
   
   fval=Chi2;
-  //  cout<<"end fcn "<<endl;
+
 };
 
 

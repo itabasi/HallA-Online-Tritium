@@ -28,6 +28,9 @@ const int nnc=2;
 const int nParamTc=21;
 //const int nnc=3;
 //const int nParamTc=56;
+
+//const int nnc = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTc = 126;  // Number of parameters
 const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
 const int nParamT = 126;  // Number of parameters
 //const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
@@ -74,7 +77,7 @@ double Pct[nParamTc2];
 //double Ras_curx[nmax];
 //double Ras_cury[nmax];
 
-const int nmax = 10000; // Number of events used for tuning
+const int nmax = 100; // Number of events used for tuning
 //const int nmax=10000;// Number of events used for tuning;
 //const int nmax = 50; // Number of events used for tuning
 //const int nite =0;
