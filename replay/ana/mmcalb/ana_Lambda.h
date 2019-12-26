@@ -50,6 +50,7 @@ struct TreeBranch{
   double LS2T_F1[16],LS2B_F1[16],LS2T_ref,LS2B_ref;
   double Rtof[100],Ltof[100];
   int ntrack_r,ntrack_l;
+  double Rpathl,Lpathl,Rpathl_c,Lpathl_c;
   //int runnum;
 };
 static TreeBranch tr;
@@ -87,9 +88,11 @@ class ana : public Tree
     double  AC_npe(int nac, int seg, double adc);
     void Calib(int rt, int lt);
     double BG_Al(int events);
+    void PathCalib(int rhit, int lhit);
     double Eloss(double yp,double z,char* arm);
-    double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
-    double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
+    void CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
+  //    double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
+  //    double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
  private:
     int ENumMax;
     int ENum;
@@ -231,21 +234,24 @@ class ana : public Tree
     double R_s0l_t    , R_s0r_t    , R_s0_t;
     double R_s2l_t[16], R_s2r_t[16], R_s2_t[16];
     double R_p, L_p, B_p;
- public:
-    double min_mm,max_mm;
-    double min_Lp,max_Lp;
-    double mt;
-    double mh;
-    int bin_mm;
-    int bin_Lp=200;
-    double coin_offset;
-    string param_mt[100];
-    bool MT_p[100];
-    bool ploss;
-    double tdc_time;
-    bool Lp_scale=false;
+public:
+  double min_mm,max_mm;
+  double min_Lp,max_Lp;
+  double mt;
+  double mh;
+  int bin_mm;
+  int bin_Lp=200;
+  double coin_offset;
+  string param_mt[100];
+  bool MT_p[100];
+  bool ploss;
+  double tdc_time;
+  bool Lp_scale=false;
   bool nnL_flag=false;
   double ac1_off[24],ac1_1pe[24],ac2_off[26],ac2_1pe[26];
+  double R_pathl,L_pathl;
+  double R_pathl_c, L_pathl_c;
+  double ct;
 };
 
 #endif

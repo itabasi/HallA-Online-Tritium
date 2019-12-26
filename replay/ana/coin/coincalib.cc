@@ -4,7 +4,7 @@ using namespace std;
 #include <TMinuit.h>
 extern void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/);
 extern double calcf_path(double* P, double xf, double xpf, double yf, double ypf,double zt);
-extern double calcf_x(double* P, double xf);
+
 
 bool DEBUG=true;
 
@@ -216,8 +216,6 @@ void coincalib::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   
 }
 ///////////////////////////////////////////////////////////////////////////
-
-
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -960,7 +958,8 @@ int main(int argc, char** argv){
       mtparam_L =optarg;
       matrix_flag=true;
       MODE=MODE+1;
-
+      break;
+      
     case 'C':
       MODE=0;      
       
@@ -1214,14 +1213,3 @@ double calcf_path(double* P, double xf, double xpf,
   }
   return Y;
   }
-
-// #################################################
-double calcf_x(double* P, double xf){
-// ###############################################
-
-  return P[0]*xf+P[1];
-
-
-
-
-}

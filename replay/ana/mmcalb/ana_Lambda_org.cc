@@ -10,38 +10,37 @@ bool batch    = false;
 bool LHRS     = true;
 bool RHRS     = true;
 int MNum=-1;
-
+//const double PI = 4.*atan(1.);
 string ofname("output.pdf");
 string ofroot("output.root");
 
 #define F1TDC
-
 
 extern  double Calc_ras(double a,double b,double c){return  a *b + c;};  
 extern double calcf2t_ang(double* P,double xf, double xpf, double yf, double fpf,double z);
 extern double calcf2t_zt(double* P, double xf, double xpf, double yf, double ypf);
 extern double calcf2t_mom(double* P, double xf, double xpf, double yf, double ypf, double zt);
 extern double Num_Al(double a);
-extern double calcf_pathl(double* P, double xf, double xpf, double yf, double ypf, double zt);
 
 
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
-ana::ana(){
-  
+ana::ana()
+{
   set = new Setting();
   if( root_out ) ofp = new TFile(Form("%s",ofroot.c_str()),"recreate");
 
   //   mom=new momcalib();
   //   mom->MTParam(matrix_name);
 
+  
 }
 
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
+ana::~ana(){
+}
 
-ana::~ana(){}
 
 ////////////////////////////////////////////////////////////////////////////
-
 void ana::matrix(string mtparam){
 
   cout<<endl;
@@ -67,7 +66,7 @@ void ana::matrix(string mtparam){
   MTParam_L();cout<<" Input LHRS Matrix parameter "<<endl;
   MTP_mom();
 
-  for(int i=0;i<12;i++)MT_p[i]=false;
+  for(int i=0;i<10;i++)MT_p[i]=false;
 
   //======= Tuning selection flag =====================//
   //--------- RHRS ------------------------//
@@ -86,11 +85,7 @@ void ana::matrix(string mtparam){
   ploss = true;  // Energy Loss
   //================================================//
 
-  //  MT_p[10] = true; // RHRS path length correction  
-  //  MT_p[11] = true; // LHRS path length correction
-  
   cout<<endl;
-  
   cout<<"======== Correction Parameters ========="<<endl;
   if(MT_p[0])cout<<" RHRS z      correction "<<endl;
   else     cout<<" RHRS z                    no correction "<<endl;
@@ -114,13 +109,7 @@ void ana::matrix(string mtparam){
   else     cout<<" LHRS mom                  no correction "<<endl;
   if(ploss)cout<<" Energy Los  correction "<<endl;
   else     cout<<" Energy Los                no correction "<<endl;
- if(MT_p[10])cout<<" RHRS PathL correction "<<endl;
-  else     cout<<" RHRS PathL                no correction "<<endl;
- if(MT_p[11])cout<<" LHRS PathL correction "<<endl;
-  else     cout<<" LHRS PathL                no correction "<<endl;
-
   cout<<endl;
-  
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -131,7 +120,7 @@ void ana::MTParam_R(){
   //==== RHRS =======//
   //=================//
 
-
+  
   //====== RHRS z parameters ======//
 
     char name_Mzt[500];
@@ -190,18 +179,7 @@ void ana::MTParam_R(){
     }
   Mypt.close();    
 
- //===== RHRS Path Length  parameters ======//
-  char name_Mpl[500];
-    sprintf(name_Mpl, param_mt[10].c_str()); // optimized  
-    ifstream Mpl(name_Mpl);
-    if(Mpl.fail()){ cerr << "failed open files " <<name_Mpl<<endl; exit(1);}
-    for (int i=0;i<nParamTc;i++){
-      double par=0.;
-      int p=0;
-      Mpl >> par >> p >> p >> p >> p >> p;
-      Ppl[i]  = par;
-    }
-  Mpl.close();    
+
 
   
 };
@@ -273,21 +251,6 @@ void ana::MTParam_L(){
   Mypt_L.close();    
 
 
- //===== LHRS Path Length  parameters ======//
-  char name_Mpl_L[500];
-    sprintf(name_Mpl_L, param_mt[11].c_str()); // optimized  
-    ifstream Mpl_L(name_Mpl_L);
-    if(Mpl_L.fail()){ cerr << "failed open files " <<name_Mpl_L<<endl; exit(1);}
-    for (int i=0;i<nParamTc;i++){
-      double par=0.;
-      int p=0;
-      Mpl_L >> par >> p >> p >> p >> p >> p;
-      Ppl_L[i]  = par;
-    }
-  Mpl_L.close();      
-
-  
-
 }
 
 //========================================================//
@@ -310,7 +273,6 @@ void ana::MTP_mom(){
    }
   Mpt.close();
 
-  
   //====== LHRS Momentum parameters ========//
     char name_Mpt_L[500];
     sprintf(name_Mpt_L, param_mt[9].c_str()); // optimized
@@ -343,7 +305,6 @@ void ana::Calib(int rt, int lt ){
   R_tr_vz[rt]   = (R_tr_vz[rt]-Ztm)/Ztr;
   R_tr_tg_th[rt]= (R_tr_tg_th[rt] - Xptm)/Xptr;
   R_tr_tg_ph[rt]= (R_tr_tg_ph[rt] - Yptm)/Yptr;
-
   R_p = (R_p - PRm)/PRr;
   L_tr_x[lt]    = (L_tr_x[lt]-XFPm)/XFPr; 
   L_tr_th[lt]   = (L_tr_th[lt]-XpFPm)/XpFPr;
@@ -364,6 +325,7 @@ void ana::Calib(int rt, int lt ){
 
     RasterCor = Calc_ras(R_Ras_x, Pras[2], Pras[0]);
     RasterCor = RasterCor/tan(hrs_ang);
+
     
     R_tr_vz[rt]  = R_tr_vz[rt]*Ztr +Ztm; // scaled     
     if(MT_p[1])    R_tr_vz[rt]  = R_tr_vz[rt] + RasterCor; // correction
@@ -400,6 +362,7 @@ void ana::Calib(int rt, int lt ){
     L_tr_ph[lt] = L_tr_ph[lt] * YpFPr + YpFPm;    
 
     //=========== Scaled at Taget =============//
+
 
     R_tr_vz[rt]     = R_tr_vz[rt] * Ztr + Ztm; // scaled
     R_tr_tg_th[rt]  = R_tr_tg_th[rt] * Xptr + Xptm; // scaled
@@ -452,7 +415,7 @@ void ana::SetRunList(string ifname){
   readtreeHRSL();
 }
 ////////////////////////////////////////////////////////////////////////////
-/*
+
 double ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
   double cointime=0.0;
@@ -461,13 +424,12 @@ double ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   convertF1TDCR(param);
   convertF1TDCL(param);
 
-  //  double Rpathl=R_tr_pathl[rhit]+R_s2_trpath[rhit];
-  //  double Lpathl=L_tr_pathl[lhit]+L_s2_trpath[lhit];
-  
+  double Rpathl=R_tr_pathl[rhit]+R_s2_trpath[rhit];
+  double Lpathl=L_tr_pathl[lhit]+L_s2_trpath[lhit];
   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
   double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
-  double tof_r=RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
-  double tof_l=LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
+  double tof_r=RS2_F1time[RS2_seg] - Rpathl/(Beta_R*LightVelocity);
+  double tof_l=LS2_F1time[LS2_seg] - Lpathl/(Beta_L*LightVelocity);
 
   if(lhit==0 && rhit==0){
     tr.RS2T_ref=RF1Ref[0];
@@ -486,8 +448,8 @@ double ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   
   if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.){
     cointime= - tof_r + tof_l - coin_offset;
-    tr.ct_b= - (rtof[RS2_seg] - R_pathl/(Beta_R*LightVelocity))
-      + (ltof[LS2_seg] - L_pathl/(Beta_L*LightVelocity))        - coin_offset;
+    tr.ct_b= - (rtof[RS2_seg] - Rpathl/(Beta_R*LightVelocity))
+      + (ltof[LS2_seg] - Lpathl/(Beta_L*LightVelocity))        - coin_offset;
 
   }
   else{
@@ -499,67 +461,9 @@ double ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   return cointime;
   
 }
-*/
-
-
-void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
-
-
-
-  
-  convertF1TDCR(param);
-  convertF1TDCL(param);
-  
-  PathCalib(rhit,lhit);
-
-  
-  double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
-  double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
-  double tof_r=RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
-  double tof_l=LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
-
-  if(lhit==0 && rhit==0){
-    tr.RS2T_ref=RF1Ref[0];
-    tr.RS2B_ref=RF1Ref[1];
-    tr.LS2T_ref=LF1Ref[0];
-    tr.LS2B_ref=LF1Ref[1];
-      tr.RS2T_F1[RS2_seg]=RS2T_F1[RS2_seg];
-      tr.RS2B_F1[RS2_seg]=RS2B_F1[RS2_seg];
-      tr.LS2T_F1[LS2_seg]=LS2T_F1[LS2_seg];
-      tr.LS2B_F1[LS2_seg]=LS2B_F1[LS2_seg];
-      tr.Rtof[RS2_seg]=tof_r;
-      tr.Ltof[LS2_seg]=tof_l;
-
-  }
-
-  
-  if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.){
-    ct       = - tof_r + tof_l - coin_offset;
-    tr.ct_b  = - tof_r + tof_l - coin_offset;
-    tr.ct_c  = - tof_r + tof_l - coin_offset;
-    //    tr.ct_c  = 
-    //    tr.ct_b= - (rtof[RS2_seg] - R_pathl/(Beta_R*LightVelocity))
-    //      + (ltof[LS2_seg] - L_pathl/(Beta_L*LightVelocity))        - coin_offset;
-    //    tr.ct_c= - (rtof[RS2_seg] - R_pathl/(Beta_R*LightVelocity))
-    //      + (ltof[LS2_seg] - L_pathl/(Beta_L*LightVelocity))        - coin_offset;
-
-    
-  }
-  else{
-    ct=-1000;
-    tr.ct_c =-1000;
-    tr.ct_b =-1000;
-  }
-
-  
-
-  
-}
-
-
 ///////////////////////////////////////////////////////////////////////////
 
-/*
+
 double ana::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
   double cointime=0.0;
@@ -568,93 +472,38 @@ double ana::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
   convertF1TDCR(param);
   convertF1TDCL(param);
 
-  //  double Rpathl=R_tr_pathl[rhit]+R_s2_trpath[rhit];
-  //  double Lpathl=L_tr_pathl[lhit]+L_s2_trpath[lhit];
-
+  double Rpathl=R_tr_pathl[rhit]+R_s2_trpath[rhit];
+  double Lpathl=L_tr_pathl[lhit]+L_s2_trpath[lhit];
   double Beta_R=R_p/sqrt(R_p*R_p+MK*MK);
   double Beta_L=L_p/sqrt(L_p*L_p+Me*Me);
-  double tof_r=RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
-  double tof_l=LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
+  double tof_r=RS2_F1time[RS2_seg] - Rpathl/(Beta_R*LightVelocity);
+  double tof_l=LS2_F1time[LS2_seg] - Lpathl/(Beta_L*LightVelocity);
 
     
   if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.){
     cointime= - tof_r + tof_l - coin_offset;
-    tr.ct_c= - (rtof[RS2_seg] - R_pathl/(Beta_R*LightVelocity))
-      + (ltof[LS2_seg] - L_pathl/(Beta_L*LightVelocity))        - coin_offset;
+    tr.ct_b= - (rtof[RS2_seg] - Rpathl/(Beta_R*LightVelocity))
+      + (ltof[LS2_seg] - Lpathl/(Beta_L*LightVelocity))        - coin_offset;
 
   }
   else{
     cointime=-1000;
-    tr.ct_c =-1000;
+    tr.ct_b =-1000;
   }
 
   
   return cointime;
   
 }
-*/
 ///////////////////////////////////////////////////////////////////////////
 
-void ana::PathCalib(int rhit, int lhit){
 
-
-  R_pathl= R_tr_pathl[rhit] + R_s2_trpath[rhit];
-  L_pathl= L_tr_pathl[lhit] + L_s2_trpath[lhit];
-
-  tr.Rpathl=R_pathl;
-  tr.Lpathl=L_pathl;
-
-  R_pathl       = (R_pathl - PaRm )/PaRr;
-  L_pathl       = (L_pathl - PaLm )/PaLr;  
-  
-  R_tr_x[rhit]  = (R_tr_x[rhit]-XFPm)/XFPr;
-  R_tr_th[rhit] = (R_tr_th[rhit]-XpFPm)/XpFPr;
-  R_tr_y[rhit]  = (R_tr_y[rhit]-YFPm)/YFPr;
-  R_tr_ph[rhit] = (R_tr_ph[rhit]-YpFPm)/YpFPr;
-  R_tr_vz[rhit] = (R_tr_vz[rhit] - Ztm)/Ztr;
-  
-  L_tr_x[lhit]  = (L_tr_x[lhit]-XFPm)/XFPr;
-  L_tr_th[lhit] = (L_tr_th[lhit]-XpFPm)/XpFPr;
-  L_tr_y[lhit]  = (L_tr_y[lhit]-YFPm)/YFPr;
-  L_tr_ph[lhit] = (L_tr_ph[lhit]-YpFPm)/YpFPr;
-  L_tr_vz[lhit] = (L_tr_vz[lhit] - Ztm)/Ztr;      
-  
-  
-  //==== Calc Path Length =========//
-
-  if(MT_p[10])  R_pathl = calcf_pathl(Ppl  ,R_tr_x[rhit],R_tr_th[rhit],R_tr_y[rhit],R_tr_ph[rhit],R_tr_vz[rhit]); // ns
-  if(MT_p[11])  L_pathl = calcf_pathl(Ppl_L,L_tr_x[lhit],L_tr_th[lhit],L_tr_y[lhit],L_tr_ph[lhit],L_tr_vz[lhit]); // ns
-
-  
-  R_tr_x[rhit]  = R_tr_x[rhit] * XFPr + XFPm;
-  R_tr_th[rhit] = R_tr_th[rhit] * XpFPr + XpFPm;
-  R_tr_y[rhit]  = R_tr_y[rhit] * YFPr + YFPm;
-  R_tr_ph[rhit] = R_tr_ph[rhit] * YpFPr   + YpFPm;
-  R_tr_vz[rhit] = R_tr_vz[rhit] * Ztr + Ztm;
-  
-  L_tr_x[lhit]  = L_tr_x[lhit] * XFPr + XFPm;
-  L_tr_th[lhit] = L_tr_th[lhit] * XpFPr + XpFPm;
-  L_tr_y[lhit]  = L_tr_y[lhit] * YFPr + YFPm;
-  L_tr_ph[lhit] = L_tr_ph[lhit] * YpFPr   + YpFPm;
-  L_tr_vz[lhit] = L_tr_vz[lhit] * Ztr + Ztm;
-  
-  R_pathl = R_pathl * PaRr + PaRm;
-  L_pathl = L_pathl * PaLr + PaLm;
-
-  tr.Rpathl = R_pathl;
-  tr.Lpathl = L_pathl;
-  
-
-}
-
-
-//////////////////////////////////////////////////////////////////
 
 double ana::Eloss(double yp,double z,char* arm){
 
-  double hrs_ang=13.2*3.14159/180.;  
-  double x;
+  double hrs_ang=13.2*3.14159/180.;
   
+  double x;
 
   //  if(arm) x= - tan(hrs_ang-yp); //yp : phi [rad] right arm
   //  else    x= - tan(hrs_ang+yp); //yp : phi [rad]  left arm
@@ -1067,7 +916,9 @@ void ana::Loop(){
 	  if( L_Tr && L_FP && R_Tr && R_FP ){
 
 
-
+	    B_p     = HALLA_p/1000.0;// [GeV/c]	    
+	    L_p     = L_tr_p[lt];
+	    R_p     = R_tr_p[rt];
 
 	    //---- Initialization ----//
 	    tr.Lp[lt] =-100.;
@@ -1102,14 +953,6 @@ void ana::Loop(){
 	    tr.missing_mass_MgL=-100.;
 	    tr.missing_mass_MgL_acc =-100.;
 	    tr.missing_mass_Al_bg=-100.;
-	    tr.Rpathl=-100.; tr.Lpathl=-100.;
-	    tr.Rpathl_c=-100.; tr.Lpathl_c=-100.;
-	    ct=-1000.0;
-	    
-
-	    B_p     = HALLA_p/1000.0;// [GeV/c]	    
-	    L_p     = L_tr_p[lt];
-	    R_p     = R_tr_p[rt];
 	    
 	    //==== Energy Loss calibration ======//
 
@@ -1133,10 +976,8 @@ void ana::Loop(){
 	    double R_Epi   = sqrt( Mpi*Mpi + R_p*R_p );
             double R_betaK = R_p / sqrt(MK*MK + R_p*R_p);
 	    double R_betaPi =R_p/ sqrt(Mpi*Mpi + R_p*R_p);
-
-
-	    CoinCalc(R_s2pad,L_s2pad,rt,lt);
-	    //	    double ct =CoinCalc(R_s2pad,L_s2pad,rt,lt);
+	    
+	    double ct =CoinCalc(R_s2pad,L_s2pad,rt,lt);
 
 
 
@@ -1216,7 +1057,7 @@ void ana::Loop(){
 
 	    Calib(rt, lt);
 
-	    //	    tr.ct_c=CoinCalc_c(R_s2pad,L_s2pad,rt,lt);
+	    tr.ct_c=CoinCalc_c(R_s2pad,L_s2pad,rt,lt);
 
 	    h_Rz_c->Fill(R_tr_vz[rt]);
 	    h_Rth_c->Fill(R_tr_tg_th[rt]);
@@ -2591,11 +2432,11 @@ double calcf2t_mom(double* P, double xf, double xpf,
 
 
 
-// ####################################################
+// ###################################################
 double calcf2t_ang(double* P, double xf, double xpf, 
-		     double yf, double ypf, double zt){
+		     double yf, double ypf, double zt)
 // ####################################################
-
+{
   // ------------------------------------------------ //
   // ----- 4rd order using xf, xpf, yf, ypf, zt ----- //
   // ------------------------------------------------ //
@@ -2738,51 +2579,4 @@ double ana::AC_npe(int nac, int seg, double adc){
   //  npe=(adc- ac_off)/(ac_1pe - ac_off);
   npe=(adc)/(ac_1pe - ac_off); // Just correct gain
   return npe;  
-}
-
-// #################################################
-double calcf_pathl(double* P, double xf, double xpf, double yf, double ypf, double zt){
-// #################################################
-
-
-
-  const int nMatT=nnc; 
-  const int nXf=nnc;
-  const int nXpf=nnc;
-  const int nYf=nnc;
-  const int nYpf=nnc;
-  const int nZt=0;
-
-  double Y=0.;
-  double x=1.; 
-  int npar=0;
-  int a=0,b=0,c=0,d=0,e=0;
-  
-  for (int n=0;n<nMatT+1;n++){
-    for (e=0;e<n+1;e++){
-      for (d=0;d<n+1;d++){
-	for (c=0;c<n+1;c++){
-	  for (b=0;b<n+1;b++){
-	    for (a=0;a<n+1;a++){		
-		if (a+b+c+d+e==n){
-		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt){
-		    x = pow(xf,double(a))*pow(xpf,double(b))*
-		      pow(yf,double(c))*pow(ypf,double(d))*pow(zt,double(e));
-		  }
-		  else{
-		    x = 0.;
-		  }
-		  Y += x*P[npar];
-		  npar++;
-		}
-		
-	    }
-	  }
-	}
-      }
-    }
-  }
-  return Y;  
-
-
 }

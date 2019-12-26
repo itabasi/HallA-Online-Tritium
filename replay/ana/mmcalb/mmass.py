@@ -49,14 +49,15 @@ param.append("f1_Lambda_phase2_tuned.param")
 
 
 def Add():
-    root_H='{root_dir}/Lambda_small_OleH_all.root'
-    root_T='{root_dir}/nnL_mall_Ole_all.root'
-    add_H=f'hadd {root_H} {root_dir}/{name[0]}.root {root_dir}/{name[2]}'
-    add_T=f'hadd {root_T} {root_dir}/{name[1]}.root {root_dir}/{name[4]}'
+    root_H=f'{root_dir}/Lambda_small_OleH_all.root'
+    root_T=f'{root_dir}/nnL_mall_Ole_all.root'
+    add_H=f'hadd {root_H} {root_dir}/{name[0]}.root {root_dir}/{name[2]}.root'
+    add_T=f'hadd {root_T} {root_dir}/{name[1]}.root {root_dir}/{name[4]}.root'
     print(add_H)
     subprocess.run([add_H],shell=True)
     print(add_T)
     subprocess.run([add_H],shell=True)
+    
 def ana(i):
     if i<=2 :
         pfile=param[0]

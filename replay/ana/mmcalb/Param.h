@@ -14,14 +14,18 @@ const double  Xptr=0.15,  Yptr=0.08, Momr=0.18;
 const double  Ztm = -0.15,Ztr=0.35;
 //==== momentum scaled  parameters =====//
 const double  PLm = 2.0, PLr=0.22; 
-const double  PRm =1.74   ,PRr=0.2;
+const double  PRm =1.74, PRr=0.2;
+const double PaRm = 29.0, PaRr = 0.4; 
+const double PaLm = 28.9, PaLr = 0.3; 
 
 
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
-
-
 //const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamT = 126;  // Number of parameters
+
+const int nnc =4;
+const int nParamTc =126;
+const int nParamTc2 =nParamTc*2;
 const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
 const int nParamT = 252;  // Number of parameters in angles
 const int nnz =3;
@@ -50,6 +54,7 @@ double Pzt[nParamTz],Pzt_L[nParamTz];
 double Pxpt[nParamT],Pxpt_L[nParamT];
 double Pypt[nParamT],Pypt_L[nParamT];
 double Prp[nParamTp],Plp[nParamTp];
+double Ppl[nParamTc],Ppl_L[nParamTc];
 double Opt_par_R[nParamTp];
 double Opt_par_L[nParamTp];
 double Opt_par[nParamTp2];
