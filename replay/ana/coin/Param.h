@@ -15,23 +15,27 @@ const double  Ztm = -0.15,Ztr=0.35;
 //==== momentum scaled  parameters =====//
 const double  PLm = 2.0, PLr=0.22; 
 const double  PRm =1.74, PRr=0.2;
-const double  PaRm = 29.0, PaRr = 0.4;
-const double  PaLm = 28.9, PaLr = 0.3;
-//const double  PaRm = 25.7, PaRr = 0.4;
-//const double  PaLm = 25.7, PaLr = 0.4;
+//const double  PaRm = 29.0, PaRr = 0.4;
+//const double  PaLm = 28.9, PaLr = 0.3;
+const double  PaRm = 25.713, PaRr = 0.4;
+const double  PaLm = 25.713, PaLr = 0.4;
 
 
 int mode;
-//const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
+
+//const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 //const int nnc=2;
 //const int nParamTc=21;
-//const int nnc=3;
-//const int nParamTc=56;
-const int nnc = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamTc = 126;  // Number of parameters
+const int nnc=3;
+const int nParamTc=56;
+
+//const int nnc = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTc = 126;  // Number of parameters
+
 const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
 const int nParamT = 126;  // Number of parameters
+
 //const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamT = 252;  // Number of parameters in angles
 const int nnz =3;
@@ -121,6 +125,7 @@ double beam_p[nmax];
 double bp[nmax],rp[nmax],lp[nmax];
 double Mass[nmax];
 double rpathl[nmax],lpathl[nmax];
+//double rs2pathl[nmax],ls2pathl[max];
 double rs2_pathl[nmax], ls2_pathl[nmax];
 double dth[nfoil];
 double l[nfoil];
