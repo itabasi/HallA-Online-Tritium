@@ -31,11 +31,11 @@ const int nParamT_ras=4;
 //const int nnp=5;// 4th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=252;
 
-const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamTp=126;
+//const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTp=126;
 
-//const int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
-//const int nParamTp=56;
+const int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
+const int nParamTp=56;
 
 //const int nnp=2;// 2nd order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=21;
@@ -63,8 +63,8 @@ double OptPar2[nParamT];
 //double Ras_curx[nmax];
 //double Ras_cury[nmax];
 
-const int nmax = 1000; // Number of events used for tuning
-//const int nmax=10000;// Number of events used for tuning;
+//const int nmax = 1000; // Number of events used for tuning
+const int nmax=10000;// Number of events used for tuning;
 //const int nmax = 50; // Number of events used for tuning
 //const int nite =0;
 const int nfoil = 10;
@@ -105,7 +105,6 @@ double bp[nmax],rp[nmax],lp[nmax];
 double dth[nfoil];
 double l[nfoil];
 double projectf[nfoil];
-
 const double hrs_ang = 13.2 * 3.14159 / 180.;
 //const double tdc_time =56.0e-3;//[ns]
 

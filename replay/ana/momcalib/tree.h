@@ -25,7 +25,7 @@ class tree{
   int ENum;
   //------ SetBranch -------//
   
-  double runnum;
+  int runnum;
   double hallap;
   double DRevtype;
   //----- Scintillation Triger Counters -------// 
