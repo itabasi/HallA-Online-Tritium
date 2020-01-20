@@ -1,0 +1,81 @@
+ClockCountEvtHandler.cxx://#define WITH_DEBUG 0
+ClockCountEvtHandler.cxx:#ifdef WITH_DEBUG
+ClockCountEvtHandler.cxx:#ifdef WITH_DEBUG
+ClockCountEvtHandler.cxx:#ifdef WITH_DEBUG
+ClockCountEvtHandler.cxx:#ifdef WITH_DEBUG
+ClockCountEvtHandler.cxx:#ifdef WITH_DEBUG
+ClockCountEvtHandler.cxx:#ifdef WITH_DEBUG
+ClockCountEvtHandler.cxx:#ifdef WITH_DEBUG
+Makefile:#export WITH_DEBUG = 1
+Makefile:export WITH_DEBUG = 0  # OFF (Nov 22, 2019, TG)
+Makefile:ifdef WITH_DEBUG
+Makefile:DEFINES     += -DWITH_DEBUG
+TdcDataEvtHandler.cxx://#define WITH_DEBUG 0
+TdcDataEvtHandler.cxx:#ifdef WITH_DEBUG
+TdcDataEvtHandler.cxx:#ifdef WITH_DEBUG
+TdcDataEvtHandler.cxx:#ifdef WITH_DEBUG
+TdcDataEvtHandler.cxx:#ifdef WITH_DEBUG
+TdcDataEvtHandler.cxx:#ifdef WITH_DEBUG
+TdcDataEvtHandler.cxx:#ifdef WITH_DEBUG
+TdcDataEvtHandler.cxx:#ifdef WITH_DEBUG
+TriFadcAerogelC.cxx:#ifdef WITH_DEBUG
+TriFadcCherenkov.cxx:#ifdef WITH_DEBUG
+TriFadcF1Scin.cxx:#ifdef WITH_DEBUG
+TriFadcF1Scin.cxx:#ifdef WITH_DEBUG
+TriFadcScin.cxx:#ifdef WITH_DEBUG
+TriFadcScin.cxx:#ifdef WITH_DEBUG
+TriFadcScinF1.cxx:#ifdef WITH_DEBUG
+TriFadcScinF1.cxx:#ifdef WITH_DEBUG
+TriFadcShower.cxx:#ifdef WITH_DEBUG
+TriFadcShower.cxx:#ifdef WITH_DEBUG
+TriFadcShower.cxx:#ifdef WITH_DEBUG
+TriFadcXscin.cxx:#ifdef WITH_DEBUG      
+TriFadcXscin.cxx:#ifdef WITH_DEBUG      
+TriHRS.cxx:#ifdef WITH_DEBUG
+TriHRS.cxx:#ifdef WITH_DEBUG
+TriHRS.cxx:#ifdef WITH_DEBUG
+TriScintillator.cxx:#ifdef WITH_DEBUG      
+TriScintillator.cxx:#ifdef WITH_DEBUG      
+TriSpectrometer.cxx:#ifdef WITH_DEBUG
+TriSpectrometer.cxx:#ifdef WITH_DEBUG
+TriSpectrometer.cxx:#ifdef WITH_DEBUG
+TriSpectrometer.cxx:#ifdef WITH_DEBUG
+TriSpectrometer.cxx:#ifdef WITH_DEBUG
+TriSpectrometer.cxx:#ifdef WITH_DEBUG
+TriSpectrometer.cxx:#ifdef WITH_DEBUG
+TriSpectrometer.cxx:#ifdef WITH_DEBUG
+TriSpectrometer.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDC.cxx:#ifdef WITH_DEBUG
+TriVDCeff.cxx:#ifdef WITH_DEBUG
+TriXscin.cxx:#ifdef WITH_DEBUG      
+TriXscin.cxx:#ifdef WITH_DEBUG      
+Tritium_Beam_Eloss.cxx:#ifdef WITH_DEBUG
+Tritium_HRS.cxx:#ifdef WITH_DEBUG
+Tritium_HRS.cxx:#ifdef WITH_DEBUG
+Tritium_Track_Eloss.cxx:#ifdef WITH_DEBUG
+Tritium_Xscin.cxx:#ifdef WITH_DEBUG      
+Tritium_Xscin.cxx:#ifdef WITH_DEBUG      
+TritonDict.cxx:#ifndef WITH_DEBUG
+TritonDict.cxx:  #define WITH_DEBUG 1
+TritonDict.cxx~:#ifndef WITH_DEBUG
+TritonDict.cxx~:  #define WITH_DEBUG 1
+TritonDict.cxx~:  #define WITH_DEBUG 0
+バイナリファイル TritonDict.o に一致しました
+バイナリファイル libTriton.so に一致しました
