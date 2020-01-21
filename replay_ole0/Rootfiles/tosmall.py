@@ -15,15 +15,15 @@ from concurrent.futures.process import ProcessPoolExecutor
 import numpy as np
 
 #nworkers=20
-#nworkers=15
+nworkers=15
 #nworkers=10
-nworkers=7
+#nworkers=7
 #runfile = "multiF.dat"
-runfile = "h2.dat"
+#runfile = "h2.dat"
 #runfile = "dummy.dat"
 #runfile = "h22.dat"
 #runfile = "He3.dat"
-#runfile = "T2.dat"
+runfile = "T2.dat"
 #runfile = "T2_H.dat"
 #runfile = "ss.dat"
 #runfile = "Al_h22.dat"
@@ -59,5 +59,9 @@ def main():
 
 stime = time.time()
 main()
+
+com2 = "./merge_rootfiles " + runfile
+call(com2, shell=True)
+
 print("\n Jobs were done in %.0f sec \n" % float(time.time()-stime))
 
