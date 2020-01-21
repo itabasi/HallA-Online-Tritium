@@ -15,15 +15,15 @@ from concurrent.futures.process import ProcessPoolExecutor
 import numpy as np
 
 #nworkers=20
-nworkers=15
+#nworkers=15
 #nworkers=10
-#nworkers=7
+nworkers=7
 #runfile = "multiF.dat"
-#runfile = "h2.dat"
+runfile = "h2.dat"
 #runfile = "dummy.dat"
 #runfile = "h22.dat"
 #runfile = "He3.dat"
-runfile = "T2.dat"
+#runfile = "T2.dat"
 #runfile = "T2_H.dat"
 #runfile = "ss.dat"
 #runfile = "Al_h22.dat"
