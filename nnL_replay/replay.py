@@ -21,13 +21,13 @@ import sys
 import os,os.path
 import glob
 
-nworkers=8
+nworkers=6
 
-init=111318
+init=111210
 end=111840
 
 #####################################
-root_dir="/data3/root_ole/201912"
+root_dir="/data3/root_ole/root2"
 file_init="tritium_"
 #####################################
 

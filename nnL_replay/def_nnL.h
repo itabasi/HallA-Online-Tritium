@@ -39,7 +39,8 @@
 const char* REPLAY_DIR_PREFIX = "./%s";
 //const char* ROOTFILE_DIR_PREFIX = "/data2/test/root";
 //const char* ROOTFILE_DIR_PREFIX = "/data/root_ole/copy_to_farm";
-const char* ROOTFILE_DIR_PREFIX = "/data3/root_ole/201912"; 
+const char* ROOTFILE_DIR_PREFIX = "/data3/root_ole/root2";
+//const char* ROOTFILE_DIR_PREFIX = "/data2/test"; 
 //const char* ROOTFILE_DIR_PREFIX = "./rootfiles/";
 
   //"/volatile/halla/triton/eep_Rootfiles/%s";
