@@ -519,8 +519,8 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   PathCalib(rhit,lhit);
 
   
-  //   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
-   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+Mpi*Mpi);
+  double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
+  //   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+Mpi*Mpi);
    double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
 
   
@@ -1069,39 +1069,6 @@ void ana::Loop(){
 	  Kaon = false;
 
 
-	  tr.AC1_npe_sum=0.0;
-	  tr.AC2_npe_sum=0.0;
-
-	  //==== AC ADC convert ch to npe =======//
-	  for(int seg=0;seg<24;seg++){
-	    tr.AC1_npe[seg]=AC_npe(1,seg,R_a1_a_p[seg]);
-	    tr.AC1_npe[seg]=tr.AC1_npe[seg];
-	    tr.AC1_npe_sum+=tr.AC1_npe[seg];
-	  }
-	  for(int seg=0;seg<26;seg++){
-	    tr.AC2_npe[seg]=AC_npe(2,seg,R_a2_a_p[seg]);
-	    tr.AC2_npe_sum+=tr.AC2_npe[seg];
-	  }    
-
-
-
-
-          //Kaon = true; // Without AC CUT
-          if( R_tr_chi2[rt]<0.01 ) R_Tr = true;
-          if( R_tr_th[rt]<0.17*R_tr_x[rt]+0.025
-           && R_tr_th[rt]>0.17*R_tr_x[rt]-0.035
-           && R_tr_th[rt]<0.40*R_tr_x[rt]+0.130 ) R_FP = true;
-	  //	  if( R_a1_asum_p<400 && R_a2_asum_p>1000 && R_a2_asum_p<4000) Kaon = true;
-	  //	  if( R_a1_asum_p<a1_th && R_a2_asum_p>a2_th) Kaon = true;
-	  //	  if( R_a1_asum_p<1.0 && R_a2_asum_p>3.0 && R_a2_asum_p<7.0) Kaon = true;	  
-	  if( tr.AC1_npe_sum < a1_th && tr.AC2_npe_sum > a2_th_min && tr.AC2_npe_sum < a2_th_max) Kaon = true;
-	  //	  if(fabs(R_tr_vz[rt])<0.1
-	  //         && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
-
-
-
-
-
 
 	    //---- Initialization ----//
 	    tr.Lp[lt] =-100.;
@@ -1139,9 +1106,47 @@ void ana::Loop(){
 	    tr.Rpathl=-100.; tr.Lpathl=-100.;
 	    tr.Rpathl_c=-100.; tr.Lpathl_c=-100.;
 	    ct=-1000.0;
+
+	    tr.AC1_npe_sum=0.0;
+	    tr.AC2_npe_sum=0.0;
+	    for(int seg=0;seg<24;seg++)
+	      tr.AC1_npe[seg]=0.0;
+	    for(int seg=0;seg<26;seg++)
+	      tr.AC2_npe[seg]=0.0;	  
+
 	    
+	  //==== AC ADC convert ch to npe =======//
+	  //	  tr.AC1_npe_sum=R_a1_asum_p/400.;
+	  //	  tr.AC2_npe_sum=R_a2_asum_p/400.;
+
+	  for(int seg=0;seg<24;seg++){
+	    tr.AC1_npe[seg]=AC_npe(1,seg,R_a1_a_p[seg]);
+	    tr.AC1_npe_sum+=tr.AC1_npe[seg];
+	  }
+	  for(int seg=0;seg<26;seg++){
+	    tr.AC2_npe[seg]=AC_npe(2,seg,R_a2_a_p[seg]);
+	    tr.AC2_npe_sum+=tr.AC2_npe[seg];
+	  }    
 
 
+
+
+          //Kaon = true; // Without AC CUT
+          if( R_tr_chi2[rt]<0.01 ) R_Tr = true;
+          if( R_tr_th[rt]<0.17*R_tr_x[rt]+0.025
+           && R_tr_th[rt]>0.17*R_tr_x[rt]-0.035
+           && R_tr_th[rt]<0.40*R_tr_x[rt]+0.130 ) R_FP = true;
+	  //	  if( R_a1_asum_p<400 && R_a2_asum_p>1000 && R_a2_asum_p<4000) Kaon = true;
+	  //	  if( R_a1_asum_p<a1_th && R_a2_asum_p>a2_th) Kaon = true;
+	  //	  if( R_a1_asum_p<1.0 && R_a2_asum_p>3.0 && R_a2_asum_p<7.0) Kaon = true;	  
+	  if( tr.AC1_npe_sum < a1_th && tr.AC2_npe_sum > a2_th_min && tr.AC2_npe_sum < a2_th_max) Kaon = true;
+	  //	  if(fabs(R_tr_vz[rt])<0.1
+	  //         && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
+
+
+
+
+	    
 	  if(fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1)zcut=true;
 
 
