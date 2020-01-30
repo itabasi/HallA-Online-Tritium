@@ -193,12 +193,16 @@ void ParamMan::SetF1CoinOffset( string &line, string &name)
 
 double ParamMan::GetF1CoinOffset(){
 
+  coin_F1_offset=0.0;
+
+  SetVal();
   return coin_F1_offset;
   
 }
 
 double ParamMan::GetF1reso(){
 
+  
   return   F1reso ;
 }
 
@@ -544,13 +548,20 @@ void ParamMan::WriteToFile(const char* OutputFileName)   //wrinting param file
   }
   fout<<endl;
 
+  /*
   fout<<"F1TDC.reso = "<<flush;
   fout << std::setprecision(6)
        <<F1reso<<flush;
-  fout<<endl;
+  fout<<endl;  
+  */
+
+  
+  
 
   if(fout.is_open()) fout.close();
   cout << OutputFileName << " was written"<<endl;
+
+  
 }
 
 
@@ -559,5 +570,23 @@ double ParamMan::F1Res(){
   F1res=F1reso;
   cout<<"F1 TDC Resolution "<<F1res<<endl;
   return F1res;
+
+}
+
+
+double ParamMan::GetF1Offset(int cid, int seg, int lr, int tb){
+
+  double RS2T_F1[nS2],RS2B_F1[nS2],LS2T_F1[nS2],LS2B_F1[nS2];
+  
+  for(int i=0;i<nS2;i++){
+    RS2T_F1[i]= R_F1S2T.tdcOffset[i];
+    RS2B_F1[i]= R_F1S2B.tdcOffset[i];
+    LS2T_F1[i]= L_F1S2T.tdcOffset[i];
+    LS2B_F1[i]= L_F1S2B.tdcOffset[i];
+  }
+
+
+
+
 
 }

@@ -81,6 +81,7 @@ public:
   double time(         int cid, int seg, int lr, int tb, double tdc, double adc=-1.);
   double TimewalkCorrection(double par, double adc, double peak=2000.);
   void WriteToFile( const char* OutputFileName );
+  double GetF1Offset(int cid , int seg, int lr, int tb);
 };
 
 

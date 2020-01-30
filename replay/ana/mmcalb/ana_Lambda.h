@@ -92,7 +92,7 @@ class ana : public Tree
     double Eloss(double yp,double z,char* arm);
     void CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
   //    double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
-  //    double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
+  double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
  private:
     int ENumMax;
     int ENum;
@@ -252,6 +252,12 @@ public:
   double R_pathl,L_pathl;
   double R_pathl_c, L_pathl_c;
   double ct;
+
+
+  double ac1_th[24]={5249.78, 5263.03, 5244.2, 5239.62, 5276.17,  5249.84,
+		     5274.63, 5291.02, 5259.66, 5305.42, 5262.97, 5333.76, 5275.35, 5190.67, 5303.03, 5414.55, 5224.28, 5320.19, 5253.68, 5242.92, 5219.99, 5296.6, 5345.91, 5357.9};
+
+
 };
 
 #endif

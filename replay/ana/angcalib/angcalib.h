@@ -53,6 +53,7 @@ class angcalib
   void SetBranch(string ifname, bool rarm);
   void NewBranch(string ofname, bool rarm);
   void MakeHist();
+  void SSHole(string paramname, bool rarm);
   //  void MTtuning(string ofMTPname, string matrix_name);
   void Fill(bool rarm);
   void Write();

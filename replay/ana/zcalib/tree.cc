@@ -18,7 +18,7 @@ tree::~tree(){}
 void tree::chain_tree(string ifname)
 {
 
-  tree->Add(Form("%s",ifname.c_str()));
+  t1->Add(Form("%s",ifname.c_str()));
   cout<<ifname<<endl;
 
 }

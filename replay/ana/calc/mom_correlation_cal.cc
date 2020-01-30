@@ -5,7 +5,7 @@ void mom_correlation_cal(){
   //=== parameters ====//
 
   double E,Ee,P,Pe,Pv,Ev,Ae,Av,Avk,me,Ib,Ne,edeg;
-  double mt,mh,mk,Et,Eh,Ek,Ph,Pt,Pk,Avk,Avh,be;
+  double mt,mh,mk,Et,Eh,Ek,Ph,Pt,Pk,Avh,be,W;
 
   me=0.51;//[MeV] :electron mass
   mk=493.7;//[MeV] kaion mass
@@ -38,28 +38,56 @@ void mom_correlation_cal(){
 
 
   //====== nnL exp. (E12-18-003) SetUp ======================//
-
+  bool nnL=false; // nnL mode
+  if(nnL){
   E=4300;  // [MeV] : beam energy
   Ib=20;//[myuA] :beam flux
+  //  Pe=2180;//[MeV] :scatter electron momentum
   Pe=2180;//[MeV] :scatter electron momentum
-  edeg=12.5; // scattered electron degree
+  edeg=13.2; // scattered electron degree
 
   //-- mt [MeV] target mass ----------//
-    mt=938;// proton mass
+  //    mt=938;// proton mass
   //  mt=2832; //3H mass
-  //mt=2808;
+  mt=2808;
+  
   Pt=0;//[MeV] target momentum
 
   //---mh [MeV] Hyperon mass--------//
   // mh=1115;// lambda mass
-   mh=1192; //sigma0 mass
+  //   mh=1192; //sigma0 mass
   // mh=2995+be; //nnL mass (be is binding energy)
+  mh= 2994.9 -100.;
    be=0;//binding energy is nothing
+  }else{
+
+  E=4300;  // [MeV] : beam energy
+  Ib=20;//[myuA] :beam flux
+  //  Pe=2180;//[MeV] :scatter electron momentum
+  Pe=2100;//[MeV] :scatter electron momentum
+  edeg=13.2; // scattered electron degree
+
+  //-- mt [MeV] target mass ----------//
+  //    mt=938;// proton mass
+  //  mt=2832; //3H mass
+  mt=938.;
   
+  Pt=0;//[MeV] target momentum
+
+  //---mh [MeV] Hyperon mass--------//
+  // mh=1115;// lambda mass
+  //   mh=1192; //sigma0 mass
+  // mh=2995+be; //nnL mass (be is binding energy)
+  mh= 1115.68;
+
+
+  }
 
  //==== END of nnL exp. parameters ==============//
   
 
+
+   
 
   //---- calcurated parameters---//
 
@@ -74,6 +102,8 @@ void mom_correlation_cal(){
   Avk=0;//[rad] between virtual and kaion angle
   //cout<<"angle between virtual photon and kaion"<<Avk<<" [rad]"<<endl;
 
+
+  
   
   //////////////////////////////Scattering plane//////////////////////////////////////
 
@@ -115,12 +145,14 @@ void mom_correlation_cal(){
       alpha=1/137;
       e=1/(1+2*pow(Pv/Q,2)*pow(tan(Ae/2),2));
       Iv=1/(137*2*pow(3.14,2)*pow(Q,2))*(Ev*Ee)/(1-e)/E;
+      W=mt*mt +2.*mt*Ev-Ev*Ev;
       cout<<"virtual angule is "<<Av*180/3.14<<endl;
       cout<<"electron momentum is "<<Pe<<endl;
       cout<<"photon momentum is "<<Pv<<endl;
       cout<<"virtual photon flux [1/s]"<<Iv*Ne<<endl;
       cout<<"e is "<<e<<endl;
-      cout<<"Q "<<Q<<endl;
+      cout<<"W is "<<W<<endl;
+      cout<<"Q is "<<Q<<endl;
 
   ////////////////////////////Reaction plane//////////////////////////////////////////
   

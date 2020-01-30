@@ -5,7 +5,8 @@ void mm_fit(){
 
 
 
-  TFile* f1=new TFile(Form("/home/itabashi/ana/E12-17-003/HallA-Online-Tritium/replay/ana/rootfiles/mmass/ana_Lambda/Lambda_small_H_0916.root"));
+  //  TFile* f1=new TFile(Form("/home/itabashi/ana/E12-17-003/HallA-Online-Tritium/replay/ana/rootfiles/mmass/ana_Lambda/Lambda_small_H_0916.root"));
+    TFile* f1=new TFile(Form("/home/itabashi/ana/E12-17-003/HallA-Online-Tritium/replay/ana/rootfiles/mmass/ana_Lambda/2020-01-06/Lambda_small_OleH.root"));
   //  TFile* f1=new TFile(Form("/home/itabashi/ana/E12-17-003/HallA-Online-Tritium/replay/ana/rootfiles/mmass/ana_Lambda/Lambda_small_H_0912.root"));
   //TFile* f1=new TFile(Form("../root/Lambda_small_H.root"));
   //  TFile* f2=new TFile(Form("/home/itabashi/ana/E12-17-003/HallA-Online-Tritium/replay/ana/rootfiles/mmass/ana_Lambda/Lambda_small_H_0th.root"));
@@ -92,4 +93,18 @@ void mm_fit(){
    fLp->Draw("same");
    fSp->Draw("same");
 
+   
+   cout<<"======================================"<<endl;
+   cout<<"======== Fitting Result =============="<<endl;
+   cout<<"======================================"<<endl;
+
+   cout<<" -----< Lambda > -------"<<endl;
+   cout<<"Events : "<<pL[0]/0.002<< " Counts "<<endl;
+   cout<<"Mean : "<<pL[1]*1.0e3<< " MeV "<<endl;
+   cout<<"Sigma : "<<pL[2]*1.0e3<< " MeV "<<endl;
+   cout<<" -----< Sigma  > -------"<<endl;
+   cout<<"Events : "<<pS[0]/0.002<< " Counts "<<endl;
+   cout<<"Mean : "<<pS[1]*1.0e3<< " MeV "<<endl;
+   cout<<"Sigma : "<<pS[2]*1.0e3<< " MeV "<<endl;
+   
 }

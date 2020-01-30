@@ -20,12 +20,13 @@ import sys
 import os,os.path
 import glob
 import datetime
-nworkers=5
+nworkers=6
 
 
 #####################################
 date=datetime.date.today()
 matrix="../matrix/matrix_new.list"
+#matrix="../matrix/matrix_wPathL.list"
 root_dir="../rootfiles/mmass/ana_Lambda/"+str(date)
 pdf_dir ="../pdf/mmass/ana_Lambda/"+str(date)
 name=[]
@@ -42,7 +43,9 @@ name.append("Lambda_small_OleT")
 mode.append("H2")
 name.append("nnL_small_Ole234")
 mode.append("T")
-param.append("f1_Lambda_twc.param")
+name.append("H3L_small_Ole")
+mode.append("He")
+param.append("f1_tuned_Lambda_twc.param")
 param.append("f1_Lambda_phase2_tuned.param")
 
 #####################################
@@ -50,16 +53,16 @@ param.append("f1_Lambda_phase2_tuned.param")
 
 def Add():
     root_H=f'{root_dir}/Lambda_small_OleH_all.root'
-    root_T=f'{root_dir}/nnL_mall_Ole_all.root'
+    root_T=f'{root_dir}/nnL_small_Ole_all.root'
     add_H=f'hadd {root_H} {root_dir}/{name[0]}.root {root_dir}/{name[2]}.root'
     add_T=f'hadd {root_T} {root_dir}/{name[1]}.root {root_dir}/{name[4]}.root'
     print(add_H)
     subprocess.run([add_H],shell=True)
     print(add_T)
-    subprocess.run([add_H],shell=True)
+    subprocess.run([add_T],shell=True)
     
 def ana(i):
-    if i<=2 :
+    if i<2 :
         pfile=param[0]
     else :
         pfile=param[1]
@@ -73,10 +76,10 @@ def ana(i):
 def main():
 
     with ProcessPoolExecutor(max_workers=nworkers) as executor:
-        for i in range(5):
+        for i in range(6):
             mappings = {executor.submit(ana,i)}
         
-    
+   
 if os.path.exists(root_dir):
     while  num<100:
         if os.path.exists(root_dir+"_"+str(num)):
@@ -93,4 +96,4 @@ os.mkdir(pdf_dir)
 
 main()
 Add()
-#ana()
+ana()

@@ -692,8 +692,8 @@ void momcalib::MakeHist(){
   
   min_ct=-50.0;
   max_ct=50.0;
-  bin_ct=(double)((max_ct-min_ct)/tdc_time);
-
+  //  bin_ct=(double)((max_ct-min_ct)/tdc_time);
+  bin_ct=4000;
 
   hct=new TH1F("hct","",bin_ct,min_ct,max_ct);
   set->SetTH1(hct,"Coincidence time","coin-time [ns]","Counts");  
@@ -736,6 +736,9 @@ void momcalib::MakeHist(){
   hmm_cut=new TH1F("hmm_cut","",bin_mm,min_mm,max_mm);
   set->SetTH1(hmm_cut,"Missing mass  w/ cut hist ","mass [GeV/c^{2}]",Form("Counts/%d MeV",mm_width));
 
+  hmm_cut->SetLineColor(1);
+  hmm_cut->SetFillColor(6);  
+  hmm_cut->SetFillStyle(3002);
   //------ Event Selection hist ----------------//
   hmm_L=new TH1F("hmm_L","",bin_mm,min_mm,max_mm);
   set->SetTH1(hmm_L,"Lambda missing mass Event Selction","mass [GeV/c^{2}]",Form("Counts/%d MeV",mm_width));  
@@ -803,7 +806,7 @@ void momcalib::MTParam(string mtparam){
   //======= Tuning selection flag =====================//
   //--------- RHRS ------------------------//
 
-  //  if(single==0 && Initial){
+  if(single==0 && Initial){
   MT[0] = true;  // RHRS z correction
   MT[1] = true;  // RHRS raster correction
   MT[2] = true;  // RHRS theta correction
@@ -828,11 +831,11 @@ void momcalib::MTParam(string mtparam){
   MT_f[5] = true;  // LHRS raster correction
   MT_f[6] = true;  // LHRS theta correction
   MT_f[7] = true;  // LHRS phi correction
-  //  }
+    }
 
   
-  //    MT[8] = true; // RHRS momentum correction  
-  //    MT[9] = true; // LHRS momentum correction  
+  //  MT[8] = true; // RHRS momentum correction  
+  //  MT[9] = true; // LHRS momentum correction  
     ploss = true;  // Energy Loss  
   //-------- momentum calibration ---------//
   MT_f[8] = true; // RHRS momentum correction  
@@ -1306,11 +1309,11 @@ void momcalib::momCorr(bool rarm, bool larm){
     //    if(larm)Lp[0] = calcf2t_mom(Opt_par_L, Lx_fp[0], Lth_fp[0], Ly_fp[0], Lph_fp[0],Lz[0]);    
     
     //  Lp 2.2 GeV //
-    
-    //    if(Lp_scale)Lp[0]=2.10/2.21807*Lp[0];
-
-    if(runnum>=111552)Lp[0]=2.10/2.21807*Lp[0];
-
+    //     if(Lp_scale && larm)Lp[0]=2.10/2.21807*Lp[0];
+    //    cout<<"Lp "<<Lp[0];
+    if(runnum>=111552 && larm)Lp[0]=2.21807/2.1*Lp[0];
+    //    cout<<" Lp_c "<<Lp[0]<<" run "<<runnum<<" ";
+    //if(Lp_scale)Lp[0]=2.21807/2.10*Lp[0];
     
 }
 
@@ -1564,7 +1567,7 @@ void momcalib::EventSelection(){
     R_Ras_x=-222222.0;
     L_Ras_x=-222222.0;
     coin_t=-2222.0;
-    
+    runnum=0;
     //---- Events Flag -----//
     Rs2_flag=false;
     Ls2_flag=false;
@@ -1592,6 +1595,7 @@ void momcalib::EventSelection(){
 
     
     pe=hallap/1000.;
+
 
 
     
@@ -1705,7 +1709,7 @@ void momcalib::EventSelection(){
     mm = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
 	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 
-    
+    //    cout<<"mm "<<mm<<endl;
     
     
 
@@ -1864,10 +1868,11 @@ void momcalib::EventSelection(){
       tuned_num=i;
       }
 
+      if(runnum>=111555)scale[ntune_event]=true;
+      else scale[ntune_event]=false;
 
-
-           }
-    } // event selection
+    }
+  } // event selection
 
   //=============== COMMENT OUT ========================================//
   if(i==d.quot * 10*nd){cout<<10*nd<<" % Filled ("<<i<<" / "<<TNum<<")"<<endl; nd++;}
@@ -2366,7 +2371,7 @@ void momcalib::Fill(){
     
   }
   
-    tnew->Fill();
+    //    tnew->Fill();
           if(i % (d.quot * 1000) == 0)cout<<i<<" / "<<ENum<<endl;
   }
 
@@ -2552,6 +2557,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     }else if(MODE==1){
       par_R[i]=Opt_par[i];
       par_L[i]=param[i];
+      //      cout<<"param "<<i<<" : "<<par_L[i]<<endl;
     }else {
       par_R[i]=Opt_par[i];
       par_L[i]=Opt_par_L[i];
@@ -2654,12 +2660,13 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     
     dpk =mom->Eloss(rph[i],rz[i],"R");
     dpe_=mom->Eloss(lph[i],lz[i],"L");
-
-
     
     Rp = Rp + dpk;
     Lp = Lp + dpe_;
+    
+    if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1; 
 
+      
     //------ Set Physics value --------//
     Ee=sqrt(pow(bp[i],2)+pow(Me,2));
     Ee_=sqrt(pow(Lp,2)+pow(Me,2));
@@ -2714,7 +2721,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
      chi2=chi2 + pow(residual/sigma,2.0)/ntune_event;
 
-     //     cout<<"i "<<i<<" ntuned_ev "<<ntune_event<<" mm "<<mass<<" residual "<<residual<<" rp "<<Rp<<" lp "<<Lp<<" chi_tot "<<chi2<<" chi2 "<<pow(residual/sigma,2.0)/ntune_event<<endl;    
+     //        cout<<"i "<<i<<" ntuned_ev "<<ntune_event<<" mm "<<mass<<" residual "<<residual<<" rp "<<Rp<<" lp "<<Lp<<" chi_tot "<<chi2<<" chi2 "<<pow(residual/sigma,2.0)/ntune_event<<endl;    
 
   }//end for 
 
@@ -2756,6 +2763,7 @@ double momcalib::tune(double* pa, int j, int MODE)
   double start[allparam];
   double step[allparam];
 
+
   const int nMatT =nnp;  
   const int nXf   =nnp;
   const int nXpf  =nnp;
@@ -2763,6 +2771,17 @@ double momcalib::tune(double* pa, int j, int MODE)
   const int nYpf  =nnp;
   const int nZt   =nnp;
 
+
+    const int nnn   =nnp;
+  /*
+  const int nMatT =nnp;
+
+  const int nXf   =2;
+  const int nXpf  =2;
+  const int nYf   =2;
+  const int nYpf  =2;
+  const int nZt   =2;
+  */
   
   // The number of order is reduced for test (4-->2)
   int npar=0;
@@ -2776,13 +2795,15 @@ double momcalib::tune(double* pa, int j, int MODE)
 	    for (b=0;b<n+1;b++){
 	      for (a=0;a<n+1;a++){ 
 		if (a+b+c+d+e==n){
-		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt){
+		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt && a+b+c+d+e<=nnn){
 		    start[npar] = pa[npar];
 		    step[npar] = 1.0e-3;
+		    //		    cout<<"i "<<npar<<" st "<<start[npar]<<" step "<<step[npar]<<endl;
 		  }
 		  else{
 		    start[npar] = 0.0;
 		    step[npar] = 0.0;
+		    //		    cout<<"i "<<npar<<" st "<<start[npar]<<" step "<<step[npar]<<endl;
 		  }
 		  npar++;
 
@@ -2809,18 +2830,19 @@ double momcalib::tune(double* pa, int j, int MODE)
  
     //    LLim[i] = pa[i] - pa[i]*0.8;
     //    ULim[i] = pa[i] + pa[i]*0.8;
-
-
-    if(i<21 || (nParamTp<=i && i<nParamTp+21) ){
+  
+    if(i<21 || ( nParamTp<=i && i<nParamTp +21) ){
       LLim[i] = pa[i] - pa[i]*0.5;
       ULim[i] = pa[i] + pa[i]*0.5;
+      // step[i]=0;
     }else{ 
       LLim[i] = pa[i] - 5.0;
       ULim[i] = pa[i] + 5.0;
     }
-
-    //    LLim[i] = pa[i] - 5.0; // temp
-    //    ULim[i] = pa[i] + 5.0; // temp
+   
+   //   LLim[i] = pa[i] - 5.0; // temp
+   //   ULim[i] = pa[i] + 5.0; // temp
+   //    cout<<"i "<<i<<" st "<<start[i]<<" step "<<step[i]<<endl;
     
     minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
 	  
@@ -2828,8 +2850,8 @@ double momcalib::tune(double* pa, int j, int MODE)
 
   
   // ~~~~ Strategy ~~~~
-  //arglist[0] = 2.0; // original
-  arglist[0] = 1.0; // test
+  arglist[0] = 2.0; // original
+  //arglist[0] = 1.0; // test
   //arglist[0] = 0.0;   // test
   minuit->mnexcm("SET STR",arglist,1,ierflg);
  

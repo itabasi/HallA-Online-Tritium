@@ -15,8 +15,9 @@ void F1Shift_corr(){
   //  string ifname="../run_list/nnlambda/Lambda_small_opt_H2.list";
   //  string ifname="../run_list/nnlambda/nnL_small_opt4.list";
   //   string ifname="../run_list/nnlambda/Lambda_small_optH2_test.list";
-  string ifname="../run_list/nnlambda/Lambda_small_optH1.list";
-  
+  //  string ifname="../run_list/nnlambda/Lambda_small_optH1.list";
+     string ifname="../run_list/nnlambda/test_Ole2.list";
+  //      string ifname="../run_list/nnlambda/test_nnL2.list";
   //  string ifname="../run_list/nnlambda/test.list";
   //string ifname="../run_list/nnlambda/nnL_small_opt4.list";
   //  TChain *T = new TChain("T");
@@ -122,7 +123,7 @@ void F1Shift_corr(){
   //  ofname="F1shift_corr_optH2_test2.root";
   //  ofname="F1shift_corr_optnnL4.root";
   //  ofname="../rootfiles/tcoin/F1_Lambda_small_optH1_1116.root";
-  ofname="../rootfiles/tcoin/F1_Lambda_small_optH1_1129_0.root";  
+  ofname="../rootfiles/tcoin/test_nnL2.root";  
   TFile* ofp = new TFile(Form("%s",ofname.c_str()),"recreate");
 
   TTree* tnew=new TTree("T","F1TDC Calibration");//=T->CloneTree(0);
@@ -217,10 +218,10 @@ void F1Shift_corr(){
     double RF_L=LF1[47];
     double RF_R=LF1[15];
     
-    //    RS2T_ref = RF1[9];  // L1A_R
-    //    RS2B_ref = RF1[9];  // L1A_R
-    //    LS2T_ref = LF1[30]; // L1A remote
-    //    LS2B_ref = LF1[30]; // L1A remote
+      RS2T_ref = RF1[9];  // L1A_R
+      RS2B_ref = RF1[9];  // L1A_R
+      LS2T_ref = LF1[30]; // L1A remote
+      LS2B_ref = LF1[30]; // L1A remote
   
     Rs2_pad = (int)Rs2_pads[0];
     Ls2_pad = (int)Ls2_pads[0];    
@@ -259,7 +260,7 @@ void F1Shift_corr(){
     
     const double mk= 0.493677;
     const double cc = 0.299792458;          // speed of light in vacuum (m/ns)
-    int mode=1;
+    int mode=2;
     double tdc_time;
     double coin_offset;
     if(mode==1){

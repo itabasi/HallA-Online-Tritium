@@ -463,8 +463,7 @@ void zcalib::Fill(bool rarm){
     YpFP  = l_ph_fp[0];
     //  ztR[0]= Lvz[0];
     }
-
-
+      
       XFP  = (XFP-XFPm)/XFPr;
       XpFP = (XpFP-XpFPm)/XpFPr;
       YFP  = (YFP-YFPm)/YFPr;
@@ -477,23 +476,22 @@ void zcalib::Fill(bool rarm){
       
       hz_tuned->Fill(ztR_opt[0]);
 
+      
       if(rarm) Rvz[0] = ztR_opt[0];
       else     Lvz[0] = ztR_opt[0];
 
-     
-       
+          
       for(int k=0;k<nite;k++){
 	for(int l=0;l<nParamTz;l++)pzt_tuned[l]=Pzt_tuned[l][k];
 	ztr_opt=calcf2t_zt(pzt_tuned, XFP, XpFP, YFP, YpFP);	
         ztr_opt = ztr_opt * Ztr + Ztm; 
 	hz[k]->Fill(ztr_opt);}
+      tnew->Fill();
 
-      tnew->Fill();      
-
-    if(i % 100000 == 0)cout<<i<<" / "<<ENum<<endl;
-   }
-   
- 
+      if(i % 100000 == 0)cout<<i<<" / "<<ENum<<endl;
+  }
+  
+  
 };
 
 //=========== Make Tree =================//

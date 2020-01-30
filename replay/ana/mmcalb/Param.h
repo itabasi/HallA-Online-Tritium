@@ -15,22 +15,32 @@ const double  Ztm = -0.15,Ztr=0.35;
 //==== momentum scaled  parameters =====//
 const double  PLm = 2.0, PLr=0.22; 
 const double  PRm =1.74, PRr=0.2;
-const double PaRm = 29.0, PaRr = 0.4; 
-const double PaLm = 28.9, PaLr = 0.3; 
+const double  PaRm = 25.713, PaRr = 0.4;
+const double  PaLm = 25.713, PaLr = 0.4;
+
+//const double PaRm = 29.0, PaRr = 0.4; 
+//const double PaLm = 28.9, PaLr = 0.3; 
 
 
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 //const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamT = 126;  // Number of parameters
 
+
+
 const int nnc =4;
 const int nParamTc =126;
 const int nParamTc2 =nParamTc*2;
+
+
 const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
 const int nParamT = 252;  // Number of parameters in angles
 const int nnz =3;
 const int nParamTz=35;
 const int nParamT_ras=4;
+
+
+
 
 //const int nnp=5;// 4th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=252;
@@ -128,8 +138,9 @@ const  double s2_offset=-499.75;
 //const  double coin_offset=456.65;
 //const  double coin_offset=464.65;
 //double coin_offset=464.13; // H1 mode
-const double a1_th=50;
-const double a2_th=2000; 
-
-
+//const double a1_th=50;
+//const double a2_th=2000; 
+const double a1_th = 1.0;
+const double a2_th_min = 3.0; 
+const double a2_th_max = 10.0; 
 #endif

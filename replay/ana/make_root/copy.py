@@ -4,7 +4,7 @@
 import sys
 import time, os.path
 from subprocess import call
-#import concurrent.futures
+import concurrent.futures
 from logging import StreamHandler, Formatter, INFO, getLogger
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures.process import ProcessPoolExecutor 
@@ -16,16 +16,16 @@ import sys
 import os,os.path
 import glob
 
-nworkers=5
+nworkers=3
 
-init=111160
-end=111840
+init=111220
+end=111320
 
 
 #####################################
-root_dir="/data3/root_ole/root"
+root_dir="/data3/root_ole/root2"
 file_init="tritium_"
-small_dir="/data3/root_ole/small"
+small_dir="/data3/root_ole/small2"
 #####################################
 
 def sub_root(RUNNUM):
@@ -54,5 +54,4 @@ def main():
                 mappings = {executor.submit(copy_sub,RUNNUM,sub)}
                 
 main()
-
 

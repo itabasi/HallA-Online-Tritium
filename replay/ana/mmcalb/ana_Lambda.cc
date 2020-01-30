@@ -88,7 +88,8 @@ void ana::matrix(string mtparam){
 
   //  MT_p[10] = true; // RHRS path length correction  
   //  MT_p[11] = true; // LHRS path length correction
-  
+  MT_p[11] = false; // LHRS path length correction
+  MT_p[10] = false; // RHRS path length correction  
   cout<<endl;
   
   cout<<"======== Correction Parameters ========="<<endl;
@@ -114,9 +115,9 @@ void ana::matrix(string mtparam){
   else     cout<<" LHRS mom                  no correction "<<endl;
   if(ploss)cout<<" Energy Los  correction "<<endl;
   else     cout<<" Energy Los                no correction "<<endl;
- if(MT_p[10])cout<<" RHRS PathL correction "<<endl;
+ if(MT_p[10])cout<<" RHRS PathL  correction "<<endl;
   else     cout<<" RHRS PathL                no correction "<<endl;
- if(MT_p[11])cout<<" LHRS PathL correction "<<endl;
+ if(MT_p[11])cout<<" LHRS PathL  correction "<<endl;
   else     cout<<" LHRS PathL                no correction "<<endl;
 
   cout<<endl;
@@ -191,6 +192,8 @@ void ana::MTParam_R(){
   Mypt.close();    
 
  //===== RHRS Path Length  parameters ======//
+
+  if(MT_p[10]){
   char name_Mpl[500];
     sprintf(name_Mpl, param_mt[10].c_str()); // optimized  
     ifstream Mpl(name_Mpl);
@@ -202,7 +205,7 @@ void ana::MTParam_R(){
       Ppl[i]  = par;
     }
   Mpl.close();    
-
+  }
   
 };
 //////////////////////////////////////////////////////////////
@@ -274,6 +277,8 @@ void ana::MTParam_L(){
 
 
  //===== LHRS Path Length  parameters ======//
+
+  if(MT_p[11]){
   char name_Mpl_L[500];
     sprintf(name_Mpl_L, param_mt[11].c_str()); // optimized  
     ifstream Mpl_L(name_Mpl_L);
@@ -286,7 +291,7 @@ void ana::MTParam_L(){
     }
   Mpl_L.close();      
 
-  
+  }
 
 }
 
@@ -312,6 +317,7 @@ void ana::MTP_mom(){
 
   
   //====== LHRS Momentum parameters ========//
+
     char name_Mpt_L[500];
     sprintf(name_Mpt_L, param_mt[9].c_str()); // optimized
     ifstream Mpt_L(name_Mpt_L);
@@ -326,6 +332,7 @@ void ana::MTP_mom(){
    }
   Mpt_L.close();
 
+  
 }
 
 
@@ -509,15 +516,18 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   
   convertF1TDCR(param);
   convertF1TDCL(param);
-  
   PathCalib(rhit,lhit);
 
   
-  double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
-  double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
+  //   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
+   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+Mpi*Mpi);
+   double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
+
+  
   double tof_r=RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
   double tof_l=LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
 
+  
   if(lhit==0 && rhit==0){
     tr.RS2T_ref=RF1Ref[0];
     tr.RS2B_ref=RF1Ref[1];
@@ -532,8 +542,11 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
   }
 
+
+
   
-  if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.){
+  
+  if(RS2_F1time[RS2_seg]!=-9999. && LS2_F1time[LS2_seg]!=-9999.){
     ct       = - tof_r + tof_l - coin_offset;
     tr.ct_b  = - tof_r + tof_l - coin_offset;
     tr.ct_c  = - tof_r + tof_l - coin_offset;
@@ -551,7 +564,9 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
     tr.ct_b =-1000;
   }
 
-  
+
+
+  //  cout<<"ct "<<ct<<" rtof "<<tof_r<<" ltof "<<tof_l<<" Rseg "<<RS2_seg<<" Lseg "<<LS2_seg<<endl;  
 
   
 }
@@ -559,7 +574,7 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
 ///////////////////////////////////////////////////////////////////////////
 
-/*
+
 double ana::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
   double cointime=0.0;
@@ -592,17 +607,23 @@ double ana::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
   return cointime;
   
 }
-*/
+
 ///////////////////////////////////////////////////////////////////////////
 
 void ana::PathCalib(int rhit, int lhit){
 
 
-  R_pathl= R_tr_pathl[rhit] + R_s2_trpath[rhit];
-  L_pathl= L_tr_pathl[lhit] + L_s2_trpath[lhit];
+  R_pathl=0.0;
+  L_pathl=0.0;
+    
+  R_pathl= R_tr_pathl[rhit] ;// + R_s2_trpath[rhit];
+  L_pathl= L_tr_pathl[lhit] ;// + L_s2_trpath[lhit];
 
-  tr.Rpathl=R_pathl;
-  tr.Lpathl=L_pathl;
+
+
+  
+  //  tr.Rpathl=R_pathl;
+  //  tr.Lpathl=L_pathl;
 
   R_pathl       = (R_pathl - PaRm )/PaRr;
   L_pathl       = (L_pathl - PaLm )/PaLr;  
@@ -619,6 +640,7 @@ void ana::PathCalib(int rhit, int lhit){
   L_tr_ph[lhit] = (L_tr_ph[lhit]-YpFPm)/YpFPr;
   L_tr_vz[lhit] = (L_tr_vz[lhit] - Ztm)/Ztr;      
   
+
   
   //==== Calc Path Length =========//
 
@@ -638,12 +660,14 @@ void ana::PathCalib(int rhit, int lhit){
   L_tr_ph[lhit] = L_tr_ph[lhit] * YpFPr   + YpFPm;
   L_tr_vz[lhit] = L_tr_vz[lhit] * Ztr + Ztm;
   
-  R_pathl = R_pathl * PaRr + PaRm;
-  L_pathl = L_pathl * PaLr + PaLm;
+  R_pathl = R_pathl * PaRr + PaRm + R_s2_trpath[rhit] ;
+  L_pathl = L_pathl * PaLr + PaLm + L_s2_trpath[lhit] ;
 
+  
   tr.Rpathl = R_pathl;
   tr.Lpathl = L_pathl;
-  
+
+
 
 }
 
@@ -791,17 +815,6 @@ void ana::Loop(){
     tr.nrun=(int)runnum;
     tr.nev=n;
     //    NEV++;
-
-    //==== AC ADC convert ch to npe =======//
-    for(int seg=0;seg<24;seg++){
-      tr.AC1_npe[seg]=AC_npe(1,seg,R_a1_a_p[seg]);
-      tr.AC1_npe_sum+=tr.AC1_npe[seg];
-    }
-    for(int seg=0;seg<26;seg++){
-      tr.AC2_npe[seg]=AC_npe(2,seg,R_a2_a_p[seg]);
-      tr.AC2_npe_sum+=tr.AC2_npe[seg];
-    }    
-
     
   if(runnum>Run){
     Run=runnum;
@@ -820,7 +833,8 @@ void ana::Loop(){
     //h_rby_rbx  ->Fill( rbx , rby );
 
   
-    
+
+
 //////////////
 //// LHRS ////
 //////////////
@@ -1053,18 +1067,38 @@ void ana::Loop(){
         for(int rt=0;rt<NRtr;rt++){
           R_Tr = R_FP = false;
 	  Kaon = false;
+
+
+	  tr.AC1_npe_sum=0.0;
+	  tr.AC2_npe_sum=0.0;
+
+	  //==== AC ADC convert ch to npe =======//
+	  for(int seg=0;seg<24;seg++){
+	    tr.AC1_npe[seg]=AC_npe(1,seg,R_a1_a_p[seg]);
+	    tr.AC1_npe[seg]=tr.AC1_npe[seg];
+	    tr.AC1_npe_sum+=tr.AC1_npe[seg];
+	  }
+	  for(int seg=0;seg<26;seg++){
+	    tr.AC2_npe[seg]=AC_npe(2,seg,R_a2_a_p[seg]);
+	    tr.AC2_npe_sum+=tr.AC2_npe[seg];
+	  }    
+
+
+
+
           //Kaon = true; // Without AC CUT
           if( R_tr_chi2[rt]<0.01 ) R_Tr = true;
           if( R_tr_th[rt]<0.17*R_tr_x[rt]+0.025
            && R_tr_th[rt]>0.17*R_tr_x[rt]-0.035
            && R_tr_th[rt]<0.40*R_tr_x[rt]+0.130 ) R_FP = true;
 	  //	  if( R_a1_asum_p<400 && R_a2_asum_p>1000 && R_a2_asum_p<4000) Kaon = true;
-	  if( R_a1_asum_p<a1_th && R_a2_asum_p>a2_th) Kaon = true;
+	  //	  if( R_a1_asum_p<a1_th && R_a2_asum_p>a2_th) Kaon = true;
 	  //	  if( R_a1_asum_p<1.0 && R_a2_asum_p>3.0 && R_a2_asum_p<7.0) Kaon = true;	  
+	  if( tr.AC1_npe_sum < a1_th && tr.AC2_npe_sum > a2_th_min && tr.AC2_npe_sum < a2_th_max) Kaon = true;
 	  //	  if(fabs(R_tr_vz[rt])<0.1
 	  //         && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
-	  if(fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1)zcut=true;
-	  if( L_Tr && L_FP && R_Tr && R_FP ){
+
+
 
 
 
@@ -1107,6 +1141,28 @@ void ana::Loop(){
 	    ct=-1000.0;
 	    
 
+
+	  if(fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1)zcut=true;
+
+
+    //==== AC ADC convert ch to npe =======//
+    for(int seg=0;seg<24;seg++){
+      tr.AC1_npe[seg]=AC_npe(1,seg,R_a1_a[seg]);
+      tr.AC1_npe_sum+=tr.AC1_npe[seg];
+    }
+    for(int seg=0;seg<26;seg++){
+      tr.AC2_npe[seg]=AC_npe(2,seg,R_a2_a[seg]);
+      tr.AC2_npe_sum+=tr.AC2_npe[seg];
+    }    
+
+
+
+
+
+	  if( L_Tr && L_FP && R_Tr && R_FP ){
+
+
+
 	    B_p     = HALLA_p/1000.0;// [GeV/c]	    
 	    L_p     = L_tr_p[lt];
 	    R_p     = R_tr_p[rt];
@@ -1136,6 +1192,9 @@ void ana::Loop(){
 
 
 	    CoinCalc(R_s2pad,L_s2pad,rt,lt);
+	    //	     double test =CoinCalc_c(R_s2pad,L_s2pad,rt,lt);
+
+	     //	     cout<<"ct "<<ct<<" ct_c "<<test<<endl;
 	    //	    double ct =CoinCalc(R_s2pad,L_s2pad,rt,lt);
 
 
@@ -1421,11 +1480,11 @@ void ana::Loop(){
 
 				    
 
-              if(Kaon && fabs(ct)<1.0 && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15)) 
+              if(Kaon && fabs(ct)<1.0 && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15) &&  fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025) 
 		 && ((-0.15<(R_tr_vz[rt]) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15)))h_mm_MgL->Fill(mm_MgL);//h_mm_Al->Fill(mm_Al);
 
 	      if(Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) 
-                 && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15)) 
+                 && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15) && fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025) 
 		 && ((-0.15<(R_tr_vz[rt]-0.01) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15))){
 		tr.missing_mass_MgL_acc=mm_MgL;
 		
@@ -2278,7 +2337,7 @@ void ana::ReadParam(string name){
   if(param -> SetVal())cout<<"F1TDC parameter setted"<<endl; 
   tdc_time=param->F1Res();
   coin_offset=param->GetF1CoinOffset();
-  
+  cout<<"coin off : "<<coin_offset<<endl;
 }
 
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */
@@ -2300,13 +2359,17 @@ void ana::Swich(bool nnL, bool scale){
   mt=Mp; //target mass
   mh=ML;
     target_name="Hydrogen target";
-  } 
+  }
 
+
+  
     min_mm=-0.5;
     max_mm=0.5;
     min_Lp=1.8;
     max_Lp=2.8;
     bin_mm=(int)( (max_mm-min_mm)*500 ); // 2MeV/bin;
+
+
 
     
     if(scale){Lp_scale=true;     Lpe_val="2.2 GeV/c";    }
@@ -2318,7 +2381,8 @@ void ana::Swich(bool nnL, bool scale){
     cout<<"=============================="<<endl;
     cout<<"Target : "<<target_name<<endl;
     cout<<"Lpe "<<Lpe_val<<" Lp_scale "<<Lp_scale<<endl;
-  
+
+    
 }
 
 // ##############################################
@@ -2366,7 +2430,6 @@ void ana::GetACParam(){
 int main(int argc, char** argv){
 
   gErrorIgnoreLevel = kError;
-
   int ch;
   extern char *optarg;
   int MaxNum = 0;
@@ -2423,6 +2486,7 @@ int main(int argc, char** argv){
     cout<<"================================"<<endl;
     cout<<"==== Lambda missing mass ======="<<endl;
     cout<<"================================"<<endl;
+    scale=false;
     break;
 
     case'e':
@@ -2735,8 +2799,8 @@ double ana::AC_npe(int nac, int seg, double adc){
   }else {
     cout<<"Error : falid Get AC parameters "<<endl; exit(1);}
 
-  //  npe=(adc- ac_off)/(ac_1pe - ac_off);
   npe=(adc)/(ac_1pe - ac_off); // Just correct gain
+
   return npe;  
 }
 
@@ -2751,7 +2815,7 @@ double calcf_pathl(double* P, double xf, double xpf, double yf, double ypf, doub
   const int nXpf=nnc;
   const int nYf=nnc;
   const int nYpf=nnc;
-  const int nZt=0;
+  const int nZt=nnc;
 
   double Y=0.;
   double x=1.; 

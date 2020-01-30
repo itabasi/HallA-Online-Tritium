@@ -18,16 +18,22 @@ CXXLIBS = $(ROOTLIBS)
 
 TARGET1= coincalib
 OBJS1=   coincalib.o Setting.o Tree.o ParamMan.o
+TARGET2= t0corr
+OBJS2=   t0corr.o Setting.o Tree.o ParamMan.o
 
 
 .PHONY: all
-all: $(TARGET1)
+all: $(TARGET1)\
+     $(TARGET2)
 
 $(LIBDIR)/%.o : %.cc
 	$(CXX) $(CFLAGS) -c -o $@ $< -MMD $(CXXFLAGS)
 
 $(TARGET1): $(patsubst %,$(LIBDIR)/%,$(OBJS1))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
+$(TARGET2): $(patsubst %,$(LIBDIR)/%,$(OBJS2))
+	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
+
 
 .PHONY: clean
 clean:

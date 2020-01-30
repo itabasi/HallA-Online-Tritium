@@ -20,11 +20,13 @@ class coincalib : public Tree
   
   private:
   Setting *set;
-  ParamMan *param;
+
   public:
+  ParamMan *param;
   //  double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
   //  double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
   void CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
+  void CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
   void PathCalc(int rhit, int lhit);
   void SetRoot(string ifname);
   void SetRunList(string ifname);
@@ -80,6 +82,7 @@ class coincalib : public Tree
   double Beta_Pi;
   double Rtof_Pi;
   bool cut,tuned;
+
 };
   
   coincalib::coincalib(){

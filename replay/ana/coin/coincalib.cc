@@ -46,9 +46,11 @@ void coincalib::SetRunList(string ifname){
     add_tree(runname);
   }
 
+
   pack_tree();
   readtreeHRSR();
   readtreeHRSL();
+
 }
 
 
@@ -88,11 +90,12 @@ void coincalib::MTParam_R(string mtparam){
     Mpt >> par >> px >> pth >> py >> pph >> pz;
      Pct[i]=par;
      Pct_R[i]=par;
-    //cout<<"i "<<i<<" par "<<par<<endl;
+
     
    }
 
  
+
    Mpt.close();
 
 }
@@ -127,9 +130,13 @@ void coincalib::MTParam_L(string mtparam){
 
 void coincalib::NewRoot(string ofname){
 
+  cout<<"new Root "<<endl;
+
   ofr = new TFile(Form("%s",ofname.c_str()),"recreate");
+
   tnew=new TTree("T","Coincalib matrix tuning");
-  //  tnew=tree->CloneTree(0);
+
+  tnew=tree->CloneTree(0);
   tnew->Branch("ct",&coint);
   tnew->Branch("pid",&pid);
   tnew->Branch("ct_c",&coint_c);
@@ -152,6 +159,23 @@ void coincalib::NewRoot(string ofname){
   tnew->Branch("ac1_sum",&ac1_sum);
   tnew->Branch("ac2_sum",&ac2_sum);
   tnew->Branch("acut",&cut);
+  tnew->Branch("Rx",R_tr_x);
+  tnew->Branch("Rth",R_tr_th);
+  tnew->Branch("Ry",R_tr_y);
+  tnew->Branch("Rph",R_tr_ph);
+  tnew->Branch("Lx",L_tr_x);
+  tnew->Branch("Lth",L_tr_th);
+  tnew->Branch("Ly",L_tr_y);
+  tnew->Branch("Lph",L_tr_ph);  
+  tnew->Branch("Rx_FP",R_tr_x);
+  tnew->Branch("Rth_FP",R_tr_th);
+  tnew->Branch("Ry_FP",R_tr_y);
+  tnew->Branch("Rph_FP",R_tr_ph);
+  tnew->Branch("Lx_FP",L_tr_x);
+  tnew->Branch("Lth_FP",L_tr_th);
+  tnew->Branch("Ly_FP",L_tr_y);
+  tnew->Branch("Lph_FP",L_tr_ph);  
+  
   hcoin_cut= new TH1D("hcoin_cut","Coin with cut ",1000,-20.,20.);
   hcoin_cut->SetLineColor(4);
   hcoin_cut->SetFillColor(4);
@@ -182,8 +206,61 @@ void coincalib::NewRoot(string ofname){
 
 ////////////////////////////////////////////////////////////////////////////
 
-
 void coincalib::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
+
+  // ==== Initialization =====//
+  
+  Rs2_t=-100.;
+  Ls2_t=-100.;
+  Beta_R=-100.;
+  Beta_L=-100.;
+  Rtof=-100.;
+  Ltof=-100.;
+  Rtof_c=-100.;
+  Ltof_c=-100.;
+  coint=-1000.;
+  coint_c=-1000.;
+  
+  convertF1TDCR(param);
+  convertF1TDCL(param);
+  
+  PathCalc(rhit,lhit);
+  
+  Beta_R = R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
+  Beta_L = L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
+  Beta_Pi = R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+Mpi*Mpi);
+
+  
+  //====== w/o Path Calibration =========//  
+  Rtof = RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
+  Ltof = LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
+  Rtof_Pi = RS2_F1time[RS2_seg] - R_pathl/(Beta_Pi*LightVelocity);
+
+  Rtof_c = RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
+  Ltof_c = LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity); 
+  
+  Rs2_t=RS2_F1time[RS2_seg];
+  Ls2_t=LS2_F1time[LS2_seg];
+
+
+  if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.){
+    coint = - Rtof + Ltof - coin_offset;
+    coint_c = - Rtof_c + Ltof_c - coin_offset;
+
+  }
+  else{
+    coint=-1000;
+
+  }
+
+
+
+  
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+void coincalib::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
   // ==== Initialization =====//
   
@@ -408,10 +485,9 @@ double coincalib::tune(double* pa, int MODE)
   for(int i=0 ; i<allparam ; i++){
     sprintf(pname,"param_%d",i+1);
 
-    //   if(i<56)step[i]=0.0;
+    if(i<nParamTc || nParamTc+56<=i)step[i]=0.0;
     //    LLim[i] = pa[i] - pa[i]*0.1;
     //    ULim[i] = pa[i] + pa[i]*0.1;
-    
     LLim[i] = pa[i] - 10.0; // temp
     ULim[i] = pa[i] + 10.0; // temp
 
@@ -542,12 +618,13 @@ void coincalib::EventSelect(){
 	    fp_flag=true;
 	  
 	  int R_s2pad=(int)R_s2_t_pads[rt];
-	  int L_s2pad=(int)L_s2_t_pads[lt]; 
-	  CoinCalc(R_s2pad,L_s2pad,rt,lt);
+	  int L_s2pad=(int)L_s2_t_pads[lt];
+
+	  CoinCalc_c(R_s2pad,L_s2pad,rt,lt);
 
 	  
 	  if( fabs(coint)<1.0 )kaon_flag=true;
-	  //	  if( fabs(coint - 3.)<1.0 )pion_flag=true;
+	  if( fabs(coint - 3.)<1.0 )pion_flag=true;
 	  if(ntune_event<nmax && z_flag && pid_flag && fp_flag)
 	    hcoin->Fill(coint);
 
@@ -616,8 +693,9 @@ void coincalib::EventSelect(){
   
   //  Chi2=Chi2/ntune_event;
 
-  
+
   Chi2 = Chi_k/Kaon_nev + Chi_pi/Pion_nev;
+  if(Pion_nev==0)Chi2 = Chi_k/Kaon_nev;
   cout<<"Chi2 : "<<Chi2<<" Chi_k "<<Chi_k/Kaon_nev<<" Chi_pi "<<Chi_pi/Pion_nev<<endl;
   cout<<"Events Selection : "<<ntune_event<<endl;
   cout<<"Pion selection : "<<Pion_nev<<" Kaon selection : "<<Kaon_nev<<endl;
@@ -869,7 +947,7 @@ void coincalib::Fill(){
 	int L_s2pad=(int)L_s2_t_pads[lt]; 
 
 	Rp=R_tr_p[rt];	
-	CoinCalc(R_s2pad, L_s2pad, rt, lt);
+	CoinCalc_c(R_s2pad, L_s2pad, rt, lt);
 
 	if(fabs(coint )<1.0 )kaon_flag=true;	
  	if(z_flag && pid_flag && fp_flag){
@@ -993,7 +1071,7 @@ int main(int argc, char** argv){
       draw_flag = false;
       single=true;
       ifname = optarg;
-      cout<<"output root filename : "<<ofname<<endl;      
+      cout<<"input root filename : "<<ifname<<endl;      
       break;      
 
       
@@ -1099,6 +1177,7 @@ int main(int argc, char** argv){
   TApplication *theApp =new TApplication("App",&argc,argv);
   gSystem->Load("libMinuit");
   coincalib* Coin=new coincalib();
+  cout<<"set param"<<endl;
   if(MODE>=0)Coin->MTParam_L(mtparam_L);
   if(MODE<=0)Coin->MTParam_R(mtparam_R);
   if(single)Coin->SetRoot(ifname);

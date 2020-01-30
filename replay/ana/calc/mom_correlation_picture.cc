@@ -7,6 +7,8 @@ void mom_correlation_picture(){
   double Lk[6]={2842,1907,1798,1688};
   double Sk[6]={2736,1786,1675,1561};
   double nnLk[6]={2885,1975,1872,1769};
+  double nnS[6]={};
+  
   TGraph* gL=new TGraph();
   TGraph* gS=new TGraph();
   TGraph* gnnL=new TGraph();

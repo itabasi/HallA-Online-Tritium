@@ -211,33 +211,39 @@ void Tree::convertF1TDCL(ParamMan *param)
 
   LF1Ref[0] = LTDC_F1FirstHit[30];
   LF1Ref[1] = LTDC_F1FirstHit[37];
-  bool F1Shift_L=true;
+  //  bool F1Shift_L=true;
+    bool F1Shift_L=false;
   double LS2T_off, LS2B_off;
   LS2T_off = 350.;
   LS2B_off = 350.-3.0;
 
   double F1res=  param->GetF1reso();
 
+  /*
   if(F1res>0.057){
     LS2T_off = 350 + 280.0 -5.0;
     LS2B_off = 350 + 280.0 -5.0;
   }
-    
+  */
+  
   
   //S2
   for(int i=0;i<LS2;i++){
     LS2T_F1TDC[i]  =  LTDC_F1FirstHit[i];
     LS2B_F1TDC[i]  =  LTDC_F1FirstHit[i+48];
 
-    //    cout<<"seg "<<i<<" LF1ref0 "<<LF1Ref[0]<<" LF1Ref1 "<<LF1Ref[1]<<" LS2T_F1TDC "<<LS2T_F1TDC[i]<<" LS2B_F1TDC "<<LS2B_F1TDC[i]<<endl;
+
     if(LF1Ref[0]>1. && LF1Ref[1]>1. && LS2T_F1TDC[i]>1. && LS2B_F1TDC[i]>1.){
+
+      //      cout<<"seg "<<i<<" LF1ref0 "<<LF1Ref[0]<<" LF1Ref1 "<<LF1Ref[1]<<" LS2T_F1TDC "<<LS2T_F1TDC[i]<<" LS2B_F1TDC "<<LS2B_F1TDC[i]<<endl;
+      
+      
       LS2T_F1[i] = LS2T_F1TDC[i] - LF1Ref[0] ;
       LS2B_F1[i] = LS2B_F1TDC[i] - LF1Ref[1] ;
 
       LS2T_F1time[i] = param->time(1,i,0,0, LS2T_F1[i]  , L_s2_ra_p[i]);
       LS2B_F1time[i] = param->time(1,i,0,1, LS2B_F1[i]  , L_s2_la_p[i]);
       LS2_F1time[i]  = 0.5*(LS2T_F1time[i] + LS2B_F1time[i]);
-
       ltof[i]=LS2_F1time[i];
 
       
@@ -279,6 +285,8 @@ void Tree::convertF1TDCL(ParamMan *param)
 
   //RF
   LRF_F1time = param->time(3,0,0,0, LTDC_F1FirstHit[37] - LTDC_F1FirstHit[37]  );
+
+  
 
 }
 //////////////////////////////////////////////////
@@ -340,7 +348,7 @@ void Tree::readtreeS2R()
     tree->SetBranchStatus("R.s2.time"            ,1);  tree->SetBranchAddress("R.s2.time"            , R_s2_time           );
   tree->SetBranchStatus("R.s2.dedx"            ,1);  tree->SetBranchAddress("R.s2.dedx"            , R_s2_dedx           );
   tree->SetBranchStatus("R.s2.trdx"            ,1);  tree->SetBranchAddress("R.s2.trdx"            , R_s2_trdx           );
-    tree->SetBranchStatus("R.s2.troff"           ,1);  tree->SetBranchAddress("R.s2.troff"           , R_s2_troff          );
+  //    tree->SetBranchStatus("R.s2.troff"           ,1);  tree->SetBranchAddress("R.s2.troff"           , R_s2_troff          );
     tree->SetBranchStatus("R.s2.trpad"           ,1);  tree->SetBranchAddress("R.s2.trpad"           , R_s2_trpad          );
   tree->SetBranchStatus("R.s2.trpath"          ,1);  tree->SetBranchAddress("R.s2.trpath"          , R_s2_trpath         );
   tree->SetBranchStatus("R.s2.trx"             ,1);  tree->SetBranchAddress("R.s2.trx"             , R_s2_trx            );
@@ -485,7 +493,8 @@ void Tree::convertF1TDCR(ParamMan *param)
   RF1Ref[1]=RTDC_F1FirstHit[46];
   
 
-  bool F1Shift_R=true;
+  //  bool F1Shift_R=true;
+  bool F1Shift_R=false;
   double RS2T_off = 350.0;
   double RS2B_off = 350.0-2.0;
   

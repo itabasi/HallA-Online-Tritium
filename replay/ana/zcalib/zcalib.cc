@@ -169,10 +169,10 @@ int main(int argc, char** argv){
 
    TApplication *theApp =new TApplication("App",&argc,argv);
  gSystem->Load("libMinuit"); 
-
  if(single_flag) Zcalib->SetRoot(ifname);
    else Zcalib->ChainRoot(ifname);
   if(root_flag)Zcalib->NewBranch(ofname, RHRS_flag);
+
   Zcalib->Mzt(matrix_name, RHRS_flag);
   Zcalib->Mzt_L(matrix_name, RHRS_flag);
   Zcalib->MakeHist();

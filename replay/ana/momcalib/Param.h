@@ -20,10 +20,10 @@ const double  PRm =1.74   ,PRr=0.2;
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
 
-const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamT = 126;  // Number of parameters
-//const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
-//const int nParamT = 252;  // Number of parameters in angles
+//const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamT = 126;  // Number of parameters
+const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
+const int nParamT = 252;  // Number of parameters in angles
 const int nnz =3;
 const int nParamTz=35;
 const int nParamT_ras=4;
@@ -31,11 +31,11 @@ const int nParamT_ras=4;
 //const int nnp=5;// 4th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=252;
 
-//const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
-//const int nParamTp=126;
+const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
+const int nParamTp=126;
 
-const int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamTp=56;
+//const int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTp=56;
 
 //const int nnp=2;// 2nd order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=21;
@@ -101,6 +101,7 @@ double mass_ref[nmax];
 double MM[nmax],rx_fp[nmax],rth_fp[nmax],ry_fp[nmax],rph_fp[nmax],lx_fp[nmax],lth_fp[nmax],ly_fp[nmax],lph_fp[nmax];
 double rx[nmax],ry[nmax],rth[nmax],rph[nmax],rz[nmax],lx[nmax],ly[nmax],lth[nmax],lph[nmax],lz[nmax];
 double beam_p[nmax];
+bool scale[nmax];
 double bp[nmax],rp[nmax],lp[nmax];
 double dth[nfoil];
 double l[nfoil];
@@ -124,6 +125,7 @@ const  double s2_offset=-499.75;
 //double coin_offset=464.13; // H1 mode
 const double a1_th=50;
 const double a2_th=2000; 
-
+//const double a1_th=400;
+//const double a2_th=600; 
 
 #endif
