@@ -516,11 +516,17 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   convertF1TDCL(param);
   PathCalib(rhit,lhit);
 
+  if(RS2_F1time[RS2_seg]!=-9999. && LS2_F1time[LS2_seg]==-9999.){
+    //    cout<<"RS2 "<<RS2T_F1time[RS2_seg]<<" LS2 "<<LS2T_F1time[LS2_seg];
+    convertF1TDCL_rhit(param, LS2_seg);
+    //    cout<<" LS2_c "<<LS2_F1time_c[LS2_seg]<<endl;
+    count++;
+    if(count%100==0)cout<<"count "<<count<<endl;
+      }
   
   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
   double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
    
-  
   double tof_r=RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
   double tof_l=LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
 
@@ -528,7 +534,8 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   double tof_lc=LS2_F1time_c[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
 
 
-
+  
+  
     tr.RS2T_ref=RF1Ref[0];
     tr.RS2B_ref=RF1Ref[1];
     tr.LS2T_ref=LF1Ref[0];
@@ -536,7 +543,7 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
     tr.RS2T_F1[RS2_seg]=RS2T_F1[RS2_seg];
     tr.RS2B_F1[RS2_seg]=RS2B_F1[RS2_seg];
     tr.LS2T_F1[LS2_seg]=LS2T_F1[LS2_seg];
-    tr.LS2B_F1[LS2_seg]=LS2B_F1[LS2_seg];
+    tr.LS2B_F1[LS2_seg]=LS2B_F1[LS2_seg]; 
     tr.Rtof[RS2_seg]=tof_r;
     tr.Ltof[LS2_seg]=tof_l;
     
@@ -547,9 +554,12 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
     ct       = - tof_rc + tof_lc - coin_offset;
     tr.ct_b  = - tof_r + tof_l - coin_offset;
     tr.ct_c  = - tof_rc + tof_lc - coin_offset;
-    
-  }
-  else{
+
+  }else if(RS2_F1time[RS2_seg]!=-9999. && LS2_F1time[LS2_seg]==-9999.){
+    tr.ct_b  = - tof_r + tof_l - coin_offset;
+    tr.ct_c  = - tof_rc + tof_lc - coin_offset - coin_shift;
+    ct       = - tof_rc + tof_lc - coin_offset - coin_shift;
+  }else{
     ct=-1000;
     tr.ct_c =-1000;
     tr.ct_b =-1000;
@@ -798,12 +808,18 @@ void ana::Loop(){
     tr.pid_cut=0;
     tr.trig=0;
 
+    for(int SEG=0;SEG<nS2;SEG++){
+    tr.RS2T_F1[SEG]=RS2T_F1[SEG];
+    tr.RS2B_F1[SEG]=RS2B_F1[SEG];
+    tr.LS2T_F1[SEG]=LS2T_F1[SEG];
+    tr.LS2B_F1[SEG]=LS2B_F1[SEG]; 
+    }
     
     for(int s=0;s<10;s++){tr.dpe_[s]=-2222.;tr.dpk[s]; }
     for(int s=0;s<100;s++){
       tr.Lp[s]=-2222.;tr.Rp[s]=-2222.;
       tr.Lp_c[s]=-2222.;tr.Rp_c[s]=-2222.;
-	  tr.Rs2_pad[s]=-1;tr.Ls2_pad[s]=-1;           }
+      tr.Rs2_pad[s]=-1;tr.Ls2_pad[s]=-1;           }
   
     //===== Get Entry ==========//
 
@@ -1064,9 +1080,9 @@ void ana::Loop(){
         for(int rt=0;rt<NRtr;rt++){
           R_Tr = R_FP = false;
 	  Kaon = false;
-
-
-
+	  zcut = false; // z-vertex cut
+	  
+  
 	    //---- Initialization ----//
 	    tr.Lp[lt] =-100.;
 	    tr.Lp[rt] =-100.;
@@ -1134,9 +1150,9 @@ void ana::Loop(){
            && R_tr_th[rt]>0.17*R_tr_x[rt]-0.035
            && R_tr_th[rt]<0.40*R_tr_x[rt]+0.130 ) R_FP = true;
 	  //	  if( R_a1_asum_p<400 && R_a2_asum_p>1000 && R_a2_asum_p<4000) Kaon = true;
-	  //	  if( R_a1_asum_p<a1_th && R_a2_asum_p>a2_th) Kaon = true;
+	  if( R_a1_asum_p<a1_th && R_a2_asum_p>a2_th) Kaon = true;
 	  //	  if( R_a1_asum_p<1.0 && R_a2_asum_p>3.0 && R_a2_asum_p<7.0) Kaon = true;	  
-	  if( tr.AC1_npe_sum < a1_th && tr.AC2_npe_sum > a2_th_min && tr.AC2_npe_sum < a2_th_max) Kaon = true;
+	  //	  if( tr.AC1_npe_sum < a1_th && tr.AC2_npe_sum > a2_th_min) Kaon = true;
 	  //	  if(fabs(R_tr_vz[rt])<0.1
 	  //         && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
 
@@ -2328,6 +2344,9 @@ void ana::ReadParam(string name){
   tdc_time=param->F1Res();
   coin_offset=param->GetF1CoinOffset();
   cout<<"coin off : "<<coin_offset<<endl;
+  coin_shift=param->GetF1ShiftOffset();
+  coin_shift = coin_shift*tdc_time;
+  cout<<"coin shift : "<<coin_shift<<endl;
 }
 
 /* +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+ */

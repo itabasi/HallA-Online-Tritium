@@ -266,6 +266,7 @@ public:
   double RS2T_F1[16],RS2B_F1[16];
   double coint,rtof[16],ltof[16];
   double coint_c,rtof_c[16],ltof_c[16];  
+  bool RHitFlag;
 public:
   TChain *tree;
 
@@ -290,6 +291,7 @@ public:
   void readtreeTrackL();
   void readtreeF1TDCL();
   void convertF1TDCL(ParamMan *param);
+  void convertF1TDCL_rhit(ParamMan *param, int seg);
   /////////
   //Right//
   /////////

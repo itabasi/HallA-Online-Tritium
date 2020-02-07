@@ -209,21 +209,29 @@ void Tree::readtreeF1TDCL()
 void Tree::convertF1TDCL(ParamMan *param)
 {
 
-  LF1Ref[0] = LTDC_F1FirstHit[30];
-  LF1Ref[1] = LTDC_F1FirstHit[37];
-
   bool F1Shift_L=true;
 
   double F1res=  param->GetF1reso();
+  //  doulbe F1shift= param->GetF1ShiftOffset();
   double LF1shift_off[LS2];
 
+  //===== Reference check ======//
+
+  LF1Ref[0] = LTDC_F1FirstHit[30];
+  LF1Ref[1] = LTDC_F1FirstHit[37];
+  if(LF1Ref[0]==0)LF1Ref[0]=LF1Ref[1];
+  if(LF1Ref[1]==0)LF1Ref[1]=LF1Ref[0];
+  
+  //=============================//  
+  
   
   //S2
   for(int i=0;i<LS2;i++){
     LS2T_F1TDC[i]  =  LTDC_F1FirstHit[i];
     LS2B_F1TDC[i]  =  LTDC_F1FirstHit[i+48];
 
-
+    //    if(LF1Ref[0]>1. && LF1Ref[1]>1. && (LS2T_F1TDC[i]<1. && LS2B_F1TDC[i]<1.))
+      
     if(LF1Ref[0]>1. && LF1Ref[1]>1. && LS2T_F1TDC[i]>1. && LS2B_F1TDC[i]>1.){
 
       
@@ -243,21 +251,30 @@ void Tree::convertF1TDCL(ParamMan *param)
 
 	
 	LF1shift_off[i]=param->GetF1Shift(i,0,0);
-	if(LS2T_F1[i]>0)LS2T_F1[i] -= LF1shift_off[i];
-	if(LS2B_F1[i]>0)LS2B_F1[i] -= LF1shift_off[i];
+	if(LS2T_F1[i]>pow(2,15))LS2T_F1[i] -= LF1shift_off[i];
+	if(LS2B_F1[i]>pow(2,15))LS2B_F1[i] -= LF1shift_off[i];
 	LS2T_F1time[i] = param->time(1,i,0,0, LS2T_F1[i]  , L_s2_ra_p[i]);
 	LS2B_F1time[i] = param->time(1,i,0,1, LS2B_F1[i]  , L_s2_la_p[i]);
 	LS2_F1time_c[i]  = 0.5*(LS2T_F1time[i] + LS2B_F1time[i]);
-	ltof_c[i]=LS2_F1time[i];                                                               }
+	ltof_c[i]=LS2_F1time[i];
+
+
+      }
       //=====================================//
 
       
     }
+
     else {
+
       LS2T_F1time[i] = -9999.;
       LS2B_F1time[i] = -9999.;
       LS2_F1time[i]  = -9999.;
+
+      
     }
+
+    
   }
 
   //S0
@@ -275,6 +292,63 @@ void Tree::convertF1TDCL(ParamMan *param)
   
 
 }
+
+//////////////////////////////////////////////////
+
+void Tree::convertF1TDCL_rhit(ParamMan *param, int seg)
+{
+
+
+
+  bool F1Shift_L=true;
+
+  double F1res=  param->GetF1reso();
+  double F1shift= param->GetF1ShiftOffset();
+  double LF1shift_off[LS2];
+
+  
+  //S2
+  LF1Ref[0] = LTDC_F1FirstHit[30];
+  LF1Ref[1] = LTDC_F1FirstHit[37];
+  
+  LS2T_F1TDC[seg]  =  LTDC_F1FirstHit[seg];
+  LS2B_F1TDC[seg]  =  LTDC_F1FirstHit[seg+48];
+
+  //  cout<<" LS2T "<<LS2T_F1TDC[seg]<<" LS2B "<<LS2B_F1TDC[seg]<<" LS2T_ref "<<LF1Ref[0]<<" LS2B_ref "<<LF1Ref[1]<<endl;
+  if(LF1Ref[0]>1. && LF1Ref[1]>1. && LS2T_F1TDC[seg]<1. && LS2B_F1TDC[seg]<1.){  
+
+      LS2T_F1[seg] = LS2T_F1TDC[seg] - LF1Ref[0] - F1shift;
+      LS2B_F1[seg] = LS2B_F1TDC[seg] - LF1Ref[1] - F1shift;
+      
+      LS2T_F1time[seg] = param->time(1,seg,0,0, LS2T_F1[seg]  , L_s2_ra_p[seg]);
+      LS2B_F1time[seg] = param->time(1,seg,0,1, LS2B_F1[seg]  , L_s2_la_p[seg]);
+      LS2_F1time[seg]  = 0.5*(LS2T_F1time[seg] + LS2B_F1time[seg]);
+      ltof[seg]=LS2_F1time[seg];
+
+      
+      //====== modsegfseged by segtabashseg ========//
+      if(F1Shift_L){
+	
+	LF1shift_off[seg]=param->GetF1Shift(seg,0,0);
+	if(LS2T_F1[seg]>pow(2,15))LS2T_F1[seg] -= LF1shift_off[seg];
+	if(LS2B_F1[seg]>pow(2,15))LS2B_F1[seg] -= LF1shift_off[seg];
+	LS2T_F1time[seg] = param->time(1,seg,0,0, LS2T_F1[seg]  , L_s2_ra_p[seg]);
+	LS2B_F1time[seg] = param->time(1,seg,0,1, LS2B_F1[seg]  , L_s2_la_p[seg]);
+	LS2_F1time_c[seg]  = 0.5*(LS2T_F1time[seg] + LS2B_F1time[seg]);
+	ltof_c[seg]=LS2_F1time[seg];
+
+	
+      }
+      //=====================================//
+
+      
+  }
+    
+}
+
+
+
+
 //////////////////////////////////////////////////
 void Tree::readtreeRasterR(){
   tree->SetBranchStatus("Rrb.Raster2.rawcur.x",  1); tree->SetBranchAddress("Rrb.Raster2.rawcur.x"              , &R_Ras_x   );
@@ -474,14 +548,22 @@ void Tree::readtreeF1TDCR()
 //////////////////////////////////////////////////
 void Tree::convertF1TDCR(ParamMan *param)
 {
-
-  RF1Ref[0]=RTDC_F1FirstHit[9];
-  RF1Ref[1]=RTDC_F1FirstHit[46];
+  
   
 
+
+  
   bool F1Shift_R=true;
   //bool F1Shift_R=false;
   double RF1shift_off[RS2];
+
+  //===== Reference check ======//
+  RF1Ref[0]=RTDC_F1FirstHit[9];
+  RF1Ref[1]=RTDC_F1FirstHit[46];
+  if(RF1Ref[0]==0)RF1Ref[0]=RF1Ref[1];
+  if(RF1Ref[1]==0)RF1Ref[1]=RF1Ref[0];
+
+  //=============================//  
   
   //S2
   for(int i=0;i<RS2;i++){
@@ -505,8 +587,8 @@ void Tree::convertF1TDCR(ParamMan *param)
 
 
 	RF1shift_off[i]=param->GetF1Shift(i,1,0);
-	if(RS2T_F1[i]>0)RS2T_F1[i] -= RF1shift_off[i];
-	if(RS2B_F1[i]>0)RS2B_F1[i] -= RF1shift_off[i];
+	if(RS2T_F1[i]>pow(2,15))RS2T_F1[i] -= RF1shift_off[i];
+	if(RS2B_F1[i]>pow(2,15))RS2B_F1[i] -= RF1shift_off[i];
 	
 	RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1[i]  , R_s2_ra_p[i]);
 	RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1[i]  , R_s2_la_p[i]);
@@ -516,7 +598,6 @@ void Tree::convertF1TDCR(ParamMan *param)
       
 
       //=====================================//
-
     }
     else{
       RS2T_F1TDC[i]  = -9999.;

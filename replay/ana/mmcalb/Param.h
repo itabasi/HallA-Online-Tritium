@@ -138,9 +138,9 @@ const  double s2_offset=-499.75;
 //const  double coin_offset=456.65;
 //const  double coin_offset=464.65;
 //double coin_offset=464.13; // H1 mode
-//const double a1_th=50;
-//const double a2_th=2000; 
-const double a1_th = 1.0;
-const double a2_th_min = 3.0; 
-const double a2_th_max = 10.0; 
+const double a1_th=50;
+const double a2_th=2000; 
+//const double a1_th = 1.0;
+//const double a2_th_min = 3.0; 
+//const double a2_th_max = 10.0; 
 #endif

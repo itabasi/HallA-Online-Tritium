@@ -142,7 +142,8 @@ bool ParamMan::SetVal( void )
     name = "F1TDC.reso =";                          SetF1reso(line,name);
     name = "Coin.off_F1 =";                         SetF1CoinOffset(line,name);
     name = "R.s2.shift_F1 =";                     SetF1Shift(1,line,name);    
-    name = "L.s2.shift_F1 =";                     SetF1Shift(0,line,name);        
+    name = "L.s2.shift_F1 =";                     SetF1Shift(0,line,name);
+    name = "Coin.shift_F1 =";                    SetF1ShiftOffset(line,name);
 
   }
   
@@ -193,6 +194,26 @@ void ParamMan::SetF1CoinOffset( string &line, string &name)
 
 }
 
+/////////////////////////////////////
+
+void ParamMan::SetF1ShiftOffset( string &line, string &name)
+{
+
+  double offset=0.0;
+  if ( line.compare(0,name.size(),name) != 0 ) {
+   return;
+  }
+
+
+  istringstream sline(line);
+  sline >> name;
+  sline >> name;
+  sline >> offset;
+  coin_F1_shift = offset;
+
+}
+
+
 
 /////////////////////////////////////
 
@@ -234,13 +255,24 @@ double ParamMan::GetF1CoinOffset(){
   SetVal();
   return coin_F1_offset;
   
-}
+
+ }
+//////////////////////////////////
 
 double ParamMan::GetF1reso(){
 
   
   return   F1reso ;
 }
+
+/////////////////////////////////
+
+double ParamMan::GetF1ShiftOffset(){ 
+
+  return   coin_F1_shift ;
+
+}
+
 
 
 ///////////////////////////////////

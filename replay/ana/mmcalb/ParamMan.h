@@ -61,8 +61,8 @@ private:
   RFparam L_RF   ,          R_RF;
   S2param L_FbS2T, L_FbS2B, R_FbS2T, R_FbS2B;
   S0param L_FbS0T, L_FbS0B, R_FbS0T, R_FbS0B;
-
   double L_F1shift[nS2],R_F1shift[nS2];
+  double coin_F1_shift;
   
 public:
   void SetFileName( const char* filename )
@@ -75,7 +75,9 @@ public:
   void SetF1reso( string &sline, string &name);
   void SetF1CoinOffset( string &sline, string &name);
   void SetF1Shift(   int lr, string &sline, string &name);
-  double F1Res();  
+  void SetF1ShiftOffset(string &sline, string &name);
+  double F1Res();
+  double GetF1ShiftOffset();
   double GetF1CoinOffset();
   double GetF1reso();  
   bool SetVal( void );
