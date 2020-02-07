@@ -20,7 +20,7 @@ import sys
 import os,os.path
 import glob
 import datetime
-nworkers=8
+nworkers=6
 
 
 #####################################
@@ -41,11 +41,7 @@ name.append("Lambda_small_OleH2")
 mode.append("H1")
 name.append("Lambda_small_OleT")
 mode.append("H2")
-name.append("nnL_small_Ole2")
-mode.append("T")
-name.append("nnL_small_Ole3")
-mode.append("T")
-name.append("nnL_small_Ole4")
+name.append("nnL_small_Ole234")
 mode.append("T")
 name.append("H3L_small_Ole")
 mode.append("He")
@@ -59,7 +55,7 @@ def Add():
     root_H=f'{root_dir}/Lambda_small_OleH_all.root'
     root_T=f'{root_dir}/nnL_small_Ole_all.root'
     add_H=f'hadd {root_H} {root_dir}/{name[0]}.root {root_dir}/{name[2]}.root'
-    add_T=f'hadd {root_T} {root_dir}/{name[1]}.root {root_dir}/{name[4]}.root {root_dir}/{name[5]}.root {root_dir}/{name[6]}.root '
+    add_T=f'hadd {root_T} {root_dir}/{name[1]}.root {root_dir}/{name[4]}.root'
     print(add_H)
     subprocess.run([add_H],shell=True)
     print(add_T)
@@ -80,7 +76,7 @@ def ana(i):
 def main():
 
     with ProcessPoolExecutor(max_workers=nworkers) as executor:
-        for i in range(8):
+        for i in range(6):
             mappings = {executor.submit(ana,i)}
         
    

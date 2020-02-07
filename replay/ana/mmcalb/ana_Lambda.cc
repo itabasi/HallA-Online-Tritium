@@ -511,8 +511,6 @@ double ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
 void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
-
-
   
   convertF1TDCR(param);
   convertF1TDCL(param);
@@ -520,42 +518,35 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
   
   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
-  //   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+Mpi*Mpi);
-   double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
-
+  double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
+   
   
   double tof_r=RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
   double tof_l=LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
 
-  
-  if(lhit==0 && rhit==0){
+  double tof_rc=RS2_F1time_c[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
+  double tof_lc=LS2_F1time_c[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
+
+
+
     tr.RS2T_ref=RF1Ref[0];
     tr.RS2B_ref=RF1Ref[1];
     tr.LS2T_ref=LF1Ref[0];
     tr.LS2B_ref=LF1Ref[1];
-      tr.RS2T_F1[RS2_seg]=RS2T_F1[RS2_seg];
-      tr.RS2B_F1[RS2_seg]=RS2B_F1[RS2_seg];
-      tr.LS2T_F1[LS2_seg]=LS2T_F1[LS2_seg];
-      tr.LS2B_F1[LS2_seg]=LS2B_F1[LS2_seg];
-      tr.Rtof[RS2_seg]=tof_r;
-      tr.Ltof[LS2_seg]=tof_l;
-
-  }
-
+    tr.RS2T_F1[RS2_seg]=RS2T_F1[RS2_seg];
+    tr.RS2B_F1[RS2_seg]=RS2B_F1[RS2_seg];
+    tr.LS2T_F1[LS2_seg]=LS2T_F1[LS2_seg];
+    tr.LS2B_F1[LS2_seg]=LS2B_F1[LS2_seg];
+    tr.Rtof[RS2_seg]=tof_r;
+    tr.Ltof[LS2_seg]=tof_l;
+    
 
 
-  
-  
+ 
   if(RS2_F1time[RS2_seg]!=-9999. && LS2_F1time[LS2_seg]!=-9999.){
-    ct       = - tof_r + tof_l - coin_offset;
+    ct       = - tof_rc + tof_lc - coin_offset;
     tr.ct_b  = - tof_r + tof_l - coin_offset;
-    tr.ct_c  = - tof_r + tof_l - coin_offset;
-    //    tr.ct_c  = 
-    //    tr.ct_b= - (rtof[RS2_seg] - R_pathl/(Beta_R*LightVelocity))
-    //      + (ltof[LS2_seg] - L_pathl/(Beta_L*LightVelocity))        - coin_offset;
-    //    tr.ct_c= - (rtof[RS2_seg] - R_pathl/(Beta_R*LightVelocity))
-    //      + (ltof[LS2_seg] - L_pathl/(Beta_L*LightVelocity))        - coin_offset;
-
+    tr.ct_c  = - tof_rc + tof_lc - coin_offset;
     
   }
   else{
@@ -564,7 +555,8 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
     tr.ct_b =-1000;
   }
 
-
+  //  if(tof_rc!=tof_r)cout<<" ct_c : "<<tr.ct_c<<" ct "<<ct<<endl;
+  
 
   //  cout<<"ct "<<ct<<" rtof "<<tof_r<<" ltof "<<tof_l<<" Rseg "<<RS2_seg<<" Lseg "<<LS2_seg<<endl;  
 
@@ -590,19 +582,24 @@ double ana::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
   double Beta_L=L_p/sqrt(L_p*L_p+Me*Me);
   double tof_r=RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
   double tof_l=LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
+  double tof_rc=RS2_F1time_c[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
+  double tof_lc=LS2_F1time_c[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
 
     
   if(RS2_F1time[RS2_seg]!=-9999. &&LS2_F1time[LS2_seg]!=-9999.){
     cointime= - tof_r + tof_l - coin_offset;
-    tr.ct_c= - (rtof[RS2_seg] - R_pathl/(Beta_R*LightVelocity))
-      + (ltof[LS2_seg] - L_pathl/(Beta_L*LightVelocity))        - coin_offset;
-
+    //    tr.ct_c= - (rtof[RS2_seg] - R_pathl/(Beta_R*LightVelocity))
+    //      + (ltof[LS2_seg] - L_pathl/(Beta_L*LightVelocity))        - coin_offset;
+    tr.ct_c= - tof_rc + tof_lc -coin_offset;
   }
   else{
     cointime=-1000;
     tr.ct_c =-1000;
   }
 
+  
+  if(tof_r!=tof_rc)
+    cout<<" ct "<<cointime<<" ct_c "<<tr.ct_c<<endl;
   
   return cointime;
   
@@ -1149,19 +1146,7 @@ void ana::Loop(){
 	    
 	  if(fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1)zcut=true;
 
-
-    //==== AC ADC convert ch to npe =======//
-    for(int seg=0;seg<24;seg++){
-      tr.AC1_npe[seg]=AC_npe(1,seg,R_a1_a[seg]);
-      tr.AC1_npe_sum+=tr.AC1_npe[seg];
-    }
-    for(int seg=0;seg<26;seg++){
-      tr.AC2_npe[seg]=AC_npe(2,seg,R_a2_a[seg]);
-      tr.AC2_npe_sum+=tr.AC2_npe[seg];
-    }    
-
-
-
+	  
 
 
 	  if( L_Tr && L_FP && R_Tr && R_FP ){
@@ -2804,8 +2789,10 @@ double ana::AC_npe(int nac, int seg, double adc){
   }else {
     cout<<"Error : falid Get AC parameters "<<endl; exit(1);}
 
-  npe=(adc)/(ac_1pe - ac_off); // Just correct gain
-
+  //  npe=(adc)/(ac_1pe - ac_off); // Just correct gain
+    npe=(adc)/(ac_1pe - ac_off)*2.0; // Just correct gain
+    // Gogami AC DB was changed gain 400 -> 200
+    // in this case, we need scale gain parameter 2 times
   return npe;  
 }
 

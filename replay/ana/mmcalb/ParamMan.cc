@@ -101,6 +101,7 @@ bool ParamMan::SetVal( void )
     if(line[0]=='-') {cout<<line<<endl;continue;}
     if(line[0]=='#') continue;
     if( ifs.eof() ) break;
+    
     name = "R.s2.R.off =" ;             npar=16; SetAParam(line,name,R_FbS2T.tdcOffset,npar);
     name = "R.s2.L.off =" ;             npar=16; SetAParam(line,name,R_FbS2B.tdcOffset,npar);
     name = "R.s0.R.off =" ;             npar=1;  SetAParam(line,name,R_FbS0T.tdcOffset,npar);
@@ -120,9 +121,6 @@ bool ParamMan::SetVal( void )
     name = "L.s0.L.off_F1 =" ;          npar=1;  SetAParam(line,name,L_F1S0B.tdcOffset,npar);//tmp
     name = "L.RF.off =" ;               npar=1;  SetAParam(line,name,L_RF.tdcOffset,npar);//tmp
     
-
-    name = "F1TDC.reso =";                          SetF1reso(line,name);
-    name = "Coin.off_F1 =";                         SetF1CoinOffset(line,name);
     //time walk correction parameters style is different from replay DB. Sorry.
     name = "R.s2.R.timewalk_params =" ;    npar=16; SetAParam(line,name,R_FbS2T.timeWalk ,npar);
     name = "R.s2.L.timewalk_params =" ;    npar=16; SetAParam(line,name,R_FbS2B.timeWalk ,npar);
@@ -140,6 +138,12 @@ bool ParamMan::SetVal( void )
     name = "L.s2.L.timewalk_params_F1 =" ; npar=16; SetAParam(line,name,L_F1S2B.timeWalk,npar);//tmp
     name = "L.s0.R.timewalk_params_F1 =" ; npar=1;  SetAParam(line,name,L_F1S0T.timeWalk,npar);//tmp
     name = "L.s0.L.timewalk_params_F1 =" ; npar=1;  SetAParam(line,name,L_F1S0B.timeWalk,npar);//tmp
+    
+    name = "F1TDC.reso =";                          SetF1reso(line,name);
+    name = "Coin.off_F1 =";                         SetF1CoinOffset(line,name);
+    name = "R.s2.shift_F1 =";                     SetF1Shift(1,line,name);    
+    name = "L.s2.shift_F1 =";                     SetF1Shift(0,line,name);        
+
   }
   
 //   std::cout << "[" << funcname << "]: Initialization finished" << std::endl;
@@ -187,6 +191,38 @@ void ParamMan::SetF1CoinOffset( string &line, string &name)
   sline >> offset;
   coin_F1_offset = offset;
 
+}
+
+
+/////////////////////////////////////
+
+void ParamMan::SetF1Shift( int lr, string &line, string &name)
+{
+
+  if ( line.compare(0,name.size(),name) != 0 ) {
+   return;
+  }
+
+  istringstream sline(line);
+  sline >> name;
+  sline >> name;
+  double par[nS2];
+  for ( int i=0; i<nS2; i++ ) {
+    sline >> par[i];
+    if(lr==1)R_F1shift[i]=par[i];
+    else if(lr==0)L_F1shift[i]=par[i];
+  }
+}
+
+///////////////////////////////////
+
+double ParamMan::GetF1Shift(int seg, int lr, int tb){
+
+  double shift;
+    if(lr==0)shift= L_F1shift[seg];
+    else if(lr==1)shift= R_F1shift[seg];
+
+    return shift;
 }
 
 ///////////////////////////////////

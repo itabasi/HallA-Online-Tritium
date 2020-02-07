@@ -211,12 +211,21 @@ void Tree::convertF1TDCL(ParamMan *param)
 
   LF1Ref[0] = LTDC_F1FirstHit[30];
   LF1Ref[1] = LTDC_F1FirstHit[37];
-
+  //bool F1Shift_L=fale;
   bool F1Shift_L=true;
+  double LS2T_off, LS2B_off;
+  LS2T_off = 350.;
+  LS2B_off = 350.-3.0;
 
   double F1res=  param->GetF1reso();
-  double LF1shift_off[LS2];
 
+  /*
+  if(F1res>0.057){
+    LS2T_off = 350 + 280.0 -5.0;
+    LS2B_off = 350 + 280.0 -5.0;
+  }
+  */
+  
   
   //S2
   for(int i=0;i<LS2;i++){
@@ -239,18 +248,22 @@ void Tree::convertF1TDCL(ParamMan *param)
       
       //====== modified by itabashi ========//
       if(F1Shift_L){
-
-
-	
-	LF1shift_off[i]=param->GetF1Shift(i,0,0);
-	if(LS2T_F1[i]>0)LS2T_F1[i] -= LF1shift_off[i];
-	if(LS2B_F1[i]>0)LS2B_F1[i] -= LF1shift_off[i];
-	LS2T_F1time[i] = param->time(1,i,0,0, LS2T_F1[i]  , L_s2_ra_p[i]);
-	LS2B_F1time[i] = param->time(1,i,0,1, LS2B_F1[i]  , L_s2_la_p[i]);
-	LS2_F1time_c[i]  = 0.5*(LS2T_F1time[i] + LS2B_F1time[i]);
-	ltof_c[i]=LS2_F1time[i];                                                               }
+      if(LS2T_F1[i] > pow(2,15) )LS2T_F1[i] = LS2T_F1[i] - pow(2.0,16.) + LS2T_off;
+      else if(LS2T_F1[i] < -pow(2,15) )LS2T_F1[i] = LS2T_F1[i] + pow(2.0,16.) - LS2T_off;
+      if(LS2B_F1[i] > pow(2,15) )LS2B_F1[i] = LS2B_F1[i] - pow(2.0,16.) + LS2B_off;
+      else if(LS2B_F1[i] < -pow(2,15) )LS2B_F1[i] = LS2B_F1[i] + pow(2.0,16.) - LS2B_off;  
+      
+      LS2T_F1time[i] = param->time(1,i,0,0, LS2T_F1[i]  , L_s2_ra_p[i]);
+      LS2B_F1time[i] = param->time(1,i,0,1, LS2B_F1[i]  , L_s2_la_p[i]);
+      LS2_F1time[i]  = 0.5*(LS2T_F1time[i] + LS2B_F1time[i]);
+      ltof_c[i]=LS2_F1time[i];                                                               }
       //=====================================//
-
+      
+      /*
+      LS2T_F1time[i] = param->time(1,i,0,0, LS2T_F1TDC[i] - LTDC_F1FirstHit[30]  , L_s2_ra_p[i] );
+      LS2B_F1time[i] = param->time(1,i,0,1, LS2B_F1TDC[i] - LTDC_F1FirstHit[37]  , L_s2_la_p[i]);
+      LS2_F1time[i]  = 0.5*(LS2T_F1time[i] + LS2B_F1time[i]);
+      */
       
     }
     else {
@@ -479,19 +492,22 @@ void Tree::convertF1TDCR(ParamMan *param)
   RF1Ref[1]=RTDC_F1FirstHit[46];
   
 
-  bool F1Shift_R=true;
-  //bool F1Shift_R=false;
-  double RF1shift_off[RS2];
+  //  bool F1Shift_R=true;
+  bool F1Shift_R=false;
+  double RS2T_off = 350.0;
+  double RS2B_off = 350.0-2.0;
   
   //S2
   for(int i=0;i<RS2;i++){
     RS2T_F1TDC[i]  =  RTDC_F1FirstHit[i+16];
     RS2B_F1TDC[i]  =  RTDC_F1FirstHit[i+48];
 
+    //  cout<<"seg "<<i<<" RF1ref0 "<<RF1Ref[0]<<" RF1Ref1 "<<RF1Ref[1]<<" RS2T_F1TDC "<<RS2T_F1TDC[i]<<" RS2B_F1TDC "<<RS2B_F1TDC[i]<<endl;
+
     
     if(RF1Ref[0]>1. && RF1Ref[1]>1. && RS2T_F1TDC[i]>1. && RS2B_F1TDC[i]>1.){
-      RS2T_F1[i] = RS2T_F1TDC[i] - RF1Ref[0] ;
-      RS2B_F1[i] = RS2B_F1TDC[i] - RF1Ref[1] ;
+      RS2T_F1[i]=RS2T_F1TDC[i] - RF1Ref[0] ;
+      RS2B_F1[i]=RS2B_F1TDC[i] - RF1Ref[1] ;
 
       RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1[i]  , R_s2_ra_p[i]);
       RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1[i]  , R_s2_la_p[i]);
@@ -502,21 +518,36 @@ void Tree::convertF1TDCR(ParamMan *param)
       //====== modified by itabashi ========//
       
       if(F1Shift_R){
-
-
-	RF1shift_off[i]=param->GetF1Shift(i,1,0);
-	if(RS2T_F1[i]>0)RS2T_F1[i] -= RF1shift_off[i];
-	if(RS2B_F1[i]>0)RS2B_F1[i] -= RF1shift_off[i];
-	
-	RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1[i]  , R_s2_ra_p[i]);
-	RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1[i]  , R_s2_la_p[i]);
-	RS2_F1time_c[i]  = 0.5*(RS2T_F1time[i] + RS2B_F1time[i]);
-	rtof_c[i]=RS2_F1time_c[i];
+	if(RS2T_F1[i] > pow(2,15) )RS2T_F1[i] = RS2T_F1[i] - pow(2.0,16.) + RS2T_off;
+	else if(RS2T_F1[i] < -pow(2,15) )RS2T_F1[i] = RS2T_F1[i] + pow(2.0,16.) - RS2T_off;
+	if(RS2B_F1[i] > pow(2,15) )RS2B_F1[i] = RS2B_F1[i] - pow(2.0,16.) + RS2B_off;
+	else if(RS2B_F1[i] < -pow(2,15) )RS2B_F1[i] = RS2B_F1[i] + pow(2.0,16.) - RS2B_off;  
+      
+      
+      RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1[i]  , R_s2_ra_p[i]);
+      RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1[i]  , R_s2_la_p[i]);
+      RS2_F1time[i]  = 0.5*(RS2T_F1time[i] + RS2B_F1time[i]);
+      rtof_c[i]=RS2_F1time[i];
       }
       
-
+      /*
+      RS2T_F1[i]=- RS2T_F1TDC[i] + RF1Ref[0] ;
+      RS2B_F1[i]=- RS2B_F1TDC[i] + RF1Ref[1] ;
+      if(RS2T_F1[i] > pow(2,15) )RS2T_F1[i] = RS2T_F1[i] - pow(2.0,16.) + 350.0;
+      else if(RS2T_F1[i] < -pow(2,15) )RS2T_F1[i] = RS2T_F1[i] + pow(2.0,16.) - 350.0;
+      if(RS2B_F1[i] > pow(2,15) )RS2B_F1[i] = RS2B_F1[i] - pow(2.0,16.) + 350.0;
+      else if(RS2B_F1[i] < -pow(2,15) )RS2B_F1[i] = RS2B_F1[i] + pow(2.0,16.) - 350.0;      
+      RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1[i]  , R_s2_ra_p[i]);
+      RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1[i]  , R_s2_la_p[i]);
+      RS2_F1time[i]  = 0.5*(RS2T_F1time[i] + RS2B_F1time[i]);
       //=====================================//
-
+      
+      /*
+      RS2T_F1time[i] = param->time(1,i,1,0, RS2T_F1TDC[i] - RTDC_F1FirstHit[9]  , R_s2_ra_p[i]);
+      RS2B_F1time[i] = param->time(1,i,1,1, RS2B_F1TDC[i] - RTDC_F1FirstHit[46] , R_s2_la_p[i]);
+      RS2_F1time[i]  = 0.5*(RS2T_F1time[i] + RS2B_F1time[i]);
+      */
+      
     }
     else{
       RS2T_F1TDC[i]  = -9999.;

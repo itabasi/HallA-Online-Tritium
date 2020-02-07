@@ -62,6 +62,8 @@ private:
   S2param L_FbS2T, L_FbS2B, R_FbS2T, R_FbS2B;
   S0param L_FbS0T, L_FbS0B, R_FbS0T, R_FbS0B;
 
+  double L_F1shift[nS2],R_F1shift[nS2];
+  
 public:
   void SetFileName( const char* filename )
   { ParamFileName=filename; } 
@@ -72,12 +74,14 @@ public:
   void SetTimeTune(  int cid, int seg, int lr, double tdcGain   );
   void SetF1reso( string &sline, string &name);
   void SetF1CoinOffset( string &sline, string &name);
+  void SetF1Shift(   int lr, string &sline, string &name);
   double F1Res();  
   double GetF1CoinOffset();
   double GetF1reso();  
   bool SetVal( void );
   double GetTdcOffset( int cid, int seg, int lr, int tb );
   double GetTdcGain(   int cid, int seg, int lr, int tb );
+  double GetF1Shift(   int seg, int lr, int tb );
   double time(         int cid, int seg, int lr, int tb, double tdc, double adc=-1.);
   double TimewalkCorrection(double par, double adc, double peak=2000.);
   void WriteToFile( const char* OutputFileName );
