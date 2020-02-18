@@ -28,6 +28,8 @@ struct TreeBranch{
   double missing_mass_Al_bg;
   double mm_tuned;
   double momR, momL;
+  double momRz, momLz;
+  double momRz_c, momLz_c;
   double zR, zL;
   double AC1_sum, AC2_sum;
   double AC1_npe_sum,AC2_npe_sum;
@@ -46,8 +48,8 @@ struct TreeBranch{
   double Lp_c[100],Rp_c[100],Bp_c;  
   double dpe,dpe_[100],dpk[100];
   int Rs2_pad[100],Ls2_pad[100];
-  double RS2T_F1[16],RS2B_F1[16],RS2T_ref,RS2B_ref;
-  double LS2T_F1[16],LS2B_F1[16],LS2T_ref,LS2B_ref;
+  double RS2T_F1[16],RS2B_F1[16],RS2T_ref,RS2B_ref,RS2T_F1_c[16],RS2B_F1_c[16],RS2T_F1_b[16],RS2B_F1_b[16];
+  double LS2T_F1[16],LS2B_F1[16],LS2T_ref,LS2B_ref,LS2T_F1_c[16],LS2B_F1_c[16],LS2T_F1_b[16],LS2B_F1_b[16];
   double Rtof[100],Ltof[100];
   int ntrack_r,ntrack_l;
   double Rpathl,Lpathl,Rpathl_c,Lpathl_c;
@@ -253,6 +255,8 @@ public:
   double R_pathl_c, L_pathl_c;
   double ct;
   double coin_shift;
+  double R_pz,R_px,R_py;
+  double L_pz,L_px,L_py;
   int count=0;
   double ac1_th[24]={5249.78, 5263.03, 5244.2, 5239.62, 5276.17,  5249.84,
 		     5274.63, 5291.02, 5259.66, 5305.42, 5262.97, 5333.76, 5275.35, 5190.67, 5303.03, 5414.55, 5224.28, 5320.19, 5253.68, 5242.92, 5219.99, 5296.6, 5345.91, 5357.9};

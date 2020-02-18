@@ -35,22 +35,38 @@ mode=[]
 num=1
 name.append("Lambda_small_OleH1")
 mode.append("H1")
+param.append("Lambda_H1.param")
+
 name.append("nnL_small_Ole1")
 mode.append("T")
+param.append("nnL_1.param")
+
 name.append("Lambda_small_OleH2")
 mode.append("H1")
+param.append("Lambda_H2.param")
+
 name.append("Lambda_small_OleT")
 mode.append("H2")
+param.append("nnL_2.param")
+
 name.append("nnL_small_Ole2")
 mode.append("T")
+param.append("nnL_2.param")
+
 name.append("nnL_small_Ole3")
 mode.append("T")
+param.append("nnL_2.param")
+
 name.append("nnL_small_Ole4")
 mode.append("T")
+param.append("nnL_3.param")
+
 name.append("H3L_small_Ole")
 mode.append("He")
-param.append("f1_tuned_Lambda_twc.param")
-param.append("f1_Lambda_phase2_tuned.param")
+param.append("nnL_3.param")
+
+#param.append("f1_tuned_Lambda_twc.param")
+#param.append("f1_Lambda_phase2_tuned.param")
 
 #####################################
 
@@ -65,14 +81,10 @@ def Add():
     print(add_T)
     subprocess.run([add_T],shell=True)
     
-def ana(i):
-    if i<2 :
-        pfile=param[0]
-    else :
-        pfile=param[1]
-            
+def ana(i):            
     names=name[i]
     MODE=mode[i]
+    pfile=param[i]
     cmd=f'./bin/ana_Lambda -f ../run_list/nnlambda/{names}.list -p param/{pfile} -r {root_dir}/{names}.root -w {pdf_dir}/{names}.pdf -m {matrix} -{MODE}'
     print(cmd)
     subprocess.run([cmd],shell=True)

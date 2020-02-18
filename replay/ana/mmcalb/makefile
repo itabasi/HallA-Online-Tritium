@@ -16,16 +16,21 @@ TARGET1= mmcalib
 OBJS1=   mmcalib.o Setting.o Tree.o ParamMan.o
 TARGET2=     ana_Lambda
 OBJS2=       ana_Lambda.o Tree.o Setting.o ParamMan.o
+TARGET3=     ana_Lambda_goga
+OBJS3=       ana_Lambda_goga.o Tree.o Setting.o ParamMan.o
 
 .PHONY: all
 all: $(TARGET1)\
-     $(TARGET2)
+     $(TARGET2)\
+     $(TARGET3)
 $(LIBDIR)/%.o : %.cc
 	$(CXX) $(CFLAGS) -c -o $@ $< -MMD $(CXXFLAGS)
 
 $(TARGET1): $(patsubst %,$(LIBDIR)/%,$(OBJS1))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 $(TARGET2): $(patsubst %,$(LIBDIR)/%,$(OBJS2))
+	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
+$(TARGET3): $(patsubst %,$(LIBDIR)/%,$(OBJS3))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 
 .PHONY: clean

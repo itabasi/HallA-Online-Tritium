@@ -66,19 +66,19 @@ void ana::matrix(string mtparam){
   cout<<endl;
   MTParam_R();cout<<" Input RHRS Matrix parameter "<<endl;
   MTParam_L();cout<<" Input LHRS Matrix parameter "<<endl;
-  MTP_mom();cout<<"Input Mom parameter "<<endl;
+  MTP_mom();
 
   for(int i=0;i<12;i++)MT_p[i]=false;
 
   //======= Tuning selection flag =====================//
   //--------- RHRS ------------------------//
   MT_p[0] = true;  // RHRS z correction
-  MT_p[1] = true;  // RHRS raster correction
+  //  MT_p[1] = true;  // RHRS raster correction
   MT_p[2] = true;  // RHRS theta correction
   MT_p[3] = true;  // RHRS phi correction
   //--------- LHRS -----------------------//
   MT_p[4] = true;  // LHRS z correction
-  MT_p[5] = true;  // LHRS raster correction
+  //  MT_p[5] = true;  // LHRS raster correction
   MT_p[6] = true;  // LHRS theta correction
   MT_p[7] = true;  // LHRS phi correction
   //-------- momentum calibration ---------//
@@ -348,21 +348,21 @@ void ana::Calib(int rt, int lt ){
   R_tr_th[rt]   = (R_tr_th[rt]-XpFPm)/XpFPr;
   R_tr_y[rt]    = (R_tr_y[rt]-YFPm)/YFPr;
   R_tr_ph[rt]   = (R_tr_ph[rt]-YpFPm)/YpFPr;
+
   R_tr_vz[rt]   = (R_tr_vz[rt]-Ztm)/Ztr;
   R_tr_tg_th[rt]= (R_tr_tg_th[rt] - Xptm)/Xptr;
   R_tr_tg_ph[rt]= (R_tr_tg_ph[rt] - Yptm)/Yptr;
-
-  R_p = (R_p - PRm)/PRr;
-
+  R_p = (R_p - Momm)/Momr;
+  
   L_tr_x[lt]    = (L_tr_x[lt]-XFPm)/XFPr; 
   L_tr_th[lt]   = (L_tr_th[lt]-XpFPm)/XpFPr;
   L_tr_y[lt]    = (L_tr_y[lt]-YFPm)/YFPr;
-  L_tr_vz[lt]   = (L_tr_vz[lt]-Ztm)/Ztr;
   L_tr_ph[lt]   = (L_tr_ph[lt]-YpFPm)/YpFPr;
-  L_tr_tg_th[lt]= (L_tr_tg_th[lt] - Xptm)/Xptr;
-  L_tr_tg_ph[lt]= (L_tr_tg_ph[lt] - Yptm)/Yptr;  
 
-  L_p = (L_p - PLm)/PLr;
+  L_tr_vz[lt]   = (L_tr_vz[lt]-Ztm)/Ztr;
+  L_tr_tg_th[lt]= (L_tr_tg_th[lt] - Xptm)/Xptr;
+  L_tr_tg_ph[lt]= (L_tr_tg_ph[lt] - Yptm)/Yptr;
+  L_p = (L_p - Momm)/Momr;
 
   //========================================//
   
@@ -370,7 +370,7 @@ void ana::Calib(int rt, int lt ){
   if(MT_p[4]) L_tr_vz[lt]   = calcf2t_zt(Pzt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt]); //nomalized
 
 
-    //======== Raster Correction ==========================//    
+  //======== Raster Correction ==========================//    
 
     RasterCor = Calc_ras(R_Ras_x, Pras[2], Pras[0]);
     RasterCor = RasterCor/tan(hrs_ang);
@@ -388,14 +388,21 @@ void ana::Calib(int rt, int lt ){
 
     
 
+    double Avz =0.0;
+    Avz =(L_tr_vz[lt] + R_tr_vz[rt])/2.0;
+
 
     if(MT_p[2])    R_tr_tg_th[rt]  = calcf2t_ang(Pxpt,   R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]); // nomalized
     if(MT_p[3])    R_tr_tg_ph[rt]  = calcf2t_ang(Pypt,   R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]); // nomalized
     if(MT_p[6])    L_tr_tg_th[lt]  = calcf2t_ang(Pxpt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt], L_tr_vz[lt]); // nomalized
     if(MT_p[7])    L_tr_tg_ph[lt]  = calcf2t_ang(Pypt_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt], L_tr_vz[lt]); // nomalized   
 
-    if(MT_p[8])    R_p = calcf2t_mom(Opt_par_R, R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]);
-    if(MT_p[9])    L_p = calcf2t_mom(Opt_par_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt],L_tr_vz[lt]);
+
+
+    //    if(MT_p[8])    R_p = calcf2t_mom(Opt_par_R, R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],R_tr_vz[rt]);
+    //    if(MT_p[9])    L_p = calcf2t_mom(Opt_par_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt],L_tr_vz[lt]);
+    if(MT_p[8])    R_p = calcf2t_mom(Opt_par_R, R_tr_x[rt], R_tr_th[rt], R_tr_y[rt], R_tr_ph[rt],Avz);
+    if(MT_p[9])    L_p = calcf2t_mom(Opt_par_L, L_tr_x[lt], L_tr_th[lt], L_tr_y[lt], L_tr_ph[lt],Avz);
 
     
     //========== Scaled at FP ==================//
@@ -414,20 +421,25 @@ void ana::Calib(int rt, int lt ){
     R_tr_vz[rt]     = R_tr_vz[rt] * Ztr + Ztm; // scaled
     R_tr_tg_th[rt]  = R_tr_tg_th[rt] * Xptr + Xptm; // scaled
     R_tr_tg_ph[rt]  = R_tr_tg_ph[rt] * Yptr + Yptm; // scaled
-    R_p             = R_p * PRr + PRm; // scaled
+    R_p             = R_p * Momr + Momm; // scaled
+
     L_tr_vz[lt]     = L_tr_vz[lt] * Ztr + Ztm; // scaled
     L_tr_tg_th[lt]  = L_tr_tg_th[lt] * Xptr + Xptm;  // scaled    
     L_tr_tg_ph[lt]  = L_tr_tg_ph[lt] * Yptr + Yptm;  // scaled    
-    L_p             = L_p * PLr + PLm; // scaled    
+    L_p             = L_p * Momr + Momm; // scaled    
     
+
+    //=========== Energy Loss ===================//
+    B_p     =  B_p + Eloss(0.0,0,"B");
+    R_pz     = R_pz + Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
+    L_pz     = L_pz + Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
+
+
     // Lp = 2.2 GeV mode //
     if(Lp_scale)L_p=2.21807/2.1*L_p;
-    //L_p=2.2/2.1*L_p;
-    //=========== Energy Loss ===================//
-    B_p     = B_p + Eloss(0.0,0,"B");
-    R_p     = R_p + Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
-    L_p     = L_p + Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
 
+
+    
     
 }
 
@@ -815,6 +827,8 @@ void ana::Loop(){
     tr.dpe=-2222.;
     tr.momR=-2222.;
     tr.momL=-2222.;
+    tr.momRz=-2222.;
+    tr.momLz=-2222.;
     tr.z_cut=0;
     tr.ct_cut=0;
     tr.pid_cut=0;
@@ -1121,25 +1135,27 @@ void ana::Loop(){
 	    tr.Lp_c[lt] = -100.;
 	    tr.Rp_c[rt] = -100.;
 	    tr.Bp_c     = -100.;
-	    tr.missing_mass=-100000.;
-	    tr.coin_time=-1000000.;
-	    tr.missing_mass_acc =-100000.;
-	    tr.missing_mass_L   =-100000.;
-	    tr.missing_mass_nnL =-100000.;
-	    tr.missing_mass_H3L =-100000.;
-	    tr.missing_mass_cut =-100000.;
-	    tr.missing_mass_Al  =-100000.;
-	    tr.missing_mass_Lb  =-100000.;
-	    tr.missing_mass_nnLb=-100000.;
-	    tr.missing_mass_b   =-100000.;
-	    tr.missing_mass_Al=-100000.;
-	    tr.missing_mass_MgL=-100000.;
-	    tr.missing_mass_MgL_acc =-100000.;
-	    tr.missing_mass_Al_bg=-100000.;
+	    tr.missing_mass=-100.;
+	    tr.coin_time=-1000.;
+	    tr.missing_mass_acc =-100.;
+	    tr.missing_mass_L   =-100.;
+	    tr.missing_mass_nnL =-100.;
+	    tr.missing_mass_H3L =-100.;
+	    tr.missing_mass_cut =-100.;
+	    tr.missing_mass_Al  =-100.;
+	    tr.missing_mass_Lb  =-100.;
+	    tr.missing_mass_nnLb=-100.;
+	    tr.missing_mass_b   =-100.;
+	    tr.missing_mass_Al=-100.;
+	    tr.missing_mass_MgL=-100.;
+	    tr.missing_mass_MgL_acc =-100.;
+	    tr.missing_mass_Al_bg=-100.;
 	    tr.Rpathl=-100.; tr.Lpathl=-100.;
 	    tr.Rpathl_c=-100.; tr.Lpathl_c=-100.;
 	    ct=-1000.0;
-
+	    R_px=0;R_py=0;R_pz=0;
+	    L_px=0;L_py=0;L_pz=0;
+	    
 	    tr.AC1_npe_sum=0.0;
 	    tr.AC2_npe_sum=0.0;
 	    for(int seg=0;seg<24;seg++)
@@ -1176,14 +1192,8 @@ void ana::Loop(){
 	  //	  if(fabs(R_tr_vz[rt])<0.1
 	  //         && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
 
-
-
-
-	    
 	  if(fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1)zcut=true;
-
-	  
-
+ 
 
 	  if( L_Tr && L_FP && R_Tr && R_FP ){
 
@@ -1200,7 +1210,6 @@ void ana::Loop(){
 	    tr.dpe     = Eloss(0.0,R_tr_vz[0],"B");
 	    tr.dpk[rt] = Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
 	    tr.dpe_[lt]= Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
-	    
 	    R_pc = R_p + tr.dpk[rt];
 	    L_pc = L_p + tr.dpe_[lt];
 	    B_pc = B_p - tr.dpe;
@@ -1280,9 +1289,11 @@ void ana::Loop(){
 
 	    
 	    //	    TVector3 L_vb, R_vb, B_vb;
+
 	    B_vb.SetXYZ(0.0,0.0,B_p);
 	    L_vb.SetXYZ(L_px_b, L_py_b, L_pz_b);
 	    R_vb.SetXYZ(R_px_b, R_py_b, R_pz_b);
+
 
 	    
 	    double mass_b, mm_b, mm_Lb;
@@ -1290,17 +1301,42 @@ void ana::Loop(){
 			 - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) );
 
 	    mm_b=mass_b - mh;
-	    mm_b=mm_b*1000.; // GeV -> MeV
+
 
 
 	    //============================//
 	    //=====  calibration =========//
 	    //===========================//
 
+	    //===== Right Hand Coordinate ====//
+	    /*
+	    R_pz=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
+	    L_pz=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow( L_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
+	    
+	    tr.momRz=R_pz;
+	    tr.momLz=L_pz;
+	    */
 
 
 	    Calib(rt, lt);
 
+
+	    //==== Right Hand Coordinate =====//
+
+
+	    R_pz = R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt],2.0));
+	    L_pz = L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt],2.0));	    
+	    R_px = R_pz *  -R_tr_tg_th[rt];
+	    R_py = R_pz *  -R_tr_tg_ph[rt];
+	    L_px = L_pz *  -L_tr_tg_th[lt];
+	    L_py = L_pz *  -L_tr_tg_ph[lt];
+
+
+
+	    tr.momRz_c=R_pz;
+	    tr.momLz_c=L_pz;
+
+	    
 	    //	    tr.ct_c=CoinCalc_c(R_s2pad,L_s2pad,rt,lt);
 
 	    h_Rz_c->Fill(R_tr_vz[rt]);
@@ -1335,28 +1371,40 @@ void ana::Loop(){
 	    //	    double L_px=L_pz*L_tr_tg_th[rt];
 	    //	    double L_py=L_pz*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
 	    
-	    //===== Right Hand Coordinate ====//
+
 	    
-	    double R_pz=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
-	    double R_px=R_pz*R_tr_tg_th[rt];
-	    double R_py=R_pz*( R_tr_tg_ph[rt] - 13.2/180.*PI);
-
-	    double L_pz = L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt] + 13.2/180.*PI ,2.0));
-	    double L_px = L_pz*L_tr_tg_th[lt];
-	    double L_py = L_pz*( L_tr_tg_ph[lt] + 13.2/180.*PI);
-
-
 
             TVector3 L_v, R_v, B_v;
 	    B_v.SetXYZ(0.0,0.0,B_p);
 	    L_v.SetXYZ(L_px, L_py, L_pz);
+	    L_v.RotateX(  13.2/180.*PI);
 	    R_v.SetXYZ(R_px, R_py, R_pz);
+	    //	    cout<<"Rpx "<<R_v.X()<<" Rpy "<<R_v.Y()<<" Rpz "<<R_v.Z()<<endl;
+	    R_v.RotateX(- 13.2/180.*PI);
+	    //	    cout<<"w/ Rotate Rpx "<<R_v.X()<<" Rpy "<<R_v.Y()<<" Rpz "<<R_v.Z()<<endl;
 	    
+	    /*
+	    R_pz = R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] - 13.2/180.*PI,2.0));
+	    L_pz = L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt] + 13.2/180.*PI,2.0));	    
+	    R_px = R_pz *  -R_tr_tg_th[rt];
+	    R_py = R_pz *  (-R_tr_tg_ph[rt] -13.2/180.*PI);
+	    L_px = L_pz *   L_tr_tg_th[lt];
+	    L_py = L_pz *  (L_tr_tg_ph[lt] + 13.2/180.*PI);
+
+
+	    TVector3 R_v_test(R_px, R_py, R_pz);
+	    TVector3 L_v_test(L_px, L_py, L_pz);
+	    */
+
+	    //	    cout<<"w/ Rotate test Rpx "<<R_v_test.X()<<" Rpy "<<R_v_test.Y()<<" Rpz "<<R_v_test.Z()<<endl;
+
 	    //======= W/ Matrix & Energy Loss calibraiton ============//
             TVector3 L_vc, R_vc, B_vc;
 	    B_vc.SetXYZ(0.0,0.0,B_p);
 	    L_vc.SetXYZ(L_px, L_py, L_pz);
+	    L_vc.RotateX(  13.2/180.*PI);
 	    R_vc.SetXYZ(R_px, R_py, R_pz);
+	    R_vc.RotateX( -13.2/180.*PI);
 	    double Eec =sqrt(B_p*B_p + Me*Me);
 	    double R_Ec =sqrt(R_p*R_p + MK*MK);
 	    double L_Ec =sqrt(L_p*L_p + Me*Me);
@@ -1383,8 +1431,6 @@ void ana::Loop(){
 	    mm=mass - mh;
             mm2=mass2 - mh;
 
-	    mm = mm*1000.; // GeV -> MeV
-	    mm2 = mm2*100.; // GeV ->MeV 
 
 	    //=== w/ matrix tuning ======//
 	    
@@ -1392,29 +1438,28 @@ void ana::Loop(){
            mass_L = sqrt( (Ee + Mp - L_E - R_E)*(Ee + Mp - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_L=mass_L - ML;
-	   mm_L = mm_L*1000.;
 	    // nnL Mass //
            mass_nnL = sqrt( (Ee + MT - L_E - R_E)*(Ee + MT - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_nnL=mass_nnL - MnnL;
-	   mm_nnL = mm_nnL*1000.;
+
 	    // H3L Mass //
            mass_H3L = sqrt( (Ee + MHe3 - L_E - R_E)*(Ee + MHe3 - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_H3L=mass_H3L - MH3L;	   
-	   mm_H3L = mm_H3L*1000.;
+
 	   
 	    // Alminium Mass //
            mass_Al = sqrt( (Ee + MAl - L_E - R_E)*(Ee + MAl - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_Al=mass_Al - MAl;
-	   mm_Al = mm_Al*1000.;
+
 	   
 	   // Mg27L Mass //
            mass_MgL = sqrt( (Ee + MAl - L_E - R_E)*(Ee + MAl - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_MgL=mass_MgL - MMgL;	   
-	   mm_MgL = mm_MgL*1000.;
+
 	   
 	    
 	    if( Kaon && (fabs(ct-30.)<10. || fabs(ct+30.)<10.) ){
@@ -1537,17 +1582,17 @@ void ana::Loop(){
                h_ct_wK_z_all->Fill(ct);
             
 
-              if((-35<ct && ct <-15) || (15<ct && ct<53)){
+              if((-63<ct && ct <-15) || (15<ct && ct<63)){
 	     
 	       ctime=ct;
 	       
               while(1){
-	       if(-1.0<ctime && ctime<1.0){
+	       if(-3.0<ctime && ctime<3.0){
 		 h_ct_acc->Fill(ctime);
                  h_ct_acc->Fill(ctime-36);
 		 break;}
-	       else if(ctime<-1.0){ctime=ctime+2;}
-	       else if(1.0<ctime){ctime=ctime-2;}
+	       else if(ctime<-3.0){ctime=ctime+6;}
+	       else if(3.0<ctime){ctime=ctime-6;}
 	      }
 	      }
 	      }
@@ -1609,7 +1654,7 @@ void ana::Loop(){
     h_mm_acc->Scale(2.0/40.);
     h_mmallbg->Scale(1./20.);
     h_mmfoilbg->Scale(1./20.);
-    h_ct_acc->Scale(2.0/40.);
+    h_ct_acc->Scale(6.0/96.);
 
     int nAl=h_mm_Al_bg->GetEntries();
     h_mm_Al_bg->Scale(BG_Al(nAl));
@@ -1966,6 +2011,10 @@ void ana::MakeHist(){
   tree_out ->Branch("ct"   ,&tr.coin_time ,"coin_time/D");
   tree_out ->Branch("Rp"        ,&tr.momR      ,"momR/D"     );
   tree_out ->Branch("Lp"        ,&tr.momL      ,"momL/D"     );
+  tree_out ->Branch("Rpz"        ,&tr.momRz      ,"momRz/D"     );
+  tree_out ->Branch("Lpz"        ,&tr.momLz      ,"momLz/D"     );
+  tree_out ->Branch("Rpz_c"        ,&tr.momRz_c      ,"momRz_c/D"     );
+  tree_out ->Branch("Lpz_c"        ,&tr.momLz_c      ,"momLz_c/D"     );
   tree_out ->Branch("Rs2_pad",tr.Rs2_pad,"Rs2_pad[100]/I");
   tree_out ->Branch("Ls2_pad",tr.Ls2_pad,"Ls2_pad[100]/I");
 
@@ -2407,14 +2456,7 @@ void ana::Swich(bool nnL, bool scale){
     max_mm=0.5;
     min_Lp=1.8;
     max_Lp=2.8;
-
-    //====== Missing Mass MeV order =====//
-    min_mm=-300.;
-    max_mm=200.;
-    bin_mm=(int)( (max_mm-min_mm)*0.5 ); // 2MeV/bin;
-
-    //==================================//
-
+    bin_mm=(int)( (max_mm-min_mm)*500 ); // 2MeV/bin;
 
 
 
@@ -2668,10 +2710,10 @@ double calcf2t_mom(double* P, double xf, double xpf,
   const int nYf=nnp;
   const int nYpf=nnp;
   const int nZt=nnp;
-  //  const int nXt=nnp;
-  //  const int nXpt=nnp;
-  //  const int nYt=nnp;
-  //  const int nYpt=nnp;
+  const int nXt=nnp;
+  const int nXpt=nnp;
+  const int nYt=nnp;
+  const int nYpt=nnp;
   
   double Y=0.;
   double x=1.; 

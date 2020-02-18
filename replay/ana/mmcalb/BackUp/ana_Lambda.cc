@@ -66,7 +66,7 @@ void ana::matrix(string mtparam){
   cout<<endl;
   MTParam_R();cout<<" Input RHRS Matrix parameter "<<endl;
   MTParam_L();cout<<" Input LHRS Matrix parameter "<<endl;
-  MTP_mom();cout<<"Input Mom parameter "<<endl;
+  MTP_mom();
 
   for(int i=0;i<12;i++)MT_p[i]=false;
 
@@ -353,7 +353,6 @@ void ana::Calib(int rt, int lt ){
   R_tr_tg_ph[rt]= (R_tr_tg_ph[rt] - Yptm)/Yptr;
 
   R_p = (R_p - PRm)/PRr;
-
   L_tr_x[lt]    = (L_tr_x[lt]-XFPm)/XFPr; 
   L_tr_th[lt]   = (L_tr_th[lt]-XpFPm)/XpFPr;
   L_tr_y[lt]    = (L_tr_y[lt]-YFPm)/YFPr;
@@ -361,7 +360,6 @@ void ana::Calib(int rt, int lt ){
   L_tr_ph[lt]   = (L_tr_ph[lt]-YpFPm)/YpFPr;
   L_tr_tg_th[lt]= (L_tr_tg_th[lt] - Xptm)/Xptr;
   L_tr_tg_ph[lt]= (L_tr_tg_ph[lt] - Yptm)/Yptr;  
-
   L_p = (L_p - PLm)/PLr;
 
   //========================================//
@@ -1121,21 +1119,21 @@ void ana::Loop(){
 	    tr.Lp_c[lt] = -100.;
 	    tr.Rp_c[rt] = -100.;
 	    tr.Bp_c     = -100.;
-	    tr.missing_mass=-100000.;
-	    tr.coin_time=-1000000.;
-	    tr.missing_mass_acc =-100000.;
-	    tr.missing_mass_L   =-100000.;
-	    tr.missing_mass_nnL =-100000.;
-	    tr.missing_mass_H3L =-100000.;
-	    tr.missing_mass_cut =-100000.;
-	    tr.missing_mass_Al  =-100000.;
-	    tr.missing_mass_Lb  =-100000.;
-	    tr.missing_mass_nnLb=-100000.;
-	    tr.missing_mass_b   =-100000.;
-	    tr.missing_mass_Al=-100000.;
-	    tr.missing_mass_MgL=-100000.;
-	    tr.missing_mass_MgL_acc =-100000.;
-	    tr.missing_mass_Al_bg=-100000.;
+	    tr.missing_mass=-100.;
+	    tr.coin_time=-1000.;
+	    tr.missing_mass_acc =-100.;
+	    tr.missing_mass_L   =-100.;
+	    tr.missing_mass_nnL =-100.;
+	    tr.missing_mass_H3L =-100.;
+	    tr.missing_mass_cut =-100.;
+	    tr.missing_mass_Al  =-100.;
+	    tr.missing_mass_Lb  =-100.;
+	    tr.missing_mass_nnLb=-100.;
+	    tr.missing_mass_b   =-100.;
+	    tr.missing_mass_Al=-100.;
+	    tr.missing_mass_MgL=-100.;
+	    tr.missing_mass_MgL_acc =-100.;
+	    tr.missing_mass_Al_bg=-100.;
 	    tr.Rpathl=-100.; tr.Lpathl=-100.;
 	    tr.Rpathl_c=-100.; tr.Lpathl_c=-100.;
 	    ct=-1000.0;
@@ -1290,7 +1288,7 @@ void ana::Loop(){
 			 - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) );
 
 	    mm_b=mass_b - mh;
-	    mm_b=mm_b*1000.; // GeV -> MeV
+
 
 
 	    //============================//
@@ -1341,9 +1339,9 @@ void ana::Loop(){
 	    double R_px=R_pz*R_tr_tg_th[rt];
 	    double R_py=R_pz*( R_tr_tg_ph[rt] - 13.2/180.*PI);
 
-	    double L_pz = L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt] + 13.2/180.*PI ,2.0));
-	    double L_px = L_pz*L_tr_tg_th[lt];
-	    double L_py = L_pz*( L_tr_tg_ph[lt] + 13.2/180.*PI);
+	    double L_pz=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow( L_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
+	    double L_px=L_pz*L_tr_tg_th[rt];
+	    double L_py=L_pz*( L_tr_tg_ph[rt] + 13.2/180.*PI);
 
 
 
@@ -1383,8 +1381,6 @@ void ana::Loop(){
 	    mm=mass - mh;
             mm2=mass2 - mh;
 
-	    mm = mm*1000.; // GeV -> MeV
-	    mm2 = mm2*100.; // GeV ->MeV 
 
 	    //=== w/ matrix tuning ======//
 	    
@@ -1392,29 +1388,28 @@ void ana::Loop(){
            mass_L = sqrt( (Ee + Mp - L_E - R_E)*(Ee + Mp - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_L=mass_L - ML;
-	   mm_L = mm_L*1000.;
 	    // nnL Mass //
            mass_nnL = sqrt( (Ee + MT - L_E - R_E)*(Ee + MT - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_nnL=mass_nnL - MnnL;
-	   mm_nnL = mm_nnL*1000.;
+
 	    // H3L Mass //
            mass_H3L = sqrt( (Ee + MHe3 - L_E - R_E)*(Ee + MHe3 - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_H3L=mass_H3L - MH3L;	   
-	   mm_H3L = mm_H3L*1000.;
+
 	   
 	    // Alminium Mass //
            mass_Al = sqrt( (Ee + MAl - L_E - R_E)*(Ee + MAl - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_Al=mass_Al - MAl;
-	   mm_Al = mm_Al*1000.;
+
 	   
 	   // Mg27L Mass //
            mass_MgL = sqrt( (Ee + MAl - L_E - R_E)*(Ee + MAl - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_MgL=mass_MgL - MMgL;	   
-	   mm_MgL = mm_MgL*1000.;
+
 	   
 	    
 	    if( Kaon && (fabs(ct-30.)<10. || fabs(ct+30.)<10.) ){
@@ -1537,17 +1532,17 @@ void ana::Loop(){
                h_ct_wK_z_all->Fill(ct);
             
 
-              if((-35<ct && ct <-15) || (15<ct && ct<53)){
+              if((-63<ct && ct <-15) || (15<ct && ct<63)){
 	     
 	       ctime=ct;
 	       
               while(1){
-	       if(-1.0<ctime && ctime<1.0){
+	       if(-3.0<ctime && ctime<3.0){
 		 h_ct_acc->Fill(ctime);
                  h_ct_acc->Fill(ctime-36);
 		 break;}
-	       else if(ctime<-1.0){ctime=ctime+2;}
-	       else if(1.0<ctime){ctime=ctime-2;}
+	       else if(ctime<-3.0){ctime=ctime+6;}
+	       else if(3.0<ctime){ctime=ctime-6;}
 	      }
 	      }
 	      }
@@ -1609,7 +1604,7 @@ void ana::Loop(){
     h_mm_acc->Scale(2.0/40.);
     h_mmallbg->Scale(1./20.);
     h_mmfoilbg->Scale(1./20.);
-    h_ct_acc->Scale(2.0/40.);
+    h_ct_acc->Scale(6.0/96.);
 
     int nAl=h_mm_Al_bg->GetEntries();
     h_mm_Al_bg->Scale(BG_Al(nAl));
@@ -2407,14 +2402,7 @@ void ana::Swich(bool nnL, bool scale){
     max_mm=0.5;
     min_Lp=1.8;
     max_Lp=2.8;
-
-    //====== Missing Mass MeV order =====//
-    min_mm=-300.;
-    max_mm=200.;
-    bin_mm=(int)( (max_mm-min_mm)*0.5 ); // 2MeV/bin;
-
-    //==================================//
-
+    bin_mm=(int)( (max_mm-min_mm)*500 ); // 2MeV/bin;
 
 
 
@@ -2668,10 +2656,10 @@ double calcf2t_mom(double* P, double xf, double xpf,
   const int nYf=nnp;
   const int nYpf=nnp;
   const int nZt=nnp;
-  //  const int nXt=nnp;
-  //  const int nXpt=nnp;
-  //  const int nYt=nnp;
-  //  const int nYpt=nnp;
+  const int nXt=nnp;
+  const int nXpt=nnp;
+  const int nYt=nnp;
+  const int nYpt=nnp;
   
   double Y=0.;
   double x=1.; 

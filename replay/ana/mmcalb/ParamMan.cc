@@ -191,7 +191,6 @@ void ParamMan::SetF1CoinOffset( string &line, string &name)
   sline >> name;
   sline >> offset;
   coin_F1_offset = offset;
-
 }
 
 /////////////////////////////////////
@@ -200,6 +199,7 @@ void ParamMan::SetF1ShiftOffset( string &line, string &name)
 {
 
   double offset=0.0;
+  coin_F1_shift = 0.0;
   if ( line.compare(0,name.size(),name) != 0 ) {
    return;
   }
@@ -210,7 +210,6 @@ void ParamMan::SetF1ShiftOffset( string &line, string &name)
   sline >> name;
   sline >> offset;
   coin_F1_shift = offset;
-
 }
 
 
