@@ -6,7 +6,7 @@
 #include "Setting.h"
 #include "define.h"
 #include "tree.h"
-//using namespace std;
+
 
 bool RHRS;
 bool LHRS;
@@ -205,10 +205,9 @@ class momcalib : public tree
   int TNum;
   div_t d;
   //--- Event Selection mass cut ---// 
-  double mmL_range = 0.0075; // [GeV/c^2]
-  double mmS_range = 0.0075; // [GeV/c^2]
-  //  double mmL_range = 0.005; // [GeV/c^2]
-  //  double mmS_range = 0.005; // [GeV/c^2]
+  double mmL_range = 0.015; // [GeV/c^2]
+  double mmS_range = 0.015; // [GeV/c^2]
+
   
     int nlam=0;
     int nsig=0;
@@ -252,44 +251,44 @@ class momcalib : public tree
     bool RPID_flag;
     bool LPID_flag;
     int tuned_num;
-    double mm;
-    double mm_L;
-    double mm_L_pz;
-    double mm_acc;
-    double mm_pi;
-    double ct;
-    double ctime;
-    double Ee,Ee_,Ek,Epi;
-    double pe,pe_,pk,ppi;
-    double coin_t,coin_tc;
-    double rbeta,rbeta_k,lbeta;
-    double Rs2_off,Ls2_off; 
-    double Rs2_tcorr,Ls2_tcorr;
-    int Ls2pads,Rs2pads;
-    bool cut_ac1,cut_ac2,cut_beta;
-    int nac1,nac2,nac3,n;
-    double tof_r,tof_l; 
-    double rpathl,lpathl;
-    double corr_R,corr_L;
-    double rpath_corr,lpath_corr;
-    int tflag;
-    int tev;
-    double Lp_z,Lp_x,Lp_y;
-    double Rp_z,Rp_x,Rp_y;
-    
+  double mm;
+  double mm_L;
+  double mm_L_pz;
+  double mm_acc;
+  double mm_pi;
+  double ct;
+  double ctime;
+  double Ee,Ee_,Ek,Epi;
+  double pe,pe_,pk,ppi;
+  double coin_t,coin_tc;
+  double rbeta,rbeta_k,lbeta;
+  double Rs2_off,Ls2_off; 
+  double Rs2_tcorr,Ls2_tcorr;
+  int Ls2pads,Rs2pads;
+  bool cut_ac1,cut_ac2,cut_beta;
+  int nac1,nac2,nac3,n;
+  double tof_r,tof_l; 
+  double rpathl,lpathl;
+  double corr_R,corr_L;
+  double rpath_corr,lpath_corr;
+  int tflag;
+  int tev;
+  double Lp_z,Lp_x,Lp_y;
+  double Rp_z,Rp_x,Rp_y;
+
   
-    //---- MomTuning ----//
-    double chi_sq[1000],chi_sq1[100],chi_sq2[100];
-    TGraphErrors* gchi_p  = new TGraphErrors();
-    TGraphErrors* gchi_Rp = new TGraphErrors();
-    TGraphErrors* gchi_Lp = new TGraphErrors();
-    //----- ELoss ------//
-    
-    
-    //----  ParamCorr -----//
-    int nPC=0;
-    bool PC_flag=false;
-    bool Lp_scale=false; 
+  //---- MomTuning ----//
+  double chi_sq[1000],chi_sq1[100],chi_sq2[100];
+  TGraphErrors* gchi_p  = new TGraphErrors();
+  TGraphErrors* gchi_Rp = new TGraphErrors();
+  TGraphErrors* gchi_Lp = new TGraphErrors();
+  //----- ELoss ------//
+ 
+  
+  //----  ParamCorr -----//
+  int nPC=0;
+  bool PC_flag=false;
+  bool Lp_scale=false; 
 };
 
 //=====================================//
@@ -837,15 +836,15 @@ void momcalib::MTParam(string mtparam){
   MT_f[6] = true;  // LHRS theta correction
   MT_f[7] = true;  // LHRS phi correction
   }
+
   
-  MT[8] = true; // RHRS momentum correction  
-  MT[9] = true; // LHRS momentum correction  
-  ploss = true;  // Energy Loss 
- 
+  //  MT[8] = true; // RHRS momentum correction  
+  //  MT[9] = true; // LHRS momentum correction  
+    ploss = true;  // Energy Loss  
   //-------- momentum calibration ---------//
-  MT_f[8] = true; // RHRS momentum correction  
-  MT_f[9] = true; // LHRS momentum correction  
-  ploss_f = true;  // Energy Loss
+    MT_f[8] = true; // RHRS momentum correction  
+    MT_f[9] = true; // LHRS momentum correction  
+    ploss_f = true;  // Energy Loss
   //================================================//
 
    
@@ -1276,7 +1275,14 @@ void momcalib::momCorr(bool rarm, bool larm){
   Rp_z=-100.;
 
   
- 
+      //==== Right Hand Coorinate ====//
+   
+    Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + pow(Lph[0] + 13.2/180.*PI, 2.0) );
+    Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + pow(Rph[0] - 13.2/180.*PI, 2.0) );    
+
+  
+
+  
   //======== Nomalization =============//
     Rx_fp[0]  = (Rx_fp[0]-XFPm)/XFPr;
     Rth_fp[0] = (Rth_fp[0]-XpFPm)/XpFPr;
@@ -1290,14 +1296,14 @@ void momcalib::momCorr(bool rarm, bool larm){
     Rz[0]   = (Rz[0]-Ztm)/Ztr;
     Lz[0]   = (Lz[0]-Ztm)/Ztr;
     
-    Rp[0]   = (Rp[0]-PRm)/PRr;    
-    Lp[0]   = (Lp[0]-PLm)/PLr;    
+    Rp_z   = (Rp_z-PRm)/PRr;    
+    Lp_z   = (Lp_z-PLm)/PLr;    
 
     //===================================//    
 
     
-    if(rarm)Rp[0] = calcf2t_mom(Opt_par_R, Rx_fp[0], Rth_fp[0], Ry_fp[0], Rph_fp[0],Rz[0]);
-    if(larm)Lp[0] = calcf2t_mom(Opt_par_L, Lx_fp[0], Lth_fp[0], Ly_fp[0], Lph_fp[0],Lz[0]);    
+    if(rarm)Rp_z = calcf2t_mom(Opt_par_R, Rx_fp[0], Rth_fp[0], Ry_fp[0], Rph_fp[0],Rz[0]);
+    if(larm)Lp_z = calcf2t_mom(Opt_par_L, Lx_fp[0], Lth_fp[0], Ly_fp[0], Lph_fp[0],Lz[0]);    
 
       
     //========== Scaled ==================//
@@ -1315,27 +1321,25 @@ void momcalib::momCorr(bool rarm, bool larm){
 
     
     Rz[0]  = Rz[0] * Ztr + Ztm; // scaled
-    Rp[0]  = Rp[0] * PRr + PRm; // scaled
+    Rp_z  = Rp_z * PRr + PRm; // scaled
     Lz[0]  = Lz[0] * Ztr + Ztm; // scaled
-    Lp[0]  = Lp[0] * PLr + PLm; // scaled    
+    Lp_z  = Lp_z * PLr + PLm; // scaled    
 
 
-    if(runnum>=111552){
-      Lp[0]=2.21807/2.1*Lp[0];
-    }
+    
+    Lp_x = Lp_z*Lth[0];
+    Lp_y = Lp_z*(Lph[0] + 13.2/180.*PI );
 
-      //==== Right Hand Coorinate ====//
-   
-    Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + Lph[0]*Lph[0]);
-    Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + Rph[0]*Rph[0]);    
+    Rp_x = Rp_z*Rth[0];
+    Rp_y = Rp_z*(Rph[0] - 13.2/180.*PI ); 
 
-    Lp_x = Lp_z*    Lth[0];
-    Lp_y = Lp_z*    Lph[0];
-    Rp_x = Rp_z*    Rth[0];
-    Rp_y = Rp_z*    Rph[0]; 
+    //==== test ====//
 
-
-
+    
+    Rp[0] = sqrt(Rp_x*Rp_x + Rp_y*Rp_y + Rp_z*Rp_z);
+    Lp[0] = sqrt(Lp_x*Lp_x + Lp_y*Lp_y + Lp_z*Lp_z);
+    
+    if(runnum>=111552 && larm)Lp[0]=2.21807/2.1*Lp[0];
 
     
 }
@@ -1533,7 +1537,7 @@ void momcalib::EventSelection(){
    int break_num=nmax;
      //(int)NeedTNum*2;
 
-   //   TNum=1000000;   
+   //  TNum=1000000;   
   cout<<"Select Events : "<<TNum<<endl;
   d=div(TNum,100);
   int nd=0;
@@ -1618,8 +1622,7 @@ void momcalib::EventSelection(){
 
     
     pe=hallap/1000.;
-    double Rp_b=Rp[0];
-    double Lp_b=Lp[0];
+
 
 
     
@@ -1711,19 +1714,10 @@ void momcalib::EventSelection(){
     
 
 
-    //    TVector3 L_v, R_v, B_v;
-    //    B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
-    //    L_v.SetXYZ(Lp_x, Lp_y, Lp_z);
-    //    R_v.SetXYZ(Rp_x, Rp_y, Rp_z);
-
-    TVector3 B_v(0.0,0.0,sqrt(Ee*Ee-Me*Me));
-    TVector3 R_v(Rp_x, Rp_y, Rp_z);
-    TVector3 L_v(Lp_x, Lp_y, Lp_z);
-
-    R_v.RotateX(   13.2/180.*3.14);
-    L_v.RotateX( - 13.2/180.*3.14);
-
-
+    TVector3 L_v, R_v, B_v;
+    B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
+    L_v.SetXYZ(Lp_x, Lp_y, Lp_z);
+    R_v.SetXYZ(Rp_x, Rp_y, Rp_z);
     mm = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
 	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 
@@ -1798,10 +1792,10 @@ void momcalib::EventSelection(){
       bool Sig_flag=false;
 
       if(Initial){
-	if(1.09 < mm && mm < 1.115 && ntune_event<nmax ) Lam_flag=true;
-	if(1.16 < mm && mm < 1.20 && ntune_event<nmax ) Sig_flag=true;
-	//      if(1.09 < mm && mm < 1.12 && ntune_event<nmax ) Lam_flag=true;
-	//      if(1.16 < mm && mm < 1.20 && ntune_event<nmax ) Sig_flag=true;
+	//      if(1.12 < mm && mm < 1.15 && ntune_event<nmax ) Lam_flag=true;
+	//      if(1.20 < mm && mm < 1.24 && ntune_event<nmax ) Sig_flag=true;
+      if(1.09 < mm && mm < 1.12 && ntune_event<nmax ) Lam_flag=true;
+      if(1.16 < mm && mm < 1.20 && ntune_event<nmax ) Sig_flag=true;
       
       }else{
 	
@@ -1840,10 +1834,8 @@ void momcalib::EventSelection(){
       lz[ntune_event] = Lz[0];
       Rras_x[ntune_event] =R_Ras_x;
       Lras_x[ntune_event] =L_Ras_x;
-      //      rp[ntune_event] =Rp[0];
-      //      lp[ntune_event] =Lp[0];      
-      rp[ntune_event] =Rp_b;
-      lp[ntune_event] =Lp_b;      
+      rp[ntune_event] =Rp[0];
+      lp[ntune_event] =Lp[0];      
       bp[ntune_event] =pe;
       hmm_L->Fill(mm);
       tuned_num=i;
@@ -1910,7 +1902,7 @@ void momcalib::EventSelection(){
   cout<<"Ratio Lam/Sig :"<<weight<<endl;
 
   
-}
+  }
 
 //========================================================//
 
@@ -2134,7 +2126,6 @@ void momcalib::Fill(){
   int t=0;
 
   ENum= T->GetEntries();
-  //  ENum=1000000;   
   cout<<"Events :"<<ENum<<endl;
      if(ENum<10000)d=div(ENum,1000);
    else   d=div(ENum,10000);
@@ -2282,29 +2273,41 @@ void momcalib::Fill(){
 
     
  //------ Set Physics value --------//
-    Ee=sqrt(pow(pe,2)+pow(Me,2));
-    Ee_=sqrt(pow(Lp[0],2)+pow(Me,2));
-    Ek=sqrt(pow(Rp[0],2)+pow(MK,2));
-    Ls2pads=(int)Ls2tpads[0];
-    Rs2pads=(int)Rs2tpads[0];
-    rpathl=rtrpathl[0]+rs2pathl[0]; // R-HRS path length S2 -RF
-    lpathl=ltrpathl[0]+ls2pathl[0]; // L-HRS path length S2 -RF
-    rbeta=Rp[0]/Ek; 
-    rpath_corr=rpathl/rbeta/c;
-    lbeta=Lp[0]/Ee_; 
-    lpath_corr=lpathl/lbeta/c;
+ Ee=sqrt(pow(pe,2)+pow(Me,2));
+ Ee_=sqrt(pow(Lp[0],2)+pow(Me,2));
+ Ek=sqrt(pow(Rp[0],2)+pow(MK,2));
+ Ls2pads=(int)Ls2tpads[0];
+ Rs2pads=(int)Rs2tpads[0];
+ rpathl=rtrpathl[0]+rs2pathl[0]; // R-HRS path length S2 -RF
+ lpathl=ltrpathl[0]+ls2pathl[0]; // L-HRS path length S2 -RF
+ rbeta=Rp[0]/Ek; 
+ rpath_corr=rpathl/rbeta/c;
+ lbeta=Lp[0]/Ee_; 
+ lpath_corr=lpathl/lbeta/c;
+
+
+
+ 
+ //    double Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + pow(-Lph[0] -13.2/180.*PI ,2.0) );
+ //    double Lp_x = Lp_z*Lth[0];
+ //    double Lp_y = Lp_z*(-Lph[0] -13.2/180.*PI ); 
+ //    double Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + pow( Rph[0] +13.2/180.*PI , 2.0) );     double Rp_x = Rp_z*Rth[0];
+ //    double Rp_y = Rp_z*( Rph[0] +13.2/180.*PI ); 
+
+
+  //==== Right Hand Coordinate ======//
+    double Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + pow(Lph[0] +13.2/180.*PI ,2.0) );
+    double Lp_x = Lp_z*Lth[0];
+    double Lp_y = Lp_z*( Lph[0] + 13.2/180.*PI ); 
+    double Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + pow(Rph[0] -13.2/180.*PI , 2.0) );
+    double Rp_x = Rp_z*Rth[0];
+    double Rp_y = Rp_z*( Rph[0] - 13.2/180.*PI ); 
+
     
-
-
-
-    TVector3 B_v(0.0,0.0,sqrt(Ee*Ee-Me*Me));
-    TVector3 R_v(Rp_x, Rp_y, Rp_z);
-    TVector3 L_v(Lp_x, Lp_y, Lp_z);
-    R_v.RotateX(   13.2/180.*3.14);
-    L_v.RotateX( - 13.2/180.*3.14);
-
-
-
+    TVector3 L_v, R_v, B_v;
+    B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
+    L_v.SetXYZ(Lp_x, Lp_y, Lp_z);
+    R_v.SetXYZ(Rp_x, Rp_y, Rp_z);
     mm = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
 	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 
@@ -2380,7 +2383,7 @@ void momcalib::Fill(){
     
   }
   
-    //    tnew->Fill();
+    tnew->Fill();
           if(i % (d.quot * 1000) == 0)cout<<i<<" / "<<ENum<<endl;
   }
 
@@ -2598,12 +2601,15 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     Lp=0.0;
     
 
+    //==== Right Hand coordinate =====//
+    rp_z = rp[i]/sqrt(1.0*1.0 + rth[i]*rth[i] + pow(rph[i] - 13.2/180.*PI, 2.0) );
+    lp_z = lp[i]/sqrt(1.0*1.0 + lth[i]*lth[i] + pow(lph[i] + 13.2/180.*PI, 2.0) );
+  
 
     // RHRS //
 
 
-    Rp = rp[i];
-    Lp = lp[i];
+
 
     //======== Scaled paramters ===============//
 
@@ -2612,13 +2618,13 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     ry_fp[i]  = (ry_fp[i]-YFPm)/YFPr;
     rph_fp[i] = (rph_fp[i]-YpFPm)/YpFPr;
     rz[i]     = (rz[i]-Ztm)/Ztr;
-    Rp        = (Rp - PRm)/PRr;
-
+    //    rp[i]     = (rp[i] - PRm)/PRr;
+    rp_z     = (rp_z - PRm)/PRr;
 									     
     //==== momentum tuning ==========//
 
-    if(MT_f[8])Rp = calcf2t_mom(par_R, rx_fp[i], rth_fp[i], ry_fp[i], rph_fp[i],rz[i]);
-
+    //    if(MT_f[8])rp[i] = calcf2t_mom(par_R, rx_fp[i], rth_fp[i], ry_fp[i], rph_fp[i],rz[i]);
+    if(MT_f[8])rp_z = calcf2t_mom(par_R, rx_fp[i], rth_fp[i], ry_fp[i], rph_fp[i],rz[i]);
 
     //==== Scaled to Nomal =======//    
     rx_fp[i]  = rx_fp[i]  * XFPr + XFPm;
@@ -2626,7 +2632,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     ry_fp[i]  = ry_fp[i]  * YFPr + YFPm;
     rph_fp[i] = rph_fp[i] * YpFPr + YpFPm;
     rz[i]     = rz[i] * Ztr +Ztm;
-    Rp     = Rp * PRr +PRm;    
+    rp_z      = rp_z * PRr +PRm;    
     //=============================//
    
 
@@ -2640,10 +2646,10 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     lph_fp[i] = (lph_fp[i]-YpFPm)/YpFPr;
 
     lz[i]     = (lz[i]-Ztm)/Ztr;
-    Lp        = (Lp - PLm)/PLr;
+    lp_z        = (lp_z - PLm)/PLr;
     //==== momentum tuning ==========//
 
-    if(MT_f[9])Lp = calcf2t_mom(par_L, lx_fp[i], lth_fp[i], ly_fp[i], lph_fp[i], lz[i]);
+    if(MT_f[9])lp_z = calcf2t_mom(par_L, lx_fp[i], lth_fp[i], ly_fp[i], lph_fp[i], lz[i]);
 
     //==== Scaled to Nomal =======//
     
@@ -2651,8 +2657,9 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     lth_fp[i] = lth_fp[i] * XpFPr + XpFPm;
     ly_fp[i]  = ly_fp[i]  * YFPr + YFPm;
     lph_fp[i] = lph_fp[i] * YpFPr + YpFPm;
-    lz[i]     = lz[i]*Ztr + Ztm;
-    Lp        = Lp   *PLr + PLm;
+
+    lz[i]   = lz[i]*Ztr + Ztm;
+    lp_z      = lp_z   *PLr + PLm;
     
     //=============================//
 
@@ -2666,12 +2673,20 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     dpk =mom->Eloss(rph[i],rz[i],"R");
     dpe_=mom->Eloss(lph[i],lz[i],"L");
     
-    Rp = Rp + dpk;
-    Lp = Lp + dpe_;
+    rp_z = rp_z + dpk;
+    lp_z = lp_z + dpe_;
 
+    lp_x = lp_z*lth[i];
+    lp_y = lp_z*(lph[i] +13.2/180.*PI ); 
+    
+    rp_x = rp_z*rth[i];
+    rp_y = rp_z*(rph[i] - 13.2/180.*PI );
+
+
+    Rp = sqrt(rp_x*rp_x + rp_y*rp_y + rp_z*rp_z);
+    Lp = sqrt(lp_x*lp_x + lp_y*lp_y + lp_z*lp_z);
 
     if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1; 
-
     
     //------ Set Physics value --------//
     Ee=sqrt(pow(bp[i],2)+pow(Me,2));
@@ -2680,41 +2695,23 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     
     rbeta=Rp/Ek; 
     lbeta=Lp/Ee_; 
-
-
-
-    //==== Right Hand coordinate =====//
-    rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i] );
-    lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
-
-    lp_x = lp_z *    lth[i];
-    lp_y = lp_z *    lph[i]; 
-    rp_x = rp_z *    rth[i];
-    rp_y = rp_z *    rph[i];
-
-
-
+    
     B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
-    R_v.SetXYZ(rp_x, rp_y, rp_z);
     L_v.SetXYZ(lp_x, lp_y, lp_z);
-
-
-    R_v.RotateX(  13.2/180.*3.14);
-    L_v.RotateX( -13.2/180.*3.14);
-
+    R_v.SetXYZ(rp_x, rp_y, rp_z);
 
     mass = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
 	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 
 
-    //======================//
-    //====== Residual ======//
-    //======================//
+ //======================//
+ //====== Residual ======//
+ //======================//
 
 
 
     if(mass>0){residual = fabs(mass - mass_ref[i]);}
-    else {mass=0.0; residual =10.0;}//weigth 1.0
+    else {mass=0.0; residual =1.0;}//weigth 1.0
     if(mass_ref[i]==MS0)residual=residual*weight;  // weigth 2.0 sigma events
     
     //    if(residual>0.01)residual=residual*10.;
@@ -2723,15 +2720,16 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     //    if(mass<0.0){mass=0.0; residual =1.0;}//weigth 1.0
 
     // conditon //
-    //if(fabs( Rp -ref_rp )>0.1 || fabs( Lp - ref_lp) >0.1 )residual=residual*2.0;
-    //    if(fabs( Rp -rp_ref )>0.1 || fabs( Lp - lp_ref) >0.1 )residual=residual*3.0; //rp_ref=1.8 GeV, lp_ref=2.1 GeV
-
-    //    if(mass<0.0 || mass>100.){mass=0.0; residual =10.0;}//weigth 1.0
+    //    if(fabs( Rp -ref_rp )>0.1 || fabs( Lp - ref_lp) >0.1 )residual=residual*2.0;
+    //    if(fabs( Rp -rp_ref )>0.1 || fabs( Lp - lp_ref) >0.1 )residual=residual*2.0; //rp_ref=1.8 GeV, lp_ref=2.1 GeV
+    //    if(mass_ref[i]==MS0)residual=residual*3.0;
+    
     //    if(fabs(Lp-Rp)-0.3<0.1)residual=residual*2.0;
     //    if(mass_ref[i]==ML)residual=residual*5.0;
 
      chi2=chi2 + pow(residual/sigma,2.0)/ntune_event;
 
+     //        cout<<"i "<<i<<" ntuned_ev "<<ntune_event<<" mm "<<mass<<" residual "<<residual<<" rp "<<Rp<<" lp "<<Lp<<" chi_tot "<<chi2<<" chi2 "<<pow(residual/sigma,2.0)/ntune_event<<endl;    
 
   }//end for 
 
@@ -2780,16 +2778,22 @@ double momcalib::tune(double* pa, int j, int MODE)
   const int nYf   =nnp;
   const int nYpf  =nnp;
   const int nZt   =nnp;
-  const int nnn   =nnp;
-  int nfix=2;
-  nfix=4;
 
+
+    const int nnn   =nnp;
+  /*
+  const int nMatT =nnp;
+
+  const int nXf   =2;
+  const int nXpf  =2;
+  const int nYf   =2;
+  const int nYpf  =2;
+  const int nZt   =2;
+  */
+  
   // The number of order is reduced for test (4-->2)
-
-
   int npar=0;
   int a=0,b=0,c=0,d=0,e=0;
-
 
   for(int f=0;f<arm;f++){
     for (int n=0;n<nMatT+1;n++){
@@ -2800,22 +2804,14 @@ double momcalib::tune(double* pa, int j, int MODE)
 	      for (a=0;a<n+1;a++){ 
 		if (a+b+c+d+e==n){
 		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt && a+b+c+d+e<=nnn){
-
-		    if(n<nfix){
-		    start[npar] = pa[npar];
-		    step[npar] = 0.0;
-
-		    }else{
-
 		    start[npar] = pa[npar];
 		    step[npar] = 1.0e-3;
-		    }
-
+		    //		    cout<<"i "<<npar<<" st "<<start[npar]<<" step "<<step[npar]<<endl;
 		  }
 		  else{
 		    start[npar] = 0.0;
 		    step[npar] = 0.0;
-
+		    //		    cout<<"i "<<npar<<" st "<<start[npar]<<" step "<<step[npar]<<endl;
 		  }
 		  npar++;
 
@@ -2839,13 +2835,23 @@ double momcalib::tune(double* pa, int j, int MODE)
   char pname[500];
   for(int i=0 ; i<allparam ; i++){
     sprintf(pname,"param_%d",i+1);
+ 
+    //    LLim[i] = pa[i] - pa[i]*0.8;
+    //    ULim[i] = pa[i] + pa[i]*0.8;
+    /*
+    if(i<21 || ( nParamTp<=i && i<nParamTp +21) ){
+      LLim[i] = pa[i] - pa[i]*0.5;
+      ULim[i] = pa[i] + pa[i]*0.5;
+      // step[i]=0;
+    }else{ 
+      LLim[i] = pa[i] - 5.0;
+      ULim[i] = pa[i] + 5.0;
+    }
+    */
     
     LLim[i] = pa[i] - 5.0; // temp
     ULim[i] = pa[i] + 5.0; // temp
-    //    LLim[i] = pa[i] - 10.0; // temp
-    //    ULim[i] = pa[i] + 10.0; // temp
-    //LLim[i] = pa[i]*0.8; // temp
-    //    ULim[i] = pa[i]*1.2; // temp
+   //    cout<<"i "<<i<<" st "<<start[i]<<" step "<<step[i]<<endl;
     
     minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
 	  

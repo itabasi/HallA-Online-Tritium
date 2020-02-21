@@ -13,7 +13,7 @@ const double  Xptm=-0.07, Yptm=-0.2, Momm=1.74;
 const double  Xptr=0.15,  Yptr=0.08, Momr=0.18; 
 const double  Ztm = -0.15,Ztr=0.35;
 //==== momentum scaled  parameters =====//
-const double  PLm = 2.0, PLr=0.22; 
+const double  PLm = 2.0,  PLr=0.22; 
 const double  PRm =1.74   ,PRr=0.2;
 
 
@@ -30,7 +30,6 @@ const int nParamT_ras=4;
 
 //const int nnp=5;// 4th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=252;
-
 const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
 const int nParamTp=126;
 
@@ -123,8 +122,10 @@ const  double s2_offset=-499.75;
 //const  double coin_offset=456.65;
 //const  double coin_offset=464.65;
 //double coin_offset=464.13; // H1 mode
-const double a1_th=50;
-const double a2_th=2000; 
+//const double a1_th=50;
+//const double a2_th=2000;
+const double a1_th=200;
+const double a2_th=1000; 
 //const double a1_th=400;
 //const double a2_th=600; 
 

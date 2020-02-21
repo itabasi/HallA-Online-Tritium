@@ -13,7 +13,8 @@ tree::tree(){   T=new TChain("T");};
 tree::~tree(){};
 
 void tree::SetRun(string ifname){
-  T->Add(ifname.c_str());
+  cout<<"root files : "<<ifname<<endl;
+  T->Add(Form("%s",ifname.c_str()));
   ENum =T->GetEntries();
   cout<<"Get Entries: "<<ENum<<endl;
   

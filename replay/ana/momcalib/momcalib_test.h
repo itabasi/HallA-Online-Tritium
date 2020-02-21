@@ -1,5 +1,5 @@
-#ifndef momcalib_h
-#define momcalib_h 1
+#ifndef momcalib_test_h
+#define momcalib_test_h 1
 #include <iostream>
 #include <fstream>
 #include "Param.h"
@@ -2014,22 +2014,6 @@ void momcalib::MomTuning(string ofname){
 			  << " " << d
 			  << " " << e << endl;		    
 		    
-
-		    /*
-		    *ofs1 << Opt_par_R[nppp] 
-			<< " " << a 
-			<< " " << b
-			<< " " << c
-			<< " " << d
-			<< " " << e << endl;
-		    *ofs2 << Opt_par_L[nppp] 
-			<< " " << a 
-			<< " " << b
-			<< " " << c
-			<< " " << d
-			<< " " << e << endl;
-		    */
-		    
 		  }
 
 		  nppp++;
@@ -2042,6 +2026,13 @@ void momcalib::MomTuning(string ofname){
       }
     }
 
+    *ofs2 << Opt_par[2*nParamTp] 
+	  << " " << 0 
+	  << " " << 0
+	  << " " << 0
+	  << " " << 0
+	  << " " << 0 << endl;		    
+    
     if(MODE==-1 || MODE==0){
       ofs1->close();
       ofs1->clear();
@@ -2552,6 +2543,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
   momcalib* mom=new momcalib();
   double dpk, dpe_,dpe;
   TVector3 L_v, R_v, B_v;
+  double Lps;
   //======= Coincidence analysis ========//
 
   for(int i=0;i<nParamTp;i++){
@@ -2572,6 +2564,9 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
       par_L[i]=Opt_par_L[i];
     }
   }
+
+  Lps=0.0;
+  Lps=param[2*nParamTp];
   
   //======================================//
 
@@ -2670,7 +2665,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     Lp = Lp + dpe_;
 
 
-    if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1; 
+    if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1 * Lps; 
 
     
     //------ Set Physics value --------//
@@ -2757,7 +2752,7 @@ double momcalib::tune(double* pa, int j, int MODE)
   int arm=1;
 
   if(MODE==0){
-    allparam=nParamTp*2;
+    allparam=nParamTp*2+1;
     arm=2;
   }
 
@@ -2828,6 +2823,9 @@ double momcalib::tune(double* pa, int j, int MODE)
     }
   }
 
+
+  
+
   // ~~~ Chi-square ~~~~
   arglist[0] = 1;
   minuit -> mnexcm("SET ERR",arglist,1,ierflg);
@@ -2839,14 +2837,15 @@ double momcalib::tune(double* pa, int j, int MODE)
   char pname[500];
   for(int i=0 ; i<allparam ; i++){
     sprintf(pname,"param_%d",i+1);
-    
+     
     LLim[i] = pa[i] - 5.0; // temp
     ULim[i] = pa[i] + 5.0; // temp
-    //    LLim[i] = pa[i] - 10.0; // temp
-    //    ULim[i] = pa[i] + 10.0; // temp
-    //LLim[i] = pa[i]*0.8; // temp
-    //    ULim[i] = pa[i]*1.2; // temp
-    
+
+    start[allparam-1] = pa[allparam-1];
+    step[allparam-1] = 1.0e-3;
+    LLim[i] = 0.0; // temp
+    ULim[i] = 2.0; // temp
+
     minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
 	  
   }
@@ -2923,15 +2922,6 @@ double tuning(double* pa, int j, int MODE)
   const int nYpf  =nnp;
   const int nZt   =nnp; // The number of order is reduced for test (4-->2)
 
-  /*
-  const int nMatT =3;  
-  const int nXf   =3;
-  const int nXpf  =3;
-  const int nYf   =3;
-  const int nYpf  =3;
-  const int nZt   =3; // The number of order is reduced for test (4-->2)
-  */
-
 
   int npar=0;
   int a=0,b=0,c=0,d=0,e=0;
@@ -2947,8 +2937,6 @@ double tuning(double* pa, int j, int MODE)
 		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt){
 		    start[npar] = pa[npar];
 		    step[npar] = 1.0e-3;
-		    //		    cout<<"npar "<<npar<<" pa "<<start[npar]<<" "<<a<<" "<<b<<" "<<c<<" "<<d<<" "<<e<<endl;
-		    //		    if(4<=e)step[npar]=0.0;
 		  }
 		  else{
 		    start[npar] = 0.0;
@@ -2978,8 +2966,7 @@ double tuning(double* pa, int j, int MODE)
     sprintf(pname,"param_%d",i+1);
 
     
-    //    LLim[i] = pa[i] - pa[i]*0.8;
-    //    ULim[i] = pa[i] + pa[i]*0.8;
+
        
     LLim[i] = pa[i] - 5.0; // temp
     ULim[i] = pa[i] + 5.0; // temp
