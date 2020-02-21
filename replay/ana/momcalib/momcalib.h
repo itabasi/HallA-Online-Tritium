@@ -171,6 +171,8 @@ class momcalib : public tree
   TH1F* hmm_L;
   TH1F* hmm_S;
   TH1F* hmm_cut;
+  TH1F* hmm_cut_H;
+  TH1F* hmm_cut_T;
   TH1F* hLam;
   TH1F* hSig;
 
@@ -744,6 +746,22 @@ void momcalib::MakeHist(){
   hmm_cut->SetLineColor(1);
   hmm_cut->SetFillColor(6);  
   hmm_cut->SetFillStyle(3002);
+
+  hmm_cut_H=new TH1F("hmm_cut_H","",bin_mm,min_mm,max_mm);
+  set->SetTH1(hmm_cut_H,"Missing mass  w/ cut hist ","mass [GeV/c^{2}]",Form("Counts/%d MeV",mm_width));
+
+  hmm_cut_H->SetLineColor(1);
+  hmm_cut_H->SetFillColor(2);  
+  hmm_cut_H->SetFillStyle(3002);
+
+  hmm_cut_T=new TH1F("hmm_cut_T","",bin_mm,min_mm,max_mm);
+  set->SetTH1(hmm_cut_T,"Missing mass  w/ cut hist ","mass [GeV/c^{2}]",Form("Counts/%d MeV",mm_width));
+
+  hmm_cut_T->SetLineColor(1);
+  hmm_cut_T->SetFillColor(3);  
+  hmm_cut_T->SetFillStyle(3002);
+
+
   //------ Event Selection hist ----------------//
   hmm_L=new TH1F("hmm_L","",bin_mm,min_mm,max_mm);
   set->SetTH1(hmm_L,"Lambda missing mass Event Selction","mass [GeV/c^{2}]",Form("Counts/%d MeV",mm_width));  
@@ -1329,12 +1347,18 @@ void momcalib::momCorr(bool rarm, bool larm){
     Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + Lph[0]*Lph[0]);
     Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + Rph[0]*Rph[0]);    
 
+    /*
     Lp_x = Lp_z*    Lth[0];
     Lp_y = Lp_z*    Lph[0];
     Rp_x = Rp_z*    Rth[0];
     Rp_y = Rp_z*    Rph[0]; 
+    */
 
 
+    Lp_x = Lp_z*    tan( Lth[0] );
+    Lp_y = Lp_z*    tan( Lph[0] );
+    Rp_x = Rp_z*    tan( Rth[0] );
+    Rp_y = Rp_z*    tan( Rph[0] ); 
 
 
     
@@ -1618,6 +1642,7 @@ void momcalib::EventSelection(){
 
     
     pe=hallap/1000.;
+    double Bp_b=pe;
     double Rp_b=Rp[0];
     double Lp_b=Lp[0];
 
@@ -1819,7 +1844,6 @@ void momcalib::EventSelection(){
       mass_flag[ntune_event]=0;
       mass_ref[ntune_event] = ML;
       MM[ntune_event]=mm;
-      beam_p[ntune_event]=pe;
       rx_fp[ntune_event]  = Rx_fp[0];
       rth_fp[ntune_event] = Rth_fp[0];
       ry_fp[ntune_event]  = Ry_fp[0];
@@ -1842,6 +1866,8 @@ void momcalib::EventSelection(){
       Lras_x[ntune_event] =L_Ras_x;
       //      rp[ntune_event] =Rp[0];
       //      lp[ntune_event] =Lp[0];      
+      //      beam_p[ntune_event]=pe;
+      beam_p[ntune_event]=Bp_b;
       rp[ntune_event] =Rp_b;
       lp[ntune_event] =Lp_b;      
       bp[ntune_event] =pe;
@@ -2363,6 +2389,8 @@ void momcalib::Fill(){
       mm_L=mm;
       mm_L_pz=mm_pz;
       hmm_cut->Fill(mm);
+      if(runnum>=111552)hmm_cut_T->Fill(mm);
+      else hmm_cut_H->Fill(mm);
     }
   //======== ACCidencel B.G. ==============///
     if(RPID_flag && LPID_flag && z_flag &&
@@ -2459,6 +2487,8 @@ void momcalib::Close(){
    hmm_L->Write();
    hmm_S->Write();
    hmm_cut->Write();
+   hmm_cut_H->Write();
+   hmm_cut_T->Write();
 
    gchi_p->SetName("gchi");
    gchi_p->Write();
@@ -2601,7 +2631,6 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
     // RHRS //
 
-
     Rp = rp[i];
     Lp = lp[i];
 
@@ -2658,20 +2687,18 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
 
 
-    
+
+    if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1; 
+
+
+
     //==== E loss Calib =====//
-    //    dpe =mom->Eloss(0,0,"B");
-    // bp was already corrected by Event Selection
-    
+    dpe =mom->Eloss(0,0,"B");
     dpk =mom->Eloss(rph[i],rz[i],"R");
     dpe_=mom->Eloss(lph[i],lz[i],"L");
     
     Rp = Rp + dpk;
     Lp = Lp + dpe_;
-
-
-    if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1; 
-
     
     //------ Set Physics value --------//
     Ee=sqrt(pow(bp[i],2)+pow(Me,2));
@@ -2687,12 +2714,17 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i] );
     lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
 
+    /*
     lp_x = lp_z *    lth[i];
     lp_y = lp_z *    lph[i]; 
     rp_x = rp_z *    rth[i];
     rp_y = rp_z *    rph[i];
+    */
 
-
+    lp_x = lp_z *   tan( lth[i] );
+    lp_y = lp_z *   tan( lph[i] ); 
+    rp_x = rp_z *   tan( rth[i] );
+    rp_y = rp_z *   tan( rph[i] );
 
     B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
     R_v.SetXYZ(rp_x, rp_y, rp_z);
@@ -2724,11 +2756,8 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
     // conditon //
     //if(fabs( Rp -ref_rp )>0.1 || fabs( Lp - ref_lp) >0.1 )residual=residual*2.0;
-    //    if(fabs( Rp -rp_ref )>0.1 || fabs( Lp - lp_ref) >0.1 )residual=residual*3.0; //rp_ref=1.8 GeV, lp_ref=2.1 GeV
+    if(fabs( Rp -rp_ref )>0.1 || fabs( Lp - lp_ref) >0.1 )residual=residual*3.0; //rp_ref=1.8 GeV, lp_ref=2.1 GeV
 
-    //    if(mass<0.0 || mass>100.){mass=0.0; residual =10.0;}//weigth 1.0
-    //    if(fabs(Lp-Rp)-0.3<0.1)residual=residual*2.0;
-    //    if(mass_ref[i]==ML)residual=residual*5.0;
 
      chi2=chi2 + pow(residual/sigma,2.0)/ntune_event;
 
@@ -2782,7 +2811,7 @@ double momcalib::tune(double* pa, int j, int MODE)
   const int nZt   =nnp;
   const int nnn   =nnp;
   int nfix=2;
-  nfix=4;
+  nfix=0;
 
   // The number of order is reduced for test (4-->2)
 

@@ -30,11 +30,11 @@ const int nParamT_ras=4;
 
 //const int nnp=5;// 4th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=252;
-const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamTp=126;
+//const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTp=126;
 
-//const int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
-//const int nParamTp=56;
+const int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
+const int nParamTp=56;
 
 //const int nnp=2;// 2nd order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=21;
