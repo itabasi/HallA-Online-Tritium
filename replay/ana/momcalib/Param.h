@@ -102,6 +102,8 @@ double rx[nmax],ry[nmax],rth[nmax],rph[nmax],rz[nmax],lx[nmax],ly[nmax],lth[nmax
 double beam_p[nmax];
 bool scale[nmax];
 double bp[nmax],rp[nmax],lp[nmax];
+double dbp[nmax],drp[nmax],dlp[nmax];
+double bpc[nmax],rpc[nmax],lpc[nmax];
 double dth[nfoil];
 double l[nfoil];
 double projectf[nfoil];
