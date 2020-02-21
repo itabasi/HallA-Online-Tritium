@@ -420,13 +420,17 @@ void ana::Calib(int rt, int lt ){
     L_tr_tg_ph[lt]  = L_tr_tg_ph[lt] * Yptr + Yptm;  // scaled    
     L_p             = L_p * PLr + PLm; // scaled    
     
+
     // Lp = 2.2 GeV mode //
     if(Lp_scale)L_p=2.21807/2.1*L_p;
     //L_p=2.2/2.1*L_p;
+
+
     //=========== Energy Loss ===================//
     B_p     = B_p + Eloss(0.0,0,"B");
     R_p     = R_p + Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
     L_p     = L_p + Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
+
 
     
 }
@@ -699,15 +703,13 @@ double ana::Eloss(double yp,double z,char* arm){
   double x;
   
 
-  //  if(arm) x= - tan(hrs_ang-yp); //yp : phi [rad] right arm
-  //  else    x= - tan(hrs_ang+yp); //yp : phi [rad]  left arm
   //----- Original coordinate  -------//
-  // Definition by K. Suzuki  (fixed Oct. 23rd, 2019)//
+  // Definition by K.N. Suzuki  (fixed Oct. 23rd, 2019)//
   // R-HRS : right hand coordinate (Unticlockwise rotation)//
   // L-HRS : left  hand coordinate (    Clockwise rotation)//
   
-  if(arm=="R")       x = - hrs_ang + yp; //yp : phi [rad] RHRS
-  else if(arm=="L")   x = - hrs_ang - yp; //yp : phi [rad] LHRS
+  if(arm=="R")        x = - hrs_ang - yp; //yp : phi [rad] RHRS
+  else if(arm=="L")   x = - hrs_ang + yp; //yp : phi [rad] LHRS
   else x=0.0;
   double ph[3],pl[2];
   double dEloss=0.0;
@@ -1263,27 +1265,31 @@ void ana::Loop(){
 	     
 	    //======== w/o momentum correction ============//
 
-            TVector3 L_vb, R_vb, B_vb; // Energy loss correction
-	    double Ee_b = sqrt( Me*Me + B_p*B_p );
+ 	    double Ee_b = sqrt( Me*Me + B_p*B_p );
 	    double L_Eb = sqrt( Me*Me + L_p*L_p );
 	    double R_Eb = sqrt( MK*MK + R_p*R_p );
 	    
 	    //==== Right Hand Coordinate ========//
 
-	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
-	    double R_px_b=R_pz_b*R_tr_tg_th[rt];
-	    double R_py_b=R_pz_b*( R_tr_tg_ph[rt] - 13.2/180.*PI);
+	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt],2.0));
+	    double R_px_b=R_pz_b * R_tr_tg_th[rt];
+	    double R_py_b=R_pz_b * R_tr_tg_ph[rt];
+	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt],2.0));
+	    double L_px_b=L_pz_b * L_tr_tg_th[lt];
+	    double L_py_b=L_pz_b * L_tr_tg_ph[lt];
 
-	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow( L_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
-	    double L_px_b=L_pz_b*L_tr_tg_th[rt];
-	    double L_py_b=L_pz_b*( L_tr_tg_ph[rt] + 13.2/180.*PI);
+            TVector3 L_vb, R_vb, B_vb; // Energy loss correction
 
-	    
-	    //	    TVector3 L_vb, R_vb, B_vb;
 	    B_vb.SetXYZ(0.0,0.0,B_p);
 	    L_vb.SetXYZ(L_px_b, L_py_b, L_pz_b);
 	    R_vb.SetXYZ(R_px_b, R_py_b, R_pz_b);
+	    R_vb.RotateX(  13.2/180.*PI );
+	    L_vb.RotateX( -13.2/180.*PI );
 
+
+
+
+	    
 	    
 	    double mass_b, mm_b, mm_Lb;
             mass_b = sqrt( (Ee_b + mt - L_Eb - R_Eb)*(Ee_b + mt - L_Eb - R_Eb)
@@ -1327,36 +1333,35 @@ void ana::Loop(){
 	    L_E =sqrt(L_p*L_p + Me*Me);
 
 
-	    //	    double R_pz=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
-	    //	    double R_px=R_pz*R_tr_tg_th[rt];
-	    //	    double R_py=R_pz*( R_tr_tg_ph[rt] + 13.2/180.*PI);
-
-	    //	    double L_pz=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow(-L_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
-	    //	    double L_px=L_pz*L_tr_tg_th[rt];
-	    //	    double L_py=L_pz*(-L_tr_tg_ph[rt] - 13.2/180.*PI);
-	    
 	    //===== Right Hand Coordinate ====//
 	    
-	    double R_pz=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
-	    double R_px=R_pz*R_tr_tg_th[rt];
-	    double R_py=R_pz*( R_tr_tg_ph[rt] - 13.2/180.*PI);
 
-	    double L_pz = L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt] + 13.2/180.*PI ,2.0));
-	    double L_px = L_pz*L_tr_tg_th[lt];
-	    double L_py = L_pz*( L_tr_tg_ph[lt] + 13.2/180.*PI);
+	    double R_pz = R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt],2.0) );
+	    double R_px = R_pz * R_tr_tg_th[rt];
+	    double R_py = R_pz * R_tr_tg_ph[rt];
+
+	    double L_pz = L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt],2.0));
+	    double L_px = L_pz * L_tr_tg_th[lt];
+	    double L_py = L_pz * L_tr_tg_ph[lt];
+
 
 
 
             TVector3 L_v, R_v, B_v;
 	    B_v.SetXYZ(0.0,0.0,B_p);
 	    L_v.SetXYZ(L_px, L_py, L_pz);
-	    R_v.SetXYZ(R_px, R_py, R_pz);
-	    
+	    R_v.SetXYZ(R_px, R_py, R_pz);	    
+	    R_v.RotateX(  13.2/180.*PI );
+	    L_v.RotateX( -13.2/180.*PI );
+
 	    //======= W/ Matrix & Energy Loss calibraiton ============//
+
             TVector3 L_vc, R_vc, B_vc;
 	    B_vc.SetXYZ(0.0,0.0,B_p);
 	    L_vc.SetXYZ(L_px, L_py, L_pz);
 	    R_vc.SetXYZ(R_px, R_py, R_pz);
+	    R_vc.RotateX(  13.2/180.*PI );
+	    L_vc.RotateX( -13.2/180.*PI );
 	    double Eec =sqrt(B_p*B_p + Me*Me);
 	    double R_Ec =sqrt(R_p*R_p + MK*MK);
 	    double L_Ec =sqrt(L_p*L_p + Me*Me);

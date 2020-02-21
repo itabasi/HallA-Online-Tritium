@@ -338,7 +338,6 @@ void ana::MTP_mom(){
 
 
 ///////////////////////////////////////////////////////////////////////////
-
 void ana::Calib(int rt, int lt ){
 
 
@@ -718,8 +717,8 @@ double ana::Eloss(double yp,double z,char* arm){
   // R-HRS : right hand coordinate (Unticlockwise rotation)//
   // L-HRS : left  hand coordinate (    Clockwise rotation)//
   
-  if(arm=="R")       x = - hrs_ang + yp; //yp : phi [rad] RHRS
-  else if(arm=="L")   x = - hrs_ang - yp; //yp : phi [rad] LHRS
+  if(arm=="R")        x = - hrs_ang + yp; //yp : phi [rad] RHRS
+  else if(arm=="L")   x = + hrs_ang - yp; //yp : phi [rad] LHRS
   else x=0.0;
   double ph[3],pl[2];
   double dEloss=0.0;
@@ -1270,38 +1269,6 @@ void ana::Loop(){
 	    h_Lp->Fill(L_p);	    
 
 	     
-	    //======== w/o momentum correction ============//
-
-            TVector3 L_vb, R_vb, B_vb; // Energy loss correction
-	    double Ee_b = sqrt( Me*Me + B_p*B_p );
-	    double L_Eb = sqrt( Me*Me + L_p*L_p );
-	    double R_Eb = sqrt( MK*MK + R_p*R_p );
-	    
-	    //==== Right Hand Coordinate ========//
-
-	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] - 13.2/180.*PI ,2.0));
-	    double R_px_b=R_pz_b*R_tr_tg_th[rt];
-	    double R_py_b=R_pz_b*( R_tr_tg_ph[rt] - 13.2/180.*PI);
-
-	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[rt], 2.0) + pow( L_tr_tg_ph[rt] + 13.2/180.*PI ,2.0));
-	    double L_px_b=L_pz_b*L_tr_tg_th[rt];
-	    double L_py_b=L_pz_b*( L_tr_tg_ph[rt] + 13.2/180.*PI);
-
-	    
-	    //	    TVector3 L_vb, R_vb, B_vb;
-
-	    B_vb.SetXYZ(0.0,0.0,B_p);
-	    L_vb.SetXYZ(L_px_b, L_py_b, L_pz_b);
-	    R_vb.SetXYZ(R_px_b, R_py_b, R_pz_b);
-
-
-	    
-	    double mass_b, mm_b, mm_Lb;
-            mass_b = sqrt( (Ee_b + mt - L_Eb - R_Eb)*(Ee_b + mt - L_Eb - R_Eb)
-			 - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) );
-
-	    mm_b=mass_b - mh;
-
 
 
 	    //============================//
@@ -1321,15 +1288,50 @@ void ana::Loop(){
 	    Calib(rt, lt);
 
 
+	    //======== w/o momentum correction ============//
+
+            TVector3 L_vb, R_vb, B_vb; // Energy loss correction
+	    double Ee_b = sqrt( Me*Me + B_p*B_p );
+	    double L_Eb = sqrt( Me*Me + L_p*L_p );
+	    double R_Eb = sqrt( MK*MK + R_p*R_p );
+	    
+	    //==== Right Hand Coordinate ========//
+
+	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt] ,2.0));
+	    double R_px_b=R_pz_b*R_tr_tg_th[rt];
+	    double R_py_b=R_pz_b*( R_tr_tg_ph[rt]);
+
+	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt],2.0));
+	    double L_px_b=L_pz_b*L_tr_tg_th[lt];
+	    double L_py_b=L_pz_b* L_tr_tg_ph[lt];
+
+	    
+	    //	    TVector3 L_vb, R_vb, B_vb;
+
+	    B_vb.SetXYZ(0.0,0.0,B_p);
+	    L_vb.SetXYZ(L_px_b, L_py_b, L_pz_b);
+	    R_vb.SetXYZ(R_px_b, R_py_b, R_pz_b);
+	    R_vb.RotateX( 13.2/180.*PI);
+	    L_vb.RotateX(-13.2/180.*PI);
+
+	    
+	    double mass_b, mm_b, mm_Lb;
+            mass_b = sqrt( (Ee_b + mt - L_Eb - R_Eb)*(Ee_b + mt - L_Eb - R_Eb)
+			 - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) );
+
+	    mm_b=mass_b - mh;
+
+
+
 	    //==== Right Hand Coordinate =====//
 
 
 	    R_pz = R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt],2.0));
 	    L_pz = L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt],2.0));	    
-	    R_px = R_pz *  -R_tr_tg_th[rt];
-	    R_py = R_pz *  -R_tr_tg_ph[rt];
-	    L_px = L_pz *  -L_tr_tg_th[lt];
-	    L_py = L_pz *  -L_tr_tg_ph[lt];
+	    R_px = R_pz *   -R_tr_tg_th[rt];
+	    R_py = R_pz *   -R_tr_tg_ph[rt];
+	    L_px = L_pz *   -L_tr_tg_th[lt];
+	    L_py = L_pz *   -L_tr_tg_ph[lt];
 
 
 
@@ -1375,12 +1377,16 @@ void ana::Loop(){
 	    
 
             TVector3 L_v, R_v, B_v;
+
 	    B_v.SetXYZ(0.0,0.0,B_p);
 	    L_v.SetXYZ(L_px, L_py, L_pz);
 	    L_v.RotateX(  13.2/180.*PI);
 	    R_v.SetXYZ(R_px, R_py, R_pz);
-	    //	    cout<<"Rpx "<<R_v.X()<<" Rpy "<<R_v.Y()<<" Rpz "<<R_v.Z()<<endl;
 	    R_v.RotateX(- 13.2/180.*PI);
+
+
+	    
+	    //	    cout<<"Rpx "<<R_v.X()<<" Rpy "<<R_v.Y()<<" Rpz "<<R_v.Z()<<endl;
 	    //	    cout<<"w/ Rotate Rpx "<<R_v.X()<<" Rpy "<<R_v.Y()<<" Rpz "<<R_v.Z()<<endl;
 	    
 	    /*
