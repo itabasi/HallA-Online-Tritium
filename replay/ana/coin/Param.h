@@ -27,10 +27,10 @@ int mode;
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 //const int nnc=2;
 //const int nParamTc=21;
-//const int nnc=3;
-//const int nParamTc=56;
-const int nnc = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamTc = 126;  // Number of parameters
+const int nnc=3;
+const int nParamTc=56;
+//const int nnc = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTc = 126;  // Number of parameters
 
 
 const int nn = 4; // 4th order matrix using xf, xpf, yf, ypf, and zt
@@ -153,8 +153,9 @@ const  double s2_offset=-499.75;
 //const  double coin_offset=456.65;
 //const  double coin_offset=464.65;
 //double coin_offset=464.13; // H1 mode
-const double a1_th=50;
-const double a2_th=2000; 
-
+//const double a1_th=50;
+//const double a2_th=2000; 
+const double a1_th=200;
+const double a2_th=1000; 
 
 #endif

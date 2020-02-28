@@ -1336,13 +1336,13 @@ void ana::Loop(){
 	    //===== Right Hand Coordinate ====//
 	    
 
-	    double R_pz = R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt],2.0) );
-	    double R_px = R_pz * R_tr_tg_th[rt];
-	    double R_py = R_pz * R_tr_tg_ph[rt];
+	    double R_pz = R_p/sqrt(1.0*1.0 + pow(tan(R_tr_tg_th[rt]), 2.0) + pow(tan( R_tr_tg_ph[rt]),2.0) );
+	    double R_px = R_pz * tan (R_tr_tg_th[rt] );
+	    double R_py = R_pz * tan( R_tr_tg_ph[rt] );
 
-	    double L_pz = L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt],2.0));
-	    double L_px = L_pz * L_tr_tg_th[lt];
-	    double L_py = L_pz * L_tr_tg_ph[lt];
+	    double L_pz = L_p/sqrt(1.0*1.0 + pow(tan( L_tr_tg_th[lt] ), 2.0) + pow(tan( L_tr_tg_ph[lt]),2.0));
+	    double L_px = L_pz * tan( L_tr_tg_th[lt] );
+	    double L_py = L_pz * tan( L_tr_tg_ph[lt] );
 
 
 

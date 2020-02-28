@@ -56,6 +56,8 @@ class t0corr : public Tree
   TH1D* hcoin;
   TH2D* hcoin_r;
   TH2D* hcoin_l;
+  TH2D* hcoin_rk;
+  TH2D* hcoin_lk;  
   TH1D* hcoin_k;
   TF1* fRs2t[ns2seg];
   TF1* fRs2b[ns2seg];
@@ -67,7 +69,7 @@ class t0corr : public Tree
   TGraphErrors* gLct;
 
   TCanvas* c[ncanvas];
-  
+
 
   bool z_flag, pid_flag;
 
@@ -79,7 +81,7 @@ class t0corr : public Tree
 
   double min_k, max_k;
   int bin_k;
-
+ 
   double min_fit[ns2seg], max_fit[ns2seg];
   int bin_fit[ns2seg];
 
@@ -89,10 +91,11 @@ class t0corr : public Tree
   double mean_pi, mean_k;
 
   double Rtof, Rtof_c,Ltof,Ltof_c,R_pathl, L_pathl,Rp, tdc_time,Rs2_t,Ls2_t,Beta_R,Beta_L,R_pathl_c, L_pathl_c,Beta_K,Rtof_K,coin_k;
-  
+  int R_s2_pad,L_s2_pad; 
   double LS2T_off[ns2seg],LS2B_off[ns2seg],RS2T_off[ns2seg],RS2B_off[ns2seg];
   double Offset[4][ns2seg];
-
+  int z_cut,pid_cut;
+  int runnum;
  
 
 

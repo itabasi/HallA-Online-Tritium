@@ -485,7 +485,7 @@ double coincalib::tune(double* pa, int MODE)
   for(int i=0 ; i<allparam ; i++){
     sprintf(pname,"param_%d",i+1);
 
-    if(i<nParamTc || nParamTc+56<=i)step[i]=0.0;
+    //    if(i<nParamTc || nParamTc+56<=i)step[i]=0.0;
     //    LLim[i] = pa[i] - pa[i]*0.1;
     //    ULim[i] = pa[i] + pa[i]*0.1;
     LLim[i] = pa[i] - 10.0; // temp
@@ -624,7 +624,7 @@ void coincalib::EventSelect(){
 
 	  
 	  if( fabs(coint)<1.0 )kaon_flag=true;
-	  if( fabs(coint - 3.)<1.0 )pion_flag=true;
+	  //	  if( fabs(coint - 3.)<1.0 )pion_flag=true;
 	  if(ntune_event<nmax && z_flag && pid_flag && fp_flag)
 	    hcoin->Fill(coint);
 

@@ -123,7 +123,7 @@ void F1Shift_corr(){
   //  ofname="F1shift_corr_optH2_test2.root";
   //  ofname="F1shift_corr_optnnL4.root";
   //  ofname="../rootfiles/tcoin/F1_Lambda_small_optH1_1116.root";
-  ofname="../rootfiles/tcoin/test_nnL2.root";  
+  ofname="../rootfiles/coin/test_nnL2_4.root";  
   TFile* ofp = new TFile(Form("%s",ofname.c_str()),"recreate");
 
   TTree* tnew=new TTree("T","F1TDC Calibration");//=T->CloneTree(0);
@@ -194,15 +194,19 @@ void F1Shift_corr(){
     bool Rs2_adc=false;
     bool Ls2_adc=false;
 
-
-
-    
-    T->GetEntry(i);
-    
+    /*
     RS2T_ref = 0.0;
     RS2B_ref = 0.0;
     LS2T_ref = 0.0;
     LS2B_ref = 0.0;
+    */
+    RS2T_ref = -100000.0;
+    RS2B_ref = -100000.0;
+    LS2T_ref = -100000.0;
+    LS2B_ref = -100000.0;
+    
+    T->GetEntry(i);
+    
     
     RS2T_ref = RF1[9];
     RS2B_ref = RF1[46];
@@ -218,10 +222,10 @@ void F1Shift_corr(){
     double RF_L=LF1[47];
     double RF_R=LF1[15];
     
-      RS2T_ref = RF1[9];  // L1A_R
-      RS2B_ref = RF1[9];  // L1A_R
-      LS2T_ref = LF1[30]; // L1A remote
-      LS2B_ref = LF1[30]; // L1A remote
+    //      RS2T_ref = RF1[9];  // L1A_R
+    //      RS2B_ref = RF1[9];  // L1A_R
+    //      LS2T_ref = LF1[30]; // L1A remote
+    //      LS2B_ref = LF1[30]; // L1A remote
   
     Rs2_pad = (int)Rs2_pads[0];
     Ls2_pad = (int)Ls2_pads[0];    
@@ -229,10 +233,10 @@ void F1Shift_corr(){
 
     for(int j=0;j<16;j++){
 
-      RS2T[j]= -1000.0;
-      RS2B[j]= -1000.0;
-      LS2T[j]= -1000.0;
-      LS2B[j]= -1000.0;
+      RS2T[j]= -100000.0;
+      RS2B[j]= -100000.0;
+      LS2T[j]= -100000.0;
+      LS2B[j]= -100000.0;
 
       if(j==Rs2_pad){
       RS2T[j]= RF1[j+16];
@@ -268,7 +272,8 @@ void F1Shift_corr(){
       coin_offset = -470.5 + 464.73; // H1 mode
     }else {
       tdc_time=0.058; //[ns]
-      coin_offset=470.63 -470.5; // H2 mode 
+      coin_offset=470.63 -470.5; // H2 mode
+      coin_offset-=22.2+1.5;
     }
 
 
@@ -329,8 +334,8 @@ void F1Shift_corr(){
 	//	F1off_RS2T=0.0;
 	//	F1off_RS2B=-2.0;
 	
-	//	F1off_LS2T=+280.-5.0;
-	//	F1off_LS2B=+280.-5.0;
+	F1off_LS2T=+280.-5.0-14.3;
+	F1off_LS2B=+280.-5.0-14.3;
 	F1off_RS2T=0.0;
 	F1off_RS2B=0.0;	
 	F1off_LS2T=0.0;
@@ -386,12 +391,15 @@ void F1Shift_corr(){
 
 
 
+  
+
+
   cout<<"===== Comment Out ======="<<endl;
   cout<<"input  file "<<ifname<<endl;
   cout<<"output file "<<ofname<<endl;
   
   ofp->Close();
-  
+  gSystem->Exit(1);
   
  
  

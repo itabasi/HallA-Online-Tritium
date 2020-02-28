@@ -89,7 +89,6 @@ void coincalib::MTParam_R(string mtparam){
     Pct[i]=par;
     Pct_R[i]=par;
     
-    //cout<<"i "<<i<<" par "<<par<<endl;
     
   }
 

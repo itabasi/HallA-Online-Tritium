@@ -18,6 +18,7 @@ const int MAX=1000;
 int nite=0;
 int MODE=5;
 double weight=0.0;
+double weightT=0.0;
 bool Goga=false;
 extern double s2f1_off(int i,char* ARM,char* MODE, int KINE);
 extern void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/);
@@ -208,8 +209,8 @@ class momcalib : public tree
   int TNum;
   div_t d;
   //--- Event Selection mass cut ---// 
-  double mmL_range = 0.0075; // [GeV/c^2]
-  double mmS_range = 0.0075; // [GeV/c^2]
+  double mmL_range = 0.01; // [GeV/c^2]
+  double mmS_range = 0.01; // [GeV/c^2]
   //  double mmL_range = 0.005; // [GeV/c^2]
   //  double mmS_range = 0.005; // [GeV/c^2]
   
@@ -1360,8 +1361,11 @@ void momcalib::momCorr(bool rarm, bool larm){
 
       //==== Right Hand Coorinate ====//
    
-    Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + Lph[0]*Lph[0]);
-    Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + Rph[0]*Rph[0]);    
+    //    Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + Lph[0]*Lph[0]);
+    //    Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + Rph[0]*Rph[0]);    
+    Lp_z = Lp[0]/sqrt(1.0*1.0 + pow(tan(Lth[0]),2.0) + pow(tan(Lph[0]),2.0));
+    Rp_z = Rp[0]/sqrt(1.0*1.0 + pow(tan(Rth[0]),2.0) + pow(tan(Rph[0]),2.0));
+
 
     /*
     Lp_x = Lp_z*    Lth[0];
@@ -1561,6 +1565,7 @@ void momcalib::EventSelection(){
 
   int nLam=0;
   int nSig=0;
+  int nLamT=0;
   int NeedTNum;
   int NeedTNum_par=0;
   cout<<"mode "<<MODE<<endl;
@@ -1830,6 +1835,7 @@ void momcalib::EventSelection(){
       //      Lam_flag=false;
       
       if(Lam_flag){
+
       mass_flag[ntune_event]=0;
       mass_ref[ntune_event] = ML;
       MM[ntune_event]=mm;
@@ -1869,7 +1875,9 @@ void momcalib::EventSelection(){
 
       hmm_L->Fill(mm);
       tuned_num=i;
-      nLam++;
+      if(runnum<111555) nLam++;
+      else nLamT++;
+
       tevent[ntune_event]=i;
       ntune_event++;
       }
@@ -1937,11 +1945,14 @@ void momcalib::EventSelection(){
   }//End Fill
 
   weight=(double)nLam/(double)nSig;
+  weightT=(double)nLam/(double)nLamT;
   cout<<"Tuning Events: "<<tuned_num<<endl;
   cout<<"Select Events: "<<ntune_event<<endl;
   cout<<"Select Lambda events : "<<nLam<<endl;
   cout<<"Select Sigma  events : "<<nSig<<endl;
+  cout<<"Select Lam(T) events : "<<nLamT<<endl;
   cout<<"Ratio Lam/Sig :"<<weight<<endl;
+  cout<<"Ratio LamH/LamT :"<<weightT<<endl;
 
   
 }
@@ -2721,8 +2732,10 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     lbeta=Lp/Ee_; 
 
     //==== Right Hand coordinate =====//
-    rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i] );
-    lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
+    //    rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i] );
+    //    lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
+    rp_z = Rp/sqrt(1.0*1.0 + pow( tan(rth[i]) ,2.0) + pow( tan( rph[i] ),2.0) );
+    lp_z = Lp/sqrt(1.0*1.0 + pow( tan(lth[i]) ,2.0) + pow( tan( lph[i] ),2.0) );
 
 
     lp_x = lp_z *   tan( lth[i] );
@@ -2752,6 +2765,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     if(mass>0){residual = fabs(mass - mass_ref[i]);}
     else {mass=0.0; residual =10.0;}//weigth 1.0
     if(mass_ref[i]==MS0)residual=residual*weight;  // weigth 2.0 sigma events
+    if(scale[i] && mass_ref[i]==ML)residual=residual*weightT;  // weigth 2.0 sigma events
 
     // conditon //
     //    if((fabs( Rp -rp_ref )>0.1 || fabs( Lp - lp_ref) >0.1 )&& nnp<4)residual=residual*3.0; //rp_ref=1.8 GeV, lp_ref=2.1 GeV
@@ -2808,8 +2822,8 @@ double momcalib::tune(double* pa, int j, int MODE)
   const int nYpf  =nnp;
   const int nZt   =nnp;
   const int nnn   =nnp;
-  int nfix=2;
-  //  nfix=3;
+  int nfix=0;
+  nfix=3;
 
   // The number of order is reduced for test (4-->2)
 

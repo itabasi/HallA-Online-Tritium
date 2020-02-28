@@ -5,7 +5,7 @@ using namespace std;
 
 
 double coin_offset;
-
+int EMAX=-1;
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -79,11 +79,12 @@ void t0corr::NewRoot(string ofname){
   tnew->Branch("lpathl",&L_pathl);  
   tnew->Branch("rpathl_c",&R_pathl_c);
   tnew->Branch("lpathl_c",&L_pathl_c);
+  tnew->Branch("Rs2_pad",&R_s2_pad);
+  tnew->Branch("Ls2_pad",&L_s2_pad);  
   tnew->Branch("Rp",&Rp);
   tnew->Branch("Beta_R",&Beta_R);
   tnew->Branch("Beta_L",&Beta_L);
-  
-  
+
 }
 
 
@@ -132,6 +133,10 @@ void t0corr::MakeHist(){
   hcoin_k=new TH1D("hcoin_k","",bin_ct,min_ct,max_ct);
   hcoin_r=new TH2D("hcoin_r","",bin_ct,min_ct,max_ct,ns2seg,0,ns2seg);
   hcoin_l=new TH2D("hcoin_l","",bin_ct,min_ct,max_ct,ns2seg,0,ns2seg);
+
+  hcoin_rk=new TH2D("hcoin_rk","",bin_ct,min_ct,max_ct,ns2seg,0,ns2seg);
+  hcoin_lk=new TH2D("hcoin_lk","",bin_ct,min_ct,max_ct,ns2seg,0,ns2seg);
+  
   fcoin= new TF1("fcoin","gausn(0)",min_ct,max_ct);
   fcoin->SetLineColor(2);
   fcoin->SetNpx(2000);
@@ -142,6 +147,7 @@ void t0corr::MakeHist(){
   gLct=new TGraphErrors();
   gRct->SetName("gRct");
   gLct->SetName("gLct");
+  gRct->SetTitle("Pion peak posi (Blue :L , Red : R) ;segments;pion mean [ns]");
   gRct->SetMarkerStyle(21);
   gRct->SetMarkerColor(kRed);
   gRct->SetMarkerSize(0.5);
@@ -194,10 +200,12 @@ void t0corr::Fit(){
 
   double mean_ct=hcoin->GetBinCenter(hcoin->GetMaximumBin());
   hcoin->Fit("fcoin","RQ","RQ",mean_ct-1.,mean_ct+1.0);
-  double mean_ct_k =hcoin_k->GetBinCenter(hcoin_k->GetMaximumBin());
-  //  double n_ct_k =hcoin_k->GetBinContent
+  double mean_ct_k =hcoin_k->GetBinCenter(hcoin_k->GetMaximumBin())-3.0;
+  
   fcoin_k->SetParameter(1,mean_ct_k);
-  hcoin_k->Fit("fcoin_k","RQ","RQ",mean_ct_k-1.,mean_ct_k+1.0);
+  fcoin_k->SetParameter(2,0.2);
+  //  hcoin_k->Fit("fcoin_k","RQ","RQ",mean_ct_k-1.,mean_ct_k+1.0);
+  hcoin_k->Fit("fcoin_k","RQ","RQ",-1,1);
 
 
 
@@ -270,9 +278,10 @@ void t0corr::Fill(){
   cout<<"======== Fill Events ============="<<endl;
   cout<<"=================================="<<endl;
 
-  ENum=100000;
-  cout<<"Events : "<<ENum<<endl;
+  //  ENum=100000;
 
+  if(EMAX>0)ENum=EMAX;
+    cout<<"Events : "<<ENum<<endl;
   for(int k=0;k<ENum;k++){
 
 
@@ -293,7 +302,7 @@ void t0corr::Fill(){
     L_s2_trpath[i]=-2000.;
     }
 
-    
+
     
     tree->GetEntry(k);
 
@@ -308,6 +317,9 @@ void t0corr::Fill(){
 	coint=-1000.0; coint_c=-1000.0;
 	R_pathl=-1000.0; R_pathl_c=-1000.; L_pathl=-1000.; L_pathl_c=-1000.;
 	Rp=-1000.;
+	R_s2_pad=-1;
+	L_s2_pad=-1;
+	
 	pid_flag=false;
 	z_flag=false;
 
@@ -317,6 +329,8 @@ void t0corr::Fill(){
 	int R_s2pad=(int)R_s2_t_pads[rt];
 	int L_s2pad=(int)L_s2_t_pads[lt]; 
 
+	R_s2_pad=R_s2pad;
+	L_s2_pad=L_s2pad;
    
 	Rp=R_tr_p[rt];	
 	CoinCalc(R_s2pad, L_s2pad, rt, lt);
@@ -325,17 +339,23 @@ void t0corr::Fill(){
 	//====== Fill Hist ======//
 
 
-
+	//	if(L_s2pad==8){
 	hRs2t[R_s2pad]->Fill(coint);
 	hRs2b[R_s2pad]->Fill(coint);
+	//	}
+	//	if(R_s2pad==8){
 	hLs2t[L_s2pad]->Fill(coint);
 	hLs2b[L_s2pad]->Fill(coint);
+	//	}
+	
 	hcoin->Fill(coint);
 	hcoin_r->Fill(coint, R_s2pad);
 	hcoin_l->Fill(coint, L_s2pad);
 
 	if(z_flag && pid_flag){
 	  hcoin_k->Fill(coin_k);
+	  hcoin_rk->Fill(coin_k, R_s2pad);
+	  hcoin_lk->Fill(coin_k, L_s2pad);
 	}
 
 	tnew->Fill();
@@ -492,6 +512,8 @@ void t0corr::Write(){
   hcoin_k->Write();
   hcoin_r->Write();
   hcoin_l->Write();
+  hcoin_rk->Write();
+  hcoin_lk->Write();
   fcoin->Write();
   fcoin_k->Write();
   gRct->Write();
@@ -530,13 +552,21 @@ void t0corr::Draw(){
   c[16]->cd(2);
   hcoin_k->Draw();
   fcoin_k->Draw("same"); 
-  c[17]->Divide(2,1);
+  c[17]->Divide(2,2);
   c[17]->cd(1);
+  gPad->SetLogz(1);
   hcoin_r->Draw("colz");
   c[17]->cd(2);
+  gPad->SetLogz(1);
   hcoin_l->Draw("colz");
+  c[17]->cd(3);
+  hcoin_rk->Draw("colz");
+  c[17]->cd(4);
+  hcoin_lk->Draw("colz");  
+  
   c[18]->cd();
   gRct->Draw("AP");
+  gRct->GetYaxis()->SetRangeUser(-0.2,0.2);
   gLct->Draw("P");
 
   
@@ -614,8 +644,9 @@ int main(int argc, char** argv){
   string pname;
   string print_name;
   bool print=false;
-
-  while((ch=getopt(argc,argv,"h:P:s:w:t:p:f:r:z:L:R:m:o:O:i:bcoC"))!=-1){
+  int EMax;
+  string emax;
+  while((ch=getopt(argc,argv,"h:P:M:s:w:t:p:f:r:z:L:R:m:o:O:i:bcoC"))!=-1){
     switch(ch){
       
       
@@ -640,7 +671,13 @@ int main(int argc, char** argv){
       cout<<"output root filename : "<<ofname<<endl;      
       break;
 
+    case 'M':
+      emax = optarg;
+      EMax=atoi(emax.c_str());
+      cout<<"Maximum Events : "<<EMax<<endl;
+      break;
 
+      
     case 'p':
       pname = optarg;
       break;
@@ -698,6 +735,8 @@ int main(int argc, char** argv){
   
   TApplication *theApp =new TApplication("App",&argc,argv);
   gSystem->Load("libMinuit");
+
+  EMAX=EMax;
   
   t0corr* T0Corr = new t0corr();
   if(single)T0Corr->SetRoot(ifname);

@@ -437,7 +437,8 @@ void angcalib::SSHole(string paramname, bool rarm){
      }
     l[i] = 0;
     l[i]=(l0-fcent_real[i]/cos(hrs_ang))*100.;    
-    dth[i] = asin(l0*sin(hrs_ang)/(l0*cos(hrs_ang) -fcent_real[i]));
+    //    dth[i] = asin(l0*sin(hrs_ang)/(l0*cos(hrs_ang) -fcent_real[i]));
+    dth[i] = atan(l0*sin(hrs_ang)/(l0*cos(hrs_ang) -fcent_real[i]));
     //    cout<<"i "<<i<<" dth "<<dth[i]*180./3.14<<endl;
 
    }
@@ -1548,6 +1549,7 @@ void fcn1(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*
     ang = ang*Xptr +Xptm;
 
     ypt=ph[i];    
+
 
     if(RHRSTrue==0) ssy=l[foil_flag[i]]*sin(atan(-ypt))/cos(dth[foil_flag[i]] - atan(-ypt));
     if(RHRSTrue)    ssy=l[foil_flag[i]]*sin(atan(-ypt))/cos(dth[foil_flag[i]] + atan(-ypt));
