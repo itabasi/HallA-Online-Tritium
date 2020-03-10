@@ -59,7 +59,7 @@ typedef struct _sReplaySetUp
 //////////////////////////////////////////////////////////////////
 
 static const char* PATHS[] = {
-  "/data1/raw"
+  "/data3/raw"
 };
 
 static const char* RAW_DATA_FORMAT="%s/triton_%d.dat.%d";

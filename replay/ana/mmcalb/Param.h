@@ -71,7 +71,7 @@ double Opt_par_L[nParamTp];
 double Opt_par[nParamTp2];
 double OptPar1[nParamT];
 double OptPar2[nParamT];
-
+double PctimeR[nParamTc], PctimeL[nParamTc];
 
 //const int nParamT2 = 4; 
 //double parRaster[nParamT2];

@@ -822,7 +822,8 @@ void momcalib::MTParam(string mtparam){
   while(1){
     getline(ifp,buf);
     if( buf[0]=='#' ){ continue; }
-    if( ifp.eof() ) break;
+    if( ifp
+.eof() ) break;
     stringstream sbuf(buf);
     sbuf >>param[s];
     cout<<param[s]<<endl;

@@ -34,7 +34,10 @@ struct TreeBranch{
   double AC1_sum, AC2_sum;
   double AC1_npe_sum,AC2_npe_sum;
   double AC1_npe[24],AC2_npe[26];
+  double yp_cor;
+  double ctimecorR,ctimecorL;
   double ct_acc,ct_b,ct_c; 
+  double ct_g,ct_gb;
   double Rs0ra_p,Rs0la_p,Rs0a_p;
   double Rs2ra_p[16],Rs2la_p[16],Rs2a_p[16];
   double Ls2ra_p[16],Ls2la_p[16],Ls2a_p[16];
@@ -85,6 +88,7 @@ class ana : public Tree
     void matrix(string mtparam);
     void MTParam_R();
     void MTParam_L();
+    void MTParam_G();
     void MTP_mom();
     void GetACParam();
     double  AC_npe(int nac, int seg, double adc);
@@ -93,6 +97,7 @@ class ana : public Tree
     void PathCalib(int rhit, int lhit);
     double Eloss(double yp,double z,char* arm);
     void CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
+    double CoinCalc_gogami(int RS2_seg, int LS2_seg, int rhit, int lhit);
   //    double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
   double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
  private:

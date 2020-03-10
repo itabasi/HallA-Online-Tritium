@@ -251,7 +251,9 @@ public:
   double RF1Ref[2];
   double RTDC_F1FirstHit[RF1TDC];
   double RS2T_F1TDC[RS2], RS2B_F1TDC[RS2];
+  double RS2T_F1TDC_g[RS2], RS2B_F1TDC_g[RS2];
   double RS2_F1time[RS2], RS2T_F1time[RS2], RS2B_F1time[RS2], RS2_F1time_c[RS2];
+  double RS2T_F1time_c[RS2], RS2B_F1time_c[RS2];
   double RS0T_F1TDC[RS2], RS0B_F1TDC[RS2];
   double RS2T_F1[RS2],RS2B_F1[RS2];  
   double RS2T_F1_c[RS2],RS2B_F1_c[RS2];
@@ -262,19 +264,21 @@ public:
   double LTDC_F1FirstHit[LF1TDC];
   double LS2T_F1TDC[LS2], LS2B_F1TDC[LS2];
   double LS2_F1time[LS2], LS2T_F1time[LS2], LS2B_F1time[LS2], LS2_F1time_c[LS2];
+  double LS2_F1time_g[LS2], LS2T_F1time_g[LS2],LS2B_F1time_g[LS2];
   double LS2T_F1_c[LS2],LS2B_F1_c[LS2];
   double LS2T_F1_b[LS2],LS2B_F1_b[LS2];
+  double LS2T_F1_g[LS2],LS2B_F1_g[LS2];
   double LS2T_F1[LS2],LS2B_F1[LS2];
   double LS0_F1time[LS0], LS0T_F1time[LS0], LS0B_F1time[LS0];
   double LS0T_F1TDC[LS0], LS0B_F1TDC[LS0];
   double LRF_F1time;
   double coint,rtof[16],ltof[16];
-  double coint_c,rtof_c[16],ltof_c[16];  
+  double coint_c,rtof_c[16],ltof_c[16],ltof_g[LS2];  
   bool RHitFlag;
-public:
+ public:
   TChain *tree;
-
-public:
+  
+ public:
   void add_tree(string ifname){tree->Add(Form("%s",ifname.c_str()));};
   void pack_tree();
   void chain_tree(string ifname);

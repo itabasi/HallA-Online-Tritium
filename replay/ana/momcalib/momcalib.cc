@@ -23,7 +23,7 @@ using namespace std;
 #include <TLatex.h>
 #include <TText.h>
 #include <TStyle.h>
-#include <TROOT.h>
+#include <TROOT-std=gnu99.h>
 #include <TGraphErrors.h>
 #include <TProfile.h>
 #include <TSystem.h>

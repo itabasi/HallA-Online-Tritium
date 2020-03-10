@@ -23,8 +23,8 @@ import glob
 
 nworkers=6
 
-init=111210
-end=111840
+init=111110
+end=111199
 
 #####################################
 root_dir="/data3/root_ole/root2"

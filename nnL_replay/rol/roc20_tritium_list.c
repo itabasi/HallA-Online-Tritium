@@ -37,6 +37,7 @@
 #define FADC_NSAT          4 //# of consecutive samples over threshold required for pulse
 #define chan_mask  0x0000 // chan mask for threshold setting 
 #define WANT_THRESHOLD 1  //whether or not want threshold settings
+//#define WANT_THRESHOLD 0  //whether or not want threshold settings //changed by Itabashi
 
 int FA_SLOT;
 /* FADC Library Variables */
