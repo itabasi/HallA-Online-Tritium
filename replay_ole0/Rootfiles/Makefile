@@ -28,10 +28,13 @@ OBJS4 = maruhadakaR.o
 TARGET5 = maruhadakaL
 OBJS5 = maruhadakaL.o
 
+TARGET6 = charge
+OBJS6 = charge.o
+
 
 
 #all: ${TARGET1} ${TARGET2} ${TARGET3} ${TARGET4} ${TARGET5}
-all: ${TARGET2} ${TARGET3} ${TARGET4} ${TARGET5}
+all: ${TARGET2} ${TARGET3} ${TARGET4} ${TARGET5} ${TARGET6}
 
 #${TARGET1}: ${OBJS1}
 #	${CC} ${CCFLAGS} -o $@ ${OBJS1} ${GLIBS}
@@ -57,6 +60,12 @@ ${TARGET5}: ${OBJS5}
 	${CC} ${CCFLAGS} -o $@ ${OBJS5} ${GLIBS}
 ${OBJS5}: maruhadakaL.cc
 	${CC} ${CCFLAGS} -c  maruhadakaL.cc ${GLIBS}
+
+
+${TARGET6}: ${OBJS6}
+	${CC} ${CCFLAGS} -o $@ ${OBJS6} ${GLIBS}
+${OBJS6}: charge.cc
+	${CC} ${CCFLAGS} -c  charge.cc ${GLIBS}
 
 
 
