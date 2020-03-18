@@ -17,6 +17,21 @@ const double  PLm = 2.0,  PLr=0.22;
 const double  PRm =1.74   ,PRr=0.2;
 
 
+
+//const int nnp=6;// 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTp=462;
+//const int nnp=5;// 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTp=252;
+//const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTp=126;
+
+int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
+int nParamTp=56;
+//const int nnp=2;// 2nd order matrix using xf, xpf, yf, ypf, and zt
+//const int nParamTp=21;
+
+
+
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
 
@@ -27,19 +42,7 @@ const int nParamT = 252;  // Number of parameters in angles
 const int nnz =3;
 const int nParamTz=35;
 const int nParamT_ras=4;
-
-//const int nnp=5;// 4th order matrix using xf, xpf, yf, ypf, and zt
-//const int nParamTp=252;
-const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
-const int nParamTp=126;
-
-//const int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
-//const int nParamTp=56;
-
-//const int nnp=2;// 2nd order matrix using xf, xpf, yf, ypf, and zt
-//const int nParamTp=21;
-
-const int nParamTp2=nParamTp*2;
+//const int nParamTp2=nParamTp*2;
 ///==== MTtuning =====//
 
 
@@ -48,10 +51,15 @@ double Pras_L[nParamT_ras];
 double Pzt[nParamTz],Pzt_L[nParamTz];
 double Pxpt[nParamT],Pxpt_L[nParamT];
 double Pypt[nParamT],Pypt_L[nParamT];
-double Prp[nParamTp],Plp[nParamTp];
-double Opt_par_R[nParamTp];
-double Opt_par_L[nParamTp];
-double Opt_par[nParamTp2];
+double Prp[nParamT],Plp[nParamT];
+
+//double Opt_par_R[nParamTp];
+//double Opt_par_L[nParamTp];
+//double Opt_par[nParamTp2];
+double Opt_par_R[nParamT];
+double Opt_par_L[nParamT];
+double Opt_par[nParamT*2];
+
 double OptPar1[nParamT];
 double OptPar2[nParamT];
 
@@ -74,6 +82,11 @@ double fcent_real[nfoil] = {-0.125, -0.100, -0.075, -0.050, -0.025,
 double selection_width = 0.0125; 
 //double selection_width = 0.008; // event selection width for z
 
+//const double Al_th=0.07; // [GeV]
+//const double Al_th=0.02; // [GeV]
+//const double Al_th=0.140; // [GeV]
+const double Al_th=0.02; // [GeV]
+const double Al_th2=0.07; // [GeV]
  double RasterCor, RasterCor_L;
 const double step = 0.492 * 2.54;
 const int nrow = 11; // the number of row in SS pattern
