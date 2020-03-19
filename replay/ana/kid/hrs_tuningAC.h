@@ -126,7 +126,7 @@ class tuningAC{
  double rtof[16];
  double rbeta,rbeta_k,lbeta;
  double Rs2_off,Ls2_off; 
- double Rs2_tcorr,Ls2_tcorr;
+n double Rs2_tcorr,Ls2_tcorr;
  int Ls2pads,Rs2pads;
  bool cut_ac1,cut_ac2,cut_beta;
  int nac1,nac2,nac3,n;
@@ -795,7 +795,7 @@ void tuningAC::MakeHist(){
  max_s2=5000;
  bin_s2=max_s2-min_s2;
         bin_coin=(int)(max_coin-min_coin)/tdc_time;
-        bin_coin_c=(int)(max_coin_c-min_coin_c)/tdc_time;;
+        bin_coin_c=(int)(max_coin_c-min_coin_c)/tdc_time;
         bin_beta=6000;
 	bin_adc=(int)max_adc-min_adc;
 	bin_ac1=(int)(max_ac1-min_ac1)*3; 

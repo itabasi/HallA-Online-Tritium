@@ -25,7 +25,10 @@ nworkers=8
 
 #####################################
 date=datetime.date.today()
-matrix="../matrix/matrix_new.list"
+#matrix="../matrix/matrix_new.list"
+matrix="../momcalib/matrix/momcalib_wAl_140.list"
+#matrix="../matrix/matrix_wAl.list"
+#matrix="../matrix/matrix_wAl_007.list"
 #matrix="../matrix/matrix_test.list"
 #matrix="../matrix/matrix_wPathL.list"
 root_dir="../rootfiles/mmass/ana_Lambda/"+str(date)

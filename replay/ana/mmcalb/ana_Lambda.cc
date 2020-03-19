@@ -65,13 +65,15 @@ void ana::matrix(string mtparam){
   }
 
   cout<<endl;
+  for(int i=0;i<12;i++)MT_p[i]=false;
+
   MTParam_R();cout<<" Input RHRS Matrix parameter "<<endl;
   MTParam_L();cout<<" Input LHRS Matrix parameter "<<endl;
   MTParam_G();cout<<"Input Gogami parameter "<<endl;
   MTP_mom();cout<<"Input Mom parameter "<<endl;
 
 
-  for(int i=0;i<12;i++)MT_p[i]=false;
+
 
   //======= Tuning selection flag =====================//
   //--------- RHRS ------------------------//
@@ -516,7 +518,6 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
   double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
   
- 
 
   double tof_r  = RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
   double tof_l  = LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
@@ -574,6 +575,7 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
   tr.ct_g=-1000.;
   tr.ct_gb=-1000.;
+  tr.ct_g_wo_cor=-1000.;
   tr.ct_g=CoinCalc_gogami(RS2_seg,LS2_seg,rhit,lhit);
 
   
@@ -826,8 +828,10 @@ double ana::Eloss(double yp,double z,char* arm){
   // R-HRS : right hand coordinate (Unticlockwise rotation)//
   // L-HRS : left  hand coordinate (    Clockwise rotation)//
   
-  if(arm=="R")        x = - hrs_ang - yp; //yp : phi [rad] RHRS
-  else if(arm=="L")   x = - hrs_ang + yp; //yp : phi [rad] LHRS
+  //  if(arm=="R")        x = - hrs_ang - yp; //yp : phi [rad] RHRS
+  //  else if(arm=="L")   x = - hrs_ang + yp; //yp : phi [rad] LHRS
+  if(arm=="R")        x = - hrs_ang + yp; //yp : phi [rad] RHRS
+  else if(arm=="L")   x = - hrs_ang - yp; //yp : phi [rad] LHRS
   else x=0.0;
   double ph[3],pl[2];
   double dEloss=0.0;
@@ -1519,7 +1523,7 @@ void ana::Loop(){
 	   mm_L = mm_L*1000.;
 	    // nnL Mass //
            mass_nnL = sqrt( (Ee + MT - L_E - R_E)*(Ee + MT - L_E - R_E)
-                              - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
+                             - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 	   mm_nnL=mass_nnL - MnnL;
 	   mm_nnL = mm_nnL*1000.;
 	    // H3L Mass //
@@ -1558,7 +1562,9 @@ void ana::Loop(){
 	    if( Kaon && fabs(ct)<1.0){
 	      
               h_mmall ->Fill( mm );
-              if( fabs( L_tr_vz[lt] + 0.125 ) < 0.015 || fabs( L_tr_vz[lt] - 0.125 ) < 0.015 ){ 
+	      //              if( fabs( L_tr_vz[lt] + 0.125 ) < 0.015 || fabs( L_tr_vz[lt] - 0.125 ) < 0.015  && fabs(L_tr_vz[lt] -R_tr_vz[rt])<0.025){ 
+              if( fabs( L_tr_vz[lt] + R_tr_vz[rt] )/2.0 >0.1
+		  && fabs(L_tr_vz[lt] -R_tr_vz[rt])<0.025){ 
 		tr.missing_mass_Al=mm_Al;
 		tr.missing_mass_MgL=mm_MgL;
 		
@@ -1634,13 +1640,11 @@ void ana::Loop(){
 				    
 
               if(Kaon && fabs(ct)<1.0 && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15) &&  fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025) 
-		 && ((-0.15<(R_tr_vz[rt]) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15)))h_mm_MgL->Fill(mm_MgL);//h_mm_Al->Fill(mm_Al);
+		 && ((-0.15<(R_tr_vz[rt]) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15)  && fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025))h_mm_MgL->Fill(mm_MgL);//h_mm_Al->Fill(mm_Al);
 
 	      if(Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) 
-                 && ((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15) && fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025) 
-		 && ((-0.15<(R_tr_vz[rt]-0.01) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15))){
+                 && fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs( L_tr_vz[lt] + R_tr_vz[rt] )/2.0 >0.1) {
 		tr.missing_mass_MgL_acc=mm_MgL;
-		
 		h_mm_MgL_acc->Fill(mm_MgL);
 	      }
 
@@ -2074,6 +2078,7 @@ void ana::MakeHist(){
   tree_out ->Branch("ctimecorR",&tr.ctimecorR ,"ctimecorR/D");
   tree_out ->Branch("ctimecorL",&tr.ctimecorL ,"ctimecorL/D");
   tree_out ->Branch("ct_gb",&tr.ct_gb ,"ct_gb/D");
+  tree_out ->Branch("ct_g_wo_cor",&tr.ct_g_wo_cor ,"ct_g_wo_cor/D");
   tree_out ->Branch("rtof"        ,tr.Rtof      ,"rtof[16]/D"     );
   tree_out ->Branch("ltof"        ,tr.Ltof      ,"ltof[16]/D"     );  
   tree_out ->Branch("RS2T"        ,tr.RS2T_F1      ,"RS2T_F1[16]/D"     );

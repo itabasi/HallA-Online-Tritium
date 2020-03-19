@@ -1,7 +1,7 @@
 
 void num_param_cal(){
 
-  int nMatT=5;
+  int nMatT=6;
 
   double Y=0.;
   double x=1.; 

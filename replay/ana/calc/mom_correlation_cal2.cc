@@ -1,6 +1,8 @@
 // Momentum Setup Calculation //
 
-void mom_correlation_cal(){
+
+
+void mom_correlation_cal2(){
 
   //=== parameters ====//
 
@@ -125,16 +127,14 @@ void mom_correlation_cal(){
   cout<<"Scattered Electron Degree [deg] is       "<<edeg<<endl;
   cout<<endl;
   cout<<"====== Result of Calculation ======  "<<endl;
-  //cout<<"Pe is "<<pe<<endl;
-  for(int i=-1;i<2;i++)
-    {
 
-      cout<<endl;
-      cout<<"        Pe +  "<<i<<"*dPe"<<endl;
+
+
+
+
       double dPe;// Pe' acceptance bite
       //      dPe=0.045*pe;
-      dPe=0.45*pe;
-      Pe=pe+i*dPe;
+      dPe=0;
       double Q;
       Ee=Pe;
       Q=sqrt(4*E*Ee*pow(sin(Ae/2),2));
@@ -147,13 +147,7 @@ void mom_correlation_cal(){
       e=1/(1+2*pow(Pv/Q,2)*pow(tan(Ae/2),2));
       Iv=1/(137*2*pow(3.14,2)*pow(Q,2))*(Ev*Ee)/(1-e)/E;
       W=mt*mt +2.*mt*Ev-Ev*Ev;
-      cout<<"virtual angule is "<<Av*180/3.14<<endl;
-      cout<<"electron momentum is "<<Pe<<endl;
-      cout<<"photon momentum is "<<Pv<<endl;
-      cout<<"virtual photon flux [1/s]"<<Iv*Ne<<endl;
-      cout<<"e is "<<e<<endl;
-      cout<<"W is "<<W<<endl;
-      cout<<"Q is "<<Q<<endl;
+
 
   ////////////////////////////Reaction plane//////////////////////////////////////////
   
@@ -166,15 +160,8 @@ void mom_correlation_cal(){
   B=(pow(A,2)-4*pow(Ev+mt,2)*pow(mk,2))/4;
   C=pow(Pv*cos(Avk),2)-pow(Ev+mt,2);
   D=-A*Pv*cos(Avk);
-  /* cout<<"A is "<<A<<endl;
-  cout<<"B is "<<B<<endl;
-  cout<<"C is "<<C<<endl;
-  cout<<"D is "<<D<<endl;
-  cout<<"sqrt is "<<pow(D,2)-4*C*B<<endl;
-  */
+
   Pk=(-D-sqrt(pow(D,2)-4*C*B))/(2*C);
-  cout<<"kaion momentum is "<<Pk<<endl;
-  cout<<endl;
  
 
     }

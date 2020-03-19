@@ -243,6 +243,8 @@ void Tree::convertF1TDCL(ParamMan *param)
 
       
       //====== modified by itabashi ========//
+
+
       if(F1Shift_L){
 
 

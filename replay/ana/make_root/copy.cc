@@ -1,10 +1,29 @@
 #include "Setting.h"
-
+#include "TObject.h"
 using namespace std;
 const double c = 0.299792458;          // speed of light in vacuum (m/ns)
 const double MK = 0.493677;            // charged Kaon mass (GeV/c2)
-
 extern double s2f1_off(int i,string ARM, int KINE);
+
+class EvtHdr : public TObject
+{
+
+public :
+    ULong64_t EvtTime;
+    UInt_t EvtNum;
+    Int_t EvtType;
+    Int_t EvtLen;
+    Int_t Helicity;
+    Int_t TargetPol;
+    Int_t Run;
+
+  //  EvtHdr(){};
+  //  virtual ~EvtHdr(){};
+  //  ClassDef(EvtHdr,1);
+};
+
+
+//ClassInp(EvtHdr)
 
 ////////////////////////////////////////////////////////////////////////////
 //////////////////////////// main //////////////////////////////////////////
@@ -49,12 +68,32 @@ int main(int argc, char** argv){
   double R_tr_pathl[20],L_tr_pathl[20],LF1[200],RF1[200],R_s2_trpath[20],L_s2_trpath[20];
   double ct[10],rtof[10],ltof[10];
   int nev,runnum;
-  oldtree->SetBranchStatus("*",0);
+  UInt_t Nev;
+  int Nrun;
+
+
+  /*
+  typedef struct {
+    ULong64_t EvtTime;
+    UInt_t EvtNum;
+    Int_t EvtType;
+    Int_t EvtLen;
+    Int_t Helicity;
+    Int_t TargetPol;
+    Int_t Run;
+  } fEvtHdr;
+  fEvtHdr test;
+  */
+
+
+
+  EvtHdr* test = new EvtHdr();
   
-  oldtree->SetBranchStatus("fEvtHdr.fRun"   ,1);
-  oldtree->SetBranchStatus("fEvtHdr.fEvtNum" ,1);
+  oldtree->SetBranchStatus("*",0);
+  oldtree->SetBranchStatus("fEvtHdr.fEvtNum"        ,1);  
   oldtree->SetBranchStatus("HALLA_p"        ,1);
   oldtree->SetBranchStatus("HALLA_dpp"        ,1);
+
   //========== Beam Raster =====================//
   //  oldtree->SetBranchStatus("Rrb.Raster2.target.x" ,1);
   //  oldtree->SetBranchStatus("Rrb.Raster2.target.y" ,1);
@@ -450,6 +489,7 @@ int main(int argc, char** argv){
   oldtree->SetBranchStatus("RTDC.F1FirstHit" ,1); oldtree->SetBranchAddress("RTDC.F1FirstHit" ,RF1);
 
 
+
   //==== Get Run number =====//
   int nrun;
   string nrun_c,st;
@@ -479,22 +519,84 @@ int main(int argc, char** argv){
 
 
   
+
+
   TFile *ofp = new TFile(Form("%s",ofname.c_str()),"recreate");
   TTree *newtree = oldtree->CloneTree(0);
-  
+
+
+  oldtree->SetBranchStatus("fEvtHdr"   ,1);
+  //  oldtree->SetBranchAddress("fEvtHdr" , &test);
+
+  TBranch* evbranch= oldtree->GetBranch("fEvtHdr");
+  oldtree->SetBranchAddress("fEvtHdr" , &test);
+  oldtree->SetBranchAddress("fEvtHdr.fEvtNum" , &test->EvtNum);
+    //    oldtree->SetBranchAddress("fEvtHdr" ,test.EvtTime:test.EvtNum:test.EvtType:test.EvtLen:test.Helicity:test.TargetPol:test.Run);
+
+
+
   newtree->Branch("ct",ct,"ct[10]/D");
   newtree->Branch("rtof",rtof,"rtof[10]/D");
   newtree->Branch("ltof",ltof,"ltof[10]/D");
   newtree->Branch("runnum",&runnum,"runnum/I");
   newtree->Branch("nev",&nev,"nev/I");
-  
+  newtree->Branch("fEvtHdr",&test,"EvtTime/D:EvtNum/I:EvtType/I:EvtLen/I:Helicity/I:TargetPol/I:Run/I");
+  //  newtree->Branch("fEvtHdr",&test,"test.EvtTime/D:test.EvtNum/I:test.EvtType/I:test.EvtLen/I:test.Helicity/I:test.TargetPol/I:test.Run/I");
+
+
+
+  /*
+
+  typedef struct {
+    ULong64_t EvtTime;
+    UInt_t EvtNum;
+    Int_t EvtType;
+    Int_t EvtLen;
+    Int_t Helicity;
+    Int_t TargetPol;
+    Int_t Run;
+  } fEvtHdr;
+  fEvtHdr test;
+
+   */
+
   int ENum = oldtree->GetEntries();
+  ENum=200;
+  cout<<"ENum "<<ENum<<endl;
 
   for(int n=0;n<ENum;n++){
     for(int j=0;j<10;j++)ct[j]=-100.0;
 
+    Nev=0;
+    Nrun=0;
+
+    /*
+    test.EvtNum=0;
+    test.EvtTime=0;
+    test.EvtType=0;
+    test.EvtLen=0;
+    test.TargetPol=0;
+    test.Run=0;
+    */
+
+
+    test->EvtNum=0;
+    test->EvtTime=0;
+    test->EvtType=0;
+    test->EvtLen=0;
+    test->TargetPol=0;
+    test->Run=0;
+
+
     oldtree->GetEntry(n);
     nev=n;
+    /*
+    cout<<"n "<<n<<" nev "<<test.EvtNum<<" time "<<test.EvtTime<<" type "<<test.EvtType<<" len "<<test.EvtLen<<" helicity "<<test.Helicity<<" targetPol "<<test.TargetPol<<" run "<<test.Run<<endl;
+    */
+
+    cout<<"n "<<n<<" nev "<<test->EvtNum<<" time "<<test->EvtTime<<" type "<<test->EvtType<<" len "<<test->EvtLen<<" helicity "<<test->Helicity<<" targetPol "<<test->TargetPol<<" run "<<test->Run<<endl;
+
+
     int NLtr = (int)L_tr_n;
     int NRtr = (int)R_tr_n;
     bool LOK = false;
