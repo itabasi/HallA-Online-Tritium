@@ -58,7 +58,7 @@ double Prp[nParamT],Plp[nParamT];
 //double Opt_par[nParamTp2];
 double Opt_par_R[nParamT];
 double Opt_par_L[nParamT];
-double Opt_par[nParamT*2];
+double Opt_par[nParamT*2+1];
 
 double OptPar1[nParamT];
 double OptPar2[nParamT];
