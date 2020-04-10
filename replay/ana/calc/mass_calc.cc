@@ -9,10 +9,12 @@ void mass_calc(){
 
   L=1;  // # of Lambda
   S0=0;
+
   const double Me=0.510998928e6;           // electron      mass (eV/c2)
   const double Mp = 0.938272046e9;         // proton        mass (eV/c2)
   const double Mn = 0.939565379e9;         // neutron       mass (eV/c2)
   const double ML = 1.115683e9;            // Lambda        mass (eV/c2)
+  
   const double MS0 = 1.192642e9;             // Sigma         mass (eV/c2) 
   const double Mu  = 0.931494061e9;        // atomics mass
 

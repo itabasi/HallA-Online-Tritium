@@ -69,7 +69,8 @@ void tree::SetBranch(){
  T->SetBranchAddress("R.a1.asum_c",&Ra1sum);
  T->SetBranchStatus("R.a2.asum_c",1);
  T->SetBranchAddress("R.a2.asum_c",&Ra2sum);
-
+ T->SetBranchStatus("R.a1.a_p",1);
+ T->SetBranchStatus("R.a2.a_p",1);
  T->SetBranchStatus("R.a1.asum_p",1);
  T->SetBranchAddress("R.a1.asum_p",&Ra1sum_p);
  T->SetBranchStatus("R.a2.asum_p",1);

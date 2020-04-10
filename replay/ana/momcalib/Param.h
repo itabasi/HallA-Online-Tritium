@@ -16,8 +16,16 @@ const double  Ztm = -0.15,Ztr=0.35;
 const double  PLm = 2.0,  PLr=0.22; 
 const double  PRm =1.74   ,PRr=0.2;
 
-
-
+double paramL[4]={1.0,2.19783e-03,1.32204e-03, 6.28671e-04};
+double paramS[4]={1.0,1.89358e-03, 1.25882e-03, 6.00160e-04};
+double Lam_mean  = 0.00156924; // GeV
+double Lam_sigma = 0.00256409; // GeV
+double Sig_mean  = 0.00129511; // GeV
+double Sig_sigma = 0.00225491; // GeV
+//const int nnp=6;// 4th order matrix using xf, xpf, yf, ypf, and zt
+//double Lam_mean  = 0.0; // GeV
+//double Lam_sigma = 0.0; // GeV
+double Lam_max = 195.942;
 //const int nnp=6;// 4th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=462;
 //const int nnp=5;// 4th order matrix using xf, xpf, yf, ypf, and zt
@@ -58,7 +66,7 @@ double Prp[nParamT],Plp[nParamT];
 //double Opt_par[nParamTp2];
 double Opt_par_R[nParamT];
 double Opt_par_L[nParamT];
-double Opt_par[nParamT*2+1];
+double Opt_par[nParamT*2];
 
 double OptPar1[nParamT];
 double OptPar2[nParamT];
@@ -113,6 +121,7 @@ double mass_ref[nmax];
 double MM[nmax],rx_fp[nmax],rth_fp[nmax],ry_fp[nmax],rph_fp[nmax],lx_fp[nmax],lth_fp[nmax],ly_fp[nmax],lph_fp[nmax];
 double rx[nmax],ry[nmax],rth[nmax],rph[nmax],rz[nmax],lx[nmax],ly[nmax],lth[nmax],lph[nmax],lz[nmax];
 double beam_p[nmax];
+int nrun[nmax];
 bool scale[nmax];
 double bp[nmax],rp[nmax],lp[nmax];
 double dbp[nmax],drp[nmax],dlp[nmax];

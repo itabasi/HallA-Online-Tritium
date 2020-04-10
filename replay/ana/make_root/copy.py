@@ -4,28 +4,27 @@
 import sys
 import time, os.path
 from subprocess import call
-import concurrent.futures
+#import concurrent.futures
 from logging import StreamHandler, Formatter, INFO, getLogger
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures.process import ProcessPoolExecutor 
-import numpy as np
 import shlex
 import subprocess
 import re
 import sys
 import os,os.path
 import glob
+nworkers=6
 
-nworkers=5
-
-init=111110
-end=111220
+init=111112
+end=111840
 
 
 #####################################
-root_dir="/data3/root_ole/root2"
+#root_dir="/data3/root_ole/root2"
+root_dir="/data4/root"
 file_init="tritium_"
-small_dir="/data3/root_ole/small2"
+small_dir="/data3/root_ole/small"
 #####################################
 
 def sub_root(RUNNUM):
@@ -55,3 +54,5 @@ def main():
                 
 main()
 
+delete=f'find {small_dir}/*.root -size -1000 -delete'
+subprocess.run([delete],shell=True)

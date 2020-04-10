@@ -16,8 +16,9 @@ bool Initial = false;
 //bool Al_mode = true;
 bool Al_mode = false;
 //bool nnL_mode =true;
-bool nnL_mode =false;
-
+bool nnL_mode  = false;
+bool form_mode = false;
+//bool form_mode = true;
 //bool Initial=true;
 const int MAX=1000;
 int nite=0;
@@ -28,8 +29,10 @@ double weightAl=0.0;
 double weightAl_def=0.0; 
 double weightnnL=0.0;
 bool Goga=false;
+
 extern double s2f1_off(int i,char* ARM,char* MODE, int KINE);
 extern void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/);
+extern void fcn_new(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/);
 extern double tuning(double* pa, int j, int MODE); 
 extern  double Calc_ras(double a,double b,double c){return  a *b + c;};  
 extern double calcf2t_ang(double* P,double xf, double xpf, double yf, double fpf,double z);
@@ -37,7 +40,11 @@ extern double calcf2t_zt(double* P, double xf, double xpf, double yf, double ypf
 extern double calcf2t_mom(double* P, double xf, double xpf, double yf, double ypf, double zt);
 extern double calcf2t_mom_RL( double* RP, double Rxf, double Rxpf, double Ryf, double Rypf, double Rzt,
 			      double* LP, double Lxf, double Lxpf, double Lyf, double Lypf, double Lzt	     );
-
+extern double expgaus(double *x, double *par);
+extern double expgaus_mean(double *x, double *par);
+extern double expgaus_sigma(double *x, double *par);
+extern double Get_expgaus_mean(double * par);
+extern double Get_expgaus_sigma(double * par, double mean);
 
 
 //=================================================//
@@ -195,6 +202,8 @@ class momcalib : public tree
   TH1F* hmm_nnL_cut;
   TH1F* hmm_nnL_cut_acc;
 
+  
+  
   TH1F* hmm_b;
   TH1F* hmm_cut_H;
   TH1F* hmm_cut_T;
@@ -236,8 +245,8 @@ class momcalib : public tree
   double chi_S=0.0;
   double chi2_init=0.0;
   //--- Event Selection mass cut ---// 
-  double mmL_range = 0.002; // [GeV/c^2]
-  double mmS_range = 0.002; // [GeV/c^2]
+  double mmL_range = 0.003; // [GeV/c^2]
+  double mmS_range = 0.003; // [GeV/c^2]
   //uble mmL_range = 0.002; // [GeV/c^2]
   //double mmS_range = 0.002; // [GeV/c^2]
   
@@ -794,13 +803,13 @@ void momcalib::MakeHist(){
 
 
   
-  min_mm=1.0; // [GeV]
-  max_mm=1.3; // [GeV]
+  min_mm = -100;// [MeV]
+  max_mm = +200; // [MeV]
   int mm_width=1; // MeV
-  double mmbin_width=(double)mm_width*1.0e-3; //[GeV]
+  double mmbin_width=(double)mm_width; //[MeV]
   bin_mm=(int)((max_mm-min_mm)/mmbin_width);
 
-  hmm_select=new TH1F("hmm_select","",bin_mm,min_mm,max_mm);
+  hmm_select=new TH1F("hmm","",bin_mm,min_mm,max_mm);
   set->SetTH1(hmm_select,"Missing mass Event Selction","M_{X}-M_{#Lambda} [GeV/c^{2}]",Form("Counts/%d MeV",mm_width));
   hmm_cut=new TH1F("hmm_cut","",bin_mm,min_mm,max_mm);
   set->SetTH1(hmm_cut,"Missing mass  w/ cut hist ","M_{X}-M_{#Lambda} [GeV/c^{2}]",Form("Counts/%d MeV",mm_width));
@@ -863,8 +872,8 @@ void momcalib::MakeHist(){
 
   hmm_Al_select_c=new TH1F("hmm_Al_select_c","",600,-300,300);
   set->SetTH1(hmm_Al_select_c,"Missing mass Event Selction","M_{X}-M_{core+#Lambda} [MeV/c^{2}]",Form("Counts/%d MeV",mm_width));
-  hmm_Al_select_c->SetLineColor(5);
-  hmm_Al_select_c->SetFillColor(5);  
+  hmm_Al_select_c->SetLineColor(8);
+  hmm_Al_select_c->SetFillColor(8);  
   hmm_Al_select_c->SetFillStyle(3002);
 
   hmm_Al_cut=new TH1F("hmm_Al_cut","",600,-300,300);
@@ -1022,8 +1031,8 @@ void momcalib::MTParam(string mtparam){
 
   }else{
   
-  MT[8] = true; // RHRS momentum correction  
-  MT[9] = true; // LHRS momentum correction  
+    MT[8] = true; // RHRS momentum correction  
+    MT[9] = true; // LHRS momentum correction  
   ploss = true;  // Energy Loss 
  
   //-------- momentum calibration ---------//
@@ -1918,8 +1927,8 @@ void momcalib::EventSelection(){
 
    //--- Set Coincidence time ---------// 
 
-    if(runnum<=111368)tdc_time=0.056;
-    else tdc_time=0.058;
+    if(runnum<=111368){tdc_time=0.056; tdc_mode=1;}
+    else {tdc_time=0.058; tdc_mode=2;}
 
  Rs2_off= s2f1_off(Rs2pads,"R",target,tdc_mode);
  Ls2_off= s2f1_off(Ls2pads,"L",target,tdc_mode);
@@ -2017,16 +2026,19 @@ void momcalib::EventSelection(){
       //      double MgL_mean[4]={-4.0e-3, 6.0e-3, 20.0e-3, 30.0e-3}; //Bishnu parameters
       //      double MgL_mean[4]={0.00,0.07,0.18,0.2};
       //      double MgL_mean[4]={-100,-100,-100,0.168}; // GeV
-      double MgL_mean[4]={-100,-100,-100,0.0475}; // GeV
-      //      double MgL_mean[4]={-100,-100,-100,0.010}; // GeV
-      //double MgL_mean[4]={-100,-0.020,-100,-100}; // Al_posi
+      //      double MgL_mean[4]={-100,-100,-100,0.0475}; // GeV
+      //      double MgL_mean[4]={-100,-100,-100,0.01}; // GeV
+      //      double MgL_mean[4]={0.018,0.010,0.025,-100}; // GeV
+      double MgL_mean[4]={0.015,-100,-100,-100}; // GeV
+      //      double MgL_mean[4]={0.010,-100,-100,-100}; // GeV
+      //      double MgL_mean[4]={-100,-0.020,-100,-100}; // Al_posi
       int MgL_peak=-1;
 
       for(int m=0;m<4;m++)
 	if(fabs(mm_Al-MMgL -MgL_mean[m])<range_MgL){
 	  MgL_flag=true;
 	  MgL_peak=m;
-	  //	  break;
+	  break;
 	}
 
 
@@ -2044,10 +2056,11 @@ void momcalib::EventSelection(){
       mass_ref[ntune_event] = MMgL + MgL_mean[MgL_peak];
       chi_Al+=(mm_Al-mass_ref[ntune_event])*(mm_Al-mass_ref[ntune_event])/0.002/0.002;
 
-
+      //      cout<<"mm_MgL "<<mm_Al<<" MgL_mean "<<MgL_mean[MgL_peak]*1000.<<" mass_ref "<<mass_ref[ntune_event]<<" peak num "<<MgL_peak<<" diff "<<mm_Al-MMgL-MgL_mean[MgL_peak]<<endl;
       //      if(MgL_flag)mass_ref[ntune_event] = MMgL+Al_th;
       //      if(MgL_flag2)mass_ref[ntune_event] = MMgL+Al_th2;
-      MM[ntune_event]=mm_Al;
+      MM[ntune_event] = mm_Al;
+      nrun[ntune_event] = runnum;
       rx_fp[ntune_event]  = Rx_fp[0];
       rth_fp[ntune_event] = Rth_fp[0];
       ry_fp[ntune_event]  = Ry_fp[0];
@@ -2109,7 +2122,7 @@ void momcalib::EventSelection(){
 
     if(trig_flag && coin_flag && RPID_flag && LPID_flag && z_flag){
       mm_L=mm;
-      if(Lam_run)      hmm_select->Fill(mm);
+      if(Lam_run)      hmm_select->Fill((mm-ML)*1000.);
       if(nnL_run)      hmm_nnL->Fill((mm_nnL-MnnL)*1000.);
 
 
@@ -2127,6 +2140,12 @@ void momcalib::EventSelection(){
 	//      if(1.09 < mm && mm < 1.12 && ntune_event<nmax ) Lam_flag=true;
 	//      if(1.16 < mm && mm < 1.20 && ntune_event<nmax ) Sig_flag=true;
       
+      }else if(form_mode){
+
+	if(ML-mmL_range + paramL[3] + 0.002< mm && mm < ML+mmL_range  + paramL[3]+0.002 && ntune_event<nmax && ( ( MT[8] && MT[9] ) || single) )   Lam_flag=true;
+	if(MS0-mmS_range + paramS[3] +0.002 < mm && mm < MS0 + mmS_range + paramS[3] +0.002 && ntune_event<nmax &&  ( ( MT[8] && MT[9] ) || single) ) Sig_flag=true;
+
+
       }else{
 	
 	if(ML-mmL_range < mm && mm < ML+mmL_range && ntune_event<nmax && ( ( MT[8] && MT[9] ) || single) )   Lam_flag=true;
@@ -2139,6 +2158,7 @@ void momcalib::EventSelection(){
       if(nnL_run && ( fabs(mm_nnL-MnnL)<0.003  )&& nnL_mode)nnL_flag=true;
 
 
+ 
 
       // as a test //
       //      Lam_flag=false;
@@ -2147,6 +2167,7 @@ void momcalib::EventSelection(){
 
       if(Lam_flag && Lam_run){
 
+      nrun[ntune_event] = runnum;
       mass_flag[ntune_event]=0;
       mass_ref[ntune_event] = ML;
       MM[ntune_event]=mm;
@@ -2184,7 +2205,7 @@ void momcalib::EventSelection(){
       lpc[ntune_event] =Lp[0];      
       bpc[ntune_event] =pe;
 
-      hmm_L->Fill(mm);
+      hmm_L->Fill((mm-ML)*1000.);
       tuned_num=i;
       if(runnum<111555) nLam++;
       else nLamT++;
@@ -2197,6 +2218,8 @@ void momcalib::EventSelection(){
       
 
       if(Sig_flag && Lam_run){
+
+      nrun[ntune_event] = runnum;
       mass_flag[ntune_event]=1;
       mass_ref[ntune_event] = MS0;
       //      beam_p[ntune_event]=pe;
@@ -2236,7 +2259,7 @@ void momcalib::EventSelection(){
       rpc[ntune_event] =Rp[0];
       lpc[ntune_event] =Lp[0];      
       bpc[ntune_event] =pe;
-      hmm_S->Fill(mm);
+      hmm_S->Fill((mm-ML)*1000.);
       chi_S+=(mm-MS0)*(mm-MS0)/0.002/0.002;
       nSig++;
       tevent[ntune_event]=i;
@@ -2247,6 +2270,8 @@ void momcalib::EventSelection(){
 
 
       if(nnL_flag && nnL_run){
+
+      nrun[ntune_event] = runnum;
       mass_flag[ntune_event]=3;
       mass_ref[ntune_event] = MnnL;
       MM[ntune_event]=mm_nnL;
@@ -2292,8 +2317,8 @@ void momcalib::EventSelection(){
 
 
       
-      if(runnum<=111220 || (111480<=runnum && 111542>=runnum)) scale[ntune_event]=false; // pe=2.1 GeV
-      else scale[ntune_event]=true;  // pe_ = 2.2 GeV
+      //      if(runnum<=111220 || (111480<=runnum && 111542>=runnum)) scale[ntune_event-1]=false; // pe=2.1 GeV
+      //      else scale[ntune_event-1]=true;  // pe_ = 2.2 GeV
 
     }
   } // event selection
@@ -2313,7 +2338,7 @@ void momcalib::EventSelection(){
   weightnnL= (double)nLam/ (double)nnnL;
   if(nSig==0)  weight  = 1.0;
   if(nLamT==0) weightT = 1.0;
-  if(nAl==0)   weightAl= 1.0;
+  if(nAl==0 || nLam==0)   weightAl= 1.0;
   if(nnnL==0)   weightnnL= 1.0;
 
   weightAl_def=weightAl;
@@ -2365,7 +2390,24 @@ void momcalib::MomTuning(string ofname){
     cout<<"new marix file: "<<new_tempc<<endl;
     
     ofstream * ofs1;
-    ofstream * ofs2;       
+    ofstream * ofs2;  
+
+    //====== Set mean & sigma ========//
+
+    //    /*
+    //    TF1* fmean = new TF1("fmean","expgaus_mean",-0.300,0.300,4);
+    //    fmean->SetParameters(parL[0],parL[1],parL[2],parL[3]);
+    //    Lam_mean = fmean-> Integral(-0.05,0.1);
+    //    TF1* fsigma = new TF1("fsigma","expgaus_sigma",-0.300,0.300,5);
+    //    fsigma->SetParameters(parL[0],parL[1],parL[2],parL[3],Lam_mean);
+    //    Lam_sigma = fsigma-> Integral(-0.05,0.1);
+
+    //    */
+
+    cout<<" Lambda  mean : "<<Lam_mean*1000.<< " MeV"<<endl;
+    cout<<" Lambda  sigma : "<<Lam_sigma*1000<<" MeV"<<endl;
+
+
     for(int i=0 ; i<nite ; i++){
 
     cout<<"tuning i: "<<i+1<<" /"<<nite<<endl;
@@ -2384,7 +2426,7 @@ void momcalib::MomTuning(string ofname){
     }else if(MODE==0){
     cout<<"---------pk & pe tuning ------"<<endl;
     chi_sq[i]=0.0;
-    weightAl=weightAl_def*(i+1)*10.;
+    weightAl=weightAl_def*(i+1)*30.0;
     cout<<"weightAl "<<weightAl<<endl;
     chi_sq[i] = tune(Opt_par,i,0);
 
@@ -2567,7 +2609,6 @@ void momcalib::Fill(){
   int t=0;
 
   ENum= T->GetEntries();
-  //  ENum=1000000;   
   cout<<"Events :"<<ENum<<endl;
      if(ENum<10000)d=div(ENum,1000);
    else   d=div(ENum,10000);
@@ -2766,8 +2807,18 @@ void momcalib::Fill(){
  // Rs2_off=RS2_off_H1[Rs2pads];
  // Ls2_off=LS2_off_H1[Ls2pads];
 
-    if(runnum<=111368)tdc_time=0.056;
-    else tdc_time=0.058;
+    if(runnum<=111368){
+      tdc_time=0.056; 
+      tdc_mode=1;
+      coin_offset=464.73; // H1 mode
+    }else {
+      tdc_time=0.058; 
+      tdc_mode=2;
+      coin_offset=470.63; // H2 mode
+}
+
+ 
+
 
  Rs2_off= s2f1_off(Rs2pads,"R",target,tdc_mode);
  Ls2_off= s2f1_off(Ls2pads,"L",target,tdc_mode);
@@ -2820,7 +2871,10 @@ void momcalib::Fill(){
 	hmm_Al_cut->Fill((mm_Al-MMgL)*1000.);
 
 	for(int j=0;j<ntune_event;j++)
-	  if(mass_flag[j]==2 && tevent[j]==i)hmm_Al_select_c->Fill((mm_Al-MMgL)*1000.);
+	  if(mass_flag[j]==2 && tevent[j]==i){
+	    hmm_Al_select_c->Fill((mm_Al-MMgL)*1000.);
+	    //	    cout<<" i "<<i<<" mm_Al "<<(MM[j]-mass_ref[j])*1000.<<" mm_Al_c "<<(mm_Al-MMgL)*1000.<<" residual "<<(MM[j]-MMgL)*1000.-(mm_Al-MMgL)*1000.<<endl;
+	  }
 	fill_flag=true;
       }
 
@@ -2832,7 +2886,7 @@ void momcalib::Fill(){
       else { // hydrogen run
       mm_L=mm;
       mm_L_pz=mm_pz;
-      hmm_cut->Fill(mm);
+      hmm_cut->Fill((mm-ML)*1000.);
 
 
       if(runnum>=111552)hmm_cut_T->Fill(mm);
@@ -2870,7 +2924,8 @@ void momcalib::Fill(){
 
 
   
-   if(Initial && fill_flag)tnew->Fill();
+   //   if(Initial && fill_flag)
+   if(fill_flag)   tnew->Fill();
    if(i % (d.quot * 1000) == 0)cout<<i<<" / "<<ENum<<endl;
   }
 
@@ -3087,8 +3142,6 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     }
   }
 
-  MgL_weight=1.0;
-  //  if(Al_mode)MgL_weight=param[2*nParamTp];
 
   //======================================//
 
@@ -3125,6 +3178,12 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     dpk  = drp[i];
     dpe_ = dlp[i];
     dpe  = dbp[i];
+
+
+
+    if(nrun[i]<=111220 || (111480<=nrun[i] && 111542>=nrun[i])) scale[i]=false; // pe=2.1 GeV
+    else scale[i]=true;
+
 
     if(scale[i])lp_ref=2.21807;
     else lp_ref=2.1;
@@ -3229,11 +3288,11 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
 
     mass = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
-	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
+		 - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 
     mass_MgL = sqrt( (Ee + MAl - Ee_ - Ek)*(Ee + MAl - Ee_ - Ek)
 		     - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
-
+    
     mass_nnL = sqrt( (Ee + MTr - Ee_ - Ek)*(Ee + MTr - Ee_ - Ek)
 		     - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
     
@@ -3246,27 +3305,26 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
 
 
-    if(mass_ref[i]==ML && scale[i]!=0)      residual = fabs(mass - mass_ref[i]); // Lambda H kinematics
-    else if(mass_ref[i]==MS0)               residual = fabs(mass - mass_ref[i])*weight;  // weigth Sigma0:
-    else if(scale[i] && mass_ref[i]==ML)    residual = fabs(mass - mass_ref[i])*weightT;  // weigth Lambda T kinematics  
-    else if(mass_flag[i]==2 )               residual = fabs(mass_MgL-mass_ref[i])*weightAl;  // MgL events
-    else if(mass_flag[i]==3 )               residual = fabs(mass_nnL - mass_ref[i])*weightnnL;  // weigth nnL
+    if(mass_flag[i]==0 && scale[i]==0)      residual = (mass - mass_ref[i]); // Lambda H kinematics
+    else if(mass_flag[i]==1)                residual = (mass - mass_ref[i])*weight;  // weigth Sigma0:
+    else if(scale[i] && mass_flag[i]==0)    residual = (mass - mass_ref[i])*weightT;  // weigth Lambda T kinematics  
+
+    else if(mass_flag[i]==3 )               residual = (mass_nnL - mass_ref[i])*weightnnL;  // weigth nnL
+
+    else if(mass_flag[i]==2 )               residual = (mass_MgL - mass_ref[i])*weightAl;  // MgL events
 
     // conditon //
-    if((fabs( Rp -rp_ref )>0.1 || fabs( Lp - lp_ref) >0.1 ))residual=residual*3.0; //rp_ref=1.8 GeV, lp_ref=2.1 GeV
+    //    if((fabs( Rp -rp_ref )>0.1 || fabs( Lp - lp_ref) >0.1 ))residual=residual*1.5; //rp_ref=1.8 GeV, lp_ref=2.1 GeV
+
+
+    //    if(mass_flag[i]==2)cout<<"i "<<i<<" runnum "<<nrun[i]<<" mass "<<mass_MgL<< " mass dif "<<(mass_MgL-mass_ref[i])*1000.<<" mass_ref "<<mass_ref[i]<<" weightAl "<<weightAl<<" residual "<<residual<<" Rp "<<rp[i]<<" Rp_c "<<Rp<<" Lp "<<lp[i]<<" Lp_c "<<Lp<<" scale "<<scale[i]<<endl;
 
 
 
-    //     if(pow(residual/sigma,2.0)/ntune_event>100)cout<<"i "<<i<<" mass "<<mass_MgL<<" mass_ref "<<mass_ref[i]<<" residual "<<residual<<" chi "<<pow(residual/sigma,2.0)/ntune_event<<" chi_sum "<<chi2<<endl;
+    //    if(pow(residual/sigma,2.0)/ntune_event>100)
+    //cout<<"i "<<i<<" mass_flag "<<mass_flag[i]<<" mass "<<mass_MgL<<" mass_ref "<<mass_ref[i]<<" residual "<<residual<<" chi "<<pow(residual/sigma,2.0)/ntune_event<<" chi_sum "<<chi2<<" weight "<<weightAl<<endl;
 
-
-
-    //     if(residual/weightAl>0.1 && mass_ref[i]>20. ){
-    //       cout<<"i "<<i<<" mass_ref "<<mass_ref[i]<<" massAl "<<mass_MgL<<" resiual "<<residual/weightAl<<endl;
-       //       residual=0.0; //if events is so bad, this events should be removed as a background
-    //     }
-
-
+ 
      chi2=chi2 + pow(residual/sigma,2.0)/ntune_event;
      
      //     if(mass_ref[i]>MMgL-1. && mass_ref[i]!=MnnL)cout<<"i "<<i<<" mm_MgL "<<mass_MgL<<" mass_ref "<<mass_ref[i]<<" residual "<<residual<<" weight "<<weightAl<<" chi "<<chi2<<endl;
@@ -3282,6 +3340,269 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
   
   
 }//end fcn
+
+
+// #############################################################
+void fcn_new(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/)
+// #############################################################
+{
+  
+  double sigma = 0.002;//[GeV/c^2]
+  double mean  =0.0;
+  double ztR      = 0.0;
+  double refpos   = 0.0;
+  double residual = 0.0;
+  double ang      = 0.0;
+  double sspos    = 0.0;
+  double total_chi2 = 0.0;
+  double mass,mass_MgL,mass_nnL;
+  double Ee,Ee_,Ek;
+  double rbeta,lbeta;
+  double ref_rp=0.0;
+  double ref_lp=0.0;
+  double rp_ref=1.8;
+  double lp_ref=2.1;
+  //  double rp,lp;
+  double Chi2=0.0;
+  double chi2=0.0;
+  double rx_c,ry_c,rth_c,rph_c,rz_c,lx_c,ly_c,lth_c,lph_c;
+  double par_R[nParamTp],par_L[nParamTp];
+  double parR[nParamTp],parL[nParamTp];
+  double lp_x;
+  double lp_y;
+  double lp_z;
+  double rp_x;
+  double rp_y;
+  double rp_z;
+  double Rp,Lp,Bp;
+  double MgL_weight;
+  double x[1];
+  double xmax[1];
+  double PD;
+  //  momcalib* mom=new momcalib();
+  double dpk, dpe_,dpe;
+  TVector3 L_v, R_v, B_v;
+  //======= Coincidence analysis ========//
+
+  for(int i=0;i<nParamTp;i++){
+    if(MODE==0){
+      par_R[i]=param[i];
+      par_L[i]=param[i+nParamTp];
+      parR[i]=par_R[i];
+      parL[i]=par_L[i];
+    }else if(MODE==-1){
+      par_R[i]=param[i];
+      par_L[i]=Opt_par_L[i];
+    }else if(MODE==1){
+      par_R[i]=Opt_par[i];
+      par_L[i]=param[i];
+      //      cout<<"param "<<i<<" : "<<par_L[i]<<endl;
+    }else {
+      par_R[i]=Opt_par[i];
+      par_L[i]=Opt_par_L[i];
+    }
+  }
+
+
+
+  //======================================//
+
+  
+  for(int i=0 ; i<ntune_event ; i++){
+
+    //====== Initialization ========//
+
+    residual =0.0;
+    ref_rp=0.0;
+    ref_lp=0.0;
+    ref_rp=rp[i];
+    ref_lp=lp[i];
+    mass  = 0.0;
+    mass_MgL = 0.0;
+    mass_nnL = 0.0;
+    dpe_=0.0;
+    dpk=0.0;
+    lp_x=0.0;
+    lp_y=0.0;
+    lp_z=0.0;
+    rp_x=0.0;
+    rp_y=0.0;
+    rp_z=0.0;
+    Rp=0.0;
+    Lp=0.0;
+    Bp=0.0;
+    PD=0.0;
+
+    Rp = rp[i];
+    Lp = lp[i];
+    Bp = bp[i];
+
+    dpk  = drp[i];
+    dpe_ = dlp[i];
+    dpe  = dbp[i];
+    x[0]=100.0;
+    xmax[0]=0.0;
+    sigma= 100.0;
+    mean=100.0;
+    if(nrun[i]<=111220 || (111480<=nrun[i] && 111542>=nrun[i])) scale[i]=false; // pe=2.1 GeV
+    else scale[i]=true;
+
+
+    if(scale[i])lp_ref=2.21807;
+    else lp_ref=2.1;
+
+
+    // RHRS //
+
+    //======== Scaled paramters ===============//
+
+    rx_fp[i]  = (rx_fp[i]-XFPm)/XFPr;
+    rth_fp[i] = (rth_fp[i]-XpFPm)/XpFPr;
+    ry_fp[i]  = (ry_fp[i]-YFPm)/YFPr;
+    rph_fp[i] = (rph_fp[i]-YpFPm)/YpFPr;
+    rz[i]     = (rz[i]-Ztm)/Ztr;
+    Rp        = (Rp - PRm)/PRr;
+
+									     
+    //==== momentum tuning ==========//
+
+    if(MT_f[8])Rp = calcf2t_mom(par_R, rx_fp[i], rth_fp[i], ry_fp[i], rph_fp[i],rz[i]);
+
+
+    //==== Scaled to Nomal =======//    
+    rx_fp[i]  = rx_fp[i]  * XFPr + XFPm;
+    rth_fp[i] = rth_fp[i] * XpFPr + XpFPm;
+    ry_fp[i]  = ry_fp[i]  * YFPr + YFPm;
+    rph_fp[i] = rph_fp[i] * YpFPr + YpFPm;
+    rz[i]     = rz[i] * Ztr +Ztm;
+    Rp        = Rp * PRr +PRm;    
+    //=============================//
+   
+
+    // LHRS //
+    
+    //======== Scaled paramters ===============//
+
+    lx_fp[i]  = (lx_fp[i]-XFPm)/XFPr;
+    lth_fp[i] = (lth_fp[i]-XpFPm)/XpFPr;
+    ly_fp[i]  = (ly_fp[i]-YFPm)/YFPr;
+    lph_fp[i] = (lph_fp[i]-YpFPm)/YpFPr;
+    lz[i]     = (lz[i]-Ztm)/Ztr;
+    Lp        = (Lp - PLm)/PLr;
+    //==== momentum tuning ==========//
+
+    if(MT_f[9])Lp = calcf2t_mom(par_L, lx_fp[i], lth_fp[i], ly_fp[i], lph_fp[i], lz[i]);
+
+    //==== Scaled to Nomal =======//
+    
+    lx_fp[i]  = lx_fp[i]  * XFPr + XFPm;
+    lth_fp[i] = lth_fp[i] * XpFPr + XpFPm;
+    ly_fp[i]  = ly_fp[i]  * YFPr + YFPm;
+    lph_fp[i] = lph_fp[i] * YpFPr + YpFPm;
+    lz[i]     = lz[i]*Ztr + Ztm;
+    Lp        = Lp   *PLr + PLm;
+    
+    //=============================//
+
+
+    if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1; 
+
+
+    //==== E loss Calib =====//
+
+
+    Bp = Bp - dpe;
+    Rp = Rp + dpk;
+    Lp = Lp + dpe_;
+        
+    //------ Set Physics value --------//
+    Ee=sqrt(pow(Bp,2)+pow(Me,2));
+    Ee_=sqrt(pow(Lp,2)+pow(Me,2));
+    Ek=sqrt(pow(Rp,2)+pow(MK,2));
+    
+    rbeta=Rp/Ek; 
+    lbeta=Lp/Ee_; 
+
+    //==== Right Hand coordinate =====//
+    rp_z = Rp/sqrt(1.0*1.0 + pow( tan(rth[i]) ,2.0) + pow( tan( rph[i] ),2.0) );
+    lp_z = Lp/sqrt(1.0*1.0 + pow( tan(lth[i]) ,2.0) + pow( tan( lph[i] ),2.0) );
+
+
+    lp_x = lp_z *   tan( lth[i] );
+    lp_y = lp_z *   tan( lph[i] ); 
+    rp_x = rp_z *   tan( rth[i] );
+    rp_y = rp_z *   tan( rph[i] );
+
+
+    B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
+    R_v.SetXYZ(rp_x, rp_y, rp_z);
+    L_v.SetXYZ(lp_x, lp_y, lp_z);
+
+
+    R_v.RotateX(  13.2/180.*3.14);
+    L_v.RotateX( -13.2/180.*3.14);
+
+
+    mass = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
+		 - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
+
+    mass_MgL = sqrt( (Ee + MAl - Ee_ - Ek)*(Ee + MAl - Ee_ - Ek)
+		     - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
+    
+    mass_nnL = sqrt( (Ee + MTr - Ee_ - Ek)*(Ee + MTr - Ee_ - Ek)
+		     - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
+    
+
+
+    //======================//
+    //====== Residual ======//
+    //======================//
+
+
+    if(mass_flag[i]==0 || mass_flag[i]==1)      residual = mass - mass_ref[i]; // Lambda H kinematics
+    else if(mass_flag[i]==2 )                    residual = mass_MgL - mass_ref[i];  // MgL events
+    else if(mass_flag[i]==3 )                    residual = mass_nnL - mass_ref[i];  // weigth nnL
+
+
+    if(mass_flag[i]==0 || mass_flag[i]==1 ){
+
+      if(mass_flag[i]==0){       xmax[0] = paramL[3]; mean = Lam_mean; sigma = Lam_sigma; 
+      }else if(mass_flag[i]==1){ xmax[0] = paramS[3]; mean = Sig_mean; sigma = Sig_sigma;}
+       
+      x[0] = mass - mass_ref[i] - mean;
+      
+      if(mass_flag[i]==0)PD = (expgaus(x,paramL)/expgaus(xmax,paramL))*(expgaus(x,paramL)/expgaus(xmax,paramL));
+      else if(mass_flag[i]==1) PD = (expgaus(x,paramS)/expgaus(xmax,paramS))*(expgaus(x,paramS)/expgaus(xmax,paramS));
+      residual = residual/ PD;
+
+    }else {sigma=0.002; mean=0.0;}
+    //====== weight =======//
+
+    if(mass_ref[i]==MS0)                    residual *= weight;  // weigth Sigma0:
+    else if(scale[i] && mass_ref[i]==ML)    residual *= weightT;  // weigth Lambda T kinematics  
+    else if(mass_flag[i]==2 )               residual *= weightAl;  // MgL events
+    else if(mass_flag[i]==3 )               residual *= weightnnL;  // weigth nnL
+    if((fabs( Rp -rp_ref )>0.1 || fabs( Lp - lp_ref) >0.1 ))residual=residual*3.0; //rp_ref=1.8 GeV, lp_ref=2.1 GeV
+
+
+
+    chi2=chi2 + pow(residual/sigma,2.0)/ntune_event;
+
+
+    //    cout<<"i "<<i<<" sigma "<<sigma<<" residual "<<residual<<" pow "<<pow(residual/sigma,2.0)/ntune_event<<endl;
+
+  }//end for 
+  
+  
+  //  cout<<" chi2 "<<chi2 <<endl;
+  
+  
+  fval=chi2;
+  //  delete mom;  
+  
+  
+}//end fcn
+
 
 
 
@@ -3301,14 +3622,15 @@ double momcalib::tune(double* pa, int j, int MODE)
     allparam=nParamTp*2;
     arm=2;  }
 
-  if(Al_mode)allparam=allparam+1;
+
 
   cout<<"mode "<<MODE<<" allParam "<<allparam<<endl;
 
 
   TMinuit* minuit= new TMinuit(allparam);
-  minuit->SetFCN(fcn); // fcn Chi-square function
 
+  if(form_mode)  minuit->SetFCN(fcn_new); // fcn Chi-square function as a test
+  else  minuit->SetFCN(fcn); // fcn Chi-square function
   
   double start[allparam];
   double step[allparam];
@@ -3394,16 +3716,6 @@ double momcalib::tune(double* pa, int j, int MODE)
 	  
   }
 
-  if(Al_mode && MODE==0){
-    start[nParamTp*2] = 1.0;
-    step[nParamTp*2]  = 0.0; 
-    LLim[nParamTp*2] = 0.0; // temp
-    ULim[nParamTp*2] = 1.0; // temp
-    minuit -> mnparm(nParamTp*2,pname,start[nParamTp*2],step[nParamTp*2],LLim[nParamTp*2],ULim[nParamTp*2],ierflg);
-
-
-}
-
 
 
 
@@ -3433,7 +3745,7 @@ double momcalib::tune(double* pa, int j, int MODE)
     if(MODE==0){
       minuit -> GetParameter(i,Opt_par[i],er);
       if(i<nParamTp){minuit -> GetParameter(i,Opt_par_R[i],er);}// RHRS momentum parameter
-      else if(i<=nParamTp && 2*nParamTp<i){minuit -> GetParameter(i,Opt_par_L[i-nParamTp],er);}// RHRS momentum parameters
+      else if(nParamTp<=i){minuit -> GetParameter(i,Opt_par_L[i-nParamTp],er);}// RHRS momentum parameters
       
       
     }else if(MODE==-1){minuit -> GetParameter(i,Opt_par_R[i],er);// RHRS momentum parameters
@@ -3441,133 +3753,8 @@ double momcalib::tune(double* pa, int j, int MODE)
     }
   }
 
-  if(Al_mode){minuit -> GetParameter(2*nParamTp,Opt_par[2*nParamTp],er);
-    cout<<"weight "<<Opt_par[2*nParamTp]<<endl;
-  }
+  
   return chi;
-}
-
-// #############################################################
-double tuning(double* pa, int j, int MODE) 
-// #############################################################
-{
-
-  
-  double chi2 = 0.0;
-  double arglist[10]; 
-  int ierflg = 0;
-  int allparam = nParamTp;
-  int arm=1;
-
-  if(MODE==0){
-    allparam=nParamTp*2;
-    arm=2;
-  }
-
- 
-  //  for(int i=0;i<allparam;i++)cout<<"i "<<i<<" param "<<pa[i]<<endl;
-
-  cout<<"mode "<<MODE<<" allParam "<<allparam<<endl;
-  
-  TMinuit* minuit= new TMinuit(allparam);
-  minuit->SetFCN(fcn); // fcn Chi-square function
-
-  double start[allparam];
-  double step[allparam];
-
-  const int nMatT =nnp;  
-  const int nXf   =nnp;
-  const int nXpf  =nnp;
-  const int nYf   =nnp;
-  const int nYpf  =nnp;
-  const int nZt   =nnp; // The number of order is reduced for test (4-->2)
-
-  int npar=0;
-  int a=0,b=0,c=0,d=0,e=0;
-
-  for(int f=0;f<arm;f++){
-    for (int n=0;n<nMatT+1;n++){
-      for(e=0;e<n+1;e++){
-	for (d=0;d<n+1;d++){
-	  for (c=0;c<n+1;c++){ 
-	    for (b=0;b<n+1;b++){
-	      for (a=0;a<n+1;a++){ 
-		if (a+b+c+d+e==n){
-		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt){
-		    start[npar] = pa[npar];
-		    step[npar] = 1.0e-3;
-		  }
-		  else{
-		    start[npar] = 0.0;
-		    step[npar] = 0.0;
-		  }
-		  npar++;
-
-		}
-	      }
-	    }
-	  }
-	}    
-      }
-    }
-  }
-
-  // ~~~ Chi-square ~~~~
-  arglist[0] = 1;
-  minuit -> mnexcm("SET ERR",arglist,1,ierflg);
-  minuit -> SetPrintLevel(-1);
-  
-  double LLim[allparam];// Lower limit for all of the parameter
-  double ULim[allparam];// Upper limit for all of the parameter
-
-  char pname[500];
-  for(int i=0 ; i<allparam ; i++){
-    sprintf(pname,"param_%d",i+1);
-
-    
-    //    LLim[i] = pa[i] - pa[i]*0.8;
-    //    ULim[i] = pa[i] + pa[i]*0.8;
-       
-    LLim[i] = pa[i] - 5.0; // temp
-    ULim[i] = pa[i] + 5.0; // temp
-
-    minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
-  }
-
-  
-  // ~~~~ Strategy ~~~~
-  arglist[0] = 2.0; // original
-  //arglist[0] = 1.0; // test
-  //arglist[0] = 0.0;   // test
-  minuit->mnexcm("SET STR",arglist,1,ierflg);
- 
-  // ~~~~ Migrad + Simplex  ~~~~ 
-  arglist[0] = 20000;
-  arglist[1] = 0.01;
-  minuit -> mnexcm("MINImize",arglist,2,ierflg); // Chi-square minimization
-  
-  double amin,edm,errdef;
-  int nvpar,nparx,icstat;
-  double er;
-  
-  minuit -> mnstat(amin,edm,errdef,nvpar,nparx,icstat);
-  minuit -> mnprin(0,amin);
-
-  if(amin>0) chi2=amin;
-
-  
-  for(int i=0 ; i<allparam ; i++){
-    if(MODE==0){
-      minuit -> GetParameter(i,Opt_par[i],er);
-      if(i<allparam/2){minuit -> GetParameter(i,Opt_par_R[i],er);}// RHRS momentum parameter
-      else{minuit -> GetParameter(i,Opt_par_L[i-nParamTp],er);}// RHRS momentum parameters
-      
-    }else if(MODE==-1){minuit -> GetParameter(i,Opt_par_R[i],er);// RHRS momentum parameters
-    }else if(MODE==1){minuit -> GetParameter(i,Opt_par_L[i],er);// LHRS momentum parameters
-    }
-  }
-
-  return chi2;
 }
 
 
@@ -3724,41 +3911,129 @@ double calcf2t_zt(double* P, double xf, double xpf,
 }
 
 
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+double expgaus(double *x, double *par) {
+  //par[0]=Total area
+  //par[1]=tau of exp function
+  //par[2]=Width (sigma) of convoluted Gaussian function
+  //par[3]=Shift of Function Peak
+  double invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
+  double np = 500.0;      // number of convolution steps
+  double sc =   8.0;      // convolution extends to +-sc Gaussian sigmas
+  double xx, fland, sum = 0.0, xlow, xupp, step, i;
+  double val;
 
-/*
-double Calc_MM(double pe, double* pe_, double* pk, double mt){
+// Range of convolution integral
+  xlow = 0.;
+  xupp = x[0] + sc * par[2];
+  step = (xupp-xlow) / np;
+// Convolution integral
+  for(i=1.0; i<=np/2; i++){
+     xx = xlow + (i-0.5) * step - par[3];
+     fland = TMath::Gaus(xx,x[0],par[2]);
+     sum += fland * TMath::Exp(-xx/par[1]);
 
+     xx = xupp - (i-.5) * step - par[3];
+     fland = TMath::Gaus(xx,x[0],par[2]);
+     sum += fland * TMath::Exp(-xx/par[1]);
+  }
+  //  val = par[2] * step * sum * invsq2pi / par[3];
+  val = par[0] * step * sum * invsq2pi / (par[2]*par[1]*exp(par[3]/par[1]));
 
+  return val;
+}
 
-  doulbe Ee  =sqrt(Me*Me + pe*pe);
-  double Ee_ =sqrt(Me*Me + pe_[0]*pe_[0]);
-  double Ek =sqrt(MK*MK + pk[0]*pk[0]);
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+double expgaus_mean(double *x, double *par){
+  //par[0]=Total area
+  //par[1]=tau of exp function
+  //par[2]=Width (sigma) of convoluted Gaussian function
+  //par[3]=Shift of Function Peak
+  double invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
+  double np = 500.0;      // number of convolution steps
+  double sc =   8.0;      // convolution extends to +-sc Gaussian sigmas
+  double xx, fland, sum = 0.0, xlow, xupp, step, i;
+  double val;
+
+// Range of convolution integral
+  xlow = 0.;
+  xupp = x[0] + sc * par[2];
+  step = (xupp-xlow) / np;
+// Convolution integral
+  for(i=1.0; i<=np/2; i++){
+     xx = xlow + (i-0.5) * step - par[3];
+     fland = TMath::Gaus(xx,x[0],par[2]);
+     sum += fland * TMath::Exp(-xx/par[1]);
+
+     xx = xupp - (i-.5) * step - par[3];
+     fland = TMath::Gaus(xx,x[0],par[2]);
+     sum += fland * TMath::Exp(-xx/par[1]);
+  }
+  //  val = par[2] * step * sum * invsq2pi / par[3];
+  val = par[0] * step * sum * invsq2pi / (par[2]*par[1]*exp(par[3]/par[1]));
+  val = val * x[0];
   
-
-
-  
-    double Lp_x = Lp[0]*Lth[0];
-    double Lp_y = Lp[0]*(-Lph[0] -13.2/180.*PI ); 
-
-    double Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + Lph[0]*Lph[0] );
-
-    double Rp_x = Rp[0]*Rth[0];
-    double Rp_y = Rp[0]*( Rph[0] +13.2/180.*PI ); 
-    double Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + Rph[0]*Rph[0] );    
-    TVector3 L_v, R_v, B_v;
-    B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
-    L_v.SetXYZ(Lp_x, Lp_y, Lp_z);
-    R_v.SetXYZ(Rp_x, Rp_y, Rp_z);
-    mm = sqrt( (Ee + mt - Ee_ - Ek)*(Ee + mt - Ee_ - Ek)
-	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
-  
-
-
-    return mm;
-    
+  return val;
 
 }
-*/
 
+double expgaus_sigma(double *x, double *par){
+  //par[0]=Total area
+  //par[1]=tau of exp function
+  //par[2]=Width (sigma) of convoluted Gaussian function
+  //par[3]=Shift of Function Peak
+  double invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
+  double np = 500.0;      // number of convolution steps
+  double sc =   8.0;      // convolution extends to +-sc Gaussian sigmas
+  double xx, fland, sum = 0.0, xlow, xupp, step, i;
+  double val;
+
+// Range of convolution integral
+  xlow = 0.;
+  xupp = x[0] + sc * par[2];
+  step = (xupp-xlow) / np;
+// Convolution integral
+  for(i=1.0; i<=np/2; i++){
+     xx = xlow + (i-0.5) * step - par[3];
+     fland = TMath::Gaus(xx,x[0],par[2]);
+     sum += fland * TMath::Exp(-xx/par[1]);
+
+     xx = xupp - (i-.5) * step - par[3];
+     fland = TMath::Gaus(xx,x[0],par[2]);
+     sum += fland * TMath::Exp(-xx/par[1]);
+  }
+  //  val = par[2] * step * sum * invsq2pi / par[3];
+  val = par[0] * step * sum * invsq2pi / (par[2]*par[1]*exp(par[3]/par[1]));
+  val = val *(x[0] - par[4])* (x[0] - par[4]);
+  
+  return val;
+
+}
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+double Get_expgaus_mean(double *par){
+
+  TF1* fmean = new TF1("fmean","expgaus_mean",-0.300,0.300,4);
+  fmean->SetParameters(par[0],par[1],par[2],par[3]);
+  double  mean= fmean-> Integral(-0.05,0.1);
+  
+  return mean;
+
+}
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+double Get_expgaus_sigma(double *par, double mean){
+ 
+
+  TF1* fsigma = new TF1("fsigma","expgaus_sigma",-0.300,0.300,5);
+  fsigma->SetParameters(par[0],par[1],par[2],par[3], mean);
+  double sigma = fsigma-> Integral(-0.05,0.1);
+   
+  return sigma;
+}
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #endif

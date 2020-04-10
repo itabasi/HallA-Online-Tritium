@@ -18,7 +18,7 @@ string ofroot("output.root");
 #define F1TDC
 
 
-extern  double Calc_ras(double a,double b,double c){return  a *b + c;};  
+extern double Calc_ras(double a,double b,double c){return  a *b + c;};  
 extern double calcf2t_ang(double* P,double xf, double xpf, double yf, double fpf,double z);
 extern double calcf2t_zt(double* P, double xf, double xpf, double yf, double ypf);
 extern double calcf2t_mom(double* P, double xf, double xpf, double yf, double ypf, double zt);
@@ -1297,7 +1297,7 @@ void ana::Loop(){
 	  //	  if( R_a1_asum_p<400 && R_a2_asum_p>1000 && R_a2_asum_p<4000) Kaon = true;
 	  // if( R_a1_asum_p<a1_th && R_a2_asum_p>a2_th) Kaon = true;
 	  //	  if( R_a1_asum_p<1.0 && R_a2_asum_p>3.0 && R_a2_asum_p<7.0) Kaon = true;	  
-	  if( tr.AC1_npe_sum < a1_th && tr.AC2_npe_sum > a2_th_min) Kaon = true;
+	  if( tr.AC1_npe_sum < a1_th && tr.AC2_npe_sum > a2_th_min && L_cer_asum_c>2000.) Kaon = true;
 	  //	  if(fabs(R_tr_vz[rt])<0.1
 	  //         && fabs(L_tr_vz[lt])<0.1 && fabs(R_tr_vz[rt] - L_tr_vz[lt])<0.03)zcut=true;
 
@@ -1650,69 +1650,67 @@ void ana::Loop(){
 
 	      
 	      if( Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) && zcut){
-		 //		 fabs( L_tr_vz[lt] ) < 0.1 && fabs( R_tr_vz[rt] ) < 0.1 &&fabs( L_tr_vz[lt] ) < 0.1){
                 h_acc_nnL     ->Fill(mm_nnL);
 		h_acc_H3L     ->Fill(mm_H3L);
                 h_acc_L       ->Fill(mm_L);
                 h_ct_wK_z_acc ->Fill( ct );
 	     }
 
-	 
+	  	 
               double ctime=-1000.;
 	     //--------------------------------------------------------------------------------//
               if( Kaon && zcut){
-		  //		  fabs( L_tr_vz[lt] ) < 0.1 && fabs( R_tr_vz[rt] ) < 0.1 &&fabs( L_tr_vz[lt] ) < 0.1){
                h_ct_wK_z_all->Fill(ct);
-            
-
-              if((-35<ct && ct <-15) || (15<ct && ct<53)){
-	     
-	       ctime=ct;
 	       
-              while(1){
-	       if(-1.0<ctime && ctime<1.0){
-		 h_ct_acc->Fill(ctime);
-                 h_ct_acc->Fill(ctime-36);
-		 break;}
-	       else if(ctime<-1.0){ctime=ctime+2;}
-	       else if(1.0<ctime){ctime=ctime-2;}
+	       
+	       if((-35<ct && ct <-15) || (15<ct && ct<35)){
+		 
+		 ctime=ct;
+		 
+		 while(1){
+		   if(-1.0<ctime && ctime<1.0){
+		     h_ct_acc->Fill(ctime);
+		     h_ct_acc->Fill(ctime-36);
+		     break;}
+		   else if(ctime<-1.0){ctime=ctime+2;}
+		   else if(1.0<ctime){ctime=ctime-2;}
+		 }
+	       }
 	      }
-	      }
-	      }
-	
-	
-             tr.missing_mass = mm          ; tr.coin_time =ct         ;
-	     tr.momR         = R_tr_p[0]  ; tr.momL      =L_tr_p[0] ;
-	     tr.zR           = R_tr_vz[0] ; tr.zL        =L_tr_vz[0];
-	     //	     tr.AC1_sum      = R_a1_asum_p/400. ; tr.AC2_sum   =R_a2_asum_p/400.;
-	     tr.AC1_sum      = R_a1_asum_p ; tr.AC2_sum   =R_a2_asum_p;
-	     tr.ct_acc=ctime;
-	     //	     tree_out->Fill();
-	  
+	      
+	      
+	      tr.missing_mass = mm          ; tr.coin_time =ct         ;
+	      tr.momR         = R_tr_p[0]  ; tr.momL      =L_tr_p[0] ;
+	      tr.zR           = R_tr_vz[0] ; tr.zL        =L_tr_vz[0];
+	      //	     tr.AC1_sum      = R_a1_asum_p/400. ; tr.AC2_sum   =R_a2_asum_p/400.;
+	      tr.AC1_sum      = R_a1_asum_p ; tr.AC2_sum   =R_a2_asum_p;
+	      tr.ct_acc=ctime;
+	      //	     tree_out->Fill();
+	      
     	      //--------------------------------------------------------------------------------------//
+	      
 
-
-	     //	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 &&fabs(ct)<1.0)
-	     if( zcut && fabs(ct)<1.0)
-	       h_mm->Fill( mm ); //No Kaon Cut
-	     //	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 && 2.0<ct && ct<4.0)
-	     if( zcut && 2.0<ct && ct<4.0)
-	       h_mm_pi->Fill( mm ); //No Kaon Cut
-	     //	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1
-	     if(  zcut && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35))){
-	       h_mm_acc->Fill( mm ); //No Kaon Cut
-	       tr.missing_mass_acc=mm;
-	     }
+	      //	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 &&fabs(ct)<1.0)
+	      if( zcut && fabs(ct)<1.0)
+		h_mm->Fill( mm ); //No Kaon Cut
+	      //	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1 && 2.0<ct && ct<4.0)
+	      if( zcut && 2.0<ct && ct<4.0)
+		h_mm_pi->Fill( mm ); //No Kaon Cut
+	      //	     if( fabs( L_tr_vz[lt]  ) < 0.1 && fabs( R_tr_vz[rt]  ) < 0.1
+	      if(Kaon &&  zcut && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35))){
+		h_mm_acc->Fill( mm ); //with Kaon Cut
+		tr.missing_mass_acc=mm;
+	      }
           } // if L_Tr && L_FP && R_Tr && R_FP
 	  tree_out->Fill();
-
-
-
+	  
+	  
+	  
 	  
         } // for NRtr
       } // for NLtr
     } // if LHRS && RHRS
-
+    
  
  			    
 			     
@@ -1738,7 +1736,7 @@ void ana::Loop(){
     h_mmallbg->Scale(1./20.);
     h_mmfoilbg->Scale(1./20.);
     h_ct_acc->Scale(2.0/40.);
-
+    tr.acc=2./40.;
     int nAl=h_mm_Al_bg->GetEntries();
     h_mm_Al_bg->Scale(BG_Al(nAl));
 
@@ -2070,6 +2068,7 @@ void ana::MakeHist(){
   tree_out ->Branch("mm_MgL",&tr.missing_mass_MgL ,"missing_mass_MgL/D");
   tree_out ->Branch("mm_MgL_acc",&tr.missing_mass_MgL_acc ,"missing_mass_MgL_acc/D");
   tree_out ->Branch("mm_acc",&tr.missing_mass_acc ,"missing_mass_acc/D");
+  tree_out ->Branch("acc",&tr.acc ,"acc/D");
   tree_out ->Branch("runnum",&runnum ,"runnum/I");
   tree_out ->Branch("ct_b",&tr.ct_b ,"ct_b/D");
   tree_out ->Branch("ct_c",&tr.ct_c ,"ct_c/D");

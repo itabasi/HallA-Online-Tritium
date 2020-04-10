@@ -561,7 +561,6 @@ int main(int argc, char** argv){
    */
 
   int ENum = oldtree->GetEntries();
-  ENum=200;
   cout<<"ENum "<<ENum<<endl;
 
   for(int n=0;n<ENum;n++){
@@ -594,7 +593,7 @@ int main(int argc, char** argv){
     cout<<"n "<<n<<" nev "<<test.EvtNum<<" time "<<test.EvtTime<<" type "<<test.EvtType<<" len "<<test.EvtLen<<" helicity "<<test.Helicity<<" targetPol "<<test.TargetPol<<" run "<<test.Run<<endl;
     */
 
-    cout<<"n "<<n<<" nev "<<test->EvtNum<<" time "<<test->EvtTime<<" type "<<test->EvtType<<" len "<<test->EvtLen<<" helicity "<<test->Helicity<<" targetPol "<<test->TargetPol<<" run "<<test->Run<<endl;
+    //    cout<<"n "<<n<<" nev "<<test->EvtNum<<" time "<<test->EvtTime<<" type "<<test->EvtType<<" len "<<test->EvtLen<<" helicity "<<test->Helicity<<" targetPol "<<test->TargetPol<<" run "<<test->Run<<endl;
 
 
     int NLtr = (int)L_tr_n;
