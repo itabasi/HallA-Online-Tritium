@@ -74,7 +74,7 @@ static const char* PATHS[] = {
   //"/w/mss/halla/triton/raw",
   // "/w/halla-scifs17exp/triton/itabashi/raw_files"
   //  "/data/raw" //Itabashi Desktop
-  "/data1/raw" //Itabashi Desktop
+  "/data3/raw" //Itabashi Desktop
 };
 
 static const char* RAW_DATA_FORMAT="%s/triton_%d.dat.%d";

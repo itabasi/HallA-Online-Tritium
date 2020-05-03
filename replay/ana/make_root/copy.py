@@ -14,9 +14,9 @@ import re
 import sys
 import os,os.path
 import glob
-nworkers=6
+nworkers=8
 
-init=111112
+init=111111
 end=111840
 
 
@@ -24,7 +24,8 @@ end=111840
 #root_dir="/data3/root_ole/root2"
 root_dir="/data4/root"
 file_init="tritium_"
-small_dir="/data3/root_ole/small"
+#small_dir="/data3/root_ole/small2"
+small_dir="/data4/small"
 #####################################
 
 def sub_root(RUNNUM):

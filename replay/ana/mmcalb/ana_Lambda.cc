@@ -381,8 +381,11 @@ void ana::MTParam_G(){
 
 void ana::Calib(int rt, int lt ){
 
+  // ==== Initialization ======//
+  R_p = 0.0;
+  L_p = 0.0;
 
-
+  
   //======= Nomalization ==================//
   R_tr_x[rt]    = (R_tr_x[rt]-XFPm)/XFPr;
   R_tr_th[rt]   = (R_tr_th[rt]-XpFPm)/XpFPr;
@@ -392,7 +395,8 @@ void ana::Calib(int rt, int lt ){
   R_tr_tg_th[rt]= (R_tr_tg_th[rt] - Xptm)/Xptr;
   R_tr_tg_ph[rt]= (R_tr_tg_ph[rt] - Yptm)/Yptr;
 
-  R_p = (R_p - PRm)/PRr;
+  //  R_p = (R_p - PRm)/PRr;
+  R_p = (R_tr_p[rt] - PRm)/PRr;
 
   L_tr_x[lt]    = (L_tr_x[lt]-XFPm)/XFPr; 
   L_tr_th[lt]   = (L_tr_th[lt]-XpFPm)/XpFPr;
@@ -402,7 +406,8 @@ void ana::Calib(int rt, int lt ){
   L_tr_tg_th[lt]= (L_tr_tg_th[lt] - Xptm)/Xptr;
   L_tr_tg_ph[lt]= (L_tr_tg_ph[lt] - Yptm)/Yptr;  
 
-  L_p = (L_p - PLm)/PLr;
+  //  L_p = (L_p - PLm)/PLr;
+  L_p = (L_tr_p[lt] - PLm)/PLr;
 
   //========================================//
   
@@ -467,7 +472,7 @@ void ana::Calib(int rt, int lt ){
 
 
     //=========== Energy Loss ===================//
-    B_p     = B_p + Eloss(0.0,0,"B");
+    B_p     = B_p - Eloss(0.0,0,"B");
     R_p     = R_p + Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
     L_p     = L_p + Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
 
@@ -866,6 +871,22 @@ double ana::Eloss(double yp,double z,char* arm){
     dEloss = dEloss_l;}
   //==== thickness 0.4 mm in beam energy loss ======//
   if(arm=="B")dEloss=0.184; //[MeV/c]
+
+  //======== Al Flame Energy Loss ========//
+  // Upstream && Downsream //
+  // thickness 0.4 mm //
+  if(z<-0.1){
+    if(arm=="B")dEloss  = 0.1345;
+    if(arm=="R")dEloss += 0.803;
+    if(arm=="L")dEloss += 0.809;
+  }
+  else if(z>0.1){
+    if(arm=="B")dEloss  = 0.264;
+    if(arm=="R")dEloss += 0.313;
+    if(arm=="L")dEloss += 0.313;
+    
+  }
+
   dEloss=dEloss/1000.; // [GeV/c]
   return dEloss;
 
@@ -1314,33 +1335,32 @@ void ana::Loop(){
 
 
 
-	    B_p     = HALLA_p/1000.0;// [GeV/c]	    
-	    L_p     = L_tr_p[lt];
-	    R_p     = R_tr_p[rt];
 	    
 	    //==== Energy Loss calibration ======//
 
-	    double B_pc,R_pc,L_pc;
+	    double B_pb,R_pb,L_pb;
 
+	    B_pb=0.0;
+	    R_pb=0.0;
+	    L_pb=0.0;
 	    tr.dpe     = Eloss(0.0,R_tr_vz[0],"B");
 	    tr.dpk[rt] = Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
 	    tr.dpe_[lt]= Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
 	    
-	    R_pc = R_p + tr.dpk[rt];
-	    L_pc = L_p + tr.dpe_[lt];
-	    B_pc = B_p - tr.dpe;
+	    R_pb = R_tr_p[rt] + tr.dpk[rt];
+	    L_pb = L_tr_p[lt] + tr.dpe_[lt];
+	    B_pb = HALLA_p/1000.0 - tr.dpe;
 
 	    //===================================//	    
 	    double B_E     = sqrt( Me*Me + B_p*B_p );
             int L_s2pad = (int)L_s2_trpad[lt];
             double L_E     = sqrt( Me*Me + L_p*L_p );
-            double L_betae = L_p / sqrt(Me*Me + L_p*L_p);
+            double L_betae = L_pb / sqrt(Me*Me + L_p*L_p);
             int R_s2pad    = (int)R_s2_trpad[rt];
-            double R_E     = sqrt( MK*MK + R_p*R_p );
-	    double R_Epi   = sqrt( Mpi*Mpi + R_p*R_p );
-            double R_betaK = R_p / sqrt(MK*MK + R_p*R_p);
-	    double R_betaPi =R_p/ sqrt(Mpi*Mpi + R_p*R_p);
-
+            double R_E     = sqrt( MK*MK + R_pb*R_pb );
+	    double R_Epi   = sqrt( Mpi*Mpi + R_pb*R_pb );
+            double R_betaK = R_pb / sqrt(MK*MK + R_pb*R_pb);
+	    double R_betaPi =R_pb/ sqrt(Mpi*Mpi + R_pb*R_pb);
 
 	    CoinCalc(R_s2pad,L_s2pad,rt,lt);
 	    //	     double test =CoinCalc_c(R_s2pad,L_s2pad,rt,lt);
@@ -1379,25 +1399,25 @@ void ana::Loop(){
 	    
 	    h_Rth->Fill(R_tr_tg_th[rt]);
 	    h_Rph->Fill(R_tr_tg_ph[rt]);
-	    h_Rp->Fill(R_p);
+	    h_Rp->Fill(R_tr_p[rt]);
 	    h_Lz->Fill(L_tr_vz[lt]);
 	    h_Lth->Fill(L_tr_tg_th[lt]);	    	    
 	    h_Lph->Fill(L_tr_tg_ph[lt]);	    	    
-	    h_Lp->Fill(L_p);	    
+	    h_Lp->Fill(L_tr_p[lt]);	    
 
 	     
 	    //======== w/o momentum correction ============//
 
- 	    double Ee_b = sqrt( Me*Me + B_p*B_p );
-	    double L_Eb = sqrt( Me*Me + L_p*L_p );
-	    double R_Eb = sqrt( MK*MK + R_p*R_p );
+ 	    double Ee_b = sqrt( Me*Me + B_pb*B_pb );
+	    double L_Eb = sqrt( Me*Me + L_pb*L_pb );
+	    double R_Eb = sqrt( MK*MK + R_pb*R_pb );
 	    
 	    //==== Right Hand Coordinate ========//
 
-	    double R_pz_b=R_p/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt],2.0));
+	    double R_pz_b=R_pb/sqrt(1.0*1.0 + pow(R_tr_tg_th[rt], 2.0) + pow( R_tr_tg_ph[rt],2.0));
 	    double R_px_b=R_pz_b * R_tr_tg_th[rt];
 	    double R_py_b=R_pz_b * R_tr_tg_ph[rt];
-	    double L_pz_b=L_p/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt],2.0));
+	    double L_pz_b=L_pb/sqrt(1.0*1.0 + pow(L_tr_tg_th[lt], 2.0) + pow( L_tr_tg_ph[lt],2.0));
 	    double L_px_b=L_pz_b * L_tr_tg_th[lt];
 	    double L_py_b=L_pz_b * L_tr_tg_ph[lt];
 

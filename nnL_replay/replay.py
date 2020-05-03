@@ -23,11 +23,11 @@ import glob
 
 nworkers=6
 
-init=111110
-end=111199
+init=111111
+end=111843
 
 #####################################
-root_dir="/data3/root_ole/root2"
+root_dir="/data3/root_ole/root3"
 file_init="tritium_"
 #####################################
 

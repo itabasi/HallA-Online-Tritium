@@ -1,5 +1,6 @@
 #include "Setting.h"
 #include "TObject.h"
+#include "TBranchElement.h"
 using namespace std;
 const double c = 0.299792458;          // speed of light in vacuum (m/ns)
 const double MK = 0.493677;            // charged Kaon mass (GeV/c2)
@@ -62,6 +63,8 @@ int main(int argc, char** argv){
   TChain *oldtree = new TChain("T");
   oldtree->Add(Form("%s",ifname.c_str()));
 
+  TTree* oldtree2 =new TTree(ifname.c_str(),"T");
+
   double L_tr_n, L_tr_x[20], L_tr_th[20], L_tr_p[20];
   double R_tr_n, R_tr_x[20], R_tr_th[20], R_tr_p[20];
   double R_s2_trpad[20],L_s2_trpad[20];
@@ -71,6 +74,8 @@ int main(int argc, char** argv){
   UInt_t Nev;
   int Nrun;
 
+
+  
 
   /*
   typedef struct {
@@ -85,9 +90,12 @@ int main(int argc, char** argv){
   fEvtHdr test;
   */
 
+  //  oldtree->SetBranchStatus("*"        ,0);  
+  //  oldtree->SetBranchStatus("fEvtHdr.fEvtNum"        ,1);
 
 
-  EvtHdr* test = new EvtHdr();
+
+    //  EvtHdr* test = new EvtHdr();
   
   oldtree->SetBranchStatus("*",0);
   oldtree->SetBranchStatus("fEvtHdr.fEvtNum"        ,1);  
@@ -489,6 +497,8 @@ int main(int argc, char** argv){
   oldtree->SetBranchStatus("RTDC.F1FirstHit" ,1); oldtree->SetBranchAddress("RTDC.F1FirstHit" ,RF1);
 
 
+  TBranchElement* evID = (TBranchElement*)oldtree->GetBranch("fEvtHdr.fEvtNum");
+
 
   //==== Get Run number =====//
   int nrun;
@@ -528,9 +538,9 @@ int main(int argc, char** argv){
   oldtree->SetBranchStatus("fEvtHdr"   ,1);
   //  oldtree->SetBranchAddress("fEvtHdr" , &test);
 
-  TBranch* evbranch= oldtree->GetBranch("fEvtHdr");
-  oldtree->SetBranchAddress("fEvtHdr" , &test);
-  oldtree->SetBranchAddress("fEvtHdr.fEvtNum" , &test->EvtNum);
+  //  TBranch* evbranch= oldtree->GetBranch("fEvtHdr");
+  //  oldtree->SetBranchAddress("fEvtHdr" , &test);
+  //  oldtree->SetBranchAddress("fEvtHdr.fEvtNum" , &test->EvtNum);
     //    oldtree->SetBranchAddress("fEvtHdr" ,test.EvtTime:test.EvtNum:test.EvtType:test.EvtLen:test.Helicity:test.TargetPol:test.Run);
 
 
@@ -540,7 +550,7 @@ int main(int argc, char** argv){
   newtree->Branch("ltof",ltof,"ltof[10]/D");
   newtree->Branch("runnum",&runnum,"runnum/I");
   newtree->Branch("nev",&nev,"nev/I");
-  newtree->Branch("fEvtHdr",&test,"EvtTime/D:EvtNum/I:EvtType/I:EvtLen/I:Helicity/I:TargetPol/I:Run/I");
+  //  newtree->Branch("fEvtHdr",&test,"EvtTime/D:EvtNum/I:EvtType/I:EvtLen/I:Helicity/I:TargetPol/I:Run/I");
   //  newtree->Branch("fEvtHdr",&test,"test.EvtTime/D:test.EvtNum/I:test.EvtType/I:test.EvtLen/I:test.Helicity/I:test.TargetPol/I:test.Run/I");
 
 
@@ -579,16 +589,18 @@ int main(int argc, char** argv){
     */
 
 
-    test->EvtNum=0;
-    test->EvtTime=0;
-    test->EvtType=0;
-    test->EvtLen=0;
-    test->TargetPol=0;
-    test->Run=0;
+    //    test->EvtNum=0;
+    //    test->EvtTime=0;
+    //    test->EvtType=0;
+    //    test->EvtLen=0;
+    //    test->TargetPol=0;
+    //    test->Run=0;
 
 
     oldtree->GetEntry(n);
-    nev=n;
+    evID->GetEntry(n);
+    nev = evID->GetValue(0,0);
+    //    nev=n;
     /*
     cout<<"n "<<n<<" nev "<<test.EvtNum<<" time "<<test.EvtTime<<" type "<<test.EvtType<<" len "<<test.EvtLen<<" helicity "<<test.Helicity<<" targetPol "<<test.TargetPol<<" run "<<test.Run<<endl;
     */
