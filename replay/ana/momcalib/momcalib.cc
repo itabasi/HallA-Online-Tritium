@@ -233,7 +233,8 @@ int main(int argc, char** argv){
   else   Mom->SetRoot(ifname);
   if(root_flag)Mom->NewRoot(ofname);
   Mom->MakeHist();
-  if(tuning_flag)Mom->EventSelection();
+  //  if(tuning_flag)
+    Mom->EventSelection();
   if(tuning_flag && nite>0)Mom->MomTuning(ofMTPname);
   if(root_flag && ( (tuning_flag && nite>0) || tuning_flag==0)) Mom->Fill();  
   if(root_flag) Mom->Close();  

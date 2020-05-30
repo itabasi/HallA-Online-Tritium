@@ -87,6 +87,7 @@ class momcalib : public tree
   double Eloss(double yp,double z,  char* arm);
   double tune(double* pa, int j, int angflag);   
   double* MixiedEvent(double * coin_acc);
+  void MixedEvent();
   void Fill();
   void Close();
 
@@ -299,12 +300,14 @@ class momcalib : public tree
   bool mom_select;
   int tuned_num;
   double mm;
-  double mm_L;
+  double mm_L,mm_L_b;
+  double mm_L_c;
   double mm_L_pz;
   double mm_acc;
   double mm_pi;
   double MM_nnL,MM_Al;
   double MM_nnL_b,MM_Al_b;
+  double MM_L_b,MM_L;
   double mm_Al,mm_Al_acc,mm_Al_c,mm_Al_acc_c;
   double mm_nnL,mm_nnL_acc,mm_nnL_c,mm_nnL_acc_c;
   double ct;
@@ -468,7 +471,8 @@ void momcalib::NewRoot(string ofname){
   tnew =T->CloneTree(0);
   tnew->Branch("mm", &mm,"mm/D");  
   tnew->Branch("mm_acc", &mm_acc,"mm_acc/D");    
-  tnew->Branch("mm_L", &mm_L,"mm_L/D");
+  tnew->Branch("mm_L", &mm_L_b,"mm_L/D");
+  tnew->Branch("mm_L_c", &mm_L,"mm_L_c/D");
   tnew->Branch("mm_nnL", &mm_nnL,"mm_nnL/D");
   tnew->Branch("Al_tuning", &Al_check,"Al_tuning/B");    
   tnew->Branch("mm_Al", &mm_Al,"mm_Al/D");
@@ -993,8 +997,7 @@ void momcalib::MTParam(string mtparam){
   while(1){
     getline(ifp,buf);
     if( buf[0]=='#' ){ continue; }
-    if( ifp
-.eof() ) break;
+    if( ifp.eof() ) break;
     stringstream sbuf(buf);
     sbuf >>param[s];
     cout<<param[s]<<endl;
@@ -1049,8 +1052,8 @@ void momcalib::MTParam(string mtparam){
 
   }else{
   
-    MT[8] = true; // RHRS momentum correction  
-    MT[9] = true; // LHRS momentum correction  
+    //    MT[8] = true; // RHRS momentum correction  
+    //    MT[9] = true; // LHRS momentum correction  
   ploss = true;  // Energy Loss 
  
   //-------- momentum calibration ---------//
@@ -2730,6 +2733,8 @@ void momcalib::Fill(){
     mm_Al_acc =-2222.0;
     mm_Al_c = -2222.0;
     mm_Al_acc_c = -2222.0;
+    MM_L=-2222.0;
+    MM_L_b=-2222.0;
     mm_nnL =-2222.0;
     mm_nnL_acc=-2222.0;
     mm_nnL_c=-2222.0;
@@ -2747,6 +2752,8 @@ void momcalib::Fill(){
     Dpk=-10;
     RP=-100.;
     LP=-100.;
+    mm_L_b=-2222.0;
+    mm_L=-2222.0;
     //---- Events Flag -----//
     Rs2_flag=false;
     Ls2_flag=false;
@@ -2884,7 +2891,9 @@ void momcalib::Fill(){
    
    MM_nnL_b = (MM_nnL_b - MnnL)*1000.;
    
-
+   MM_L_b = sqrt( (Ee + Mp - Ee_2 - Ek2)*(Ee + Mp - Ee_2 - Ek2)
+		 - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) );
+   MM_L_b = (MM_L_b - ML)*1000.;
 
     // after tuning parameters //
     
@@ -2917,7 +2926,10 @@ void momcalib::Fill(){
    
    MM_nnL = (MM_nnL - MnnL)*1000.;
    
-
+   MM_L = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
+		  - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
+   
+   MM_L = (MM_L - ML)*1000.;
 
     
  //--- Set Coincidence time ---------// 
@@ -3008,7 +3020,8 @@ void momcalib::Fill(){
       mm_nnL_c = MM_nnL;
       
       }else { // hydrogen run
-      mm_L=mm;
+      mm_L=MM_L;
+      mm_L_b=MM_L_b;
       mm_L_pz=mm_pz;
       hmm_cut->Fill((mm-ML)*1000.);
 

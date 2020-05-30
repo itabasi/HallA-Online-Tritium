@@ -39,6 +39,8 @@ extern double Calc_ras(double a,double b,double c){return  a *b + c;};
 extern double calcf2t_ang(double* P,double xf, double xpf, double yf, double fpf,double z);
 extern double calcf2t_mom(double* P, double xf, double xpf, double yf, double ypf, double zt);
 
+bool nnL_mode =false;
+
 
 
 ///////////////////////////////////////////////
@@ -49,6 +51,20 @@ void recon::SetRoot(string ifname){
   ENum=T->GetEntries();
   ENum=100000.;
   cout<<"Get Entries: "<<ENum<<endl;
+
+  for(int i=0;i<10;i++)mat[i]=false;
+  mat[0] = true ; // Rz
+  mat[1] = true ; // Lz
+  mat[2] = true ; // Rras
+  mat[3] = true;  // Lras
+  mat[4] = true;  // Rth
+  mat[5] = true;  //Rph
+  mat[6] = true;  //Lth
+  mat[7] = true;  //Lph
+  mat[8] = true;  //Rp
+  mat[9] = true; // Lp
+
+  
 }
 ///////////////////////////////////////////////
 
@@ -61,17 +77,19 @@ void recon::SetBranch(){
  T->SetBranchAddress("h_ypfp",&R_tr_ph);  
  T->SetBranchAddress("h_xptar",&R_tr_tg_th);
  T->SetBranchAddress("h_yptar",&R_tr_tg_ph);
- 
+ T->SetBranchAddress("Rp_rec",&R_pb);
+ T->SetBranchAddress("Rz",&Rz_rec_b);
  T->SetBranchAddress("e_xfp",&L_tr_x);
  T->SetBranchAddress("e_yfp",&L_tr_y);
  T->SetBranchAddress("e_xpfp",&L_tr_th);
  T->SetBranchAddress("e_ypfp",&L_tr_ph);   
  T->SetBranchAddress("e_xptar",&L_tr_tg_th);
  T->SetBranchAddress("e_yptar",&L_tr_tg_ph);
+ T->SetBranchAddress("Lp_rec",&L_pb);
  T->SetBranchAddress("zposi",&zposi);
+ T->SetBranchAddress("Lz",&Lz_rec_b);
  T->SetBranchAddress("Ein",&Ee);
- T->SetBranchAddress("rasx",&R_Ras_x);
- T->SetBranchAddress("rasx",&L_Ras_x);
+ T->SetBranchAddress("rasx",&rasx);
  T->SetBranchAddress("mmnuc",&mm); 
  
 }
@@ -318,6 +336,7 @@ void recon::Fill(){
     L_tr_vz=-100.;    
     mm= -100.;
     mm_c=-100;
+    mm_b=-100;
     zposi=-100;
     R_p=0.0;
     Rp_x=0.0;
@@ -330,25 +349,63 @@ void recon::Fill(){
     Ee=-100;
     Ee_=-100;
     Ek=-100;
-
-    
+    Eeb =-100.;
+    Ee_b=-100.;
+    Ekb=-100;
+    R_Ras_x=-100;
+    L_Ras_x=-100;
+    rasx=-100.;
+    R_pb=-100.;
+    L_pb=-100.;
+    Rz_rec_b = -100.;
+    Lz_rec_b = -100.;
     T->GetEntry(n);
+
+
+    R_tr_tg_th_b = R_tr_tg_th;
+    R_tr_tg_ph_b = R_tr_tg_ph;
+    L_tr_tg_th_b = L_tr_tg_th;
+    L_tr_tg_ph_b = L_tr_tg_ph;
+
+    R_pb = R_pb/1000.; // MeV to GeV
+    L_pb = L_pb/1000.; // MeV to GeV
+    Eeb  =Ee* 1./1000.; // MeV to GeV
+    Ee  = Ee* 1./1000.; // MeV to GeV    
     //====== convet unit cm to m ====//
     R_tr_x *= cm_to_m;
     R_tr_y *= cm_to_m;
     L_tr_x *= cm_to_m;
     L_tr_y *= cm_to_m;
+    zposi  *= cm_to_m;
+    R_tr_vz = zposi;
+    L_tr_vz = zposi;
+    R_Ras_x = rasx;
+    L_Ras_x = rasx;
+    Rz_rec_b *= cm_to_m;
+    Lz_rec_b *= cm_to_m;
 
-    R_tr_vz = zposi *cm_to_m;
-    L_tr_vz = zposi *cm_to_m;
-    
-    
     Calib();
+    
+    // before momentum calibration //
+
+    Ee_b = sqrt(L_pb*L_pb + Me*Me);
+    Ekb  = sqrt(R_pb*R_pb + MK*MK);
+    
+    TVector3 B_vb(0.0,0.0,sqrt(Eeb*Eeb-Me*Me));
+    TVector3 R_vb(Rp_xb, Rp_yb, Rp_zb);
+    TVector3 L_vb(Lp_xb, Lp_yb, Lp_zb);
+    R_vb.RotateX(   13.2/180.*3.14);
+    L_vb.RotateX( - 13.2/180.*3.14);
+
+    //======================//    
+        
+
 
     
-    Ee  *= 1./1000.; // MeV to GeV
     Ee_ = sqrt(L_p*L_p + Me*Me);
-    Ek = sqrt(R_p*R_p + MK*MK);
+    Ek  = sqrt(R_p*R_p + MK*MK);
+
+    //    cout<<"i "<<n <<" Ee "<<Ee<<" Eeb "<<Eeb<<endl;
     
     TVector3 B_v(0.0,0.0,sqrt(Ee*Ee-Me*Me));
     TVector3 R_v(Rp_x, Rp_y, Rp_z);
@@ -358,20 +415,29 @@ void recon::Fill(){
 
 
 
+
+
+
+    
     if(mm>2.0){
       mm_c = sqrt( (Ee + MTr - Ee_ - Ek)*(Ee + MTr - Ee_ - Ek)
 		   - (B_v - L_v - R_v)*(B_v - L_v - R_v) ); // Tritium
       mm_c = (mm_c - MnnL)*1000.;
       mm = (mm - MnnL)*1000.;
+      mm_b = sqrt( (Eeb + MTr - Ee_b - Ekb)*(Eeb + MTr - Ee_b - Ekb)
+		   - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) ); // Tritium
+      mm_b = (mm_b - MnnL)*1000.;
+      
     }else{
       mm_c = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
 		   - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
       mm_c = (mm_c - ML)*1000.;
       mm   = (mm - ML)*1000.;
+      mm_b = sqrt( (Eeb + Mp - Ee_b - Ekb)*(Eeb + Mp - Ee_b - Ekb)
+		   - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) ); // Tritium
+      mm_b = (mm_b - ML)*1000.;      
     }
     
-    
-
 
     
     tnew->Fill();
@@ -387,11 +453,20 @@ void recon::Fill(){
 
 void recon::Calib(){
 
-  // ==== Initialization ======//
+  
+    // ==== Initialization ======//
   R_p = 0.0;
   L_p = 0.0;
+  //R_tr_vz = 0.0;
+  //L_tr_vz = 0.0;  
+  // test Rz, Lz reconstruct
+  //  R_tr_vz = Rz_rec_b;
+  //  L_tr_vz = Lz_rec_b;
 
+  //  cout<<" zposi  "<<zposi/100.<<endl;
 
+  
+  
   //======= Nomalization ==================//
   R_tr_x    = (R_tr_x-XFPm)/XFPr;
   R_tr_th   = (R_tr_th-XpFPm)/XpFPr;
@@ -415,76 +490,81 @@ void recon::Calib(){
 
   //========================================//
   
-  R_tr_vz   = calcf2t_zt(Pzt, R_tr_x, R_tr_th, R_tr_y, R_tr_ph); // nomalized
-  L_tr_vz   = calcf2t_zt(Pzt_L, L_tr_x, L_tr_th, L_tr_y, L_tr_ph); //nomalized
+  if(mat[0])  R_tr_vz   = calcf2t_zt(Pzt, R_tr_x, R_tr_th, R_tr_y, R_tr_ph); // nomalized
+  if(mat[1])  L_tr_vz   = calcf2t_zt(Pzt_L, L_tr_x, L_tr_th, L_tr_y, L_tr_ph); //nomalized
 
 
     //======== Raster Correction ==========================//    
 
 
   // convert units mm to ch //
-  R_Ras_x = (R_Ras_x)*(88650 -56600)/0.18 + (88650 -56600)/2.0 ;
-  R_Ras_x = (R_Ras_x)*(95000 -60200)/0.18 + (95000 -60200)/2.0 ;
+  R_Ras_x = (R_Ras_x)*(88650 -56600)/0.18 + (88650 + 56600)/2.0 ;
+  L_Ras_x = (L_Ras_x)*(95000 -60200)/0.18 + (95000 + 60200)/2.0 ;
   
-    R_tr_vz  = R_tr_vz*Ztr +Ztm; // scaled
-    RasterCor= Calc_ras(R_Ras_x, Pras[2], Pras[0]);
-    RasterCor = RasterCor/tan(hrs_ang);
-    R_tr_vz  = R_tr_vz + RasterCor; // correction
-    R_tr_vz  = (R_tr_vz-Ztm)/Ztr;    // nomalization     
-    L_tr_vz  = L_tr_vz*Ztr +Ztm;     // scaled
-    RasterCor_L = Calc_ras(L_Ras_x, Pras_L[2], Pras_L[0]);
-    RasterCor_L = RasterCor_L/tan(hrs_ang);
-    L_tr_vz  = L_tr_vz + RasterCor_L;
-    L_tr_vz  =  (L_tr_vz  -  Ztm)/Ztr;    // nomalization
+  R_tr_vz  = R_tr_vz*Ztr +Ztm; // scaled
+  RasterCor= Calc_ras(R_Ras_x, Pras[2], Pras[0]);
+  RasterCor = RasterCor/tan(hrs_ang);
+  if(mat[2])R_tr_vz  = R_tr_vz + RasterCor; // correction
+  R_tr_vz  = (R_tr_vz-Ztm)/Ztr;    // nomalization     
+  L_tr_vz  = L_tr_vz*Ztr +Ztm;     // scaled
+  RasterCor_L = Calc_ras(L_Ras_x, Pras_L[2], Pras_L[0]);
+  RasterCor_L = RasterCor_L/tan(hrs_ang);
+  if(mat[3])L_tr_vz  = L_tr_vz + RasterCor_L;
+  L_tr_vz  =  (L_tr_vz  -  Ztm)/Ztr;    // nomalization
+ 
 
-    //====================================================//
-
-    
-
-
-    R_tr_tg_th  = calcf2t_ang(Pxpt,   R_tr_x, R_tr_th, R_tr_y, R_tr_ph,R_tr_vz); // nomalized
-    R_tr_tg_ph  = calcf2t_ang(Pypt,   R_tr_x, R_tr_th, R_tr_y, R_tr_ph,R_tr_vz); // nomalized
-    L_tr_tg_th  = calcf2t_ang(Pxpt_L, L_tr_x, L_tr_th, L_tr_y, L_tr_ph, L_tr_vz); // nomalized
-    L_tr_tg_ph  = calcf2t_ang(Pypt_L, L_tr_x, L_tr_th, L_tr_y, L_tr_ph, L_tr_vz); // nomalized   
-
-    R_p = calcf2t_mom(Opt_par_R, R_tr_x, R_tr_th, R_tr_y, R_tr_ph,R_tr_vz);
-    L_p = calcf2t_mom(Opt_par_L, L_tr_x, L_tr_th, L_tr_y, L_tr_ph,L_tr_vz);
-
-
-    
-    //========== Scaled at FP ==================//
-    R_tr_x  = R_tr_x  * XFPr + XFPm;
-    R_tr_th = R_tr_th * XpFPr + XpFPm;
-    R_tr_y  = R_tr_y  * YFPr + YFPm;
-    R_tr_ph = R_tr_ph * YpFPr + YpFPm;
-
-    L_tr_x  = L_tr_x  * XFPr + XFPm;
-    L_tr_th = L_tr_th * XpFPr + XpFPm;
-    L_tr_y  = L_tr_y  * YFPr + YFPm;
-    L_tr_ph = L_tr_ph * YpFPr + YpFPm;    
-
-    //=========== Scaled at Taget =============//
-
-    R_tr_vz     = R_tr_vz * Ztr + Ztm; // scaled
-    R_tr_tg_th  = R_tr_tg_th * Xptr + Xptm; // scaled
-    R_tr_tg_ph  = R_tr_tg_ph * Yptr + Yptm; // scaled
-    R_p             = R_p * PRr + PRm; // scaled
-    L_tr_vz     = L_tr_vz * Ztr + Ztm; // scaled
-    L_tr_tg_th  = L_tr_tg_th * Xptr + Xptm;  // scaled    
-    L_tr_tg_ph  = L_tr_tg_ph * Yptr + Yptm;  // scaled    
-    L_p             = L_p * PLr + PLm; // scaled    
-    
+  //====================================================//
 
 
 
+  
+  if(mat[4])  R_tr_tg_th  = calcf2t_ang(Pxpt,   R_tr_x, R_tr_th, R_tr_y, R_tr_ph,R_tr_vz); // nomalized
+  if(mat[5]) R_tr_tg_ph  = calcf2t_ang(Pypt,   R_tr_x, R_tr_th, R_tr_y, R_tr_ph,R_tr_vz); // nomalized
+  if(mat[6]) L_tr_tg_th  = calcf2t_ang(Pxpt_L, L_tr_x, L_tr_th, L_tr_y, L_tr_ph, L_tr_vz); // nomalized
+  if(mat[7]) L_tr_tg_ph  = calcf2t_ang(Pypt_L, L_tr_x, L_tr_th, L_tr_y, L_tr_ph, L_tr_vz); // nomalized   
+
+  //test //
+  //  R_tr_tg_ph *= -1.0;
+  //  L_tr_tg_ph *= -1.0;
+  
+  if(mat[8]) R_p = calcf2t_mom(Opt_par_R, R_tr_x, R_tr_th, R_tr_y, R_tr_ph,R_tr_vz);
+  if(mat[9]) L_p = calcf2t_mom(Opt_par_L, L_tr_x, L_tr_th, L_tr_y, L_tr_ph,L_tr_vz);
+  
+
+  
+  //========== Scaled at FP ==================//
+  R_tr_x  = R_tr_x  * XFPr + XFPm;
+  R_tr_th = R_tr_th * XpFPr + XpFPm;
+  R_tr_y  = R_tr_y  * YFPr + YFPm;
+  R_tr_ph = R_tr_ph * YpFPr + YpFPm;
+  
+  L_tr_x  = L_tr_x  * XFPr + XFPm;
+  L_tr_th = L_tr_th * XpFPr + XpFPm;
+  L_tr_y  = L_tr_y  * YFPr + YFPm;
+  L_tr_ph = L_tr_ph * YpFPr + YpFPm;    
+  
+  //=========== Scaled at Taget =============//
+  
+  R_tr_vz     = R_tr_vz * Ztr + Ztm; // scaled
+  R_tr_tg_th  = R_tr_tg_th * Xptr + Xptm; // scaled
+  R_tr_tg_ph  = R_tr_tg_ph * Yptr + Yptm; // scaled
+  R_p             = R_p * PRr + PRm; // scaled
+  L_tr_vz     = L_tr_vz * Ztr + Ztm; // scaled
+  L_tr_tg_th  = L_tr_tg_th * Xptr + Xptm;  // scaled    
+  L_tr_tg_ph  = L_tr_tg_ph * Yptr + Yptm;  // scaled    
+  L_p             = L_p * PLr + PLm; // scaled    
+  
+
+  //  if(mat[1])  L_tr_vz *= -1.0; // test
+  //  cout<<"Rz  "<<R_tr_vz<<" Lz "<<L_tr_vz<<endl;
     
     // Lp = 2.2 GeV mode //
-    L_p=2.21807/2.1*L_p;
-
+  if(nnL_mode) L_p=2.21807/2.1*L_p;
+  if(nnL_mode) L_pb=2.21807/2.1*L_pb;
 
     double dpe = Eloss(0,0,"B");
     double dpk = Eloss(R_tr_tg_ph,R_tr_vz,"R");
-    double dpe_= Eloss(R_tr_tg_ph,L_tr_vz,"L");
+    double dpe_= Eloss(L_tr_tg_ph,L_tr_vz,"L");
 
 
     Ee += dpe;
@@ -495,6 +575,23 @@ void recon::Calib(){
     
       //==== Right Hand Coorinate ====//
 
+    // before momentum calibration //
+
+    //  Eeb  += dpe;
+    //  R_pb += dpk;
+    //  L_pb += dpe_;    
+    
+    Lp_zb = L_pb/sqrt(1.0*1.0 + tan(L_tr_tg_th)*tan(L_tr_tg_th) + tan(L_tr_tg_ph)*tan(L_tr_tg_ph));
+    Rp_zb = R_pb/sqrt(1.0*1.0 + tan(R_tr_tg_th)*tan(R_tr_tg_th) + tan(R_tr_tg_ph)*tan(R_tr_tg_ph));
+
+
+    Lp_xb = Lp_zb*    tan( L_tr_tg_th );
+    Lp_yb = Lp_zb*    tan( L_tr_tg_ph );
+    Rp_xb = Rp_zb*    tan( R_tr_tg_th );
+    Rp_yb = Rp_zb*    tan( R_tr_tg_ph ); 
+    
+
+    // after momentum calibration  //
     Lp_z = L_p/sqrt(1.0*1.0 + tan(L_tr_tg_th)*tan(L_tr_tg_th) + tan(L_tr_tg_ph)*tan(L_tr_tg_ph));
     Rp_z = R_p/sqrt(1.0*1.0 + tan(R_tr_tg_th)*tan(R_tr_tg_th) + tan(R_tr_tg_ph)*tan(R_tr_tg_ph));
 
@@ -605,15 +702,26 @@ void recon::NewRoot(string ofname){
   tnew=new TTree("T","Momentum matrix tuning");
   tnew =T->CloneTree(0);
   tnew->Branch("mm", &mm_c,"mm/D");
-  tnew->Branch("Rp_rec", &R_p,"Rp_rec/D");
-  tnew->Branch("Lp_rec", &L_p,"Lp_rec/D");
+  tnew->Branch("mm_b", &mm_b,"mm_b/D");
+  tnew->Branch("Rp", &R_pb,"Rp/f");
+  tnew->Branch("Lp", &L_pb,"Lp/f");
+  tnew->Branch("Rth", &R_tr_tg_th_b,"Rth/f");
+  tnew->Branch("Lth", &L_tr_tg_th_b,"Lth/f");
+  tnew->Branch("Rph", &R_tr_tg_ph_b,"Rph/f");
+  tnew->Branch("Lph", &L_tr_tg_ph_b,"Lph/f");  
+  tnew->Branch("Rp_rec_c", &R_p,"Rp_rec/f");
+  tnew->Branch("Lp_rec_c", &L_p,"Lp_rec/f");
   tnew->Branch("Rz_rec", &R_tr_vz,"Rz_rec/f");
   tnew->Branch("Lz_rec", &L_tr_vz,"Lz_rec/f");
+  tnew->Branch("Rz_rec_b", &Rz_rec_b,"Rz_rec_b/f");  
+  tnew->Branch("Lz_rec_b", &Lz_rec_b,"Lz_rec_b/f");
   tnew->Branch("Rth_rec", &R_tr_tg_th,"Rth_rec/f");
   tnew->Branch("Lth_rec", &L_tr_tg_th,"Lth_rec/f");
   tnew->Branch("Rph_rec", &R_tr_tg_ph,"Rph_rec/f");
   tnew->Branch("Lph_rec", &L_tr_tg_ph,"Lph_rec/f");
-  
+  tnew->Branch("Rrasx_rec", &R_Ras_x,"Rrasx_rec/f");
+  tnew->Branch("Lrasx_rec", &L_Ras_x,"Lrasx_rec/f");
+
 }
 
 ///////////////////////////////////////////////////////////

@@ -95,9 +95,9 @@ class zcalib : public tree{
    char tempc[500];
 
    //=====Event Selction =======//
-     bool rtrig = false;
+  bool rtrig = false;
   bool ltrig = false;
-
+  bool PID_flag=false;
    //===== Tuning ========//
 
   int evshift = 3000;
@@ -328,13 +328,14 @@ void zcalib::EventSelection(bool rarm){
     trig5 = 0.0;
     rtrig = false;
     ltrig = false;
-    
+    PID_flag=false;
 
     
     if(i+evshift<ENum) t1->GetEntry(i+evshift);
     else t1->GetEntry(i+evshift-ENum);
     
     if(trig4>1.0) rtrig = true;
+    //if(trig5>1.0) rtrig = true;
     else rtrig = false;
     if(trig1>1.0) ltrig = true;
     else ltrig = false;
@@ -357,6 +358,11 @@ void zcalib::EventSelection(bool rarm){
 
     
 
+
+    
+    //====== cut condition ======//
+
+    
     if(
        ( (rtrig==true && rarm==true) //R-HRS tuning
        ||(ltrig==true && rarm==false)) //L-HRS tuning
@@ -367,7 +373,7 @@ void zcalib::EventSelection(bool rarm){
        ){
 
 
-         h1->Fill(ztR[0]); 
+      h1->Fill(ztR[0]); 
       
       XFP  = (XFP-XFPm)/XFPr;
       XpFP = (XpFP-XpFPm)/XpFPr;
