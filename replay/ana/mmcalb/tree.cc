@@ -46,8 +46,10 @@ void tree::SetBranch(){
  T->SetBranchStatus("*",0);  
  T->SetBranchStatus("DR.evtype",1);
  T->SetBranchAddress("DR.evtype",&DRevtype); 
- // T->SetBranchStatus("fEvtHdr.fRun",1);
- // T->SetBranchAddress("fEvtHdr.fRun",&runnum); 
+ T->SetBranchStatus("fEvtHdr.fRun",1);
+ T->SetBranchAddress("fEvtHdr.fRun",&runnum);
+ T->SetBranchStatus("nev",1);
+ T->SetBranchAddress("nev",&nevent);
  T->SetBranchStatus("HALLA_p",1);
  T->SetBranchAddress("HALLA_p",&hallap); 
  //------------------------------// 

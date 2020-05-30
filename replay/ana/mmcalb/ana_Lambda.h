@@ -50,13 +50,31 @@ struct TreeBranch{
   double LXt,LYt,LXpt,LYpt;
   double Lp[100],Rp[100],Bp;
   double Lp_c[100],Rp_c[100],Bp_c;  
-  double dpe,dpe_[100],dpk[100];
+  double Rp_mix[10];
+  double dpe,dpe_,dpk;
   int Rs2_pad[100],Ls2_pad[100];
   double RS2T_F1[16],RS2B_F1[16],RS2T_ref,RS2B_ref,RS2T_F1_c[16],RS2B_F1_c[16],RS2T_F1_b[16],RS2B_F1_b[16];
   double LS2T_F1[16],LS2B_F1[16],LS2T_ref,LS2B_ref,LS2T_F1_c[16],LS2B_F1_c[16],LS2T_F1_b[16],LS2B_F1_b[16];
   double Rtof[100],Ltof[100];
   int ntrack_r,ntrack_l;
   double Rpathl,Lpathl,Rpathl_c,Lpathl_c;
+  double zR_b,RXpt_b,RYpt_b,momR_b,zL_b,LXpt_b,LYpt_b,momL_b;
+  int nmixed=10;
+  
+  double R_tr_p_mix[10];
+  double R_tr_px_mix[10];
+  double R_tr_py_mix[10];
+  double R_tr_pz_mix[10];
+  double R_tr_th_mix[10];
+  double R_tr_ph_mix[10];
+  
+  //  double L_tr_p_mix[10];
+  //  double R_tr_th_mix[10];
+  //  double R_tr_ph_mix[10];
+
+  
+  double mixed_acc[10];
+  double mm_mixed[10];
   //int runnum;
 };
 static TreeBranch tr;
@@ -78,6 +96,7 @@ class ana : public Tree
   public:
     void ReadParam(string name);
     void Loop();
+    void Loop_c();
     void Draw();
     void Swich(bool nnL,bool scale);
     bool Close();
@@ -101,6 +120,7 @@ class ana : public Tree
     double CoinCalc_gogami(int RS2_seg, int LS2_seg, int rhit, int lhit);
   //    double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
   double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
+  void MixedEvent(int rt, int lt);
  private:
     int ENumMax;
     int ENum;
@@ -268,6 +288,22 @@ public:
 		     5274.63, 5291.02, 5259.66, 5305.42, 5262.97, 5333.76, 5275.35, 5190.67, 5303.03, 5414.55, 5224.28, 5320.19, 5253.68, 5242.92, 5219.99, 5296.6, 5345.91, 5357.9};
 
 
+
+   int nmixed=10;
+  
+  double R_tr_p_mix[10];
+  double R_tr_px_mix[10];
+  double R_tr_py_mix[10];
+  double R_tr_pz_mix[10];
+  double R_tr_th_mix[10];
+  double R_tr_ph_mix[10];
+  double L_tr_p_mix[10];
+  double L_tr_th_mix[10];
+  double L_tr_ph_mix[10];
+  double mixed_acc[10];
+  double mm_mix[10];
+
+  
 };
 
 #endif

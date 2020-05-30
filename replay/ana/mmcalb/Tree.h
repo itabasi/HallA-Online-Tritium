@@ -56,6 +56,7 @@ public:
 //// Event num & Run num ///
 //  double runnum;
   int runnum;
+  int nevent;
   double evid;
   double HALL_p;
   

@@ -28,6 +28,7 @@ class tree{
   
   double runnum;
   double hallap;
+  int nevent;
   double DRevtype;
   //----- Scintillation Triger Counters -------// 
   double RF1[Max],LF1[Max];

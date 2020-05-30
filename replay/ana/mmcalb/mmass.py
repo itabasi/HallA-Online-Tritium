@@ -25,8 +25,8 @@ nworkers=8
 
 #####################################
 date=datetime.date.today()
-#matrix="../matrix/matrix_new.list"
-matrix="../matrix/matrix_test.list"
+matrix="../matrix/matrix_new.list"
+#matrix="../matrix/matrix_test.list"
 #matrix="../matrix/matrix_wAl.list"
 #matrix="../matrix/matrix_wAl_25.list"
 #matrix="../matrix/matrix_test.list"
