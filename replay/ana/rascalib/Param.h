@@ -15,12 +15,14 @@ const double  PLm = 25.4, PLr=0.7;
 const double  Ztm = -0.15,Ztr=0.35; 
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
-const int nnz=3; // 3rd order matrix
+
 const int nn = 4; // 4th order matrix using xf, xpf, y, ypf, and zt
 const int nras=2; // 2nd order matrix
 
 const int nParamT = 126;  // Number of parameters
-const int nParamTz =35;   //Number of z parameters
+
+const int nnz=5; // 3rd order matrix
+const int nParamTz =126;   //Number of z parameters
 const int nParamTx=4;
 const int nParamTy=4;
 const int nParamT_ras=4;  //Nunmber of Raster parameters

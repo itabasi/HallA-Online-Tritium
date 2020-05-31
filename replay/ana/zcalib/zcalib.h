@@ -210,7 +210,7 @@ void zcalib::MakeHist(){
 
 
 
-//==================== Mzt =============================//
+//==================== Mzt=============================//
 void zcalib::Mzt(string matrix_name, bool rarm){
 
   if(rarm==true){
@@ -222,6 +222,8 @@ void zcalib::Mzt(string matrix_name, bool rarm){
   sprintf(name_Mzt,matrix_name.c_str()); // optimized
   ifstream Mzt(name_Mzt);
   cout<<"matrix file: "<<name_Mzt<<endl;
+  cout<<"order "<<nnz<<"nParamTz "<<nParamTz<<endl;
+  
   //double Plenopt[nParamTz];
   for (int i=0;i<nParamTz;i++){
     double par=0.;
