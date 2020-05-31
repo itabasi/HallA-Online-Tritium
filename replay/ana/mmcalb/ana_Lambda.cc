@@ -921,32 +921,31 @@ void ana::MixedEvent(int rt, int lt){
     R_tr_pz_mix[i] = R_tr_pz_mix[i+1];
     R_tr_th_mix[i] = R_tr_th_mix[i+1];
     R_tr_ph_mix[i] = R_tr_ph_mix[i+1];
-
+    
   }
-
+  
   R_tr_p_mix[nmixed-1]   = R_p;
   R_tr_px_mix[nmixed-1]  = R_px;
   R_tr_py_mix[nmixed-1]  = R_py;
   R_tr_pz_mix[nmixed-1]  = R_pz;
-    
+  
   R_tr_th_mix[nmixed-1] = R_tr_tg_th[rt];
   R_tr_ph_mix[nmixed-1] = R_tr_tg_ph[rt];
-
-
+  
+  
   double Ee;
   Ee =sqrt(B_p*B_p + Me*Me);
   double L_E[nmixed],R_E[nmixed];
-
+  
 
   
- 
   TVector3 L_v_mix[nmixed], R_v_mix[nmixed], B_v_mix[nmixed]; 
   double mass_mix[nmixed];
   
   for(int i=0;i<nmixed;i++){
 
    L_E[i]     = sqrt( Me*Me + L_p*L_p );
-   R_E[i]     = sqrt( MK*MK + R_tr_p[i]*R_tr_p[i] );
+   R_E[i]     = sqrt( MK*MK + R_tr_p_mix[i]*R_tr_p_mix[i] );
     
     B_v_mix[i].SetXYZ(0.0,0.0,B_p);
     L_v_mix[i].SetXYZ(L_px, L_py, L_pz);
@@ -957,7 +956,8 @@ void ana::MixedEvent(int rt, int lt){
     mass_mix[i]=-10000.0;
     mass_mix[i] = sqrt( (Ee + mt - L_E[i] - R_E[i])*(Ee + mt - L_E[i] - R_E[i])
 			- (B_v_mix[i] - L_v_mix[i] - R_v_mix[i])*(B_v_mix[i] - L_v_mix[i] - R_v_mix[i]) );
-    
+
+    //    cout<<" mass_mix "<<mass_mix[i]<<" mh "<<mh<<" i "<<i<<endl;
     mm_mix[i]=mass_mix[i] - mh;
     mm_mix[i]=mm_mix[i]*1000.; // GeV -> MeV  
 
@@ -965,7 +965,7 @@ void ana::MixedEvent(int rt, int lt){
     tr.R_tr_th_mix[i]=R_tr_th_mix[i];
     tr.R_tr_ph_mix[i]=R_tr_ph_mix[i];
     
-    if(fabs(mm_mix[i])<10000.)
+    if(fabs(mm_mix[i])>10000.)
     tr.mm_mixed[i] = -10000.;
     else
       tr.mm_mixed[i] = mm_mix[i];
@@ -2616,10 +2616,10 @@ void ana::Loop_c(){
 	  
 	  
 	  
-        } // for NRtr
-      } // for NLtr
-    } // if LHRS && RHRS
-    
+      } // for NRtr
+    } // for NLtr
+  } // if LHRS && RHRS
+  
  
  			    
 			     
