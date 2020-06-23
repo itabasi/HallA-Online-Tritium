@@ -426,9 +426,10 @@ void angcalib::SSHole(string paramname, bool rarm){
   ifstream ifp(paramname.c_str());
   string buf;
   int hole, foil;
-   double ssy_cent_real[nrow];
-   double ssx_cent_real[ncol];
+   double ssy_cent_real[ncol];
+   double ssx_cent_real[nrow];
 
+   
 
    for(int i=0;i<nfoil;i++){
      for(int j=0;j<nsshole;j++){
@@ -446,10 +447,9 @@ void angcalib::SSHole(string paramname, bool rarm){
 
 
 
-   
    while(getline(ifp, buf)){
      if( buf[0]=='#' ){ continue; }
-     if( ifp.eof() ) break;	
+     if( ifp.eof()) break;	
      hole=0; foil=0; 
      stringstream sbuf;
      sbuf <<buf;
@@ -458,43 +458,48 @@ void angcalib::SSHole(string paramname, bool rarm){
 
      sbuf >> foil >> hole >> flag >> a >> b >> c;
 
+
      w[foil][hole] = a;
      ssx_off[hole][foil] = b;
      ssy_off[hole][foil] = c;
-
     if(flag==1)TFlag[hole][foil]=true;
     else if(flag==0)TFlag[hole][foil]=false;
-    
+
+    if( hole==nsshole-1) break;	
 
     
   }//while
-  
 
+
+   nhole=0;
   
    for(int i=0; i<ncol ; i++){
-    for(int j=0; j<nrow; j++){
-      ssy_cent_real[i] = -3.0*step + step*i;
-      if(j%2==0)ssy_cent_real[i] = ssy_cent_real[i] - step/2.0;
-      ssx_cent_real[j] = 5.0*step - step*j;
-      refx[nhole] = ssx_cent_real[j];
-      refy[nhole] = ssy_cent_real[i];
+     for(int j=0; j<nrow; j++){
+
+       ssy_cent_real[i] = -3.0*step + step*i;
+       if(j%2==0){ssy_cent_real[i] = ssy_cent_real[i] - step/2.0;}
+       ssx_cent_real[j] = 5.0*step - step*j;
+       refx[nhole] = ssx_cent_real[j];
+       refy[nhole] = ssy_cent_real[i];
+
       mark[nhole] = new TMarker(refy[nhole],refx[nhole],28);
       mark[nhole]->SetMarkerColor(1);
 
       for(int k=0;k<nfoil;k++){
-
-      refx_real[nhole][k] =refx[nhole] + ssx_off[nhole][k];
-      refy_real[nhole][k] =refy[nhole] + ssy_off[nhole][k];      
-      mark_real[nhole][k] =new TMarker(refy_real[nhole][k],refx_real[nhole][k],20);
-      mark_real[nhole][k] -> SetMarkerColor(1);
+	refx_real[nhole][k] =refx[nhole] + ssx_off[nhole][k];
+	refy_real[nhole][k] =refy[nhole] + ssy_off[nhole][k];      
+	mark_real[nhole][k] =new TMarker(refy_real[nhole][k],refx_real[nhole][k],20);
+	mark_real[nhole][k] -> SetMarkerColor(1);
 
       }
 
-      nhole++;
 
-      
-    }
+      nhole++;
+     }
   }
+
+
+   
       for(int k=0;k<nfoil;k++){
 
 	mark_real[38][k]->SetMarkerColor(2);
@@ -775,10 +780,10 @@ void angcalib::EventSelect(bool rarm){
 	}
 	  } //for (j)
 	}
-	
-   if(i % (d.quot*1000) == 0)cout<<i<<" / "<<ent<<endl;
-   if(ntune_event >= nmax && BreakTrue)break;
-   
+
+    if(i % (d.quot*1000) == 0)cout<<i<<" / "<<ent<<endl;
+    if(ntune_event >= nmax && BreakTrue)break;
+
   }
   
   
@@ -946,9 +951,10 @@ void angcalib::Fill(bool rarm){
 
   ent=t2->GetEntries();
   d=div(ent,10000);
+  //  ent=100000; //test
   cout<<"Event: "<<ent<<endl;
   cout<<"RHRS mode "<<RHRSTrue<<endl;
-  
+ 
   // ----- Initialization ------- //
   for (int i=0 ; i< ent ; i++){
     
@@ -1031,7 +1037,9 @@ void angcalib::Fill(bool rarm){
     h1->Fill(Ypt[0],Xpt[0]);
     hth->Fill(Xpt[0]);
 
-    
+
+
+    //    cout<<" zt "<<Zt[0]<<endl;  //test
     XFP[0]  = (XFP[0]-XFPm)/XFPr;
     XpFP[0] = (XpFP[0]-XpFPm)/XpFPr;
     YFP[0]  = (YFP[0]-YFPm)/YFPr;
@@ -1071,7 +1079,6 @@ void angcalib::Fill(bool rarm){
 
 
 
-    
     Xpt[0]  = Xpt[0]*Xptr +Xptm; // scaled
     Ypt[0]  = Ypt[0]*Yptr +Yptm; // scaled    
     Xpt_tuned[0]  = Xpt_tuned[0]*Xptr +Xptm; // scaled   
@@ -1079,7 +1086,7 @@ void angcalib::Fill(bool rarm){
     Zt[0]   = Zt[0]*Ztr +Ztm; //scaled
 
 
-    
+    //    cout<<" zt_c "<<Zt[0]<<endl;  //test
     
     hth_c->Fill(Xpt[0]);
     

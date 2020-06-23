@@ -32,9 +32,10 @@ double Lam_max = 195.942;
 //const int nParamTp=252;
 //const int nnp=4;// 4th order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=126;
-
-int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
-int nParamTp=56;
+int nnp=5;// 5th order matrix using xf, xpf, yf, ypf, and zt
+int nParamTp=252;
+//int nnp=3;// 3th order matrix using xf, xpf, yf, ypf, and zt
+//int nParamTp=56;
 //const int nnp=2;// 2nd order matrix using xf, xpf, yf, ypf, and zt
 //const int nParamTp=21;
 
@@ -47,8 +48,10 @@ int nParamTp=56;
 //const int nParamT = 126;  // Number of parameters
 const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
 const int nParamT = 252;  // Number of parameters in angles
-const int nnz =3;
-const int nParamTz=35;
+//const int nnz =3;
+//const int nParamTz=35;
+const int nnz =5;
+const int nParamTz=126;
 const int nParamT_ras=4;
 //const int nParamTp2=nParamTp*2;
 ///==== MTtuning =====//
@@ -67,7 +70,7 @@ double Prp[nParamT],Plp[nParamT];
 double Opt_par_R[nParamT];
 double Opt_par_L[nParamT];
 double Opt_par[nParamT*2];
-
+double Opt_scale;
 double OptPar1[nParamT];
 double OptPar2[nParamT];
 
@@ -148,9 +151,11 @@ const  double s2_offset=-499.75;
 //double coin_offset=464.13; // H1 mode
 //const double a1_th=50;
 //const double a2_th=2000;
-const double a1_th=200;
-const double a2_th=1000; 
+//const double a1_th=200;
+//const double a2_th=1000; 
 //const double a1_th=400;
-//const double a2_th=600; 
+//const double a2_th=600;
+const double a1_th=1.0;
+const double a2_th=3.0; 
 
 #endif

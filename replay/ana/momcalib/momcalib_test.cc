@@ -23,7 +23,6 @@ using namespace std;
 #include <TLatex.h>
 #include <TText.h>
 #include <TStyle.h>
-#include <TROOT.h>
 #include <TGraphErrors.h>
 #include <TProfile.h>
 #include <TSystem.h>
@@ -44,11 +43,11 @@ int main(int argc, char** argv){
 
   gStyle->SetOptFit(111111111);
   int ch; char* mode="C";
-  //  double tdc_time=58.0e-3;//[ns]
-  string ifname = "/data1/rootfiles/tritium_111721.root";
-  string ofname = "ang_rhrs.root";
-  string matrix_name="./matrix /momcalib_matrix.dat";
-  string ofMTPname="./matrix/momcalib_test.dat";
+
+  string ifname = "../rootfiles/momcalib/test.root";
+  string ofname = "../rootfiles/momcalib/test.root";
+  string matrix_name="./matrix/momcalib_matrix.list";
+  string ofMTPname="./matrix/test/test.dat";
   string opt_file="./scale_offset_20190210.dat";  
   string iteration;
   bool output_flag = false;
@@ -56,7 +55,6 @@ int main(int argc, char** argv){
   bool draw_flag = false;
   bool root_flag=false;
   bool matrix_flag=false;
-  // bool RHRS_flag=true;
   bool RHRS_flag=false; 
   bool tuning_flag=false;
   string pngname;
@@ -64,14 +62,18 @@ int main(int argc, char** argv){
   char* Target="H";
   string F1tdc="1";
   int f1tdc=1;
-  //  char *root_init="/w/halla-scifs17exp/triton/itabashi/rootfiles/calib_root/";//ifarm
+  bool Al1=false;
+  bool Al_MODE=false;
+  int nmatrix;
+  bool nmatrix_flag=false;
   string root_init="../rootfiles/";
   string root_end=".root";
   string dat_init="../matrix/";
   string dat_end=".dat";
-  string matrix="matrix/zt_RHRS_2.dat";
-  
-  while((ch=getopt(argc,argv,"h:s:w:t:p:f:x:r:y:m:o:O:i:RLbcop"))!=-1){
+  string matrix="matrix/test/test.dat";
+  string weight;
+  double weight_Alminum=1.0;
+  while((ch=getopt(argc,argv,"h:s:w:W:t:p:f:n:r:m:o:O:l:i:ARILbcop"))!=-1){
     switch(ch){
       
       
@@ -87,6 +89,7 @@ int main(int argc, char** argv){
       ifname = optarg;
       cout<<"output root filename : "<<ofname<<endl;      
       break;      
+
 
       
     case 'r':
@@ -105,6 +108,10 @@ int main(int argc, char** argv){
 
       
     case 'm':
+
+      matrix_name =optarg;
+
+      /*
       mode  = optarg;
       if(mode=="C")cout<<"Both arm momentum tuning "<<endl;
       if(Target=="L")cout<<"LHRS momentum tuning "<<endl;
@@ -115,9 +122,21 @@ int main(int argc, char** argv){
 	cout<<"Both arm momentum tuning && Initial matrix"<<endl;
 	Initial=true;
       }
-      
+      */
+
+
       break;
-      
+
+    case 'I':
+      	cout<<"Both arm momentum tuning && Initial matrix"<<endl;
+	Initial=true;
+	break;
+	
+    case 'n':
+      nmatrix= atoi(optarg);
+      nmatrix_flag=true;
+
+      break;
 
     case 'O':
       F1tdc= optarg;
@@ -127,7 +146,6 @@ int main(int argc, char** argv){
       //if F1tdc=3 tdc resolution 0.058 & Lp scale ON
       cout<<"F1 resolution mode : "<<f1tdc<<endl;      
       break;
-
 
       
     case 'w':
@@ -155,6 +173,23 @@ int main(int argc, char** argv){
       cout<<"output root filename : "<<ofname<<endl;      
       cout<<"output new parameter filename : "<<ofMTPname + ".dat"<<endl;      
       break;
+
+    case 'A':
+      Al1=true;
+      break;      
+
+    case 'l':
+      weight = optarg;
+      weight_Alminum = stod(weight);
+      if(weight_Alminum<1.)weight_Alminum=1.0;
+      if(Al1)Al_MODE=true;
+      cout<<"Al events tuning mode "<<endl;
+      cout<<"Al weight : "<<weight_Alminum<<endl;
+      mode="Al";
+      break;      
+
+
+
       
     case 'b':
       draw_flag = false;
@@ -166,15 +201,15 @@ int main(int argc, char** argv){
       break;
       
 
-
     case 'h':
       cout<<"-f : input root  filename"<<endl;
-      cout<<"-p : input matrix filename"<<endl;      
+      cout<<"-m : input matrix filename"<<endl;      
       cout<<"-w : output matrix filename"<<endl;
       cout<<"-r : output root filename"<<endl;
-      cout<<"-t : target mode H:hydrogen T:trititum"<<endl;
-      cout<<"-m : tuning mode C:R&L-HRS, L:L-HRS, R:R-HRS "<<endl;      
+      cout<<"-Al: w/ Al events mode    "<<endl;
+      cout<<"-n : matrix order "<<endl;
       cout<<"-o : output root & tuning file name "<<endl;
+
       return 0;
       break;
     case '?':
@@ -196,13 +231,14 @@ int main(int argc, char** argv){
   gSystem->Load("libMinuit");
 
   momcalib* Mom=new momcalib();
+  if(nmatrix_flag)  Mom->nmatrix(nmatrix);
   Mom->mode(mode,Target,f1tdc);
   Mom->MTParam(matrix_name);
   if(single)Mom->SingleRoot(ifname);
   else   Mom->SetRoot(ifname);
   if(root_flag)Mom->NewRoot(ofname);
   Mom->MakeHist();
-  if(tuning_flag)Mom->EventSelection();
+  if(tuning_flag) Mom->EventSelection(weight_Alminum);
   if(tuning_flag && nite>0)Mom->MomTuning(ofMTPname);
   if(root_flag && ( (tuning_flag && nite>0) || tuning_flag==0)) Mom->Fill();  
   if(root_flag) Mom->Close();  

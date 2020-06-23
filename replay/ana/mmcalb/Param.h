@@ -35,8 +35,10 @@ const int nParamTc2 =nParamTc*2;
 
 const int nn = 5; // 5th order matrix using xf, xpf, yf, ypf, and zt
 const int nParamT = 252;  // Number of parameters in angles
-const int nnz =3;
-const int nParamTz=35;
+//const int nnz =3;
+//const int nParamTz=35;
+const int nnz =5;
+const int nParamTz=126;
 
 const int nParamT_ras=4;
 

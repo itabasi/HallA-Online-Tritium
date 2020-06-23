@@ -14,10 +14,12 @@ public:
   
   void SetRoot(string ifname);
   void SetBranch();
+  void SetBranchG4();
   void Calib();
   void Fill();
   void MTParam_R();
   void MTParam_L();
+  void Rotate();
   void MTP_mom();  
   void SetMatrix(string mtparam);
   void NewRoot(string ofnameo);
@@ -36,7 +38,7 @@ public:
   float L_tr_tg_th,L_tr_tg_ph;
   float R_tr_pb,L_tr_pb;
   float R_Ras_x, L_Ras_x,rasx;
-  float mm;
+  float mm,mmnuc,mm_gen;
   float Rz_rec_b,Lz_rec_b;
   float zposi,R_tr_vz,L_tr_vz;  
   float R_tr_tg_th_b,R_tr_tg_ph_b,L_tr_tg_ph_b,L_tr_tg_th_b;
@@ -46,7 +48,7 @@ public:
   float B_p,Eeb,Ee_b,Ekb;
   float R_pb,Rp_xb,Rp_yb,Rp_zb;
   float L_pb,Lp_xb,Lp_yb,Lp_zb;
-  
+  float Normfac,Weight;  
   double mm_c;
   double mm_b;
   int ENum;

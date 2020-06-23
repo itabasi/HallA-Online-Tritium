@@ -13,9 +13,12 @@
 void holepattern(){
 
 
-  string main = "angcalib_4th_0915_4";
+  //  string main = "angcalib_4th_0915_4";
   //    string main = "test_R";
   //  string main = "ang_RHRS_sieve_init";
+  //  string main = "ang_RHRS_matrix_new";
+  //  string main = "ang_RHRS_5th_0602";
+  string main = "test_goga";
   string end_root = ".root";
   string end_dat = ".dat";
   string ifname="../rootfiles/angcalib/" + main + ".root";
@@ -73,8 +76,8 @@ void holepattern(){
       ssx_off[i][j]=0.0;
       ssy_off[i][j]=0.0;
       w[i][j]=1.0;
-      flag[i][j]=false;
-
+      //      flag[i][j]=false;
+      flag[i][j]=true;
 
 
       //====== offset paramters======= //

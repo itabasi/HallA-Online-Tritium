@@ -26,13 +26,13 @@ const double  Ztm = -0.15,Ztr=0.35;
 //const int nnz = 3; // 3th order matrix using zt
 //const int nParamT = 56;  // Number of parameters
 
-const int nn =  4; // 4th order matrix using xf, xpf, y, ypf, and zt
-const int nnz = 4; // 3th order matrix using zt
-const int nParamT = 126;  // Number of parameters
-
-//const int nn =  5; // 4th order matrix using xf, xpf, y, ypf, and zt
+//const int nn =  4; // 4th order matrix using xf, xpf, y, ypf, and zt
 //const int nnz = 4; // 3th order matrix using zt
-//const int nParamT = 252;  // Number of parameters
+//const int nParamT = 126;  // Number of parameters
+
+const int nn =  5; // 4th order matrix using xf, xpf, y, ypf, and zt
+const int nnz = 5; // 5th order matrix using zt
+const int nParamT = 252;  // Number of parameters
 
 const int nParamT2=nParamT*2;
 
@@ -63,6 +63,7 @@ const double step = 0.492 * 2.54;
 const int nrow = 11; // the number of row in SS pattern
 //const int ncol = 7;  // the number of column in SS pattern
 const int ncol = 8;  // the number of column in SS pattern
+//const int nsshole = nrow*ncol; // the number of holes to consider
 const int nsshole = nrow*ncol; // the number of holes to consider 
 double w[nfoil][nsshole];
 double refx[nsshole];

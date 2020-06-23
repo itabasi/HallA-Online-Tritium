@@ -26,6 +26,7 @@ class tree{
   //------ SetBranch -------//
   
   int runnum;
+  int nev;
   double hallap;
   double DRevtype;
   //----- Scintillation Triger Counters -------// 
@@ -44,6 +45,8 @@ class tree{
   double Lpssum;
   double Lshsum;
   double Lcersum;
+  double AC1_npe_sum;
+  double AC2_npe_sum;
   //----- at target ----------//
   double Rp[Max],Rpx[Max],Rpy[Max],Rpz[Max],Lp[Max],Lpx[Max],Lpy[Max],Lpz[Max];
   double Rth[Max],Rph[Max],Rx[Max],Ry[Max],Rz[Max];

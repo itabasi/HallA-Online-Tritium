@@ -179,7 +179,7 @@ int main(int argc, char** argv){
   
   Ras->MTRead(MTname,RHRS_flag);
   Ras->SetRoot(ifname,single);
-  Ras->NewRoot(ofname);
+  Ras->NewRoot(ofname,RHRS_flag);
   Ras->MakeHist();
   //  if(calib_x)Ras->MTParam_x(matrix_x,RHRS_flag);
   //  if(calib_y)Ras->MTParam_y(matrix_y,RHRS_flag);

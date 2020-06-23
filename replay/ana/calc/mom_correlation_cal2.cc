@@ -67,22 +67,23 @@ void mom_correlation_cal2(){
   E=4300;  // [MeV] : beam energy
   Ib=20;//[myuA] :beam flux
   //  Pe=2180;//[MeV] :scatter electron momentum
-  Pe=2100;//[MeV] :scatter electron momentum
+  Pe = 2100.;//[MeV] :scatter electron momentum
+  Pe = 2081;
   edeg=13.2; // scattered electron degree
 
   //-- mt [MeV] target mass ----------//
   //    mt=938;// proton mass
-  //  mt=2832; //3H mass
-  mt=938.;
-  
+  mt=2832; //3H mass
+  //  mt=938.;
+  // mt = 25.126507e3; Al
   Pt=0;//[MeV] target momentum
 
   //---mh [MeV] Hyperon mass--------//
   // mh=1115;// lambda mass
   //   mh=1192; //sigma0 mass
-  // mh=2995+be; //nnL mass (be is binding energy)
-  mh= 1115.68;
-
+  mh=2995+be; //nnL mass (be is binding energy)
+  //  mh= 1115.68;
+  //  mh = 25.312188e3;
 
   }
 
@@ -130,8 +131,6 @@ void mom_correlation_cal2(){
 
 
 
-
-
       double dPe;// Pe' acceptance bite
       //      dPe=0.045*pe;
       dPe=0;
@@ -164,8 +163,8 @@ void mom_correlation_cal2(){
   Pk=(-D-sqrt(pow(D,2)-4*C*B))/(2*C);
  
 
+  cout<<" Pe_ "<<Pe<<" PK "<<Pk<<endl;
+  
     }
 
 
-
-}

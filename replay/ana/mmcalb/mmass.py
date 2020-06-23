@@ -25,8 +25,9 @@ nworkers=8
 
 #####################################
 date=datetime.date.today()
-matrix="../matrix/matrix_new.list"
+#matrix="../matrix/matrix_new.list"
 #matrix="../matrix/matrix_test.list"
+matrix="../matrix/test/matrix_test6.list"
 #matrix="../matrix/matrix_wAl.list"
 #matrix="../matrix/matrix_wAl_25.list"
 #matrix="../matrix/matrix_test.list"
@@ -75,6 +76,21 @@ param.append("nnL_3.param")
 #####################################
 
 
+def README():
+    readme = root_dir + "/README"
+    fin  = open(matrix,'r')
+    fout = open(readme,"w")
+    print(readme)
+    fout.write("#### Missing Mass Calculation ####\n")
+    fout.write('Date : '+str(date))
+    fout.write('Used Matrix Parameters\n')
+    fout.write('Matrix file list :'+matrix+'\n')
+    contents = fin.read()
+    fout.write(contents)
+    fin.close()
+    fout.close()
+
+    
 def Add():
     root_H=f'{root_dir}/Lambda_small_OleH_all.root'
     root_T=f'{root_dir}/nnL_small_Ole_all.root'
@@ -114,6 +130,7 @@ os.mkdir(root_dir)
 print(f"Maked new pdf directory {pdf_dir}")
 os.mkdir(pdf_dir)
 
+README()
 main()
 Add()
 

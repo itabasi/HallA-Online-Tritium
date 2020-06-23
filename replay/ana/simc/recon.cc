@@ -39,8 +39,9 @@ extern double Calc_ras(double a,double b,double c){return  a *b + c;};
 extern double calcf2t_ang(double* P,double xf, double xpf, double yf, double fpf,double z);
 extern double calcf2t_mom(double* P, double xf, double xpf, double yf, double ypf, double zt);
 
-bool nnL_mode =false;
-
+//bool nnL_mode =false;
+bool nnL_mode =true;
+bool geant_mode = false;
 
 
 ///////////////////////////////////////////////
@@ -55,8 +56,10 @@ void recon::SetRoot(string ifname){
   for(int i=0;i<10;i++)mat[i]=false;
   mat[0] = true ; // Rz
   mat[1] = true ; // Lz
-  mat[2] = true ; // Rras
-  mat[3] = true;  // Lras
+  //  mat[2] = true ; // Rras
+  //  mat[3] = true;  // Lras
+  mat[2] = false;  // Rras
+  mat[3] = false;  // Lras  
   mat[4] = true;  // Rth
   mat[5] = true;  //Rph
   mat[6] = true;  //Lth
@@ -70,14 +73,16 @@ void recon::SetRoot(string ifname){
 
 void recon::SetBranch(){
 
- T->SetBranchStatus("*",1);  
+ T->SetBranchStatus("*",1);
+ T->SetBranchAddress("Normfac",&Normfac);
+ T->SetBranchAddress("Weight",&Weight);
  T->SetBranchAddress("h_xfp",&R_tr_x);
  T->SetBranchAddress("h_yfp",&R_tr_y);
  T->SetBranchAddress("h_xpfp",&R_tr_th);
  T->SetBranchAddress("h_ypfp",&R_tr_ph);  
  T->SetBranchAddress("h_xptar",&R_tr_tg_th);
  T->SetBranchAddress("h_yptar",&R_tr_tg_ph);
- T->SetBranchAddress("Rp_rec",&R_pb);
+ T->SetBranchAddress("Rp_gen",&R_pb);
  T->SetBranchAddress("Rz",&Rz_rec_b);
  T->SetBranchAddress("e_xfp",&L_tr_x);
  T->SetBranchAddress("e_yfp",&L_tr_y);
@@ -85,12 +90,41 @@ void recon::SetBranch(){
  T->SetBranchAddress("e_ypfp",&L_tr_ph);   
  T->SetBranchAddress("e_xptar",&L_tr_tg_th);
  T->SetBranchAddress("e_yptar",&L_tr_tg_ph);
- T->SetBranchAddress("Lp_rec",&L_pb);
+ T->SetBranchAddress("Lp_gen",&L_pb);
  T->SetBranchAddress("zposi",&zposi);
  T->SetBranchAddress("Lz",&Lz_rec_b);
  T->SetBranchAddress("Ein",&Ee);
  T->SetBranchAddress("rasx",&rasx);
- T->SetBranchAddress("mmnuc",&mm); 
+ T->SetBranchAddress("mmnuc",&mmnuc); 
+ // T->SetBranchAddress("mm",&mm); 
+ 
+}
+
+//////////////////////////////////////////////
+
+void recon::SetBranchG4(){
+
+ T->SetBranchStatus("*",1);  
+ T->SetBranchAddress("h_xfp",&R_tr_x);
+ T->SetBranchAddress("h_yfp",&R_tr_y);
+ T->SetBranchAddress("h_xpfp",&R_tr_th);
+ T->SetBranchAddress("h_ypfp",&R_tr_ph);  
+ T->SetBranchAddress("h_xptar",&R_tr_tg_th);
+ T->SetBranchAddress("h_yptar",&R_tr_tg_ph);
+ T->SetBranchAddress("Rp_gen",&R_pb);
+ T->SetBranchAddress("Rz",&Rz_rec_b);
+ T->SetBranchAddress("e_xfp",&L_tr_x);
+ T->SetBranchAddress("e_yfp",&L_tr_y);
+ T->SetBranchAddress("e_xpfp",&L_tr_th);
+ T->SetBranchAddress("e_ypfp",&L_tr_ph);   
+ T->SetBranchAddress("e_xptar",&L_tr_tg_th);
+ T->SetBranchAddress("e_yptar",&L_tr_tg_ph);
+ T->SetBranchAddress("Lp_gen",&L_pb);
+ T->SetBranchAddress("zposi",&zposi);
+ T->SetBranchAddress("Lz",&Lz_rec_b);
+ T->SetBranchAddress("Ein",&Ee);
+ T->SetBranchAddress("rasx",&rasx);
+ T->SetBranchAddress("mmnuc",&mmnuc); 
  
 }
 
@@ -311,6 +345,51 @@ void recon::MTP_mom(){
 
 /////////////////////////////////////////////////
 
+void recon::Rotate(){
+  //=============================================//
+  // Rotate Geant4 Coorinate to Hall A Coordinate //
+  //=============================================//
+
+  
+  TVector3 RFP_xy,RFP_ang;
+  RFP_xy.SetXYZ( - R_tr_x,  R_tr_y,1.0  );
+  RFP_ang.SetXYZ(- R_tr_th, R_tr_ph,1.0 );
+  RFP_xy.RotateZ(  1./2.*PI);
+  RFP_ang.RotateZ( 1./2.*PI);
+
+  R_tr_x = RFP_xy.X();
+  R_tr_y = RFP_xy.Y();
+  R_tr_th = RFP_ang.X();
+  R_tr_ph = RFP_ang.Y();  
+  //  cout<<"L_tr_x "<<L_tr_x<<endl;
+  TVector3 LFP_xy,LFP_ang;
+  LFP_xy.SetXYZ(  L_tr_x,  L_tr_y,1.0);
+  LFP_ang.SetXYZ( L_tr_th, L_tr_ph,1.0);
+  LFP_xy.RotateZ(  1./2.*PI);
+  LFP_ang.RotateZ( 1./2.*PI);
+
+  L_tr_x = LFP_xy.X();
+  L_tr_y = LFP_xy.Y();
+  L_tr_th = LFP_ang.X();
+  L_tr_ph = LFP_ang.Y();  
+  TVector3 RT_ang,LT_ang;
+
+  RT_ang.SetXYZ(-( R_tr_tg_th  - 13.2/180.*3.14 ), R_tr_tg_ph,1.0);
+  LT_ang.SetXYZ(   L_tr_tg_th  - 13.2/180.*3.14  , L_tr_tg_ph,1.0);
+
+  RT_ang.RotateZ(1./2.*PI);
+  LT_ang.RotateZ(1./2.*PI);
+
+  R_tr_tg_th = RT_ang.X();
+  R_tr_tg_ph = RT_ang.Y();
+  L_tr_tg_th = LT_ang.X();
+  L_tr_tg_ph = LT_ang.Y();
+  
+  
+}
+
+////////////////////////////////////////////////////
+
 void recon::Fill(){
 
   double cm_to_m=0.01;
@@ -359,9 +438,15 @@ void recon::Fill(){
     L_pb=-100.;
     Rz_rec_b = -100.;
     Lz_rec_b = -100.;
+    mmnuc =-1000.;
+    mm_gen = -1000.;
     T->GetEntry(n);
 
-
+    if(geant_mode)Rotate();
+    if(!geant_mode && nnL_mode)(mmnuc = (mmnuc - MnnL)*1000.);
+    if(!geant_mode && !nnL_mode)(mmnuc = (mmnuc - ML)*1000.);
+    //    mm_gen = mmnuc;
+    //    cout<<"mmnuc "<<mmnuc<<endl;
     R_tr_tg_th_b = R_tr_tg_th;
     R_tr_tg_ph_b = R_tr_tg_ph;
     L_tr_tg_th_b = L_tr_tg_th;
@@ -381,9 +466,9 @@ void recon::Fill(){
     L_tr_vz = zposi;
     R_Ras_x = rasx;
     L_Ras_x = rasx;
-    Rz_rec_b *= cm_to_m;
-    Lz_rec_b *= cm_to_m;
-
+    Rz_rec_b = zposi;
+    Lz_rec_b = zposi;
+    //    cout<<" Lxfp  "<<L_tr_x<<endl;
     Calib();
     
     // before momentum calibration //
@@ -415,11 +500,14 @@ void recon::Fill(){
 
 
 
+    if(fabs(R_p)>10. || fabs(L_p)>10. || R_p<0 || L_p<0){
+      mm_b =-1000.;
+      mm_c =-1000.;
 
-
-
-    
-    if(mm>2.0){
+      
+    }else{
+      
+    if(nnL_mode){
       mm_c = sqrt( (Ee + MTr - Ee_ - Ek)*(Ee + MTr - Ee_ - Ek)
 		   - (B_v - L_v - R_v)*(B_v - L_v - R_v) ); // Tritium
       mm_c = (mm_c - MnnL)*1000.;
@@ -437,8 +525,9 @@ void recon::Fill(){
 		   - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) ); // Tritium
       mm_b = (mm_b - ML)*1000.;      
     }
+    //    cout<<"Rp "<<R_p<<" Lp "<<L_p<<" mmc "<<mm_c<<" mm_b "<<mm_b<<endl;
     
-
+    }
     
     tnew->Fill();
     if(n % (d.quot * 10000) == 0)cout<<n<<" / "<<ENum<<endl;
@@ -524,8 +613,10 @@ void recon::Calib(){
   if(mat[7]) L_tr_tg_ph  = calcf2t_ang(Pypt_L, L_tr_x, L_tr_th, L_tr_y, L_tr_ph, L_tr_vz); // nomalized   
 
   //test //
-  //  R_tr_tg_ph *= -1.0;
-  //  L_tr_tg_ph *= -1.0;
+  //  R_tr_tg_th += 0.05;
+  //  L_tr_tg_th += 0.05;
+
+  
   
   if(mat[8]) R_p = calcf2t_mom(Opt_par_R, R_tr_x, R_tr_th, R_tr_y, R_tr_ph,R_tr_vz);
   if(mat[9]) L_p = calcf2t_mom(Opt_par_L, L_tr_x, L_tr_th, L_tr_y, L_tr_ph,L_tr_vz);
@@ -555,13 +646,14 @@ void recon::Calib(){
   L_p             = L_p * PLr + PLm; // scaled    
   
 
+  
   //  if(mat[1])  L_tr_vz *= -1.0; // test
   //  cout<<"Rz  "<<R_tr_vz<<" Lz "<<L_tr_vz<<endl;
     
     // Lp = 2.2 GeV mode //
-  if(nnL_mode) L_p=2.21807/2.1*L_p;
-  if(nnL_mode) L_pb=2.21807/2.1*L_pb;
 
+  if(nnL_mode ) L_pb=2.21807/2.1*L_pb;
+  if(nnL_mode ) L_p =2.21807/2.1*L_p;
     double dpe = Eloss(0,0,"B");
     double dpk = Eloss(R_tr_tg_ph,R_tr_vz,"R");
     double dpe_= Eloss(L_tr_tg_ph,L_tr_vz,"L");
@@ -580,7 +672,8 @@ void recon::Calib(){
     //  Eeb  += dpe;
     //  R_pb += dpk;
     //  L_pb += dpe_;    
-    
+
+    /*
     Lp_zb = L_pb/sqrt(1.0*1.0 + tan(L_tr_tg_th)*tan(L_tr_tg_th) + tan(L_tr_tg_ph)*tan(L_tr_tg_ph));
     Rp_zb = R_pb/sqrt(1.0*1.0 + tan(R_tr_tg_th)*tan(R_tr_tg_th) + tan(R_tr_tg_ph)*tan(R_tr_tg_ph));
 
@@ -589,19 +682,29 @@ void recon::Calib(){
     Lp_yb = Lp_zb*    tan( L_tr_tg_ph );
     Rp_xb = Rp_zb*    tan( R_tr_tg_th );
     Rp_yb = Rp_zb*    tan( R_tr_tg_ph ); 
-    
+    */
 
+
+    Lp_zb = L_pb/sqrt(1.0*1.0 + L_tr_tg_th*L_tr_tg_th + L_tr_tg_ph*L_tr_tg_ph);
+    Rp_zb = R_pb/sqrt(1.0*1.0 + R_tr_tg_th*R_tr_tg_th + R_tr_tg_ph*R_tr_tg_ph);
+
+
+    Lp_xb = Lp_zb*     L_tr_tg_th ;
+    Lp_yb = Lp_zb*     L_tr_tg_ph ;
+    Rp_xb = Rp_zb*     R_tr_tg_th ;
+    Rp_yb = Rp_zb*     R_tr_tg_ph ; 
+    
     // after momentum calibration  //
-    Lp_z = L_p/sqrt(1.0*1.0 + tan(L_tr_tg_th)*tan(L_tr_tg_th) + tan(L_tr_tg_ph)*tan(L_tr_tg_ph));
-    Rp_z = R_p/sqrt(1.0*1.0 + tan(R_tr_tg_th)*tan(R_tr_tg_th) + tan(R_tr_tg_ph)*tan(R_tr_tg_ph));
+    Lp_z = L_p/sqrt(1.0*1.0 + L_tr_tg_th*L_tr_tg_th + L_tr_tg_ph*L_tr_tg_ph);
+    Rp_z = R_p/sqrt(1.0*1.0 + R_tr_tg_th*R_tr_tg_th + R_tr_tg_ph*R_tr_tg_ph);
 
 
    
 
-    Lp_x = Lp_z*    tan( L_tr_tg_th );
-    Lp_y = Lp_z*    tan( L_tr_tg_ph );
-    Rp_x = Rp_z*    tan( R_tr_tg_th );
-    Rp_y = Rp_z*    tan( R_tr_tg_ph ); 
+    Lp_x = Lp_z*     L_tr_tg_th ;
+    Lp_y = Lp_z*     L_tr_tg_ph ;
+    Rp_x = Rp_z*     R_tr_tg_th ;
+    Rp_y = Rp_z*     R_tr_tg_ph ; 
 
 
     
@@ -699,22 +802,25 @@ double recon::Eloss(double yp, double z,char* arm){
 void recon::NewRoot(string ofname){
 
   ofp = new TFile(Form("%s",ofname.c_str()),"recreate");
-  tnew=new TTree("T","Momentum matrix tuning");
-  tnew =T->CloneTree(0);
+  tnew=new TTree("SNT","Momentum matrix tuning");
+  //  tnew =T->CloneTree(0);
+  tnew->Branch("Normfac",&Normfac,"Normfac/F");
+  tnew->Branch("Weight",&Weight,"Weight/F");
   tnew->Branch("mm", &mm_c,"mm/D");
   tnew->Branch("mm_b", &mm_b,"mm_b/D");
-  tnew->Branch("Rp", &R_pb,"Rp/f");
-  tnew->Branch("Lp", &L_pb,"Lp/f");
-  tnew->Branch("Rth", &R_tr_tg_th_b,"Rth/f");
-  tnew->Branch("Lth", &L_tr_tg_th_b,"Lth/f");
-  tnew->Branch("Rph", &R_tr_tg_ph_b,"Rph/f");
-  tnew->Branch("Lph", &L_tr_tg_ph_b,"Lph/f");  
+  tnew->Branch("mmnuc", &mmnuc,"mmnuc/f");
+  tnew->Branch("Rp_gen", &R_pb,"Rp_gen/f");
+  tnew->Branch("Lp_gen", &L_pb,"Lp_gen/f");
+  tnew->Branch("Rth_gen", &R_tr_tg_th_b,"Rth_gen/f");
+  tnew->Branch("Lth_gen", &L_tr_tg_th_b,"Lth_gen/f");
+  tnew->Branch("Rph_gen", &R_tr_tg_ph_b,"Rph_gen/f");
+  tnew->Branch("Lph_gen", &L_tr_tg_ph_b,"Lph_gen/f");  
+  tnew->Branch("Rz_gen", &Rz_rec_b,"Rz_gen/f");  
+  tnew->Branch("Lz_gen", &Lz_rec_b,"Lz_gen/f");
   tnew->Branch("Rp_rec_c", &R_p,"Rp_rec/f");
   tnew->Branch("Lp_rec_c", &L_p,"Lp_rec/f");
   tnew->Branch("Rz_rec", &R_tr_vz,"Rz_rec/f");
   tnew->Branch("Lz_rec", &L_tr_vz,"Lz_rec/f");
-  tnew->Branch("Rz_rec_b", &Rz_rec_b,"Rz_rec_b/f");  
-  tnew->Branch("Lz_rec_b", &Lz_rec_b,"Lz_rec_b/f");
   tnew->Branch("Rth_rec", &R_tr_tg_th,"Rth_rec/f");
   tnew->Branch("Lth_rec", &L_tr_tg_th,"Lth_rec/f");
   tnew->Branch("Rph_rec", &R_tr_tg_ph,"Rph_rec/f");
@@ -722,6 +828,17 @@ void recon::NewRoot(string ofname){
   tnew->Branch("Rrasx_rec", &R_Ras_x,"Rrasx_rec/f");
   tnew->Branch("Lrasx_rec", &L_Ras_x,"Lrasx_rec/f");
 
+  tnew->Branch("Rx_fp", &R_tr_x,"Rx_fp/f");
+  tnew->Branch("Ry_fp", &R_tr_y,"Ry_fp/f");
+  tnew->Branch("Rth_fp", &R_tr_th,"Rth_fp/f");
+  tnew->Branch("Rtph_fp", &R_tr_ph,"Rph_fp/f");
+
+  tnew->Branch("Lx_fp", &L_tr_x,"Lx_fp/f");
+  tnew->Branch("Ly_fp", &L_tr_y,"Ly_fp/f");
+  tnew->Branch("Lth_fp", &L_tr_th,"Lth_fp/f");
+  tnew->Branch("Ltph_fp", &L_tr_ph,"Lph_fp/f");
+  
+  
 }
 
 ///////////////////////////////////////////////////////////
@@ -773,7 +890,7 @@ int main(int argc, char** argv){
   string dat_end=".dat";
   string matrix="matrix/test/test.dat";
   
-  while((ch=getopt(argc,argv,"h:s:w:t:p:f:n:r:m:o:O:i:AlRILbcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:s:w:t:p:f:n:r:m:o:O:i:GTHAlRILbcop"))!=-1){
     switch(ch){
       
       
@@ -784,7 +901,6 @@ int main(int argc, char** argv){
 
 
 
-      
     case 'r':
       root_flag = true;
       draw_flag = false;
@@ -799,6 +915,27 @@ int main(int argc, char** argv){
       if(Target=="T")cout<<"Target : Tritium "<<endl;      
       break;
 
+    case 'T':
+      cout<<"=========================================="<<endl;
+      cout<<"=====< 3H(e,e'k+)nnL generation >========="<<endl;
+      cout<<"=========================================="<<endl;
+      nnL_mode =true;
+      break;
+      
+    case 'H':
+      cout<<"=========================================="<<endl;
+      cout<<"=======< H(e,e'k+)L generation >========="<<endl;
+      cout<<"=========================================="<<endl;
+      nnL_mode =false;      
+      break;
+    case 'G':
+      cout<<"=========================================="<<endl;
+      cout<<"========= < Geant4 generation > =========="<<endl;
+      cout<<"=========================================="<<endl;
+      geant_mode =true;      
+      break;
+
+      
       
     case 'm':
 
@@ -996,7 +1133,7 @@ double calcf2t_zt(double* P, double xf, double xpf,
                  double yf, double ypf){
 // ###############################################
 
-  int nnz=3;  
+
 
   const int nMatT=nnz; 
   const int nXf=nnz;

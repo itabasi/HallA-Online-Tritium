@@ -11,7 +11,7 @@ using namespace std;
 
 struct TreeBranch{
   
-  int z_cut,pid_cut,ct_cut;
+  int z_cut,pid_cut,ct_cut,acc_cut;
   int nev,nrun;
   double missing_mass_MgL;
   double missing_mass_MgL_acc;
@@ -26,18 +26,25 @@ struct TreeBranch{
   double missing_mass_nnLb;
   double missing_mass_b;
   double missing_mass_Al_bg;
+  double missing_mass_pi;
+  double missing_mass_Lam_all;
+  double missing_mass_nnL_all;
+  double missing_mass_MgL_all;
+  double missing_mass_H3L_all;
   double mm_tuned;
   double momR, momL;
   double momRz, momLz;
   double momRz_c, momLz_c;
   double acc;
   double zR, zL;
+  double mean_z;
   double AC1_sum, AC2_sum;
   double AC1_npe_sum,AC2_npe_sum;
   double AC1_npe[24],AC2_npe[26];
   double yp_cor;
   double ctimecorR,ctimecorL;
-  double ct_acc,ct_b,ct_c; 
+  double ct_acc,ct_b,ct_c;
+  double cointime[MAX][MAX];
   double ct_g,ct_gb,ct_g_wo_cor;
   double Rs0ra_p,Rs0la_p,Rs0a_p;
   double Rs2ra_p[16],Rs2la_p[16],Rs2a_p[16];
@@ -60,7 +67,7 @@ struct TreeBranch{
   double Rpathl,Lpathl,Rpathl_c,Lpathl_c;
   double zR_b,RXpt_b,RYpt_b,momR_b,zL_b,LXpt_b,LYpt_b,momL_b;
   int nmixed=10;
-  
+  bool Al_cut;
   double R_tr_p_mix[10];
   double R_tr_px_mix[10];
   double R_tr_py_mix[10];
@@ -122,13 +129,12 @@ class ana : public Tree
   double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
   void MixedEvent(int rt, int lt);
  private:
-    int ENumMax;
-    int ENum;
-
-  private:
-// Lines, Textx
-    TLine  *line;
-    TLatex *text;
+  int ENumMax;
+  int ENum;
+private:
+  // Lines, Textx
+  TLine  *line;
+  TLatex *text;
 
     TH2D *h_rbay_rbax, *h_rbby_rbbx;
     TH2D *h_rby_rbx;

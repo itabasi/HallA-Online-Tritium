@@ -49,7 +49,10 @@ void tree::SetBranch(){
  T->SetBranchAddress("DR.evtype",&DRevtype); 
  // T->SetBranchStatus("fEvtHdr.fRun",1);
  T->SetBranchStatus("runnum",1);
- T->SetBranchAddress("runnum",&runnum); 
+ T->SetBranchAddress("runnum",&runnum);
+ T->SetBranchStatus("nev",1);
+ T->SetBranchAddress("nev",&nev);
+					  
  T->SetBranchStatus("HALLA_p",1);
  T->SetBranchAddress("HALLA_p",&hallap); 
  //------------------------------// 
@@ -75,7 +78,10 @@ void tree::SetBranch(){
  T->SetBranchAddress("R.a1.asum_p",&Ra1sum_p);
  T->SetBranchStatus("R.a2.asum_p",1);
  T->SetBranchAddress("R.a2.asum_p",&Ra2sum_p);
-
+ T->SetBranchStatus("ac1_npe_sum",1);
+ T->SetBranchAddress("ac1_npe_sum",&AC1_npe_sum);
+ T->SetBranchStatus("ac2_npe_sum",1);
+ T->SetBranchAddress("ac2_npe_sum",&AC2_npe_sum);  
  // T->SetBranchStatus("R.cer.asum_c",1);
  // T->SetBranchAddress("R.cer.asum_c",&Rgssum);
 

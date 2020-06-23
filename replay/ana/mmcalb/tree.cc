@@ -51,7 +51,10 @@ void tree::SetBranch(){
  T->SetBranchStatus("nev",1);
  T->SetBranchAddress("nev",&nevent);
  T->SetBranchStatus("HALLA_p",1);
- T->SetBranchAddress("HALLA_p",&hallap); 
+ T->SetBranchAddress("HALLA_p",&hallap);
+ T->SetBranchStatus("ct",1);
+ T->SetBranchAddress("ct",&ct);
+ 
  //------------------------------// 
  //------ Right Arm -------------//
  //------------------------------//

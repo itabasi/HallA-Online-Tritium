@@ -13,8 +13,9 @@
 void holepattern_L(){
 
 
-  string main = "ang_LHRS_4th_0914_0";
+  //  string main = "ang_LHRS_4th_0914_0";
   //  string main = "ang_LHRS_sieve_init";
+  string main = "ang_LHRS_5th_0601";
   string end_root = ".root";
   string end_dat = ".dat";
   string ifname="../rootfiles/angcalib/" + main + ".root";

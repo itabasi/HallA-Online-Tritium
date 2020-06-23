@@ -71,8 +71,15 @@ int main(int argc, char** argv){
   string dat_init="../matrix/";
   string dat_end=".dat";
   string matrix="matrix/test/test.dat";
-  
-  while((ch=getopt(argc,argv,"h:s:w:t:p:f:n:r:m:o:O:i:AlRILbcop"))!=-1){
+  string weight;
+  string mean_Al_s;
+  double mean_Al;
+  string width_Al_s;
+  double width_Al;
+  string weight_Al_s;
+  double weight_Al;
+  double weight_Alminum=1.0;
+  while((ch=getopt(argc,argv,"h:s:w:W:t:p:f:n:r:m:o:O:0:1:2:i:AlRILbcop"))!=-1){
     switch(ch){
       
       
@@ -178,21 +185,34 @@ int main(int argc, char** argv){
       break;      
 
     case 'l':
+      //      weight = optarg;
+      //      weight_Alminum = stod(weight);
+      //      if(weight_Alminum<1.)weight_Alminum=1.0;
       if(Al1)Al_MODE=true;
       cout<<"Al events tuning mode "<<endl;
+      cout<<"Al weight : "<<weight_Alminum<<endl;
       mode="Al";
+      break;
+
+      
+    case '0':
+      weight_Al_s = optarg;
+      weight_Al   = stod(weight_Al_s);
+      break;
+
+    case '1':
+      mean_Al_s = optarg;
+      mean_Al   = stod(mean_Al_s);
       break;      
 
-
-
+    case '2':
+      width_Al_s = optarg;
+      width_Al   = stod(width_Al_s);
+      break;
       
     case 'b':
       draw_flag = false;
       cout<<"BACH MODE!"<<endl;
-      break;
-
-    case 'p':
-      matrix_name =optarg;
       break;
       
 
@@ -227,6 +247,8 @@ int main(int argc, char** argv){
 
   momcalib* Mom=new momcalib();
   if(nmatrix_flag)  Mom->nmatrix(nmatrix);
+  //  Mom->GetACParam();
+  Mom->SetAlEvents(weight_Al,mean_Al,width_Al);
   Mom->mode(mode,Target,f1tdc);
   Mom->MTParam(matrix_name);
   if(single)Mom->SingleRoot(ifname);
@@ -234,7 +256,7 @@ int main(int argc, char** argv){
   if(root_flag)Mom->NewRoot(ofname);
   Mom->MakeHist();
   //  if(tuning_flag)
-    Mom->EventSelection();
+    Mom->EventSelection(weight_Alminum);
   if(tuning_flag && nite>0)Mom->MomTuning(ofMTPname);
   if(root_flag && ( (tuning_flag && nite>0) || tuning_flag==0)) Mom->Fill();  
   if(root_flag) Mom->Close();  

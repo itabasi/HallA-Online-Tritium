@@ -16,10 +16,13 @@ const double  Ztm = -0.15,Ztr=0.35;
 //const double  Ztm = 0.0,Ztr=1.0; //NO scale  
 
 
-const int nn = 4; // 4th order matrix using xf, xpf, y, ypf, and zt
+
 const int nras=2; // 2nd order matrix
 
-const int nParamT = 126;  // Number of parameters
+//const int nn = 4; // 4th order matrix using xf, xpf, y, ypf, and zt
+//const int nParamT = 126;  // Number of parameters
+const int nn = 5; // angle 5th order matrix using xf, xpf, y, ypf, and zt
+const int nParamT = 252;  // Number of parameters
 
 const int nnz=5; // 3rd order matrix
 const int nParamTz =126;   //Number of z parameters

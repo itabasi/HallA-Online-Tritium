@@ -40,7 +40,7 @@ class rascalib :public tree{
   void Swich_Ras(bool ras_x);
   void MakeHist();
   void SetRoot(string ifname, bool sin);
-  void NewRoot(string ofname);
+  void NewRoot(string ofname, bool rarm);
   void MTRead(string ifname, bool rarm);
   void MTParam_x(string matrix_name_x, bool rarm);
   void MTParam_y(string matrix_name_y, bool rarm);
@@ -239,7 +239,7 @@ void rascalib::SetRoot(string ifname,bool sin){
  
   SetBranch();
   t1->SetBranchAddress("R.tr.vz_tuned", ztR_opt); // raster current
-  //    t1->SetBranchAddress("L.tr.vz_tuned", ztR_opt); // raster current
+  t1->SetBranchAddress("L.tr.vz_tuned", ztR_opt); // raster current
   //    if(sieve){
   //    t1->SetBranchAddress("ss_x",&ssx);
   //    t1->SetBranchAddress("ss_y",&ssy);
@@ -249,7 +249,7 @@ void rascalib::SetRoot(string ifname,bool sin){
 
 ///////////////////////////////////////////////////
 
-void rascalib::NewRoot(string ofname){
+void rascalib::NewRoot(string ofname, bool rarm){
 
 
   
@@ -263,16 +263,20 @@ void rascalib::NewRoot(string ofname){
 
   
    //------ RHRS ---------//
+  if(rarm){
   tnew->Branch("R.tr.vx_c"              , R_tr_vx_c    ,"R.tr.vx_c[10]/D"   );
   tnew->Branch("R.tr.vy_c"              , R_tr_vy_c    ,"R.tr.vy_c[10]/D"   );
   tnew->Branch("R.tr.vz_ras"            , R_tr_vz_ras    ,"R.tr.vz_ras[10]/D"   );
-  //  tnew->Branch("R.tr.vz_tuned"          , R_tr_vz_ras    ,"R.tr.vz_tuned[10]/D"   );
+  tnew->Branch("R.tr.vz_tuned"          , R_tr_vz_ras    ,"R.tr.vz_tuned[10]/D"   );
+
+  }else{
+  
   //------ LHRS --------// 
-  //  tnew->Branch("L.tr.vz"                , L_tr_vz_ras    ,"L.tr.vz[10]/D"   );
+    //  tnew->Branch("L.tr.vz"                , L_tr_vz_ras    ,"L.tr.vz[10]/D"   );
   tnew->Branch("L.tr.vx_c"              , L_tr_vx_c    ,"L.tr.vx_c[10]/D"   );
   tnew->Branch("L.tr.vy_c"              , L_tr_vy_c    ,"L.tr.vy_c[10]/D"   );
-  //  tnew->Branch("L.tr.vz_tuned"            , L_tr_vz_ras    ,"L.tr.vz_tuned[10]/D"   );
-  
+  tnew->Branch("L.tr.vz_tuned"            , L_tr_vz_ras    ,"L.tr.vz_tuned[10]/D"   );
+  }
 
 }
 
@@ -670,7 +674,7 @@ void rascalib::Fill(bool rarm, bool ras_x){
   if(ENum<10000)d=div(ENum,1000);
   else   d=div(ENum,1000);
   //  if(ENum>1000000)ENum=1000000;
-
+  //  ENum=1000; //test
   for (int i=0 ; i< ENum ; i++){
 
     
@@ -688,6 +692,7 @@ void rascalib::Fill(bool rarm, bool ras_x){
       l_y_fp[j]  = -2222.0;
       l_ph_fp[j] = -2222.0;
       R_tr_vz_ras[j]=-2222.0;
+      L_tr_vz_ras[j]=-2222.0;
       ztR_opt[j]=-100.;
     }
 
@@ -760,6 +765,7 @@ void rascalib::Fill(bool rarm, bool ras_x){
       L_tr_vz_ras[0]=Zt_r;
       ztR_opt[0]=Zt_r;
       //      Lvz[0]=Zt_r;
+      //      cout<<"LHRS Lz "<<L_tr_vz_ras[0];
     }    
     if(i%100000==0)cout<<i<<" / "<<ENum<<endl;
     tnew->Fill();   

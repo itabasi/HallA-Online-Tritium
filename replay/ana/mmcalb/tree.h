@@ -30,6 +30,7 @@ class tree{
   double hallap;
   int nevent;
   double DRevtype;
+  double ct;
   //----- Scintillation Triger Counters -------// 
   double RF1[Max],LF1[Max];
   double Rs0r_ac[Max],Rs0l_ac[Max],Ls0r_ac[Max],Ls0l_ac[Max];

@@ -27,8 +27,13 @@ int MODE=5;
 double weight=0.0;
 double weightT=0.0;
 double weightAl=0.0;
-double weightAl_def=0.0; 
+double weightAl_def=0.0;
+double weight_def =0.0;
 double weightnnL=0.0;
+double range_MgL=0.003; 
+double Al_range =0.0;
+double MgL_mean;
+double MgL_width;
 bool Goga=false;
 
 extern double s2f1_off(int i,char* ARM,char* MODE, int KINE);
@@ -62,7 +67,7 @@ class momcalib : public tree
  public:
   //  void SetBranch(string ifname, bool rarm);
   //  void NewBranch(string ofname, bool rarm);
-  void EventSelection();
+  void EventSelection(double ww);
   void SetRoot(string ifname);
   void SingleRoot(string ifname);
   void MakeHist();
@@ -73,6 +78,8 @@ class momcalib : public tree
   void MTP_mom();
   void MTP_weight();
   void ParamCorr();
+  void SetAlEvents(double weight, double mean,double width);
+  void CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
   void zCorr(bool rarm, bool larm);
   void rasCorr(bool rarm, bool larm );
   void angCorr(bool rth, bool rph, bool lth, bool lph);
@@ -80,6 +87,8 @@ class momcalib : public tree
   void momCorr(bool rarm, bool larm);
   void momCalc();
   void nmatrix(int n);
+  double AC_npe(int nac,int seg,double adc);
+  void GetACParam();
   double SSx(double z, double th);
   double SSy(double z, double ph);  
   int mode(string arm,char* Target, int F1tdc);
@@ -92,14 +101,14 @@ class momcalib : public tree
   void Close();
 
 
-   Setting *set = new Setting();
-
-
-   //------mode -------------//
-   char* target;
-   int tdc_mode=0;
-
-   //------ MTParam --------//
+  Setting *set = new Setting();
+  
+  
+  //------mode -------------//
+  char* target;
+  int tdc_mode=0;
+  
+  //------ MTParam --------//
   string param[100];
   bool MT[10];  
   bool ploss;
@@ -150,6 +159,13 @@ class momcalib : public tree
   TH1F* hLth_es_c;
   TH1F* hLph_es_c;
   TH1F* hmm_Al;
+  TH2F* hmm_Al_nnL;
+  TH2F* hmm_Al_nnL_zp;
+  TH2F* hmm_Al_nnL_zn;
+  TH1F* hmm_Al_zp;
+  TH1F* hmm_Al_zn;
+  TH1F* hmm_Al_zp_c;
+  TH1F* hmm_Al_zn_c;  
   TH1F* hmm_Al_mom;
   TH1F* hmm_Al_acc;
   TH1F* hmm_Al_select;
@@ -247,11 +263,13 @@ class momcalib : public tree
   double chi_L=0.0;
   double chi_S=0.0;
   double chi2_init=0.0;
-  //--- Event Selection mass cut ---// 
+  //--- Event Selection mass cut ---//
+  //  double mmL_range = 0.005; // [GeV/c^2]
+  //  double mmS_range = 0.005; // [GeV/c^2]
   double mmL_range = 0.003; // [GeV/c^2]
   double mmS_range = 0.003; // [GeV/c^2]
-  //uble mmL_range = 0.002; // [GeV/c^2]
-  //double mmS_range = 0.002; // [GeV/c^2]
+  //  double mmL_range = 0.002; // [GeV/c^2]
+  //  double mmS_range = 0.002; // [GeV/c^2]
   
     int nlam=0;
     int nsig=0;
@@ -305,11 +323,12 @@ class momcalib : public tree
   double mm_L_pz;
   double mm_acc;
   double mm_pi;
-  double MM_nnL,MM_Al;
+  double MM_nnL,MM_Al,MM_Al_nnL;
   double MM_nnL_b,MM_Al_b;
   double MM_L_b,MM_L;
   double mm_Al,mm_Al_acc,mm_Al_c,mm_Al_acc_c;
   double mm_nnL,mm_nnL_acc,mm_nnL_c,mm_nnL_acc_c;
+  double mm_Al_nnL, mm_X;
   double ct;
   double ctime;
   double Ee,Ee_,Ek,Epi;
@@ -373,6 +392,27 @@ void momcalib::nmatrix(int n){
 
 };
 
+
+
+//////////////////////////////////////////////////////////////
+
+void momcalib::SetAlEvents(double weight, double mean,double width){
+
+  MgL_width = width;
+  MgL_mean  = mean;
+  weightAl  = weight;
+
+  cout<<"=======< Al Tuning Parameters >=========="<<endl;
+  cout<<" weight : "<<weightAl<<endl;
+  cout<<" mean : "<<MgL_mean<<" MeV"<<endl;
+  cout<<" width : "<<MgL_width<<" MeV"<<endl;
+
+  // MeV to GeV
+  MgL_width *=1./1000.;
+  MgL_mean  *=1./1000.;
+}
+
+////////////////////////////////////////////////////////////
 
 int momcalib::mode(string arm, char* Target, int F1tdc){
   cout<<endl;
@@ -443,8 +483,10 @@ void momcalib::SingleRoot(string ifname){
 
   SetRun(ifname);
   SetBranch();
-  T->SetBranchStatus("coin",1);
-  T->SetBranchAddress("coin",&coin_time);
+   //  T->SetBranchStatus("coin",1);
+  //  T->SetBranchAddress("coin",&coin_time);
+  T->SetBranchStatus("ct",1);
+  T->SetBranchAddress("ct",&coin_time);  
 
 };
 
@@ -476,6 +518,8 @@ void momcalib::NewRoot(string ofname){
   tnew->Branch("mm_nnL", &mm_nnL,"mm_nnL/D");
   tnew->Branch("Al_tuning", &Al_check,"Al_tuning/B");    
   tnew->Branch("mm_Al", &mm_Al,"mm_Al/D");
+  tnew->Branch("mm_X", &mm_X,"mm_X/D");
+  tnew->Branch("mm_Al_nnL", &mm_Al_nnL,"mm_Al_nnL/D");
   tnew->Branch("mm_Al_acc", &mm_Al_acc,"mm_Al_acc/D");  
   tnew->Branch("mm_Al_c", &mm_Al_c,"mm_Al_c/D");
   tnew->Branch("mm_Al_acc_c", &mm_Al_acc_c,"mm_Al_acc_c/D");
@@ -911,11 +955,39 @@ void momcalib::MakeHist(){
   hmm_Al_cut_acc->SetFillStyle(3002);
 
 
+
+  hmm_Al_zp=new TH1F("hmm_Al_zp","",600,-300,300);
+  set->SetTH1(hmm_Al_zp,"Al missing mass z>0 events","M_{X}-M_{core+#Lambda} [MeV/c^{2}]",Form("Counts/%d MeV",mm_width));
+
+  hmm_Al_zn=new TH1F("hmm_Al_zn","",600,-300,300);
+  set->SetTH1(hmm_Al_zn,"Al missing mass z<0 events","M_{X}-M_{core+#Lambda} [MeV/c^{2}]",Form("Counts/%d MeV",mm_width));
+
+
+  hmm_Al_zp_c=new TH1F("hmm_Al_zp_c","",600,-300,300);
+  set->SetTH1(hmm_Al_zp_c,"Al missing mass z>0 events after Al tuning","M_{X}-M_{core+#Lambda} [MeV/c^{2}]",Form("Counts/%d MeV",mm_width));
+
+  hmm_Al_zn_c=new TH1F("hmm_Al_zn_c","",600,-300,300);
+  set->SetTH1(hmm_Al_zn_c,"Al missing mass z<0 events afeter Al tuning","M_{X}-M_{core+#Lambda} [MeV/c^{2}]",Form("Counts/%d MeV",mm_width));  
+  
+
+  
   hmm_Al_mom=new TH1F("hmm_Al_mom","",300,-0300,300);
   set->SetTH1(hmm_Al_mom,"Missing mass Event Selction","M_{X}-M_{core+#Lambda} [MeV/c^{2}]",Form("Counts/%d MeV",mm_width));
 
 
 
+  hmm_Al_nnL=new TH2F("hmm_Al_nnL","",100,-50,50,100,-50,50);
+  set->SetTH2(hmm_Al_nnL,"Missing mass Al vs nnL ","Al missing mass[MeV/c^{2}]","nnL missing mass[MeV/c^{2}]");
+
+
+  hmm_Al_nnL_zp=new TH2F("hmm_Al_nnL_zp","",100,-50,50,100,-50,50);
+  set->SetTH2(hmm_Al_nnL_zp,"Missing mass Al vs nnL ","Al missing mass[MeV/c^{2}]","nnL missing mass[MeV/c^{2}]");
+
+  hmm_Al_nnL_zn=new TH2F("hmm_Al_nnL_zn","",100,-50,50,100,-50,50);
+  set->SetTH2(hmm_Al_nnL_zn,"Missing mass Al vs nnL ","Al missing mass[MeV/c^{2}]","nnL missing mass[MeV/c^{2}]");  
+  
+
+  
   hmm_nnL=new TH1F("hmm_nnL","",600,-300,300);
   set->SetTH1(hmm_nnL,"nnL missing mass Event Selction","M_{X}-M_{nnL} [MeV/c^{2}]",Form("Counts/%d MeV",mm_width));  
 
@@ -1029,7 +1101,7 @@ void momcalib::MTParam(string mtparam){
   MT[9] = true; // LHRS momentum correction  
 
   //================================================//
-  /*
+
   MT_f[0] = true;  // RHRS z correction
   MT_f[1] = true;  // RHRS raster correction
   MT_f[2] = true;  // RHRS theta correction
@@ -1039,7 +1111,6 @@ void momcalib::MTParam(string mtparam){
   MT_f[5] = true;  // LHRS raster correction
   MT_f[6] = true;  // LHRS theta correction
   MT_f[7] = true;  // LHRS phi correction
-  */
 
   MT[8] = false; // RHRS momentum correction  
   MT[9] = false; // LHRS momentum correction  
@@ -1052,15 +1123,15 @@ void momcalib::MTParam(string mtparam){
 
   }else{
   
-    //    MT[8] = true; // RHRS momentum correction  
-    //    MT[9] = true; // LHRS momentum correction  
-  ploss = true;  // Energy Loss 
- 
-  //-------- momentum calibration ---------//
-  MT_f[8] = true; // RHRS momentum correction  
-  MT_f[9] = true; // LHRS momentum correction  
-  ploss_f = true;  // Energy Loss
-
+    MT[8] = true; // RHRS momentum correction  
+    MT[9] = true; // LHRS momentum correction  
+    ploss = true;  // Energy Loss 
+    
+    //-------- momentum calibration ---------//
+    MT_f[8] = true; // RHRS momentum correction  
+    MT_f[9] = true; // LHRS momentum correction  
+    ploss_f = true;  // Energy Loss
+    
   }
   //================================================//
 
@@ -1306,7 +1377,7 @@ void momcalib::MTP_mom(){
 
 void momcalib::zCorr(bool rarm, bool larm){
 
-  
+
   //======== Nomalization =============//
     Rx_fp[0]  = (Rx_fp[0]-XFPm)/XFPr;
     Rth_fp[0] = (Rth_fp[0]-XpFPm)/XpFPr;
@@ -1338,7 +1409,7 @@ void momcalib::zCorr(bool rarm, bool larm){
     
     Rz[0]   = Rz[0] * Ztr + Ztm;     // scaled
     Lz[0]   = Lz[0] * Ztr + Ztm;     // scaled    
-    
+
 }
 
 //=================================================================================//
@@ -1404,7 +1475,6 @@ void momcalib::rasCorr(bool rarm, bool larm){
     //===================================//
 
     
-    
 }
 
 //===============================================================================//
@@ -1463,11 +1533,10 @@ void momcalib::angCorr(bool rth, bool rph,bool lth, bool lph ){
 
 void momcalib::plossCorr(bool PLoss){
 
+ 
   
-
     if(PLoss){
-      
-
+     
     dpe=0.0; dpe_=0.0; dpk=0.0;
     dpe   = Eloss(0.0,0.0,"B");
     dpe_  = Eloss(Lph[0],Lz[0],"L");
@@ -1475,7 +1544,6 @@ void momcalib::plossCorr(bool PLoss){
     pe    = pe    - dpe;
     Lp[0] = Lp[0] + dpe_;
     Rp[0] = Rp[0] + dpk;
-    
     }// Energy loss
 
 
@@ -1547,24 +1615,21 @@ void momcalib::momCorr(bool rarm, bool larm){
     if(runnum<=111220 || (111480<=runnum && 111542>=runnum))Lp[0]=Lp[0];
     else if(larm)Lp[0]=2.21807/2.1*Lp[0];
 
+    //    plossCorr(ploss);
+      plossCorr(ploss_f);
+    
+    //==== Right Hand Coorinate ====//
 
-    plossCorr(ploss);
+    Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + Lph[0]*Lph[0]);
+    Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + Rph[0]*Rph[0]);
 
-
-      //==== Right Hand Coorinate ====//
-
-    Lp_z = Lp[0]/sqrt(1.0*1.0 + tan(Lth[0])*tan(Lth[0]) + tan(Lph[0])*tan(Lph[0]));
-    Rp_z = Rp[0]/sqrt(1.0*1.0 + tan(Rth[0])*tan(Rth[0]) + tan(Rph[0])*tan(Rph[0]));
-
-
-   
-
-    Lp_x = Lp_z*    tan( Lth[0] );
-    Lp_y = Lp_z*    tan( Lph[0] );
-    Rp_x = Rp_z*    tan( Rth[0] );
-    Rp_y = Rp_z*    tan( Rph[0] ); 
+    Lp_x = Lp_z*     Lth[0] ;
+    Lp_y = Lp_z*     Lph[0] ;
+    Rp_x = Rp_z*     Rth[0] ;
+    Rp_y = Rp_z*     Rph[0] ; 
 
 
+    
     
 }
 
@@ -1581,18 +1646,22 @@ void momcalib::momCalc(){
 
   //==== Right Hand Coorinate ====//
 
-    LP_z = LP/sqrt(1.0*1.0 + tan(Lth[0])*tan(Lth[0]) + tan(Lph[0])*tan(Lph[0]));
-    RP_z = RP/sqrt(1.0*1.0 + tan(Rth[0])*tan(Rth[0]) + tan(Rph[0])*tan(Rph[0]));
+    LP_z = LP/sqrt(1.0*1.0 + Lth[0] * Lth[0] + Lph[0] * Lph[0] );
+    RP_z = RP/sqrt(1.0*1.0 + Rth[0] * Rth[0] + Rph[0] * Rph[0] );
 
 
    
+    /*
+    LP_x = LP_z*    Lth[0] ;
+    LP_y = LP_z*    Lph[0] ;
+    RP_x = RP_z*    Rth[0] ;
+    RP_y = RP_z*    Rph[0] ; 
+    */
 
-    LP_x = LP_z*    tan( Lth[0] );
-    LP_y = LP_z*    tan( Lph[0] );
-    RP_x = RP_z*    tan( Rth[0] );
-    RP_y = RP_z*    tan( Rph[0] ); 
-
-
+    LP_x = LP_z*   -Lth[0] ;
+    LP_y = LP_z*   -Lph[0] ;
+    RP_x = RP_z*   -Rth[0] ;
+    RP_y = RP_z*   -Rph[0] ;     
     
 }
 
@@ -1767,7 +1836,7 @@ void momcalib::ParamCorr(){
 
 
 //================================================================================//
-void momcalib::EventSelection(){
+void momcalib::EventSelection(double ww){
 
   cout<<endl;
 
@@ -1775,6 +1844,7 @@ void momcalib::EventSelection(){
   cout<<"========= Event Selection ================"<<endl;
   cout<<"=========================================="<<endl;  
 
+  cout<<"Al weight : "<<ww<<endl;
   int nLam=0;
   int nSig=0;
   int nLamT=0;
@@ -1878,13 +1948,14 @@ void momcalib::EventSelection(){
     mom_select=false;
     T->GetEntry(i);
 
+
+    
     
     pe=hallap/1000.;
     double Bp_b=pe;
     double Rp_b=Rp[0];
     double Lp_b=Lp[0];
-
-
+    if(Ltrn!=1 || Rtrn!=1)continue;
     
     hLz_es  ->Fill(Lz[0]);
     hLth_es ->Fill(Lth[0]);
@@ -1959,6 +2030,7 @@ void momcalib::EventSelection(){
     R_v.RotateX(   13.2/180.*3.14);
     L_v.RotateX( - 13.2/180.*3.14);
 
+        
 
     mm = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
 	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
@@ -1969,10 +2041,7 @@ void momcalib::EventSelection(){
     mm_nnL = sqrt( (Ee + MTr - Ee_ - Ek)*(Ee + MTr - Ee_ - Ek)
 	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 
-    //    mm_nnL =(mm_nnL-MnnL)*1000.;
-    //    cout<<"mm "<<mm<<endl;
-    
-    
+
 
    //--- Set Coincidence time ---------// 
 
@@ -1991,7 +2060,8 @@ void momcalib::EventSelection(){
   if(coin_t<1.0 && -1.0<coin_t)coin_flag=true;
   //  if((Rvz_cutmin<Rz[0] && Rz[0]<Rvz_cutmax) &&  ( Lvz_cutmin<Lz[0] && Lz[0]<Lvz_cutmax)) z_flag=true;
   if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 < 0.1 ) z_flag=true;
-  if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads) track_flag=true;
+  //  if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads)
+  track_flag=true;
   if(rpathl_cutmin<rpathl && rpathl<rpathl_cutmax) Rpathl_flag=true;
   if(lpathl_cutmin<lpathl && lpathl<lpathl_cutmax) Lpathl_flag=true;
   if(-RF1[43]+RF1[46]>0 && -RF1[44]+RF1[46]>0) Rs0_flag=true;
@@ -1999,13 +2069,16 @@ void momcalib::EventSelection(){
   if(RF1[48+Rs2pads]>0 && RF1[16+Rs2pads]>0)   Rs2_flag=true;
   if(LF1[Ls2pads]>0 && LF1[Ls2pads+48]>0)      Ls2_flag=true;
   if(DRevtype==5)                              trig_flag=true;
-  if(Ra1sum_p<a1_th)      ac1_flag=true;
-  if(Ra2sum_p>a2_th)      ac2_flag=true;
-
+  //  if(Ra1sum_p<a1_th)      ac1_flag=true;
+  //  if(Ra2sum_p>a2_th)      ac2_flag=true;
+  //===== AC NPE SUM CUT =====//
+  if(AC1_npe_sum<a1_th)      ac1_flag=true;
+  if(AC2_npe_sum>a2_th)      ac2_flag=true;
+  
   //  if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 > 0.1) Al_flag=true;
 
-  //  if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && (Rz[0]+Lz[0])/2.0 > 0.1) Al_flag=true; // test z >0 tuning
-  if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && (Rz[0]+Lz[0])/2.0 <-0.1) Al_flag=true; // test z <0 tuning
+  if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && (Rz[0]+Lz[0])/2.0 > 0.1) Al_flag=true; // test z >0 tuning
+  //if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && (Rz[0]+Lz[0])/2.0 <-0.1) Al_flag=true; // test z <0 tuning
 
   gs_flag=true;
   ps_flag=true;
@@ -2019,10 +2092,8 @@ void momcalib::EventSelection(){
   if((runnum>111220 && runnum<111480) || (runnum>111576 && runnum<111698) 
      || (runnum>111738 && runnum<111830) ) nnL_run=true;
   else Lam_run=true;
- 
-
-
-
+  
+  //  cout<<"runnum "<<runnum<<" Lam_run "<<Lam_run<<" nnL_run "<<nnL_run<<endl;
 
 
      //      Lp[0]=2.21807/2.1*Lp[0];
@@ -2058,22 +2129,44 @@ void momcalib::EventSelection(){
 
 
       //====== Al Events Selection =============//
+      bool zp_flag= false;
+      if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && (Rz[0]+Lz[0])/2.0 > 0.1) zp_flag=true; // z >0
+      bool zn_flag= false;
+      if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && (Rz[0]+Lz[0])/2.0 < -0.1) zn_flag=true; // z <0      
+
+
+
+      ////    z >0 Alminum events ////
+     if(trig_flag && coin_flag && RPID_flag && LPID_flag  && zp_flag){
+	hmm_Al_zp->Fill((mm_Al-MMgL)*1000.); 
+      }
+
+      ////    z <0 Alminum events ////
+     if(trig_flag && coin_flag && RPID_flag && LPID_flag && zn_flag){
+	hmm_Al_zn->Fill((mm_Al-MMgL)*1000.); 
+      }
+      
+      
       
       if( trig_flag &&  RPID_flag && LPID_flag && Al_flag &&( (-45<coin_t && coin_t <-15) || (15<coin_t && coin_t<45) )   )
 	hmm_Al_acc->Fill((mm_Al-MMgL)*1000.);
       
     //=====================================//
       
-      Al_check =false;
-      if(i%2==0)Al_check =true;
+      //      Al_check =false;
+      //      if(i%2==0)Al_check =true;
+      Al_check =true;
+
+
+      
       if(trig_flag && coin_flag && RPID_flag && LPID_flag && Al_flag && Al_check){
       hz_Al->Fill((Rz[0]+Lz[0])/2.0);
       hmm_Al->Fill((mm_Al-MMgL)*1000.);
       if(mom_select)      hmm_Al_mom->Fill((mm_Al-MMgL)*1000);
       bool MgL_flag = false;
-      bool MgL_flag2= false;
-      double range_MgL=0.002; 
-      //      double range_MgL=0.005; 
+      //      bool MgL_flag2= false;
+      //double range_MgL=0.002; 
+
       //      double MgL_mean[4]={-4.0e-3, 6.0e-3, 20.0e-3, 30.0e-3}; //Bishnu parameters
       //      double MgL_mean[4]={0.00,0.07,0.18,0.2};
       //      double MgL_mean[4]={-100,-100,-100,0.168}; // GeV
@@ -2084,10 +2177,13 @@ void momcalib::EventSelection(){
       // double MgL_mean[4]={0.025,-100,-100,-100}; // GeV
       //      double MgL_mean[4]={-0.007,-100,-100,-100}; // GeV
       //      double MgL_mean[4]={-100,-0.020,-100,-100}; // Al_posi
-      double MgL_mean[4]={-100., -17.6e-3, -7.0e-3, 1.8e-3}; //28 Al L peak
+      //      double MgL_mean[4]={-100., -17.6e-3, -7.0e-3, 1.8e-3}; //28 Al L peak
+      //      double MgL_mean[4]={-100., -100, -7.0e-3, 100}; //28 Al L peak
+      //     double MgL_mean[4]={-100., -100, -17.60e-3, 100}; //28 Al L peak
       //      double MgL_mean[4]={-100., -17.6e-3, -100.,-100.}; //28 Al L peak
-      //      double MgL_mean[4]={-100., -100, -7.0e-7,-100.}; //28 Al L peak
-      //      double MgL_mean[4]={-100., -100, 1.8e-3,-100.}; //28 Al L peak
+      //      double MgL_mean[4]={-100., -100, -7.0e-3,-100.}; //28 Al L peak
+      /*
+      double MgL_mean[4]={-100., -100, 1.8e-3,-100.}; //28 Al L peak
       int MgL_peak=-1;
       
       for(int m=0;m<4;m++)
@@ -2096,12 +2192,12 @@ void momcalib::EventSelection(){
 	  MgL_peak=m;
 	  break;
 	}
-
-
+*/
+      if(fabs(mm_Al-MMgL -MgL_mean)<MgL_width)MgL_flag =true;
       //      if(fabs(mm_Al-MMgL)+Al_th<0.01 && Al_mode)MgL_flag=true;
       /*
       if( -range_MgL<mm_Al-MMgL - Al_th && mm_Al-MMgL - Al_th < range_MgL  && Al_mode)MgL_flag=true;  
-      if( -range_MgL<mm_Al-MMgL - Al_th2 && mm_Al-MMgL - Al_th2 < range_MgL  && Al_mode)MgL_flag2=true;  
+      if( -range_MgL<mm_Al-MMgL - Al_th2 &&mm _Al-MMgL - Al_th2 < range_MgL  && Al_mode)MgL_flag2=true;  
       */
 
       //    if(MgL_flag && Al_mode){
@@ -2109,7 +2205,8 @@ void momcalib::EventSelection(){
     if(MgL_flag && Al_mode ){
 
       mass_flag[ntune_event]=2;
-      mass_ref[ntune_event] = MMgL + MgL_mean[MgL_peak];
+      //      mass_ref[ntune_event] = MMgL + MgL_mean[MgL_peak];
+      mass_ref[ntune_event] = MMgL + MgL_mean;
       chi_Al+=(mm_Al-mass_ref[ntune_event])*(mm_Al-mass_ref[ntune_event])/0.002/0.002;
 
       //      cout<<"mm_MgL "<<mm_Al<<" MgL_mean "<<MgL_mean[MgL_peak]*1000.<<" mass_ref "<<mass_ref[ntune_event]<<" peak num "<<MgL_peak<<" diff "<<mm_Al-MMgL-MgL_mean[MgL_peak]<<endl;
@@ -2396,10 +2493,11 @@ void momcalib::EventSelection(){
   if(nLamT==0) weightT = 1.0;
   if(nAl==0 || nLam==0)   weightAl= 1.0;
   if(nnnL==0)   weightnnL= 1.0;
-
+  weightAl=weightAl*ww;
   weightAl_def=weightAl;
-
-
+  weight_def = weight;
+  Al_range = range_MgL;
+  //  weight *=2.0;
   // chi square //
   chi_Al = chi_Al/nAl;
   chi_L  = chi_L/nLam;
@@ -2408,7 +2506,7 @@ void momcalib::EventSelection(){
   chi2_init= chi_Al+chi_L+chi_S;
   
 
-  //  weightAl=weightAl*10.0;
+
   //  weightnnL=10.;
   //  weightAl=0.0;
   
@@ -2419,6 +2517,7 @@ void momcalib::EventSelection(){
   cout<<"Select Lam(T) events : "<<nLamT<<endl;
   cout<<"Select Al     events : "<<nAl<<endl;
   cout<<"Select nnL    events : "<<nnnL<<endl;
+  cout<<"Weight Al : "<<ww<<endl;
   cout<<"Ratio Lam/Sig :"<<weight<<endl;
   cout<<"Ratio LamH/LamT :"<<weightT<<endl;
   cout<<"Ratio LamH/Al :"<<weightAl<<endl;
@@ -2482,8 +2581,12 @@ void momcalib::MomTuning(string ofname){
     }else if(MODE==0){
     cout<<"---------pk & pe tuning ------"<<endl;
     chi_sq[i]=0.0;
-    weightAl=weightAl_def*(i+1)*10.0;
+    weightAl=weightAl_def*(i);
+    //    Al_range = range_MgL - 0.001*i;
+    //    if(Al_range<=0)range_MgL - 0.001*(i-1) -0.0001*i;
+    //    weight=weight_def*(i+1);
     cout<<"weightAl "<<weightAl<<endl;
+    cout<<"weight "<<weight<<endl;
     chi_sq[i] = tune(Opt_par,i,0);
 
     }
@@ -2591,9 +2694,9 @@ void momcalib::MomTuning(string ofname){
 double momcalib::Eloss(double yp, double z,char* arm){
 
 
-
   
   double x;
+
   
   //  if(arm) x = - tan(hrs_ang-yp); //yp : phi [rad] RHRS
   //  else    x = - tan(hrs_ang+yp); //yp : phi [rad] LHRS
@@ -2607,12 +2710,17 @@ double momcalib::Eloss(double yp, double z,char* arm){
   
   //  if(arm=="R")        x = - hrs_ang - yp; //yp : phi [rad] RHRS
   //  else if(arm=="L")   x = - hrs_ang + yp; //yp : phi [rad] LHRS
-  
+  //  if(arm=="R")        x = - hrs_ang - yp; //yp : phi [rad] RHRS
+  //  else if(arm=="L")   x = - hrs_ang + yp; //yp : phi [rad] LHRS
+  //  elase x=0.0;
+
+
+  // Gogami Model //
   if(arm=="R")        x = - hrs_ang + yp; //yp : phi [rad] RHRS
   else if(arm=="L")   x = - hrs_ang - yp; //yp : phi [rad] LHRS
   else x=0.0;
 
-
+  
   double ph[3],pl[2];
   double dEloss;
   bool high;
@@ -2666,7 +2774,7 @@ double momcalib::Eloss(double yp, double z,char* arm){
     if(arm=="L")dEloss += 0.313;
     
   }
-  
+
   dEloss=dEloss/1000.; // [GeV/c]  
   return dEloss;
   
@@ -2734,11 +2842,13 @@ void momcalib::Fill(){
     mm_Al_c = -2222.0;
     mm_Al_acc_c = -2222.0;
     MM_L=-2222.0;
+    mm_X=-2222.0;
     MM_L_b=-2222.0;
     mm_nnL =-2222.0;
     mm_nnL_acc=-2222.0;
     mm_nnL_c=-2222.0;
     mm_nnL_acc_c=-2222.0;
+    mm_Al_nnL=-2222.0;
     Ra1sum =-2222.0;
     Ra2sum =-2222.0;
     Rgssum =-2222.0;
@@ -2785,7 +2895,8 @@ void momcalib::Fill(){
 
     RP=Rp[0];
     LP=Lp[0];
-
+    if(Ltrn!=1 || Rtrn!=1)continue;
+    
     
     if(tevent[t]==i){
       tev=1;
@@ -2843,10 +2954,10 @@ void momcalib::Fill(){
     momCorr(MT_f[8],MT_f[9]);
     hRp_c->Fill(Rp[0]);
     hLp_c->Fill(Lp[0]);
+
     //    plossCorr(ploss_f);   
     //    hRp_ec->Fill(Rp[0]);
     //    hLp_ec->Fill(Lp[0]);
-
 
     //    Dpe = pe;
     //    Dpe_= Lp[0];
@@ -2880,7 +2991,8 @@ void momcalib::Fill(){
     TVector3 R_vb(RP_x, RP_y, RP_z);
     TVector3 L_vb(LP_x, LP_y, LP_z);
     R_vb.RotateX(   13.2/180.*3.14);
-    L_vb.RotateX( - 13.2/180.*3.14);    
+    L_vb.RotateX( - 13.2/180.*3.14);
+
 
    MM_Al_b = sqrt( (Ee + MAl - Ee_2 - Ek2)*(Ee + MAl - Ee_2 - Ek2)
 		 - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) );
@@ -2931,7 +3043,15 @@ void momcalib::Fill(){
    
    MM_L = (MM_L - ML)*1000.;
 
-    
+   mm_X = sqrt( (Ee + 100. - Ee_ - Ek)*(Ee + 100. - Ee_ - Ek)
+		  - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
+   
+   mm_X = (mm_X - 100.)*1000.;   
+
+
+   //   if(runnum==111157 && nev==240177)cout<<"Ee "<<Ee<<" Ee_ "<<Ee_<<" Ek "<<Ek<<" A "<<(Ee + Mp - Ee_ - Ek)<<endl;
+   
+     //cout<<"A "<< (Ee + Mp - Ee_ - Ek)<<" B "<<sqrt((B_v - L_v - R_v)*(B_v - L_v - R_v))<<" mm "<<MM_L<<endl;
  //--- Set Coincidence time ---------// 
  // Rs2_off=RS2_off_H1[Rs2pads];
  // Ls2_off=LS2_off_H1[Ls2pads];
@@ -2956,33 +3076,44 @@ void momcalib::Fill(){
  coin_t=tof_r-tof_l+rpath_corr-lpath_corr-pathl_off-coin_offset; //  coin Path & Offset  correction
 
  // coin_time=coin_t;
- if(single)coin_t=coin_time;
+ // if(single)
+   coin_t=coin_time;
 
  
  //---- Event Selection ----------//
-  if(coin_t<1.0 && -1.0<coin_t)coin_flag=true;
+  if(coin_t<1.0 && -1.0<coin_t)coin_flag=true; //changed by itabashi 2020/06/22
   //  if(Rvz_cutmin<Rz[0] && Rz[0]<Rvz_cutmax && Lvz_cutmin<Lz[0] && Lz[0]<Lvz_cutmax) z_flag=true; 
   if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 < 0.1 ) z_flag=true;
-  if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads) track_flag=true;
-  if(rpathl_cutmin<rpathl && rpathl<rpathl_cutmax) Rpathl_flag=true;
-  if(lpathl_cutmin<lpathl && lpathl<lpathl_cutmax) Lpathl_flag=true;
+  //  if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads)   track_flag=true; 
+  track_flag=true;  //changed by itabashi 2020/06/22
+  //  if(rpathl_cutmin<rpathl && rpathl<rpathl_cutmax) Rpathl_flag=true;
+  //  if(lpathl_cutmin<lpathl && lpathl<lpathl_cutmax) Lpathl_flag=true;
+  
+  Rpathl_flag=true; // as a test 
+  Lpathl_flag=true; // as a test
   if(-RF1[43]+RF1[46]>0 && -RF1[44]+RF1[46]>0) Rs0_flag=true;
   if(-LF1[27]+LF1[30]>0 && -LF1[28]+LF1[30]>0) Ls0_flag=true;
   if(RF1[48+Rs2pads]>0 && RF1[16+Rs2pads]>0)   Rs2_flag=true;
   if(LF1[Ls2pads]>0 && LF1[Ls2pads+48]>0)      Ls2_flag=true;
   if(DRevtype==5)                              trig_flag=true;
-  if(Ra1sum_p<a1_th)      ac1_flag=true;
-  if(Ra2sum_p>a2_th)      ac2_flag=true;
-
+  //  if(Ra1sum_p<a1_th)      ac1_flag=true;
+  //  if(Ra2sum_p>a2_th)      ac2_flag=true;
+  //===== AC NPE SUM CUT =====//
+  if(AC1_npe_sum<a1_th)      ac1_flag=true;
+  if(AC2_npe_sum>a2_th)      ac2_flag=true;
+  
   gs_flag=true;
   ps_flag=true;
   sh_flag=true;
 
+
+
+  
   if(ac1_flag && ac2_flag && gs_flag) RPID_flag=true;
   if(Lcersum>2000.)LPID_flag=true;  
-   if(Rs2_flag && Rs0_flag && Ls2_flag && Ls0_flag) Scinti_flag=true;
-   Scinti_flag=true;
-  
+  //  if(Rs2_flag && Rs0_flag && Ls2_flag && Ls0_flag) Scinti_flag=true;
+  Scinti_flag=true;
+   
    if(trig_flag && Scinti_flag && track_flag && Rpathl_flag && Lpathl_flag){
 
      // if(trig_flag ){
@@ -2992,17 +3123,42 @@ void momcalib::Fill(){
 	|| (runnum>111738 && runnum<111830) ) nnL_run=true;
 
 
+     
   //======== Production Events ============//
 
       Al_check =false;
-      if(i%2==0)Al_check =true;
+      Al_check =true;
+
+      
+      bool zp_flag= false;
+      if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && (Rz[0]+Lz[0])/2.0 > 0.1) zp_flag=true; // z >0
+      bool zn_flag= false;
+      if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && (Rz[0]+Lz[0])/2.0 < -0.1) zn_flag=true; // z <0
+      
+      ////    z >0 Alminum events ////
+     if(trig_flag && coin_flag && RPID_flag && LPID_flag && Al_flag && zp_flag){
+       hmm_Al_zp_c->Fill(MM_Al);
+       hmm_Al_nnL_zp->Fill(MM_Al,MM_nnL);
+     }
+     
+     ////    z <0 Alminum events ////
+     if(trig_flag && coin_flag && RPID_flag && LPID_flag && Al_flag && zn_flag){
+	hmm_Al_zn_c->Fill(MM_Al);
+	hmm_Al_nnL_zn->Fill(MM_Al,MM_nnL);
+     }
+     
 
 
+
+
+	
+      
       if(trig_flag && coin_flag && RPID_flag && LPID_flag && Al_flag){
 	if(Al_check)hmm_Al_cut->Fill(MM_Al);
 	mm_Al = MM_Al_b;
 	mm_Al_c = MM_Al;
-	
+	mm_Al_nnL = MM_nnL;
+	    hmm_Al_nnL->Fill(MM_Al,MM_nnL);
 	for(int j=0;j<ntune_event;j++)
 	  if(mass_flag[j]==2 && tevent[j]==i){
 	    hmm_Al_select_c->Fill(MM_Al);
@@ -3011,9 +3167,22 @@ void momcalib::Fill(){
 	fill_flag=true;
       }
 
-
-
+   
+   
     if(coin_flag && RPID_flag && LPID_flag && z_flag){
+
+      /*
+  if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 < 0.1 ) z_flag=true;
+  if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads) track_flag=true;
+  if(rpathl_cutmin<rpathl && rpathl<rpathl_cutmax) Rpathl_flag=true;
+  if(lpathl_cutmin<lpathl && lpathl<lpathl_cutmax) Lpathl_flag=true;
+  if(-RF1[43]+RF1[46]>0 && -RF1[44]+RF1[46]>0) Rs0_flag=true;
+  if(-LF1[27]+LF1[30]>0 && -LF1[28]+LF1[30]>0) Ls0_flag=true;
+  if(RF1[48+Rs2pads]>0 && RF1[16+Rs2pads]>0)   Rs2_flag=true;
+  if(LF1[Ls2pads]>0 && LF1[Ls2pads+48]>0)      Ls2_flag=true;
+  if(DRevtype==5)                              trig_flag=true;a
+       */
+      
       fill_flag=true;
       if(nnL_run){hmm_nnL_cut->Fill(MM_nnL);
       mm_nnL = MM_nnL_b;
@@ -3025,9 +3194,8 @@ void momcalib::Fill(){
       mm_L_pz=mm_pz;
       hmm_cut->Fill((mm-ML)*1000.);
 
-     
-      if(runnum>=111552)hmm_cut_T->Fill(mm);
-      else hmm_cut_H->Fill(mm);
+      if(runnum>=111552)hmm_cut_T->Fill(MM_L);
+      else hmm_cut_H->Fill(MM_L);
       }
     }
 
@@ -3066,6 +3234,9 @@ void momcalib::Fill(){
 
   
    //   if(Initial && fill_flag)
+   
+
+   
    if(fill_flag)   tnew->Fill();
    if(i % (d.quot * 1000) == 0)cout<<i<<" / "<<ENum<<endl;
   }
@@ -3152,7 +3323,10 @@ void momcalib::Close(){
    hct2->Write();   
    hct_cut->Write();
 
-   
+   hmm_Al_zp->Write();
+   hmm_Al_zn->Write();
+   hmm_Al_zp_c->Write();
+   hmm_Al_zn_c->Write();
    hmm_select->Write();
    hmm_L->Write();
    hmm_nnL->Write();
@@ -3171,6 +3345,9 @@ void momcalib::Close(){
    hmm_Al_cut_acc->Write();
    hmm_Al_select->Write();
    hmm_Al_select_c->Write();
+   hmm_Al_nnL->Write();
+   hmm_Al_nnL_zp->Write();
+   hmm_Al_nnL_zn->Write();
    gchi_p->SetName("gchi");
    gchi_p->Write();
    gchi_w->SetName("gchi_w");
@@ -3181,7 +3358,72 @@ void momcalib::Close(){
 
 }
 
+/////////////////////////////////////////////////////////////
 
+/*
+void momcalib::GetACParam(){
+
+
+  cout<<"==================================="<<endl;
+  cout<<"========== GetACParam ============="<<endl;
+  cout<<"==================================="<<endl;
+  // taken by /ac/param/offset_ac.dat 
+  string pname="/home/itabashi/ana/E12-17-003/HallA-Online-Tritium/replay/ana/ac/param/offset_ac.dat";
+  ifstream ifp(pname.c_str(),ios::in);
+  if (ifp.fail()){ cerr << "failed open files" <<pname.c_str()<<endl; exit(1);}
+  cout<<" Param file : "<<pname.c_str()<<endl;
+  
+  string buf;
+  int AC,Seg;
+  double off,pe;
+  while(1){
+    getline(ifp,buf);
+    if( buf[0]=='#' ){ continue; }
+    if( ifp.eof() ) break;
+    stringstream sbuf(buf);
+    sbuf >> AC >> Seg >> off >> pe;
+
+    if(AC==1){
+      ac1_off[Seg]=off;
+      ac1_1pe[Seg]=pe;
+    }else if(AC==2){
+      ac2_off[Seg]=off;
+      ac2_1pe[Seg]=pe;
+    }else{
+      cout<<"Error :"<<endl; exit(1);
+    }
+
+  }
+}
+
+*/
+
+//////////////////////////////////////////////////////////
+
+/*
+double momcalib::AC_npe(int nac,int seg,double adc){
+
+  
+
+  double npe,ac_off,ac_1pe;
+
+  if(nac==1){
+    ac_off=ac1_off[seg];
+    ac_1pe=ac1_1pe[seg];
+  }else if(nac==2){
+    ac_off=ac2_off[seg];
+    ac_1pe=ac2_1pe[seg];
+  }else {
+    cout<<"Error : falid Get AC parameters "<<endl; exit(1);}
+
+  //  npe=(adc)/(ac_1pe - ac_off); // Just correct gain
+  //  if(nac==1)npe=(adc)/(ac_1pe - ac_off)*2.0;     // Gogami AC DB was changed gain 400 -> 200
+  if(nac==1)npe=(adc)/(ac_1pe - ac_off);     //  gain 400
+  else if(nac==2)  npe=(adc)/(ac_1pe - ac_off);
+    // in this case, we need scale gain parameter 2 times
+  return npe;  
+}
+*/
 
 //=========================================================//
 //================= Function ==============================//
@@ -3229,7 +3471,10 @@ double  LS2_off_H1[16]={-25335,-25385.6,-25367,-25392.1,-25391.7,-25386.4,-25422
 
   return s2f1_offset;
 
-}
+  }
+
+
+
 
 
 // #############################################################
@@ -3269,7 +3514,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
   double dpk, dpe_,dpe;
   TVector3 L_v, R_v, B_v;
   //======= Coincidence analysis ========//
-
+  
   for(int i=0;i<nParamTp;i++){
     if(MODE==0){
       par_R[i]=param[i];
@@ -3336,6 +3581,10 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     else lp_ref=2.1;
 
 
+    // ===== Al range Flag ======//
+    //    if(mass_flag[i]==2 && Al_range<fabs(MM[i]-mass_ref[i]))continue;
+
+    
     // RHRS //
 
     //======== Scaled paramters ===============//
@@ -3394,14 +3643,6 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
     //==== E loss Calib =====//
 
-
-    //    dpe =mom->Eloss(0,0,"B");
-    //    dpk =mom->Eloss(rph[i],rz[i],"R");
-    //    dpe_=mom->Eloss(lph[i],lz[i],"L");
-    //    double Bp_b=Bp;
-    //    double Rp_b=Rp;
-    //    double Lp_b=Lp;
-    
     Bp = Bp - dpe;
     Rp = Rp + dpk;
     Lp = Lp + dpe_;
@@ -3415,14 +3656,15 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     lbeta=Lp/Ee_; 
 
     //==== Right Hand coordinate =====//
-    rp_z = Rp/sqrt(1.0*1.0 + pow( tan(rth[i]) ,2.0) + pow( tan( rph[i] ),2.0) );
-    lp_z = Lp/sqrt(1.0*1.0 + pow( tan(lth[i]) ,2.0) + pow( tan( lph[i] ),2.0) );
+    //    rp_z = Rp/sqrt(1.0*1.0 + pow( rth[i]) ,2.0) + pow(  rph[i] ),2.0) );
+    //    lp_z = Lp/sqrt(1.0*1.0 + pow( lth[i]) ,2.0) + pow(  lph[i] ),2.0) );
+    rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i]);
+    lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
 
-
-    lp_x = lp_z *   tan( lth[i] );
-    lp_y = lp_z *   tan( lph[i] ); 
-    rp_x = rp_z *   tan( rth[i] );
-    rp_y = rp_z *   tan( rph[i] );
+    lp_x = lp_z *    lth[i] ;
+    lp_y = lp_z *    lph[i] ; 
+    rp_x = rp_z *    rth[i] ;
+    rp_y = rp_z *    rph[i] ;
 
 
     B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
@@ -3444,7 +3686,6 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 		     - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
     
 
-
     //======================//
     //====== Residual ======//
     //======================//
@@ -3453,13 +3694,13 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
 
     if(mass_flag[i]==0 && scale[i]==0)      residual = (mass - mass_ref[i]); // Lambda H kinematics
-    else if(mass_flag[i]==1)                residual = (mass - mass_ref[i])*weight;  // weigth Sigma0:
-    else if(scale[i] && mass_flag[i]==0)    residual = (mass - mass_ref[i])*weightT;  // weigth Lambda T kinematics  
-
-    else if(mass_flag[i]==3 )               residual = (mass_nnL - mass_ref[i])*weightnnL;  // weigth nnL
-
+    else if(mass_flag[i]==1)                residual = (mass - mass_ref[i])*weight;  // weight Sigma0:
+    else if(scale[i] && mass_flag[i]==0)    residual = (mass - mass_ref[i])*weightT;  // weight Lambda T kinematics  
+    else if(mass_flag[i]==3 )               residual = (mass_nnL - mass_ref[i])*weightnnL;  // weight nnL
     else if(mass_flag[i]==2 )               residual = (mass_MgL - mass_ref[i])*weightAl;  // MgL events
 
+
+    
     // conditon //
     //    if((fabs( Rp -rp_ref )>0.1 || fabs( Lp - lp_ref) >0.1 ))residual=residual*1.5; //rp_ref=1.8 GeV, lp_ref=2.1 GeV
 
@@ -3475,7 +3716,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
      chi2=chi2 + pow(residual/sigma,2.0)/ntune_event;
      
      //     if(mass_ref[i]>MMgL-1. && mass_ref[i]!=MnnL)cout<<"i "<<i<<" mm_MgL "<<mass_MgL<<" mass_ref "<<mass_ref[i]<<" residual "<<residual<<" weight "<<weightAl<<" chi "<<chi2<<endl;
-     
+    
   }//end for 
 
   
@@ -3489,11 +3730,12 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 }//end fcn
 
 
+
 // #############################################################
 void fcn_new(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/)
 // #############################################################
 {
-  
+    cout<<"test new"<<endl;
   double sigma = 0.002;//[GeV/c^2]
   double mean  =0.0;
   double ztR      = 0.0;
@@ -3671,15 +3913,20 @@ void fcn_new(int &nPar, double* /*grad*/, double &fval, double* param, int /*ifl
     lbeta=Lp/Ee_; 
 
     //==== Right Hand coordinate =====//
-    rp_z = Rp/sqrt(1.0*1.0 + pow( tan(rth[i]) ,2.0) + pow( tan( rph[i] ),2.0) );
-    lp_z = Lp/sqrt(1.0*1.0 + pow( tan(lth[i]) ,2.0) + pow( tan( lph[i] ),2.0) );
-
-
-    lp_x = lp_z *   tan( lth[i] );
-    lp_y = lp_z *   tan( lph[i] ); 
-    rp_x = rp_z *   tan( rth[i] );
-    rp_y = rp_z *   tan( rph[i] );
-
+    /*
+    rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i] );
+    lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
+    lp_x = lp_z *   lth[i] ;
+    lp_y = lp_z *   lph[i] ; 
+    rp_x = rp_z *   rth[i] ;
+    rp_y = rp_z *   rph[i] ;
+    */
+    rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i] );
+    lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
+    lp_x = lp_z *  lth[i] ;
+    lp_y = lp_z *  lph[i] ; 
+    rp_x = rp_z *  rth[i] ;
+    rp_y = rp_z *  rph[i] ;    
 
     B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
     R_v.SetXYZ(rp_x, rp_y, rp_z);
@@ -3688,7 +3935,7 @@ void fcn_new(int &nPar, double* /*grad*/, double &fval, double* param, int /*ifl
 
     R_v.RotateX(  13.2/180.*3.14);
     L_v.RotateX( -13.2/180.*3.14);
-
+    
 
     mass = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
 		 - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
@@ -3776,8 +4023,9 @@ double momcalib::tune(double* pa, int j, int MODE)
 
   TMinuit* minuit= new TMinuit(allparam);
 
-  if(form_mode)  minuit->SetFCN(fcn_new); // fcn Chi-square function as a test
-  else  minuit->SetFCN(fcn); // fcn Chi-square function
+  //  if(form_mode)  minuit->SetFCN(fcn_new); // fcn Chi-square function as a test
+  //  else
+    minuit->SetFCN(fcn); // fcn Chi-square function
   
   double start[allparam];
   double step[allparam];
@@ -3855,10 +4103,13 @@ double momcalib::tune(double* pa, int j, int MODE)
 
   for(int i=0 ; i<allparam ; i++){
     sprintf(pname,"param_%d",i+1);
-    
+   
     LLim[i] = pa[i] - 5.0; // temp
     ULim[i] = pa[i] + 5.0; // temp
-    
+    //    step[i] = 10.0;  // test
+    //    LLim[i] = pa[i]; // temp
+    //    ULim[i] = pa[i]; // temp
+
     minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
 	  
   }
@@ -4016,7 +4267,6 @@ double calcf2t_zt(double* P, double xf, double xpf,
                  double yf, double ypf){
 // ###############################################
 
-  int nnz=3;  
 
   const int nMatT=nnz; 
   const int nXf=nnz;
