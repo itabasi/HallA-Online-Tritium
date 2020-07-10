@@ -110,7 +110,7 @@ bool ParamMan::SetVal( void )
     name = "R.s2.L.off_F1 =" ;          npar=16; SetAParam(line,name,R_F1S2B.tdcOffset,npar);//tmp
     name = "R.s0.R.off_F1 =" ;          npar=1;  SetAParam(line,name,R_F1S0T.tdcOffset,npar);//tmp
     name = "R.s0.L.off_F1 =" ;          npar=1;  SetAParam(line,name,R_F1S0B.tdcOffset,npar);//tmp
-    name = "R.RF.off =" ;               npar=1;  SetAParam(line,name,R_RF.tdcOffset,npar);//tmp
+    name = "R.RF.offo =" ;               npar=1;  SetAParam(line,name,R_RF.tdcOffset,npar);//tmp
     name = "L.s2.R.off =" ;             npar=16; SetAParam(line,name,L_FbS2T.tdcOffset,npar);
     name = "L.s2.L.off =" ;             npar=16; SetAParam(line,name,L_FbS2B.tdcOffset,npar);
     name = "L.s0.R.off =" ;             npar=1;  SetAParam(line,name,L_FbS0T.tdcOffset,npar);

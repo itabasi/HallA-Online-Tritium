@@ -1,0 +1,14 @@
+#########################################
+### E12-17-003 Experiment           #####
+## H(e,e'K+)L/S XSection Parameters #####
+#########################################
+# mode H: H(e,e'K+), T: 3H(e,e'K+) 3He: 3He(e,e'K+), Al: 27Al(e,e'K+)  
+mode: H
+Beam momentum: 4.318 GeV/c
+RHRS momentum: 1.823 GeV/c
+LHRS momentum: 2.100 GeV/c
+Beam Charge: 4.7 C
+RHRS Acceptance file: ./param/RHRS_accept_woColl.param
+LHRS Acceptance file: ./param/LHRS_accept_woColl.param
+Number of Hypernuclei: 2000
+Number of Hypernuclei2: 600

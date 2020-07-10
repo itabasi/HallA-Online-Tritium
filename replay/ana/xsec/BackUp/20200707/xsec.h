@@ -3,9 +3,9 @@
 #include <TLorentzVector.h>
 #include "define.h"
 #include "Param.h"
-#include <complex.h>
+
 const int nmax =200;
-const int nmax2 =200;
+
 class xsec{
 
 
@@ -21,9 +21,6 @@ public:
   void SetLAccept_new(string ifpname);
   void SetRAccept(string ifpname);
   double PhaseShift();
-  complex<double> vlkkp(double skp,double skpp,int lcall);
-  complex<double> vofq(double q2);
-  //  void DGauss(double* Y,double* WY, int N);
   TVector3 HallACoordinate(TVector3 V, bool rhrs);
   double VP_Flux(TLorentzVector B_v, TLorentzVector L_v);
   double NGamma(double Qc);
@@ -55,29 +52,7 @@ public:
   // ------ NGamma ------//
   TLorentzVector B_v,L_v,R_v;
   // ------ NHyp --------//
-
-
-  //------- PhaseShift ------//
-  double ampj,ampj2,amtag,amtag2,fmu,fmunn,amu,fnucl,fnucl2,hbarc2;
-  double skz,skz2,eon,eoff,rho,ekpj,ektag,lpjmax,skp,skpp,skp2,skpp2,vv1,uofq,fthecm,q2;
-  double POL[nmax2];
-  double skk[nmax2],x[nmax2],w[nmax2],wt[nmax2],pols[nmax2+1],pol[nmax2],xvq[nmax2],wvq[nmax2];
-  complex<double> gren[nmax2+1][nmax2+1],ul[nmax2+1][nmax2+1],v[nmax2],delta1[60],ton[60],tborn[60];
-  complex<double> fthe[nmax2],fthe1[nmax2];
-  int model =2;
-  complex<double> xi, vq,v2,vv,delta,det,ron,fborn,fthed;
-  double va,b_a,vr,b_r,b_r2,b_a2,vqa,vqr,ronr,tonre,tonim,tbornre,tbornim,perre,perim,delrad,deldeg,deldega,tcross,tcross1;
   
-  const int n1 =40;
-  const int n2 =40;
-  //  const int n1 =6;
-  //  const int n2 =6;  
-  const int L_value =3;
-  double xxx, totalc;
-  int npot =80;
-  int nrp1,lmax,lmax1;
-  double tol =0.01;
-  bool nr_mode=true;
 };
 
 xsec::xsec(){};

@@ -32,6 +32,7 @@ double weight_def =0.0;
 double weightnnL=0.0;
 double range_MgL=0.003; 
 double Al_range =0.0;
+double MgL_weight;
 double MgL_mean;
 double MgL_width;
 bool Goga=false;
@@ -400,10 +401,10 @@ void momcalib::SetAlEvents(double weight, double mean,double width){
 
   MgL_width = width;
   MgL_mean  = mean;
-  weightAl  = weight;
+  MgL_weight  = weight;
 
   cout<<"=======< Al Tuning Parameters >=========="<<endl;
-  cout<<" weight : "<<weightAl<<endl;
+  cout<<" weight : "<<MgL_weight<<endl;
   cout<<" mean : "<<MgL_mean<<" MeV"<<endl;
   cout<<" width : "<<MgL_width<<" MeV"<<endl;
 
@@ -2493,7 +2494,7 @@ void momcalib::EventSelection(double ww){
   if(nLamT==0) weightT = 1.0;
   if(nAl==0 || nLam==0)   weightAl= 1.0;
   if(nnnL==0)   weightnnL= 1.0;
-  weightAl=weightAl*ww;
+  weightAl=weightAl*MgL_weight;
   weightAl_def=weightAl;
   weight_def = weight;
   Al_range = range_MgL;
@@ -2517,7 +2518,7 @@ void momcalib::EventSelection(double ww){
   cout<<"Select Lam(T) events : "<<nLamT<<endl;
   cout<<"Select Al     events : "<<nAl<<endl;
   cout<<"Select nnL    events : "<<nnnL<<endl;
-  cout<<"Weight Al : "<<ww<<endl;
+  cout<<"Weight Al : "<<MgL_weight<<endl;
   cout<<"Ratio Lam/Sig :"<<weight<<endl;
   cout<<"Ratio LamH/LamT :"<<weightT<<endl;
   cout<<"Ratio LamH/Al :"<<weightAl<<endl;

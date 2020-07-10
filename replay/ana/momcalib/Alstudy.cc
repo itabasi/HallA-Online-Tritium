@@ -1,5 +1,5 @@
 
-const int nmax=6;
+const int nmax=5;
   // nnL peak significance //
   double fit_range=1.0 ; //+- 1 Mev
   int imax=300;
@@ -22,10 +22,13 @@ void Alstudy(){
   TH2D* hmm_Al_nnL_zp[nmax];
   TH2D* hmm_Al_nnL_zn[nmax];
   //  string dir ="../rootfiles/momcalib/wAl_p18_w2/";
-  string dir ="../rootfiles/momcalib/wAl_n17/";
-  for(int w=0;w<6;w++){
+  //  string dir ="../rootfiles/momcalib/wAl_n17/";
+  string dir ="../rootfiles/momcalib/Altuning/";
+  for(int w=0;w<5;w++){
     //    file = Form("momcalib_5th_wAl_p18_w%d.root",w*10);
-    file = Form("momcalib_5th_wAl_n17_w%d.root",w*10);
+    //  file = Form("momcalib_5th_wAl_n17_w%d.root",w*10);
+    if(w!=0)    file = Form("momcalib_5th_wAl_w1_m-%d_r2.root",w);
+    else if(w==0)file = Form("momcalib_5th_wAl_w1_m%d_r2.root",w);
     ifname[w] =  dir+file;
     ifp[w] =new TFile(ifname[w].c_str());
     hmm_c[w]        = (TH1D*)ifp[w]->Get("hmm_cut");

@@ -557,7 +557,7 @@ double xsec::PhaseShift(){
       double coss = cos(PI*(x[i]+1.0)/4.0);
       skk[ii] = 2.0 * skz +2.0 *skz * tan(PI*(x[i]+1.0 )/4.0);
       wt[ii]  = 2.0* PI * 0.25 *skz/coss/coss*w[i]; 
-      //      cout<<"i "<<i<<" skk "<<skk[i]<<" skz "<<skz<<" x "<<x[i]<<" w "<<wt[i]<<endl;
+      //     cout<<"i "<<i<<" skk "<<skk[i]<<" skz "<<skz<<" x "<<x[i]<<" w "<<wt[i]<<endl;
     } // end 21
 
     // Set Last Segment
@@ -863,28 +863,33 @@ void DGauss(double* Y, double* WY, int N){
   int KMAX =100;
   Z = PI/(2.0*(double)N);
   //cout<<"DGAUS N "<<N<<" M "<<M<<endl;
-  //  X[0] = 0.0;
-  //  Y[0] = 0.0;
-  //  PL(Y[0],N,polw);
-  //  Y[0] = 2.0*(1.0-Y[0]*Y[0])/fabs((double(N+1)*polw[N]*double(N+1)*polw[N]));
+  X[0] = 0.0;
+  Y[0] = 0.0;
+  PL(Y[0],N,polw);
+  Y[0] = 2.0*(1.0-Y[0]*Y[0])/fabs((double(N+1)*polw[N]*double(N+1)*polw[N]));
 
 
       
   for(int L=1; L<=M;L++){    // DO 20
     for(int K=1;KMAX;K++){ // DO 5
       PL(Z,N,POL);
-      P = POL[N];
+      P = POL[NP1];
       //  DP = (double)N* (Z*POL[NP1] - POL[N])/(Z*Z -1.0);
-      DP = (double)N* (Z*POL[N] - POL[N-1])/(Z*Z -1.0);
+      DP = (double)N* (Z*POL[NP1-1] - POL[N-1])/(Z*Z -1.0);
       Z = Z- P/DP;
       if(abs(P) < 1.0e-12){break;}
       if(K==KMAX-1){cout<<" faled DGaus "<<endl;return;}
     } // for K END 5
+
+    cout<<" after break "<<" L "<<L<<" Z "<<Z<<" N "<<N<<" DP "<<DP<<" P "<<" DP-P "<<DP-P<<endl;
     
     X[L] = Z;
     //==========< calc weight > ====================//
+    PL(Z,N,polw);
     V = 2.0/( (1.0 -Z*Z)*DP*DP ); // original
+    //V = 2.0*(1.0 - Z*Z )/fabs((double(N+1)*polw[N]*double(N+1)*polw[N])) ;
     W[L] =V;
+    cout<<"after calc w  Z "<<Z<<" N "<<N<<endl;
     //==============================================//
 
    
@@ -892,22 +897,33 @@ void DGauss(double* Y, double* WY, int N){
     if(L == M )break; // GOTO 30    
     DZ =Z;
     if(L >= 1)DZ = (X[L] - X[L-1])*0.5;
+    //      cout<<"L "<<L<<" XL "<<X[L]<<" XL-1 "<<X[L-1]<<" DZ "<<DZ<<endl; 
+
+
     for(int K=0;K<nmax2;K++){  // DO 17
       Z = Z+DZ;
       PL(Z,N,POL);
-      P = POL[N];
+      //      cout<<"k "<<K<<" POL[NP1] "<<POL[NP1]<<endl; P =
+      P = POL[NP1];
+      //      P = POL[NP1-1]; // itabashix
+      //      P = POL[N];
       Z1 = Z  + DZ;
       PL(Z1,N,POL);
-      P1 = POL[N];
-      if(P*P1 < 0.0 )break; // TO 18
+      P1 = POL[NP1];
+      //      P1 = POL[NP1-1]; // itabashi
+      //      P1 = POL[N-1];
+      if(P*P1 < 0.0 ){     // cout<<"P "<<P<<" P1 "<<P1<<endl;
+       	cout<<"K "<<K<<" Z "<<Z<<" Z1 "<<Z1<<" DZ "<<DZ<<" P "<<P<<" P1 "<<P1<<endl;
+	break; }// TO 18
+
     } // END 17
+
     
-    
-    Z = (P1*Z -P*Z1)/(P1-P);
-    
+      Z = (P1*Z -P*Z1)/(P1-P);
+
     
   } // for L END 20
-  
+
 
 
   for(int NEG =1 ;NEG <N+1;NEG++){  // DO 40
@@ -915,8 +931,12 @@ void DGauss(double* Y, double* WY, int N){
     if(NEG >  M)Y[NEG] =   X[NEG-M];
     if(NEG <= M)WY[NEG] =  W[M+1-NEG];
     if(NEG >  M)WY[NEG] =  W[NEG-M];
+    //    cout<<"  i "<<NEG<<" Y "<<Y[NEG]<<NEG<<" WY "<<WY[NEG]<<endl;
   } // END 40
 
+  cout<<endl<<" END DGAUSS "<<endl;
+  for(int NEG =0 ;NEG <N+1;NEG++)cout<<"  i "<<NEG<<" Y "<<Y[NEG]<<NEG<<" WY "<<WY[NEG]<<endl;
+  cout<<endl;
   return ;
   
 };
@@ -931,7 +951,7 @@ void PL(double X, int L, double * POL){
   POL[0] = 1.0;
   POL[1] = X;
   if(L <=1)return;
-  for(int jj=1;jj<L;jj++){
+  for(int jj=1;jj<=L;jj++){
     S=(double)(jj+1);
     POL[jj+1] =( (2.0*S -1.0)*X*POL[jj] -(S-1.0)*POL[jj-1] )/S;
   }

@@ -1,7 +1,7 @@
 
 //bool rhrs=true;
-bool rhrs=false;
-
+bool rhrs = true;
+bool coll = false;
 void calcAcc(){
 
 
@@ -19,10 +19,19 @@ void calcAcc(){
     ifname ="../rootfiles/simc/single_RHRS_new.root";
     //    Ntot = 1790339;
     Ntot = 2550000;
+    if(coll){
+      ifname ="../rootfiles/simc/single_RHRS_coll.root";
+      Ntot = 3005116;
+    }    
   }else{ 
     ifname ="../rootfiles/simc/single_LHRS.root";
     //    Ntot = 1816284;
     Ntot = 2580001;
+
+    if(coll){
+      ifname ="../rootfiles/simc/single_LHRS_coll.root";
+      Ntot = 3066520;
+    }
   }
 
   string  ifname_gen ="../rootfiles/simc/single_gen.root";
@@ -104,7 +113,7 @@ void calcAcc(){
     hRp->SetLineColor(4);
     TH1D* hth =new TH1D("hth","",100,0,0.1);
     TH1D* hth2 =new TH1D("hth2","",100,0,0.1);
-    TH1D* hth_acc =new TH1D("hth_acc","hth_acc;theta [rad];N/Ngen*",100,0,0.1);
+    TH1D* hth_acc =new TH1D("hth_acc","hth_acc;theta [rad];N/Ngen*2PI",100,0,0.1);
     TH1D* hthL =new TH1D("hthL","hthL",100,0,0.1);
     TH1D* hthL_gen =new TH1D("hthL_gen","hthL_gen",100,0,0.1);
     TH1D* hthR_gen =new TH1D("hthR_gen","hthR_gen",100,0,0.1);
@@ -115,9 +124,10 @@ void calcAcc(){
     //    TH3D* hRAcc_th =new TH3D("hRAcc_th","",nbin,-max_rp,max_rp,nbin,nbin,0.0,theta_gen_accep,nbin,0,20);
     TH2D* hRp_th =new TH2D("hRp_th","hRp_th;mom [GeV];theta [rad] ; Acceptance [msr]",nbin,min_rp,max_rp,nbin,0.0,theta_gen_accep);
     TH2D* hRp_th_gen =new TH2D("hRp_th_gen","hRp_th_gen;mom [GeV];theta [rad] ; Acceptance [msr]",nbin,min_rp,max_rp,nbin,0.0,theta_gen_accep);
+    TH2D* hRp_th_acc =new TH2D("hRp_th_acc","hRp_th_acc;mom [GeV];theta [rad] ; Acceptance/theta [msr/rad]",nbin,min_rp,max_rp,nbin,0.0,theta_gen_accep);
     TH2D* hLp_th =new TH2D("hLp_th","hLp_th;mom [GeV];theta [rad] ; Acceptance [msr]",nbin,min_lp,max_lp,nbin,0.0,theta_gen_accep);
     TH2D* hLp_th_gen =new TH2D("hLp_th_gen","hLp_th_gen;mom [GeV];theta [rad] ; Acceptance [msr]",nbin,min_lp,max_lp,nbin,0.0,theta_gen_accep);
-    TH2D* hLp_th_acc =new TH2D("hLp_th_acc","hLp_th_acc;mom [GeV];theta [rad] ; N/Ngen*2PI",nbin,min_lp,max_lp,nbin,0.0,theta_gen_accep);
+    TH2D* hLp_th_acc =new TH2D("hLp_th_acc","hLp_th_acc;mom [GeV];theta [rad] ; Acceptance/theta [msr/rad]",nbin,min_lp,max_lp,nbin,0.0,theta_gen_accep);
     TH2D* hxy = new TH2D("hxy","",nbin,-0.5,0.5,nbin,-0.5,0.5);
 
     
@@ -207,8 +217,7 @@ void calcAcc(){
        	hLp_th_gen->Fill(mom_L_gen,theta_gen);
 	hthL_gen->Fill(theta_gen);
 	hthR_gen->Fill(theta_gen);
-	//hth2->Fill(theta_gen);
-	hRp2->Fill(mom_R_gen);
+
       }
 
 
@@ -221,21 +230,51 @@ void calcAcc(){
 
 
     double x,y,z;
-    double zL_gen,zL;
+    double x_gen,y_gen,z_gen;
+    double sum=0.0;
+    double width_y =theta_gen_accep/(double)nbin;
+    
     for(int xbin=0;xbin<nbin;xbin++){
       for(int ybin=0;ybin<nbin;ybin++){
-	zL = hLp_th->GetBinContent(hLp_th->GetBin(xbin,ybin));
-	zL_gen = hLp_th_gen->GetBinContent(hLp_th_gen->GetBin(xbin,ybin));
+	if(rhrs){
+	  x = hRp_th_acc->GetXaxis()->GetBinCenter(xbin);
+	  y = hRp_th_acc->GetYaxis()->GetBinCenter(ybin);
+	  //	  x_gen = hRp_th_gen->GetXaxis()->GetBinCenter(xbin);
+	  //	  y_gen = hRp_th_gen->GetYaxis()->GetBinCenter(ybin);
+	  z = hRp_th->GetBinContent(hRp_th->GetBin(xbin,ybin));
+	  z_gen = hRp_th_gen->GetBinContent(hRp_th_gen->GetBin(xbin,ybin));
+	}else{
+	  x = hLp_th_acc->GetXaxis()->GetBinCenter(xbin);
+	  y = hLp_th_acc->GetYaxis()->GetBinCenter(ybin);
+	  //	  x_gen = hLp_th_gen->GetXaxis()->GetBinCenter(xbin);
+	  //	  y_gen = hLp_th_gen->GetYaxis()->GetBinCenter(ybin);
+	  z = hLp_th->GetBinContent(hLp_th->GetBin(xbin,ybin));
+	  z_gen = hLp_th_gen->GetBinContent(hLp_th_gen->GetBin(xbin,ybin));	  
+	}
+	
 
-	x = hLp_th_acc->GetXaxis()->GetBinCenter(xbin);
-	y = hLp_th_acc->GetYaxis()->GetBinCenter(ybin);
-	if(zL_gen>0)z = zL/zL_gen*2.0*acos(-1.0);
+	if(z_gen>0 && z>0 && z_gen>z)z = z/z_gen*2.0*acos(-1.0);
+       	else if( z > z_gen && z_gen>0 && z>0)z=  2.0*acos(-1.0);
 	else z =0.0;
-	hLp_th_acc->Fill(x,y,z);
-	if(fabs(x-Lp_mean)<(max_lp - min_lp)/(double)nbin)hth2->Fill(y,z);
+
+	if(rhrs){
+	  hRp_th_acc->Fill(x,y,z);
+	}else{
+	  hLp_th_acc->Fill(x,y,z);
+	}
+
+
+	if(z>1.)cout<<"x "<<x<<" y "<<y<<" z "<<z<<" z_gen "<<z_gen<<endl;
+	ofp << x <<" " << y <<" "<< z/2.0/acos(-1.0)/theta_gen_accep <<endl;
+	
+	if(xbin==nbin/2){
+	  hth2->Fill(y,z);
+	  sum +=z*sin(y)*width_y;
+	}
+
       }
     }
-
+    cout<<" integral theta "<<sum<<endl;
     double th1,th2,th0,xx;
     for(int th=0;th<nbin;th++){
       if(rhrs){
@@ -248,10 +287,18 @@ void calcAcc(){
       xx  = hth_acc->GetBinCenter(th);
       if(th2>0 && th1>0)th0=th2/th1;
       else th0=0.0;
-      hth_acc->Fill(xx,th0);
+      hth_acc->Fill(xx,th0*2.0*acos(-1.0));
       //      cout<<"xx "<<xx<<" th "<<th0<<endl;
     }
-      
+
+
+
+
+
+    
+    
+
+    
     TGraph* gRacc=new TGraph();
     TGraph* gLacc=new TGraph();
     gRacc->SetName("gRacc");
@@ -283,7 +330,7 @@ void calcAcc(){
     //    if(xLg>0 && yLg>0) gLacc -> SetPoint(i,xL,yL/yLg);
       if(xLg>0 && yLg>0)gLacc -> SetPoint(i,xL,yL/yLg);
       else gLacc -> SetPoint(i,xL,0.0);
-      if(xLg>0 && yLg>0) ofp << xL<<" " << yL/yLg/1000. <<endl;
+      //      if(xLg>0 && yLg>0) ofp << xL<<" " << yL/yLg/1000. <<endl;
 
       
       
@@ -352,14 +399,21 @@ void calcAcc(){
 
     TCanvas* c5 =new TCanvas("c5","c5");
     c5->Divide(2,1);
-    c5->cd(1);
     hLp_th_acc->SetFillColor(6);
+    hRp_th_acc->SetFillColor(3);
+    c5->cd(1);
+    if(rhrs)    hRp_th_acc->Draw("SURF2");
+    else        hLp_th_acc->Draw("SURF2");
+    c5->cd(2);
+    if(rhrs) hRp_th_acc->Draw("colz");
+    else     hLp_th_acc->Draw("colz");
+    
     //    hLp_th_acc->GetYaxis()->SetRangeUser(0.002,theta_gen_accep);
     //    hLp_th_acc->GetZaxis()->SetRangeUser(0.0,20);
-    hLp_th_acc->Draw("LEGO3");
-    c5->cd(2);
-    //    hth_acc->Draw();
-    hLp_th_acc->Draw("colz");
+
+
+
+
     //    TCanvas*c6 =new TCanvas("c6","c6");
     //    c6->Divide(2,1);
     //    c6->cd(1);
