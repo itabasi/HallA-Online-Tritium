@@ -529,7 +529,7 @@ double xsec::PhaseShift(){
   amtag2 = amtag*amtag;
   fmu = ampj*amtag/(ampj+amtag);
   fmunn = ampj*fnucl/(ampj+fnucl);
-  xi=complex<double>(0.0,1.0);
+  xi=(0.0,1.0);
   
   for(int ntst =1; ntst<=15;ntst++){
     //    cout<<" ntst "<<ntst<<" type "<<typeid(ntst).name()<<endl;
@@ -541,7 +541,7 @@ double xsec::PhaseShift(){
     // Kinematics
  
     if(nr_mode){
-      skz = skz/hbarc;
+      //      skz = skz/hbarc;
       skz2 = skz*skz;
       eon = hbarc2*skz2/2.0/fmu;
       rho = fmu*skz/hbarc2;
@@ -554,7 +554,7 @@ double xsec::PhaseShift(){
     }
 
     // Get Gauss pts and wtss for integral v(q)Pl(x)dx (x=cos(theta))
-    //    npot = nrp1+;
+
     DGauss(xvq,wvq,npot);
     DGauss(x,w,n1);
     for( int i =0; i<n1;i++){ // DO 20
@@ -588,9 +588,9 @@ double xsec::PhaseShift(){
       // start K',K'' loop to 40 & 50
 
 
-      for(int kp=0;kp <= nrp1;kp++){ // DO 40
+      for(int kp=0;kp<nrp1;kp++){ // DO 40
 	skp = skk[kp];
-	for(int kpp=0;kpp <= nrp1;kpp++){ // DO 50
+	for(int kpp=0;kpp<nrp1;kpp++){ // DO 50
 	  skpp  = skk[kpp];
 	  skpp2 = skpp*skpp;
 	  // Initialization
@@ -599,15 +599,15 @@ double xsec::PhaseShift(){
 	  // ============== //
 	  v2 = vlkkp(skp,skpp,ll);
 	  ul[kp][kpp]  = v2;
+	  //	  if(kp==0)cout<<"kpp "<<kpp<<" skpp "<<skpp<<" ul "<<ul[kp][kpp]<<endl;
+	  //cout<<"kp "<<kp<<" kpp "<<kpp<<" ul "<<ul[kp][kpp]<<endl;
 	  eoff = hbarc2*skpp2/2.0/fmu;
 	  if(!nr_mode)eoff=sqrt(ampj2+skpp2)+ sqrt(amtag2+skpp2);
-	  if(kpp != nrp1)gren[kp][kpp] = wt[kpp]*skpp2*ul[kp][kpp]/(eon - eoff); 
-	  if(kp==kpp) delta = complex<double>(1.0,0.0);
-	  else 	      delta = complex<double>(0.0,0.0);
-
-	  gren[kp][kpp] = delta - gren[kp][kpp];
-	  
-	  //	  if(kp==79 && kpp==80)	  cout<<"kp "<<kp<<" kpp "<<kpp<<" gren  "<<gren[kp][kpp]<<" ul "<<ul[kp][kpp]<<endl; 
+	  delta =(0.0,0.0);
+	  if(skpp != skz)gren[kp][kpp] = wt[kpp]*skpp2*ul[kp][kpp]/(eon - eoff); // kp, kpp =0 -> akpp = skz
+	  //	  if(fabs(skz-skpp)<0.1)cout<<"kpp "<<kpp<<" gren "<<gren[kp][kpp]<<" eon-eoff "<<eon-eoff<<endl;  
+	  if(kp == kpp) delta=(1.0,0.0);
+	  gren[kp][kpp] = delta - gren[kp][kpp] ;
 	  // gren : I - V * Go  
 	} // END 50
       } // END 40
@@ -619,19 +619,19 @@ double xsec::PhaseShift(){
       
       for(int i=0;i<nmax2;i++){
 	//	v[i] = ul[i][i];  // DO 60
-	//	v[i] = ul[i][n1/2];  // DO 60
-	v[i] = ul[i][nrp1];  // DO 60
-	//       	if(i<=nrp1)cout<<" i "<<i<<" v "<<v[i]<<endl;
+	v[i] = ul[i][n1/2];  // DO 60
+	//	v[i] = ul[i][nrp1-1];  // DO 60
+	//	if(i<nrp1)cout<<" i "<<i<<" v "<<v[i]<<endl;
       }
       
       double sum=0.0;
-      int nmax3=(nrp1+1)*(nrp1+1);
+      int nmax3=(nrp1)*(nrp1);
       complex<double>A[nmax3];
-      for(int i=0;i<=nrp1;i++){
-	for(int j=0;j<=nrp1;j++){
-	  A[i*(nrp1+1)+j]=gren[i][j];
+      for(int i=0;i<nrp1;i++){
+	for(int j=0;j<nrp1;j++){
+	  A[i*(nrp1)+j]=gren[i][j];
 	  //	  cout<<" i "<<i<<" j "<<j<<" A(i,j) "<<gren[i][j]<<endl;
-	  sum += real(A[i*(nrp1+1)+j] ) * real( A[i*(nrp1+1)+j]);
+	  sum += real(A[i*(nrp1)+j] ) * real( A[i*(nrp1)+j]);
 	}
       }
       
@@ -645,25 +645,23 @@ double xsec::PhaseShift(){
 
 
      
-      ron = complex<double>(0.0,0.0);
+      ron =(0.0,0.0);
       LEQ3(A,v,Rl,nrp1);
       
-      for(int kpp=0;kpp < nrp1;kpp++){
+      for(int kpp=0;kpp<nrp1;kpp++){
 	skpp = skk[kpp];
 	skpp2 = skpp*skpp;
 	eoff = hbarc2*skpp2/2.0/fmu;
 	if(!nr_mode)eoff=sqrt(ampj2+skpp2)+ sqrt(amtag2+skpp2);
-	ron += wt[kpp]*skpp2*ul[nrp1][kpp]*Rl[kpp]/(eon - eoff);
-	
-	//ron += wt[kpp]*skpp2*v[kpp]*Rl[kpp]/(eon - eoff);
-	//	cout<<" kpp "<<kpp<<" ron "<<ron<<" Rl "<<Rl[kpp]<<" ul "<<ul[nrp1][kpp]<<endl;
+	//       	ron += wt[kpp]*skpp2*ul[n1/2][kpp]*Rl[kpp]/(eon - eoff);
+	ron += wt[kpp]*skpp2*v[kpp]*Rl[kpp]/(eon - eoff);
+	//	cout<<" kpp "<<kpp<<" ron "<<ron<<" Rl "<<Rl[kpp]<<" ul "<<ul[n1/2][kpp]<<endl;
       }
       //      ron += wt[nrp1-1]*skpp2*ul[n1/2][nrp1-1]*Rl[nrp1-1]/(eon - eoff);][][]]
       
-      //    ron += v[nrp1-1];
-      //      ron += ul[nrp1][nrp1];
+      ron += vlkkp(skz,skz,ll);
+      //      ron += ul[nrp1-1][nrp1-1];
       
-      ron = Rl[nrp1];
       ronr      = real(ron);
       delrad    = -atan(PI*rho*ronr);
       delta1[l] = delrad +xi*0.0;
@@ -679,7 +677,7 @@ double xsec::PhaseShift(){
       deldeg    = delrad*180./PI;
       deldega   = abs(deldeg);
       
-      if(ll==0) cout<<"ntst "<<ntst<<" L "<<ll<<" skz "<<skz<<" ron "<<ron<<" deldeg "<<deldeg<<" delrad "<<delrad<<" vv "<<vv<<endl;
+      cout<<"ntst "<<ntst<<" L "<<ll<<" skz "<<skz<<" ron "<<ron<<" deldeg "<<deldeg<<" delrad "<<delrad<<" vv "<<vv<<endl;
 
       // test if tborn and ton are same within given tolerance
       // deffined at the top of program as tol
@@ -708,9 +706,9 @@ double xsec::PhaseShift(){
       //      cout<<" q2 "<<q2<<endl;
       xxx = cos(ther);
       PL(xxx, lmax1, pol);
-      fthe[ithe]   = complex<double>(0.0,0.0);
-      fthe1[ithe]  = complex<double>(0.0,0.0);      
-      fthed        = complex<double>(0.0,0.0);
+      fthe[ithe]=(0.0,0.0);
+      fthe1[ithe]=(0.0,0.0);      
+      fthed =(0.0,0.0);
 
       
       for(int ll =0;ll<=lmax1;ll++){ // DO 90
@@ -752,8 +750,8 @@ complex<double> xsec::vlkkp(double skp,double skpp, int lcall){
   double xx=0.0;
   complex<double>vv(0.0,0.0);
   for(int i =0;i<npot;i++){
-      
-    q2 = skp*skp+skpp*skpp -2.0*skp*skpp*xvq[i]; //(skp -skpp)^2
+     
+    q2 = skp*skp+skpp*skpp -2.0*skp*skpp*xvq[i];
     vq = vofq(q2);
     xx = xvq[i];
     PL(xx,l,pol);
@@ -761,17 +759,10 @@ complex<double> xsec::vlkkp(double skp,double skpp, int lcall){
     
     //    if(skpp>1.0e4)
     //    if(skpp<0.2)cout<<" skp "<<skp<<" skpp "<<skpp<<" vv "<<vv<<" q2 "<<q2<<" pol "<<pol[l]<<" dww "<<vq *wvq[i]*pol[l]<<" xvq "<<xvq[i]<<" wvq "<<wvq[i]<<" vq "<<vq<<endl;
-    //    if(skp==skpp && lcall==0)
-    //    if(skp==skk[79] && skpp == skk[80])      //
-    //    cout<<"i "<<i<<" vv "<<vv<<" q2 "<<q2<<" pol "<<pol[l]<<" dww "<<vq *wvq[i]*pol[l]<<" vq "<<vq<<endl;
-
-
+    //    if(skp==skpp && lcall==0)cout<<"i "<<i<<" vv "<<vv<<" q2 "<<q2<<" pol "<<pol[l]<<" dww "<<vq *wvq[i]*pol[l]<<endl;
   }
-  
   vv = 2.0*PI*vv +xi*0.0;
-  //  if(skp==skpp && lcall==0)
-  //  if(skp==skk[79] && skpp == skk[80])
-  //     cout<<" skp "<<skp<<" skpp "<<skpp<<" vv "<<vv<<" q2 "<<q2<<" pol "<<pol[l]<<endl;
+  //  if(skp==skpp && lcall==0)   cout<<" skp "<<skp<<" skpp "<<skpp<<" vv "<<vv<<" q2 "<<q2<<" pol "<<pol[l]<<endl;
   return vv;
 
 };
@@ -780,7 +771,7 @@ complex<double> xsec::vlkkp(double skp,double skpp, int lcall){
 
 complex<double> xsec::vofq(double q2){
   
-  complex<double> vqa,vqr,vq;
+  complex<double> vqa;
   
   if(model==1){ // Verma model
     va    = -167.34; // MeV
@@ -805,19 +796,15 @@ complex<double> xsec::vofq(double q2){
   b_a2 = b_a*b_a;
   b_r2 = b_r*b_r;
 
-
-  // Vq : Integral exp(-iqx)*V(x)
-  // -> Fourier transform V(q)= sqrt(pi/a)^3*exp(-q2/4a)  
   
-  vqa = va*pow(b_a,3)/(8.0*PI*PI)*sqrt(PI)/exp(q2*b_a2/4.0); // Attractive
-  vqr = vr*pow(b_r,3)/(8.0*PI*PI)*sqrt(PI)/exp(q2*b_r2/4.0); // Repulsive
+  //  vqa = va*pow(b_a,3)/(8.0*PI*PI)*sqrt(PI)/exp(q2*b_a2/4.0); // Attractive
+  //  vqr = vr*pow(b_r,3)/(8.0*PI*PI)*sqrt(PI)/exp(q2*b_r2/4.0); // Repulsive
+  //  vq = vqa + vqr  + xi*0.0;
+
+  vqa = va*pow(b_a,3)/(8.0*PI*PI)*sqrt(PI)/exp(4.0/(q2*b_a2)); // Attractive
+  vqr = vr*pow(b_r,3)/(8.0*PI*PI)*sqrt(PI)/exp(4.0/(q2*b_r2)); // Repulsive
   vq = vqa + vqr  + xi*0.0;
 
-  // test 
-  //  vqa = va*pow(b_a,3)*PI*sqrt(PI)/exp(q2*b_a2/4.0); // Attractive
-  //  vqr = vr*pow(b_r,3)*PI*sqrt(PI)/exp(q2*b_r2/4.0); // Repulsive
-  //  vq = vqa + vqr  + xi*0.0;
-  
 
   return vq;
 };
@@ -1231,30 +1218,28 @@ void LEQ3(complex<double>*A, complex<double>* B, complex<double>* R,int N){
   complex<double> ron=0.0;
 
   // get index
-  int nrow = N+1;
-  int ncol = N+1;
+  int nrow = N;
+  int ncol = N;
   int ielem=0;
   MatrixXcd AA(ncol,nrow);
   VectorXcd BB(ncol);
-  for(int icol =0; icol < ncol; icol++){
-    for(int irow =0; irow < nrow; irow++){
+  for(int icol =0; icol<ncol; icol++){
+    for(int irow =0; irow<nrow; irow++){
       ielem = icol*nrow + irow;
-      AA(icol,irow) = A[ielem];
-      //      if(irow==N || icol==N)
-      //      cout<<"icol "<<icol<<" irow "<<irow<<" A "<<A[ielem]<<endl;
+      if(icol<N && irow<N)AA(icol,irow) = A[ielem];
+      else AA(icol,irow) = 0.0;
     }
   }
 
-    for(int icol =0;icol < ncol;icol++){
-      BB(icol) = B[icol];
+  
+  for(int icol =0;icol<N;icol++){
+    if(icol<N) BB(icol) = B[icol];
+    else  BB(icol) = 0.0;
   }
   
   VectorXcd X = AA.colPivHouseholderQr().solve(BB);
-  for(int icol =0;icol <= N;icol++){
-    R[icol] = X(icol);
-    
-    //    cout<<" i "<<icol<<" Rl "<<R[icol]<<" V "<<B[icol]<<endl;
-  }
+  for(int icol =0;icol<N;icol++){
+    R[icol] = X(icol);     }
 
 
 

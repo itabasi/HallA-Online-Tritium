@@ -51,11 +51,11 @@ const double MSp = 1.18937;            // Sigma Plus   mass (GeV/c2)
 
 //==== Added by itabashi =======//
 const double MT  = 2.808921112;        // Triton       mass (GeV/c2)
-const double MTr  = 2.808921112;        // Triton       mass (GeV/c2)
+const double MTr = 2.808921112;        // Triton       mass (GeV/c2)
 const double MnnL= 2.9948138266;       // nnL threshold mass  (GeV/c2)
 const double MHe3= 2.80941;  //Herium 3 mass (GeV/c2)
 const double MH3L= 2.99199; //Hydrogen 3 Lambda threshold mass (GeV/c2)
 const double MAl = 25.126507;        // Alminium    mass (GeV/c2)
 const double MMgL= 25.312188;
-
+const double MD  = 1.8761238;
 #endif

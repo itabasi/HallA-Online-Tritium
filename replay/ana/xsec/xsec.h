@@ -60,24 +60,27 @@ public:
   //------- PhaseShift ------//
   double ampj,ampj2,amtag,amtag2,fmu,fmunn,amu,fnucl,fnucl2,hbarc2;
   double skz,skz2,eon,eoff,rho,ekpj,ektag,lpjmax,skp,skpp,skp2,skpp2,vv1,uofq,fthecm,q2;
-  double POL[nmax2];
-  double skk[nmax2],x[nmax2],w[nmax2],wt[nmax2],pols[nmax2+1],pol[nmax2],xvq[nmax2],wvq[nmax2];
-  complex<double> gren[nmax2+1][nmax2+1],ul[nmax2+1][nmax2+1],v[nmax2],delta1[60],ton[60],tborn[60];
-  complex<double> fthe[nmax2],fthe1[nmax2];
-  int model =2;
+  double POL[nmax2],deltal[60];
+  double skk[nmax2],x[nmax2],w[nmax2],wt[nmax2],pol[nmax2+1],pols[nmax2+1],xvq[nmax2],wvq[nmax2];
+  complex<double> gren[nmax2+1][nmax2+1],ul[nmax2+1][nmax2+1],gren2[nmax2+1][nmax2+1],v[nmax2],ton[60],tborn[60];
+  complex<double> fthe[nmax2],fthe1[nmax2],Rl[nmax2+1],V[nmax2+1];
   complex<double> xi, vq,v2,vv,delta,det,ron,fborn,fthed;
   double va,b_a,vr,b_r,b_r2,b_a2,vqa,vqr,ronr,tonre,tonim,tbornre,tbornim,perre,perim,delrad,deldeg,deldega,tcross,tcross1;
   
   const int n1 =40;
   const int n2 =40;
+  //  const int n1 =4;
+  //  const int n2 =4;  
   //  const int n1 =6;
-  //  const int n2 =6;  
+  //  const int n2 =6;
+  int model =1;
   const int L_value =3;
   double xxx, totalc;
-  int npot =80;
+  int npot =n1+n2;
   int nrp1,lmax,lmax1;
   double tol =0.01;
-  bool nr_mode=true;
+  bool nr_mode = true;
+  //  bool nr_mode=false;
 };
 
 xsec::xsec(){};
