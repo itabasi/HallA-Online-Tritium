@@ -7,7 +7,7 @@ BINDIR = ./bin
 LIBDIR = ./lib
 
 ROOTFLAGS = $(shell root-config --cflags)
-ROOTLIBS = $(shell root-config --libs) -lMinuit  -I /usr/local/include/eigen3
+ROOTLIBS = $(shell root-config --libs) -lMinuit  -I /usr/local/include/eigen3  -L/usr/local/lib -lgsl -lgslcblas
 ROOTGLIBS = $(shell root-config --glibs)
 CXXFLAGS = -Wall -O2 $(ROOTFLAGS) 
 CXXLIBS = $(ROOTLIBS)

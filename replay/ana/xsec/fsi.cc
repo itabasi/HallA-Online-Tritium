@@ -36,10 +36,12 @@ using namespace std;
 #include <TVector3.h>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
+#include <gsl/gsl_specfunc.h>
 using Eigen::MatrixXd;
 using namespace Eigen;
 extern void PL(double X, int L ,double * POL);
 extern void PL2(double X, int L ,double * POL);
+extern double Bessel(int l, double x);
 extern void DGauss(double* Y ,double *WY, int N);
 extern complex<double>LEQ1(complex<double>* A, complex<double>* B,int N,int LA);
 extern complex<double>LEQ2(complex<double>* A, complex<double>* B, complex<double>* R,int N,int LA);
@@ -48,6 +50,8 @@ extern void LEQ3(complex<double>* A, complex<double>* B, complex<double>* R, int
 bool SIMC    = true;
 bool TClone  = false;
 //bool E09     = false;
+bool Deu     = false;
+//bool Deu     = true;
 bool E09     = true;
 bool Lam     = true;
 bool single  = true;
@@ -72,6 +76,7 @@ void fsi::NewRoot(string ofname){
     Tnew -> Branch("Perl2",&Prel2,"Prel2/D");
     Tnew -> Branch("pL",&pL,"pL/D");
     Tnew -> Branch("pn",&pn,"pn/D");
+    Tnew -> Branch("pn2",&pn2,"pn2/D");
     Tnew -> Branch("ranth",&ranth,"ranth/D");
     Tnew -> Branch("ranph",&ranph,"ranph/D");
     Tnew -> Branch("pLx",&pLx,"pLx/D");
@@ -80,6 +85,9 @@ void fsi::NewRoot(string ofname){
     Tnew -> Branch("pnx",&pnx,"pnx/D");
     Tnew -> Branch("pny",&pny,"pny/D");
     Tnew -> Branch("pnz",&pnz,"pnz/D");
+    Tnew -> Branch("pnx2",&pnx2,"pnx2/D");
+    Tnew -> Branch("pny2",&pny2,"pny2/D");
+    Tnew -> Branch("pnz2",&pnz2,"pnz2/D");    
     Tnew -> Branch("theta_L",&theta_L,"theta_L/D");    
 					   
     
@@ -199,7 +207,7 @@ void fsi::InfluenceFactor(string pname, int ll){
 
   //  fI0 = new TF1("fI0","[0]/x*",0,);
   bool test =true;
-  //  test =false;
+ //  test =false;
   string pname0 = pname + "_3He.dat";
   string pname1 = pname + "_Verma.dat";
   string pname2 = pname + "_JulichA.dat";
@@ -244,11 +252,11 @@ void fsi::InfluenceFactor(string pname, int ll){
   
   double qmin = 0.0;
   double qmax = 2000;
-  int imax = 1000;
+  int imax = 2000;
 
   if(test){
 
-    qmax =1000;
+    qmax =200;
     imax = 50;
   }
   
@@ -257,13 +265,13 @@ void fsi::InfluenceFactor(string pname, int ll){
     double qi = (qmax - qmin)/(double)imax * (double)i +qmin;
 
     
-    fac0 = PhaseShift(qi, ll, 0);
+    fac0   = PhaseShift(qi, ll, 0);
     gI00   -> SetPoint(ii,qi,I0);
     gI0    -> SetPoint(ii,qi,I1);
     grad00 -> SetPoint(ii,qi,delrad0);
-    fac0 = I0;
+    fac0   = I0;
     
-    fac1 = PhaseShift(qi, ll, 1);
+    fac1   = PhaseShift(qi, ll, 1);
     gx1    -> SetPoint(ii,qi,tcross0);
     gxf1   -> SetPoint(ii,qi,tcross);
     gI01   -> SetPoint(ii,qi,I0);
@@ -284,8 +292,6 @@ void fsi::InfluenceFactor(string pname, int ll){
       for(int th =0;th<180;th++)
 	gfth1->SetPoint(th,th,cross[th]);
     }
-      //      gfth1->SetPoint(th,th,real( fthe[th]*conj(fthe[th]) ));
-    //real(ftheL* conj(ftheL) )+1.0;
     
     fac2 = PhaseShift(qi, ll, 2);
     gx2    ->SetPoint(ii,qi,tcross0);
@@ -308,7 +314,7 @@ void fsi::InfluenceFactor(string pname, int ll){
       for(int th =0;th<180;th++)
 	gfth2->SetPoint(th,th,cross[th]);
     }
-      //      gfth2->SetPoint(th,th,real( fthe[th]*conj(fthe[th]) ));
+
 	
     fac3 = PhaseShift(qi, ll, 3);
     gx3    -> SetPoint(ii,qi,tcross0);
@@ -524,26 +530,26 @@ void fsi::SetHist(){
 
   gI0 = new TGraphErrors();
   gI0->SetName("gI0");
-  gI0->SetTitle("3He w FSI Influence Factor; P_{#Lambda-n} [MeV] ; Influence Factor");
+  gI0->SetTitle("3He w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor");
   gI0->SetMarkerStyle(2);
   gI0->SetMarkerColor(8);  
   
   
   gI1 = new TGraphErrors();
   gI1->SetName("gI1");
-  gI1->SetTitle("Verma Potentail w FSI Influence Factor; P_{#Lambda-n} [MeV] ; Influence Factor");
+  gI1->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor");
   gI1->SetMarkerStyle(2);
   gI1->SetMarkerColor(1);
 
   gI2 = new TGraphErrors();
   gI2->SetName("gI2");
-  gI2->SetTitle("Julich A w FSI Influence Factor; P_{#Lambda-n} [MeV] ; Influence Factor");
+  gI2->SetTitle("Julich A w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor");
   gI2->SetMarkerStyle(2);
   gI2->SetMarkerColor(2);
 
   gI3 = new TGraphErrors();
   gI3->SetName("gI3");
-  gI3->SetTitle("Julich B w FSI Influence Factor; P_{#Lambda-n} [MeV] ; Influence Factor");
+  gI3->SetTitle("Julich B w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor");
   gI3->SetMarkerStyle(2);
   gI3->SetMarkerColor(4);
  
@@ -551,27 +557,29 @@ void fsi::SetHist(){
   
   gI00 = new TGraphErrors();
   gI00->SetName("gI00");
-  gI00->SetTitle("3He potential w FSI Influence Factor; P_{#Lambda-n} [MeV] ; Influence Factor");
+  gI00->SetTitle("3He potential w FSI Influence Factor (Jost Func.); P_{#Lambda-n} [MeV] ; Influence Factor");
   gI00->SetMarkerStyle(4);
   gI00->SetMarkerColor(3);
   
   gI01 = new TGraphErrors();
   gI01->SetName("gI01");
-  gI01->SetTitle("Verma Potentail w FSI Influence Factor; P_{#Lambda-n} [MeV] ; Influence Factor");
+  gI01->SetTitle("Verma Potentail w FSI Influence Factor (Jost Func.); P_{#Lambda-n} [MeV] ; Influence Factor");
   gI01->SetMarkerStyle(4);
   gI01->SetMarkerColor(1);
 
   gI02 = new TGraphErrors();
   gI02->SetName("gI02");
-  gI02->SetTitle("Julich A w FSI Influence Factor; P_{#Lambda-n} [MeV] ; Influence Factor");
+  gI02->SetTitle("Julich A w FSI Influence Factor (Jost Func.); P_{#Lambda-n} [MeV] ; Influence Factor");
   gI02->SetMarkerStyle(4);
   gI02->SetMarkerColor(2);
 
   gI03 = new TGraphErrors();
   gI03->SetName("gI03");
-  gI03->SetTitle("Julich B w FSI Influence Factor; P_{#Lambda-n} [MeV] ; Influence Factor");
+  gI03->SetTitle("Julich B w FSI Influence Factor (Jost Func.); P_{#Lambda-n} [MeV] ; Influence Factor");
   gI03->SetMarkerStyle(4);
   gI03->SetMarkerColor(4);
+
+
   
 
   grad1 = new TGraphErrors();
@@ -873,6 +881,7 @@ void fsi::SetBranch(string ifrname){
     T->SetBranchAddress("Em_v",& Em);  //MeV
     T->SetBranchAddress("mm_nnL",& mm_nnL);  //MeV
     T->SetBranchAddress("mm_L",& mm_L);  //MeV
+    T->SetBranchAddress("Trec",& Trec);  //MeV
     
     
     
@@ -970,12 +979,24 @@ void fsi::SetMom(){
     pnx = Pn.Px();
     pny = Pn.Py();
     pnz = Pn.Pz();
-
-    Pn_2 = CalcPn2(P2n_2);    
+    pn  = Pn.P();
     
+    Pn_2 = CalcPn2(P2n_2);    
+    pnx2 = Pn_2.Px();
+    pny2 = Pn_2.Py();
+    pnz2 = Pn_2.Pz();
+    pn2  = Pn_2.P();
+
+    if(Deu){
+      Pn.SetPxPyPzE(-Pp.Px(), -Pp.Py(), -Pp.Pz(), Trec);
+      Pn_2.SetPxPyPzE(-Pp.Px(), -Pp.Py(), -Pp.Pz(), Trec);
+      //      cout<<"Deu "<<Deu<<endl;
+    }
     //    Pn.SetPxPyPzE(Pnx,Pny,Pnz,En);
     //    Prel = CalcQ(Pn,Pp,APv,PK); // MeV
 
+
+    
     TLorentzVector Pp_2,Pv_2,PK_2;
     Pp_2 =Pp;
     Pv_2 =Pv;
@@ -1082,7 +1103,8 @@ void fsi::SetMom(){
     fac3 = (fac3-1.0)     +1.0;
     fac1_2 = (fac1_2-1.0) +1.0;
     fac2_2 = (fac2_2-1.0) +1.0;
-    fac3_2 = (fac3_2-1.0) +1.0;    
+    fac3_2 = (fac3_2-1.0) +1.0;
+    
     }else{
     fac1 = (fac1-1.0)*2.0 +1.0;
     fac2 = (fac2-1.0)*2.0 +1.0;
@@ -1093,11 +1115,15 @@ void fsi::SetMom(){
     }
     
 
+    //test //
+    //    fac3 *=4.0*PI;
+    //    cout<<"mmnuc "<<mmnuc<<" ML+n "<<ML+Mn<<endl;
 
-
-    
+              mm =(mmnuc - MnnL )*1000.; // -BL [MeV]
     if(E09)   mm =(mmnuc - MH3L )*1000.; // -BL [MeV]
-    else      mm =(mmnuc - MnnL )*1000.; // -BL [MeV]
+    if(Deu)   mm =(mmnuc - (ML+Mn) )*1000.; // -BL [MeV]
+
+    //    cout<<"mm "<<mm<<endl;
     hmm -> Fill(mm);
     hmm_fsi1 ->Fill(mm , fac1);
     hmm_fsi2 ->Fill(mm , fac2);
@@ -1137,6 +1163,64 @@ void fsi::SetMom(){
 
 
 TLorentzVector fsi::CalcPn(TLorentzVector P2n){
+
+
+  // Neutron 4-vector Calculation code //
+  // P2n 2 neutron (recoil ) 4-momentum vector [GeV]
+  //
+  // Assumption : pn = p2n/2.0
+
+  TLorentzVector Pn1,Pn2;
+  // n1,n2 are number of nuetrons
+  // C.M coordinate 
+  TVector3 B; // Lorentz Boost
+  B = P2n.BoostVector();
+  P2n.Boost(-B);
+
+
+
+  
+  // cout<<"E2n .cm "<<P2n.E()<<endl;
+  // Generate rondom n1 3-vector in C.M.
+  double E2n = P2n.E();
+  double En1,En2, pn1,pn2;
+  En1 = E2n/2.0;
+  En2 = E2n/2.0;
+  if(En1> Mn ) pn1 = sqrt(En1*En1 - Mn*Mn);
+  else       pn1 = 0.0;
+
+
+  double px1,py1,pz1,px2,py2,pz2;
+  ranth = acos( random.Uniform()*2.0 -1.0);
+  ranph = random.Uniform()* 2.0 *PI;
+
+  px1 = pn1 * sin(ranth) * cos(ranph);
+  py1 = pn1 * sin(ranth) * sin(ranph);
+  pz1 = pn1 * cos(ranth);
+  Pn1.SetPxPyPzE(px1, py1, pz1 , En1);
+
+
+  
+  Pn2 = P2n - Pn1;
+  
+  // C.M to Lab System
+  P2n.Boost(B);
+  Pn1.Boost(B);
+  Pn2.Boost(B);
+
+
+  
+  return Pn2;
+  
+  
+  
+}
+
+///////////////////////////////////////////////////////////////////////
+
+
+
+TLorentzVector fsi::CalcPn_test(TLorentzVector P2n){
 
 
   // Neutron 4-vector Calculation code //
@@ -1265,6 +1349,7 @@ TLorentzVector fsi::CalcPn2(TLorentzVector P2n){
 }
 
 
+
 ///////////////////////////////////////////////////////////////////////
 
 
@@ -1364,7 +1449,7 @@ double fsi::CalcQ2(TLorentzVector Pn, TLorentzVector Pp, TLorentzVector Pv, TLor
   
   TLorentzVector Pcm;
   Pcm = PL + Pn;
-  pn = Pn.P();
+  //  pn = Pn.P();
 
   
   TVector3 B;
@@ -1421,6 +1506,12 @@ double fsi::PhaseShift(double qq, int LL, int potential){
     else if(model==-1){ a0 = -1.77; r0 = 3.25;}
     else if(model==-2){ a0 = -1.6;  r0 = 3.15;}
     else if(model==-3){ a0 = -1.94; r0 = 2.42;}
+
+
+
+	 double R0 = 3.15; //test
+	 // test
+	 //	 r0 = 100000.;
 
   // Kinematics
  
@@ -1481,7 +1572,7 @@ double fsi::PhaseShift(double qq, int LL, int potential){
 	  eoff = hbarc2*skpp2/2.0/fmu;
 	  if(!nr_mode)eoff=sqrt(ampj2+skpp2)+ sqrt(amtag2+skpp2);
 	  if(kpp != nrp1)gren[kp][kpp] = wt[kpp]*skpp2*ul[kp][kpp]/(eon - eoff); 
-	  if(kp==kpp) delta = complex<double>(1.0,0.0);
+	  if(kp==kpp)  delta = complex<double>(1.0,0.0);
 	  else 	       delta = complex<double>(0.0,0.0);
 
 	  gren[kp][kpp] = delta - gren[kp][kpp];
@@ -1537,6 +1628,7 @@ double fsi::PhaseShift(double qq, int LL, int potential){
       deltal[l] = delrad;
       ton[l]    = ron/(1.0 +xi*PI*rho*ron);
       ton0[l]   = ron0/(1.0 +xi*PI*rho*ron0);
+      jon[l]    = ton[l]/(1.0 - xi*PI*rho*ton[l]);
       vv        = vlkkp(skz,skz,ll);
       tborn[l]  = vv;
       tonre     = real(ton[l]);
@@ -1549,9 +1641,6 @@ double fsi::PhaseShift(double qq, int LL, int potential){
       deldega   = abs(deldeg);
       double xx = cos(0.0);
       PL(xx, l, pol);
-
-      //      cout<<"perre "<<1./perre<<" perim "<<1./perim<<endl;
-      //      cout<<"ton "<<ton[l]<<" xi "<<xi<<" ron "<<ron<<" rho "<<rho<<" A "<<(1.0 +xi*PI*rho*ron)<<endl;
       
       
       fthel[l] = -(2.0*(double)l +1.0)*ton[l]*pol[l]/4.0/PI*4.0*PI*PI*rho/skz;
@@ -1578,12 +1667,27 @@ double fsi::PhaseShift(double qq, int LL, int potential){
       fthe0[ithe]  = complex<double>(0.0,0.0);
       fthe1[ithe]  = complex<double>(0.0,0.0);      
       fthed        = complex<double>(0.0,0.0);
-
+      Psi[ithe]    = complex<double>(0.0,0.0);
+      Psi0[ithe]   = complex<double>(0.0,0.0);
+      psi[ithe]    = complex<double>(0.0,0.0);
+      psi0[ithe]   = complex<double>(0.0,0.0);      
       for(int l =0;l <= lpjmax;l++){ // DO 90
 	double ll=(double)l;
 	fthe[ithe]   =  fthe[ithe]   + (2.0*ll +1.0)*ton[l]*pol[l]/4.0/PI;
 	fthe0[ithe]  =  fthe0[ithe]  + (2.0*ll +1.0)*ton0[l]*pol[l]/4.0/PI;
-	fthe1[ithe] =  fthe1[ithe] + (2.0*ll +1.0)*(ton[l] -tborn[l])*pol[l]/4.0/PI;
+	fthe1[ithe]  =  fthe1[ithe]  + (2.0*ll +1.0)*(ton[l] -tborn[l])*pol[l]/4.0/PI;
+	
+
+	
+	double xxx0 = skz*r0;
+	double xxx  = skz*r0+deltal[l];
+
+	psi0[ithe] =  psi0[ithe]   + (2.0*ll +1.0)*pow(xi,l)*sin(xxx0-1./2.*ll*PI)/(xxx0)*pol[l];
+	psi[ithe]  =  psi[ithe]    + (2.0*ll +1.0)*pow(xi,l)*expL[l]*sin(xxx -1./2.*ll*PI )/(xxx0)*pol[l];
+
+	
+	Psi0[ithe] =  Psi0[ithe]   + (2.0*ll +1.0)*pow(xi,l)*jn(l,xxx0)*pol[l];
+	Psi[ithe]  =  Psi[ithe]    + (2.0*ll +1.0)*pow(xi,l)*expL[l]*(xxx)*jn(l,xxx)/(xxx0)*pol[l];
 
       } // END 90
 
@@ -1592,9 +1696,8 @@ double fsi::PhaseShift(double qq, int LL, int potential){
       fthe0[ithe]  = - fthe0[ithe]*4.0*PI*PI*rho/skz;
       fthe1[ithe]  = -(fthe1[ithe]+vq)*4.0*PI*PI*rho/skz;
       fborn        += -vq*4.0*PI*PI*rho/skz;
-      //     fborn0      = 4.0*PI*PI*rho/skz;
-      totalc = totalc + fabs(fthe[ithe])*fabs(fthe[ithe])*sin(ther)*PI/180.*2*PI;
 
+      totalc = totalc + fabs(fthe[ithe])*fabs(fthe[ithe])*sin(ther)*PI/180.*2*PI;
       cross[ithe] = real((fthe[ithe])* conj(fthe[ithe]) )+1.0;
 
 
@@ -1602,32 +1705,36 @@ double fsi::PhaseShift(double qq, int LL, int potential){
     } // END 80
 
 
-    //    cout<<"fthe "<<fthe[0]<<" fthe0 "<<fthe0[0]<<" ratio "<<pow((fthe[0]+fthe0[0])/fthe0[0],2.0) <<endl;
-    
     tcross   = 4.0 * PI/skz *  imag(fthe[0]);
     tcross0  = 4.0 * PI/skz *  imag(fthe0[0]);
     tcross1  = 4.0 * PI/skz *  imag(fthe1[0]);
     tcrossl  = 4.0 * PI/skz *  imag(ftheL);
 
+  
+
+
+    // Jost Fanction
     
-    double alpha =  sqrt(pow(1./r0,2.0) - 2./(a0*r0)) ;
-    double beta  =  -2.0/r0 + alpha;
+    double alpha =  (1.+sqrt(1. - 2.*r0/a0) / r0);
+    double beta  =  + alpha -2.0/r0 ;
     complex<double> Jl = (skz - xi*beta)/(skz - xi*alpha);
 
+    //    Jl = 1.0 + 1./skz*(ton[LL]/(1.0-xi*ton[LL]*rho*PI));
+    Jl = 1.0 + 1./skz/hbarc*ron;
+    //    cout<<"skz "<<skz<<" Jl "<<Jl<<" ton "<<ton[LL]<<" rho "<<rho<<" ron "<<ron<<endl;
     
+    complex<double> exp =complex<double>(cos(skz*r0),sin(skz*r0));
+    complex<double> phi   =  exp + ftheL/r0*exp;
+    complex<double> phi_  =  exp - ftheL/r0*exp; 
+    complex<double> phi0  =  exp;
 
 
+    I0  = 1./( real(Jl*conj(Jl)) ); // Jost Fanction    
+    I1 = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0); // ERA
+ 
 
-    //    I0  = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0);
-
-    I0  = 1./( real(Jl*conj(Jl)) )/4.0/PI +1.0;
-    I1  = tcrossl/4.0/PI +1.0;
-
-    if(model==0)I1 = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0) +1.0;
-    
-    double I = real(ftheL* conj(ftheL) )+1.0;
-
-    //    cout<<"Jl "<<Jl<<" Jl* "<<conj(Jl)<<" I0 "<<Jl*conj(Jl)<<" Jl^2 "<<Jl*Jl<<endl;     
+    //    double I = real((psi[0]/psi0[0])*conj(psi[0]/psi0[0]));
+    double I =real( phi/phi0 *conj(phi/phi0) );
     
     for(int l=0;l<=LL;l++){
       Il[l]  = real(fthel[l]* conj(fthel[l])) + 1.0;
@@ -1636,8 +1743,6 @@ double fsi::PhaseShift(double qq, int LL, int potential){
     
     if( I0 >100.  ) I0 = 0.0;
     if( I1 >100.  ) I1 = 0.0;
-
-
 
     
     if(tcross0>0 || I <100.) return I;
@@ -1679,9 +1784,6 @@ complex<double> fsi::vofq(double q2){
   vr   = 246.80; // MeV
   b_r  = 0.82;   // fm
 
-  //test
-  //  vr =0.0;
-  //  b_r=1.0;
   
  if(model==1){ // Verma model
     va    = -167.34; // MeV
@@ -1755,7 +1857,7 @@ int main(int argc, char** argv){
   string L;
   extern char *optarg;
 
-  while((ch=getopt(argc,argv,"h:p:s:r:w:f:s:l:Ibcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:p:s:r:w:f:s:l:TDHeIbcop"))!=-1){
     switch(ch){
             
     case 'f':
@@ -1767,8 +1869,30 @@ int main(int argc, char** argv){
     case 's':
       ifname = optarg;
       cout<<"output root filename : "<<ofname<<endl;      
-      break;      
+      break;
 
+    case 'D':
+
+      Deu =true;
+      E09 =false;
+      cout<<"Deuteron mode : "<<Deu<<endl;      
+      break;
+
+    case 'H':
+
+      E09 =true;
+      Deu =false;
+      cout<<"3He  mode : "<<E09<<endl;      
+      break;                  
+
+    case 'T':
+
+      E09 =false;
+      Deu =false;
+      cout<<"Tritium  mode : "<<endl;      
+      break;                        
+    case 'e':
+      break;
     case 'p':
       pname = optarg;
       cout<<"input Param filename : "<<pname<<endl;
@@ -1818,6 +1942,28 @@ int main(int argc, char** argv){
     }
   }
 
+
+
+  //===== test ======//
+
+  /*
+int i,n,nu,MaxNu = 3;
+double x,dx,xmin,xmax;
+n = 100;
+xmin = 0.0; xmax = 10.0;
+dx = (xmax - xmin) / n;
+for (i = 0; i <= n; i++) {
+x = xmin + i * dx;
+printf("%f ", x);
+for (nu = 0; nu <= MaxNu; nu++)
+printf("%f ", gsl_sf_bessel_In(nu, x));
+printf("\n");
+}
+  */
+//================y
+  
+
+  
   string fermi_mom="./param/2h_AV18_K.dat";
   TClone = root_mode;
   cout<<"TClone "<<TClone<<endl;
@@ -1972,6 +2118,7 @@ void PL2(double X, int L, double * POL){
 
 
 //################################################################
+
 
 complex<double>LEQ1(complex<double>*A, complex<double>* B,int N,int LA){
 

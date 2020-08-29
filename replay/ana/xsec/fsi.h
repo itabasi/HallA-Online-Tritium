@@ -23,6 +23,8 @@ public:
   void SetFermiMom(string ifpname);
   TLorentzVector CalcPn(TLorentzVector P2n);
   TLorentzVector CalcPn2(TLorentzVector P2n);
+  TLorentzVector CalcPn_deu(TLorentzVector P2n);
+  TLorentzVector CalcPn_test(TLorentzVector P2n);
   double PhaseShift(double q, int LL, int potential);
   double CalcQ(TLorentzVector Pn, TLorentzVector Pp, TLorentzVector Pv, TLorentzVector PK);
   double CalcQ2(TLorentzVector Pn, TLorentzVector Pp, TLorentzVector Pv, TLorentzVector PK);
@@ -39,11 +41,12 @@ public:
 
   double fac0,fac1,fac2,fac3,fac1t,fac2t,fac3t;
   double fac1_2,fac2_2,fac3_2;
-  double Prel,Prel2;
+  double fac1_test,fac2_test,fac3_test;
+  double Prel,Prel2,Prel_test;
   double mm;
-  double pL,pn;
+  double pL,pn,pn2;
   double ranth,ranph;
-  double pLx,pLy,pLz,pnx,pny,pnz;
+  double pLx,pLy,pLz,pnx,pny,pnz,pnx2,pny2,pnz2;
   double theta_L;
   
   //-------- SetFermiMom ------//
@@ -84,6 +87,18 @@ public:
   TGraphErrors* gI02; 
   TGraphErrors* gI03;   
 
+
+  TGraphErrors* gERA_I0;
+  TGraphErrors* gERA_I1;
+  TGraphErrors* gERA_I2;
+  TGraphErrors* gERA_I3;
+
+  TGraphErrors* gJost_I0;
+  TGraphErrors* gJost_I1;
+  TGraphErrors* gJost_I2;
+  TGraphErrors* gJost_I3;
+  
+  
   TGraphErrors* grad1;
   TGraphErrors* grad2; 
   TGraphErrors* grad3;     
@@ -96,7 +111,8 @@ public:
   TGraphErrors* gradI1;
   TGraphErrors* gradI2; 
   TGraphErrors* gradI3;
-
+  
+  
   TGraphErrors* gradl1[20];
   TGraphErrors* gradl2[20];
   TGraphErrors* gradl3[20];
@@ -128,10 +144,16 @@ public:
   TH1F* hmm_fsi3;
   TH1F* hmm_fsi1_2;
   TH1F* hmm_fsi2_2;
-  TH1F* hmm_fsi3_2;   
+  TH1F* hmm_fsi3_2;
+  TH1F* hmm_fsi1_test;
+  TH1F* hmm_fsi2_test;
+  TH1F* hmm_fsi3_test;     
   TH1F* hmm;
   TH1F* hmm_L;
   TH1F* hmm_nnL;
+
+
+  
   //-------- SetMom   --------//
 
   
@@ -146,6 +168,7 @@ public:
   float vertex_uq_x,vertex_uq_y,vertex_uq_z,vertex_q,vertex_nu;
   float pferx,pfery,pferz,pfer,Mrec,efer;
   float mmnuc,Em,mm_L,mm_nnL;
+  float Trec;
   //  TFile * ifr;
   TChain * T;
   
@@ -162,12 +185,13 @@ public:
   double skz,skz2,eon,eoff,rho,ekpj,ektag,lpjmax,skp,skpp,skp2,skpp2,vv1,uofq,fthecm,q2;
   double POL[nmax2],deltal[60];
   double skk[nmax2],x[nmax2],w[nmax2],wt[nmax2],pol[nmax2+1],pols[nmax2+1],xvq[nmax2],wvq[nmax2];
-  complex<double> gren[nmax2+1][nmax2+1],ul[nmax2+1][nmax2+1],gren2[nmax2+1][nmax2+1],v[nmax2],v0[nmax2],ton[60],ton0[60],tborn[60],delta_rad[60];
+  complex<double> gren[nmax2+1][nmax2+1],ul[nmax2+1][nmax2+1],gren2[nmax2+1][nmax2+1],v[nmax2],v0[nmax2],ton[60],ton0[60],tborn[60],delta_rad[60],jon[60];
   complex<double> fthe[nmax2],fthe1[nmax2],fthe0[nmax2],Rl[nmax2+1],Rl0[nmax2+1],V[nmax2+1],fthel[20],ftheL;
+  complex<double>Psi[180],Psi0[180],psi[180],psi0[180];
   complex<double> xi, vq,v2,vv,delta,det,ron,ron0,fborn,fborn0,fthed;
   double va,b_a,vr,b_r,b_r2,b_a2,vqa,vqr,ronr,tonre,tonim,tbornre,tbornim,perre,perim,delrad,delrad0,deldeg,deldega,tcross,cross[180],tcross1,tcross0,tcrossl;
   complex<double> expL[20];
-  double I0,I1,Il[20],Il0[20];
+  double I0,I1,Il[20],Il0[20],IJ,IERA;
   double f2[180];
   TF1* fI0;
   const int n1 =40;
