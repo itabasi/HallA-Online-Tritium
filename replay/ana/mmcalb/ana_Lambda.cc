@@ -470,14 +470,9 @@ void ana::Calib(int rt, int lt ){
     L_p             = L_p * PLr + PLm; // scaled    
     
 
-    // Lp = 2.2 GeV mode //
-    if(Lp_scale)L_p=2.21807/2.1*L_p;
-    //L_p=2.2/2.1*L_p;
-
-
     
     //=========== Energy Loss ===================//
-    if(runnum==111157 && tr.nev==240177)cout<<"Rp "<<R_p<<" Lp "<<L_p<<endl;
+    /*    if(runnum==111157 && tr.nev==240177)cout<<"Rp "<<R_p<<" Lp "<<L_p<<endl;
     B_p     = B_p - Eloss(0.0,0,"B");
     R_p     = R_p + Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
     L_p     = L_p + Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
@@ -485,7 +480,11 @@ void ana::Calib(int rt, int lt ){
     if(runnum==111157 && tr.nev==240177){
       cout<<"Rpc "<<R_p<<" Lpc "<<L_p<<endl;
       cout<<"dpe "<<Eloss(0.0,0,"B")<<" dpe "<<Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L")<<" dpk "<<Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R")<<endl;
-    }
+
+
+    
+      }
+    */
 }
 
 
@@ -1881,7 +1880,7 @@ void ana::Loop(){
 	      if(Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) 
                  && fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs( L_tr_vz[lt] + R_tr_vz[rt] )/2.0 >0.1) {
 		tr.missing_mass_MgL_acc=mm_MgL;
-		h_mm_MgL_acc->Fill(mm_MgL);
+	p	h_mm_MgL_acc->Fill(mm_MgL);
 	      }
 
 	      
@@ -2080,8 +2079,23 @@ void ana::Loop_c(){
 	  Kaon = false;
 	  zcut = false; // z-vertex cut
 	  fill_flag =false;
+	  bool Rpathl_flag = false;
+	  bool Lpathl_flag = false;
+	  bool track_flag  = false;
+	  bool pathl_flag  = false;
 	  int L_s2pad = (int)L_s2_trpad[lt];
 	  int R_s2pad = (int)R_s2_trpad[rt];
+	  int L_s2tpad = (int) L_s2_t_pads[lt];
+	  int R_s2tpad = (int) R_s2_t_pads[rt];
+	  double Lpathl = L_tr_pathl[lt] + L_s2_trpath[lt];
+	  double Rpathl = R_tr_pathl[rt] + R_s2_trpath[rt]; 
+	  if(R_s2pad == R_s2tpad && L_s2pad == L_s2tpad) track_flag =true;
+	  if(rpathl_cutmin< Rpathl && Rpathl < rpathl_cutmax) Rpathl_flag =true;
+	  if(lpathl_cutmin< Lpathl && Lpathl < lpathl_cutmax) Lpathl_flag =true;
+	  
+	  if(Rpathl_flag && Lpathl_flag)pathl_flag =true;
+
+	  
 	  for(int pad=0;pad<16;pad++){
 	    tr.Rs2ra_p[pad]= -1000.;
 	    tr.Rs2la_p[pad]= -1000.;
@@ -2192,6 +2206,7 @@ void ana::Loop_c(){
 	  tr.missing_mass_MgL_acc =-100000.;
 	  tr.missing_mass_Al_bg=-100000.;	    
 	  tr.Al_cut=false;
+
 	  for(int i=0;i<nmixed;i++)tr.mm_mixed[i] = -10000.;
 	  
 	  tr.Rpathl=-100.; tr.Lpathl=-100.;
@@ -2271,7 +2286,10 @@ void ana::Loop_c(){
 
 
 
-	  if( L_Tr && L_FP && R_Tr && R_FP ){
+	  //	  cout<<" track "<<track_flag<<" pathL "<<pathl_flag<<endl;
+	  
+	  //	  if( L_Tr && L_FP && R_Tr && R_FP && track_flag && pathl_flag){
+	  if( L_Tr && L_FP && R_Tr && R_FP){
 
 
 	    //--- Set Tree Branch w/o Matrix Tuning ----//
@@ -2361,6 +2379,15 @@ void ana::Loop_c(){
 	    
 	    Calib(rt, lt);
 
+	    // Lp = 2.2 GeV mode //
+	    if(Lp_scale)L_p=2.21807/2.1*L_p;
+	    // Energy Loss Correction //
+	    B_p     = B_p - Eloss(0.0,0,"B");
+	    R_p     = R_p + Eloss(R_tr_tg_ph[rt],R_tr_vz[rt],"R");
+	    L_p     = L_p + Eloss(L_tr_tg_ph[lt],L_tr_vz[lt],"L");
+	    
+
+	    
 
 	    if(((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15) &&  fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025) 
 	       && ((-0.15<(R_tr_vz[rt]) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15)  && fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025))tr.Al_cut=true;		    
@@ -2444,7 +2471,7 @@ void ana::Loop_c(){
 	    mm_L=mass_L - ML;
 	    mm_L = mm_L*1000.;
 	    tr.missing_mass_Lam_all = mm_L;
-	    if(runnum==111157 && tr.nev==240177)cout<<"Ee "<<Ee<<" Ee_ "<<L_E<<" Ek "<<R_E<<" A "<<(Ee + Mp - L_E - R_E)<<endl;
+	    //	    if(runnum==111157 && tr.nev==240177)cout<<"Ee "<<Ee<<" Ee_ "<<L_E<<" Ek "<<R_E<<" A "<<(Ee + Mp - L_E - R_E)<<endl;
 	      //cout<<"A "<<(Ee + Mp - L_E - R_E)<<" B "<<sqrt((B_v - L_v - R_v)*(B_v - L_v - R_v))<<" mm "<<mm_L<<endl;  
 	    
 	    // nnL Mass //
@@ -2484,9 +2511,8 @@ void ana::Loop_c(){
 	   }
 	   
 	  
-	   
-	   
-	    if( Kaon && fabs(ct)<1.0){
+
+	    if( Kaon && fabs(ct)<1.0  && track_flag && pathl_flag){
 	      
               h_mmall ->Fill( mm );
 	      //              if( fabs( L_tr_vz[lt] + 0.125 ) < 0.015 || fabs( L_tr_vz[lt] - 0.125 ) < 0.015  && fabs(L_tr_vz[lt] -R_tr_vz[rt])<0.025){ 
@@ -2634,7 +2660,7 @@ void ana::Loop_c(){
 	  if(Kaon && (zcut || tr.Al_cut) && (fabs(ct)<1.0 ||  ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)))) fill_flag =true;
 	  if(!calib_mode)tree_out->Fill();
 	  else if(calib_mode && fill_flag)tree_out->Fill();
-
+	  //	  cout<<"fill_flag "<<fill_flag<<" zcut "<<zcut<<" Kaon "<<Kaon<<" ct "<<ct<<endl; //test
     if(n%100000==0){
       end = time(NULL);
       time(&end);
@@ -3492,7 +3518,7 @@ void ana::Swich(bool nnL, bool scale){
     //====== Missing Mass MeV order =====//
     min_mm=-300.;
     max_mm=200.;
-    bin_mm=(int)( (max_mm-min_mm)*0.5 ); // 2MeV/bin;
+    bin_mm=(int)( (max_mm-min_mm)*2. ); // 0.5MeV/bin;
 
     //==================================//
 

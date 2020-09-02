@@ -158,4 +158,24 @@ const  double s2_offset=-499.75;
 const double a1_th=1.0;
 const double a2_th=3.0; 
 
+
+ // Cut Parameters //
+ const double coin_cutmin=-248;
+ const double coin_cutmax=-244; 
+ const double rpathl_cutmin=28.7;
+ const double rpathl_cutmax=29.4;
+ const double lpathl_cutmin=28.6;
+ const double lpathl_cutmax=29.2;
+ const double rbeta_cutmin=0.0;
+ const double rbeta_cutmax=1.0;
+ const double lbeta_cutmin=0.9;
+ const double lbeta_cutmax=1.0;
+ const double Rvz_cutmin=-0.1;
+ const double Rvz_cutmax= 0.1;
+ const double Lvz_cutmin=-0.1;
+ const double Lvz_cutmax= 0.1;
+ const double Rx_cutmin= -0.4;
+ const double Rx_cutmax= 0.4;
+
+
 #endif

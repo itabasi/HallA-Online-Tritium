@@ -1,0 +1,17 @@
+######################################
+#### Momentum calibration code #######
+######################################
+
+Author K. itabashi
+macro : momcalib
+
+How to use
+1) mkdir bin and lib
+2) make
+3) ./bin/momcalib -s inputfile -m matrixfile -r outrootfile -w matrix/outmatrixfile -i n (n=1,2,..) -n (maximum order of matrix tuning)
+
+(example)
+inputfile : ../rootfiles/momcalib/momcalib_init/Lambda_small_OleH_all.root
+outrootfile : ../rootfiles/momcalib/test.root
+matrixfile : matrix/matrix_momcalib.list (parameter list file)
+outmatrixfile : matrix/5th/momcalib_test

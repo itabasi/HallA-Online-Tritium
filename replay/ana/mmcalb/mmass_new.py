@@ -27,11 +27,12 @@ nworkers=8
 date=datetime.date.today()
 #matrix="../matrix/matrix_new.list"
 #matrix="../matrix/matrix_test.list"
-matrix="../momcalib/matrix/momcalib_matrix_new.list"
+#matrix="../matrix/test/matrix_test6.list"
 #matrix="../matrix/matrix_wAl.list"
 #matrix="../matrix/matrix_wAl_25.list"
 #matrix="../matrix/matrix_test.list"
 #matrix="../matrix/matrix_wPathL.list"
+matrix="../momcalib/matrix/momcalib_matrix_new.list"
 root_dir="../rootfiles/mmass/ana_Lambda/"+str(date)
 pdf_dir ="../pdf/mmass/ana_Lambda/"+str(date)
 name=[]
@@ -105,7 +106,7 @@ def ana(i):
     names=name[i]
     MODE=mode[i]
     pfile=param[i]
-    cmd=f'./bin/ana_Lambda -f ../run_list/nnlambda/{names}.list -p param/{pfile} -r {root_dir}/{names}.root -w {pdf_dir}/{names}.pdf -m {matrix} -{MODE} -C'
+    cmd=f'./bin/ana_Lambda -s ../rootfiles/mmass/ana_Lambda/initial/{names}.root -p param/{pfile} -r {root_dir}/{names}.root -w {pdf_dir}/{names}.pdf -m {matrix} -{MODE}'
     print(cmd)
     subprocess.run([cmd],shell=True)
 

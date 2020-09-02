@@ -265,10 +265,10 @@ class momcalib : public tree
   double chi_S=0.0;
   double chi2_init=0.0;
   //--- Event Selection mass cut ---//
-  //  double mmL_range = 0.005; // [GeV/c^2]
-  //  double mmS_range = 0.005; // [GeV/c^2]
-  double mmL_range = 0.003; // [GeV/c^2]
-  double mmS_range = 0.003; // [GeV/c^2]
+  double mmL_range = 0.005; // [GeV/c^2]
+  double mmS_range = 0.005; // [GeV/c^2]
+  //  double mmL_range = 0.003; // [GeV/c^2]
+  //  double mmS_range = 0.003; // [GeV/c^2]
   //  double mmL_range = 0.002; // [GeV/c^2]
   //  double mmS_range = 0.002; // [GeV/c^2]
   
@@ -314,6 +314,7 @@ class momcalib : public tree
   bool z_flag;
   bool Al_flag;
   bool Lam_run;
+  bool Sig_run;
   bool RPID_flag;
   bool LPID_flag;
   bool mom_select;
@@ -484,7 +485,7 @@ void momcalib::SingleRoot(string ifname){
 
   SetRun(ifname);
   SetBranch();
-   //  T->SetBranchStatus("coin",1);
+  //  T->SetBranchStatus("coin",1);
   //  T->SetBranchAddress("coin",&coin_time);
   T->SetBranchStatus("ct",1);
   T->SetBranchAddress("ct",&coin_time);  
@@ -872,7 +873,7 @@ void momcalib::MakeHist(){
   
   min_mm = -100;// [MeV]
   max_mm = +200; // [MeV]
-  int mm_width=1; // MeV
+  double mm_width=0.25; // MeV
   double mmbin_width=(double)mm_width; //[MeV]
   bin_mm=(int)((max_mm-min_mm)/mmbin_width);
 
@@ -1129,6 +1130,17 @@ void momcalib::MTParam(string mtparam){
     ploss = true;  // Energy Loss 
     
     //-------- momentum calibration ---------//
+
+  MT_f[0] = true;  // RHRS z correction
+  MT_f[1] = true;  // RHRS raster correction
+  MT_f[2] = true;  // RHRS theta correction
+  MT_f[3] = true;  // RHRS phi correction
+  //--------- LHRS -----------------------//
+  MT_f[4] = true;  // LHRS z correction
+  MT_f[5] = true;  // LHRS raster correction
+  MT_f[6] = true;  // LHRS theta correction
+  MT_f[7] = true;  // LHRS phi correction
+    
     MT_f[8] = true; // RHRS momentum correction  
     MT_f[9] = true; // LHRS momentum correction  
     ploss_f = true;  // Energy Loss
@@ -1607,17 +1619,14 @@ void momcalib::momCorr(bool rarm, bool larm){
 
     //====== Scaled Lp =========//
 
-
-    //    if(runnum>=111552){
-    //      Lp[0]=2.21807/2.1*Lp[0];
-    //    }
-
+    //    plossCorr(ploss_f);  // test
 
     if(runnum<=111220 || (111480<=runnum && 111542>=runnum))Lp[0]=Lp[0];
     else if(larm)Lp[0]=2.21807/2.1*Lp[0];
 
+    plossCorr(ploss_f);
     //    plossCorr(ploss);
-      plossCorr(ploss_f);
+
     
     //==== Right Hand Coorinate ====//
 
@@ -1946,6 +1955,7 @@ void momcalib::EventSelection(double ww){
     LPID_flag=false;
     nnL_run=false;
     Lam_run=false;
+    Sig_run=false;
     mom_select=false;
     T->GetEntry(i);
 
@@ -2061,8 +2071,7 @@ void momcalib::EventSelection(double ww){
   if(coin_t<1.0 && -1.0<coin_t)coin_flag=true;
   //  if((Rvz_cutmin<Rz[0] && Rz[0]<Rvz_cutmax) &&  ( Lvz_cutmin<Lz[0] && Lz[0]<Lvz_cutmax)) z_flag=true;
   if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 < 0.1 ) z_flag=true;
-  //  if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads)
-  track_flag=true;
+  if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads) track_flag=true;
   if(rpathl_cutmin<rpathl && rpathl<rpathl_cutmax) Rpathl_flag=true;
   if(lpathl_cutmin<lpathl && lpathl<lpathl_cutmax) Lpathl_flag=true;
   if(-RF1[43]+RF1[46]>0 && -RF1[44]+RF1[46]>0) Rs0_flag=true;
@@ -2087,13 +2096,17 @@ void momcalib::EventSelection(double ww){
   
   if(ac1_flag && ac2_flag && gs_flag) RPID_flag=true;
   if(Lcersum>2000.)LPID_flag=true;  
-  if(Rs2_flag && Rs0_flag && Ls2_flag && Ls0_flag)      Scinti_flag=true;
-  Scinti_flag=true;
+  if(Rs2_flag && Rs0_flag && Ls2_flag && Ls0_flag)  Scinti_flag=true;
+  //  Scinti_flag=true;
   
   if((runnum>111220 && runnum<111480) || (runnum>111576 && runnum<111698) 
      || (runnum>111738 && runnum<111830) ) nnL_run=true;
   else Lam_run=true;
-  
+
+  if(runnum<=111220 || (111480<=runnum && 111542>=runnum)) Sig_run = true; // pe=2.1 GeV
+
+
+
   //  cout<<"runnum "<<runnum<<" Lam_run "<<Lam_run<<" nnL_run "<<nnL_run<<endl;
 
 
@@ -2118,7 +2131,9 @@ void momcalib::EventSelection(double ww){
 	hRz_cut->Fill(Rz[0]);}  
     
 
- 
+
+    //    cout<<"trig_flag "<<trig_flag<<" RPID_flag "<<RPID_flag<<" LPID_flag "<<LPID_flag<<" z_flag "<<z_flag<<endl;
+    
       if(trig_flag && RPID_flag && LPID_flag && z_flag){
         hct->Fill(coin_t);
 	if(coin_flag)hct_cut->Fill(coin_t);
@@ -2275,7 +2290,7 @@ void momcalib::EventSelection(double ww){
 
 
     if(trig_flag && coin_flag && RPID_flag && LPID_flag && z_flag){
-      mm_L=mm;
+      //      mm_L=mm;
       if(Lam_run)      hmm_select->Fill((mm-ML)*1000.);
       if(nnL_run)      hmm_nnL->Fill((mm_nnL-MnnL)*1000.);
 
@@ -2371,7 +2386,7 @@ void momcalib::EventSelection(double ww){
       }
       
 
-      if(Sig_flag && Lam_run){
+      if(Sig_flag && Sig_run){
 
       nrun[ntune_event] = runnum;
       mass_flag[ntune_event]=1;
@@ -2491,7 +2506,7 @@ void momcalib::EventSelection(double ww){
   weightAl= (double)nLam/ (double)nAl;
   weightnnL= (double)nLam/ (double)nnnL;
   if(nSig==0)  weight  = 1.0;
-  if(nLamT==0) weightT = 1.0;
+  if(nLamT==0 || nLam==0) weightT = 1.0;
   if(nAl==0 || nLam==0)   weightAl= 1.0;
   if(nnnL==0)   weightnnL= 1.0;
   weightAl=weightAl*MgL_weight;
@@ -2956,13 +2971,6 @@ void momcalib::Fill(){
     hRp_c->Fill(Rp[0]);
     hLp_c->Fill(Lp[0]);
 
-    //    plossCorr(ploss_f);   
-    //    hRp_ec->Fill(Rp[0]);
-    //    hLp_ec->Fill(Lp[0]);
-
-    //    Dpe = pe;
-    //    Dpe_= Lp[0];
-    //    Dpk = Rp[0];
     Dpe = dpe*1000.;  // MeV
     Dpe_= dpe_*1000.; //MeV      
     Dpk = dpk*1000.;  // MeV   
@@ -3048,14 +3056,8 @@ void momcalib::Fill(){
 		  - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
    
    mm_X = (mm_X - 100.)*1000.;   
+ 
 
-
-   //   if(runnum==111157 && nev==240177)cout<<"Ee "<<Ee<<" Ee_ "<<Ee_<<" Ek "<<Ek<<" A "<<(Ee + Mp - Ee_ - Ek)<<endl;
-   
-     //cout<<"A "<< (Ee + Mp - Ee_ - Ek)<<" B "<<sqrt((B_v - L_v - R_v)*(B_v - L_v - R_v))<<" mm "<<MM_L<<endl;
- //--- Set Coincidence time ---------// 
- // Rs2_off=RS2_off_H1[Rs2pads];
- // Ls2_off=LS2_off_H1[Ls2pads];
 
     if(runnum<=111368){
       tdc_time=0.056; 
@@ -3069,34 +3071,32 @@ void momcalib::Fill(){
 
  
 
-
  Rs2_off= s2f1_off(Rs2pads,"R",target,tdc_mode);
  Ls2_off= s2f1_off(Ls2pads,"L",target,tdc_mode);
  tof_r=(((-RF1[48+Rs2pads]+RF1[46]-RF1[16+Rs2pads]+RF1[9]+Rs2_off)/2.0))*tdc_time;
  tof_l=((-LF1[Ls2pads]+LF1[30]-LF1[Ls2pads+48]+LF1[37]+Ls2_off)/2.0)*tdc_time;
  coin_t=tof_r-tof_l+rpath_corr-lpath_corr-pathl_off-coin_offset; //  coin Path & Offset  correction
 
+
  // coin_time=coin_t;
- // if(single)
-   coin_t=coin_time;
+  if(single) coin_t=coin_time;
 
  
  //---- Event Selection ----------//
   if(coin_t<1.0 && -1.0<coin_t)coin_flag=true; //changed by itabashi 2020/06/22
-  //  if(Rvz_cutmin<Rz[0] && Rz[0]<Rvz_cutmax && Lvz_cutmin<Lz[0] && Lz[0]<Lvz_cutmax) z_flag=true; 
+
   if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 < 0.1 ) z_flag=true;
-  //  if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads)   track_flag=true; 
-  track_flag=true;  //changed by itabashi 2020/06/22
-  //  if(rpathl_cutmin<rpathl && rpathl<rpathl_cutmax) Rpathl_flag=true;
-  //  if(lpathl_cutmin<lpathl && lpathl<lpathl_cutmax) Lpathl_flag=true;
+  if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads)   track_flag=true; 
+  //track_flag=true;  //changed by itabashi 2020/06/22
+  if(rpathl_cutmin<rpathl && rpathl<rpathl_cutmax) Rpathl_flag=true;
+  if(lpathl_cutmin<lpathl && lpathl<lpathl_cutmax) Lpathl_flag=true;
   
-  Rpathl_flag=true; // as a test 
-  Lpathl_flag=true; // as a test
   if(-RF1[43]+RF1[46]>0 && -RF1[44]+RF1[46]>0) Rs0_flag=true;
   if(-LF1[27]+LF1[30]>0 && -LF1[28]+LF1[30]>0) Ls0_flag=true;
   if(RF1[48+Rs2pads]>0 && RF1[16+Rs2pads]>0)   Rs2_flag=true;
   if(LF1[Ls2pads]>0 && LF1[Ls2pads+48]>0)      Ls2_flag=true;
   if(DRevtype==5)                              trig_flag=true;
+  
   //  if(Ra1sum_p<a1_th)      ac1_flag=true;
   //  if(Ra2sum_p>a2_th)      ac2_flag=true;
   //===== AC NPE SUM CUT =====//
@@ -3109,16 +3109,16 @@ void momcalib::Fill(){
 
 
 
-  
   if(ac1_flag && ac2_flag && gs_flag) RPID_flag=true;
   if(Lcersum>2000.)LPID_flag=true;  
-  //  if(Rs2_flag && Rs0_flag && Ls2_flag && Ls0_flag) Scinti_flag=true;
-  Scinti_flag=true;
-   
+  if(Rs2_flag && Rs0_flag && Ls2_flag && Ls0_flag) Scinti_flag=true;
+
+  
    if(trig_flag && Scinti_flag && track_flag && Rpathl_flag && Lpathl_flag){
 
      // if(trig_flag ){
-     if(trig_flag && RPID_flag && LPID_flag && z_flag){hct2->Fill(coin_t);}
+     if(trig_flag && RPID_flag && LPID_flag && z_flag){
+       hct2->Fill(coin_t);}
      if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 > 0.1) Al_flag=true;
      if((runnum>111220 && runnum<111480) || (runnum>111576 && runnum<111698) 
 	|| (runnum>111738 && runnum<111830) ) nnL_run=true;
@@ -3147,12 +3147,8 @@ void momcalib::Fill(){
 	hmm_Al_zn_c->Fill(MM_Al);
 	hmm_Al_nnL_zn->Fill(MM_Al,MM_nnL);
      }
+
      
-
-
-
-
-	
       
       if(trig_flag && coin_flag && RPID_flag && LPID_flag && Al_flag){
 	if(Al_check)hmm_Al_cut->Fill(MM_Al);
@@ -3170,35 +3166,23 @@ void momcalib::Fill(){
 
    
    
-    if(coin_flag && RPID_flag && LPID_flag && z_flag){
-
-      /*
-  if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 < 0.1 ) z_flag=true;
-  if(Rs2trpad[0]==Rs2pads && Ls2trpad[0]==Ls2pads) track_flag=true;
-  if(rpathl_cutmin<rpathl && rpathl<rpathl_cutmax) Rpathl_flag=true;
-  if(lpathl_cutmin<lpathl && lpathl<lpathl_cutmax) Lpathl_flag=true;
-  if(-RF1[43]+RF1[46]>0 && -RF1[44]+RF1[46]>0) Rs0_flag=true;
-  if(-LF1[27]+LF1[30]>0 && -LF1[28]+LF1[30]>0) Ls0_flag=true;
-  if(RF1[48+Rs2pads]>0 && RF1[16+Rs2pads]>0)   Rs2_flag=true;
-  if(LF1[Ls2pads]>0 && LF1[Ls2pads+48]>0)      Ls2_flag=true;
-  if(DRevtype==5)                              trig_flag=true;a
-       */
+      if(coin_flag && RPID_flag && LPID_flag && z_flag && track_flag && Rpathl_flag && Lpathl_flag && Scinti_flag){
       
-      fill_flag=true;
-      if(nnL_run){hmm_nnL_cut->Fill(MM_nnL);
-      mm_nnL = MM_nnL_b;
-      mm_nnL_c = MM_nnL;
-      
-      }else { // hydrogen run
-      mm_L=MM_L;
-      mm_L_b=MM_L_b;
-      mm_L_pz=mm_pz;
-      hmm_cut->Fill((mm-ML)*1000.);
-
-      if(runnum>=111552)hmm_cut_T->Fill(MM_L);
-      else hmm_cut_H->Fill(MM_L);
+	fill_flag=true;
+	if(nnL_run){hmm_nnL_cut->Fill(MM_nnL);
+	  mm_nnL = MM_nnL_b;
+	  mm_nnL_c = MM_nnL;
+	  
+	}else { // hydrogen run
+	  mm_L=MM_L;
+	  mm_L_b=MM_L_b;
+	  mm_L_pz=mm_pz;
+	  hmm_cut->Fill((mm-ML)*1000.);
+	  if(runnum>=111552)hmm_cut_T->Fill(MM_L);
+	  else hmm_cut_H->Fill(MM_L);
+	}
+	
       }
-    }
 
   //======== ACCidencel B.G. ==============///
     if(trig_flag && RPID_flag && LPID_flag && z_flag &&
@@ -3483,7 +3467,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 // #############################################################
 {
   
-  const double sigma = 0.002;//[GeV/c^2]
+  const double sigma = 0.001;//[GeV/c^2]
   double ztR      = 0.0;
   double refpos   = 0.0;
   double residual = 0.0;
@@ -3647,7 +3631,9 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     Bp = Bp - dpe;
     Rp = Rp + dpk;
     Lp = Lp + dpe_;
-        
+
+    //    if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1;  // test Scaled after Eloss
+    
     //------ Set Physics value --------//
     Ee=sqrt(pow(Bp,2)+pow(Me,2));
     Ee_=sqrt(pow(Lp,2)+pow(Me,2));
@@ -3657,8 +3643,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     lbeta=Lp/Ee_; 
 
     //==== Right Hand coordinate =====//
-    //    rp_z = Rp/sqrt(1.0*1.0 + pow( rth[i]) ,2.0) + pow(  rph[i] ),2.0) );
-    //    lp_z = Lp/sqrt(1.0*1.0 + pow( lth[i]) ,2.0) + pow(  lph[i] ),2.0) );
+
     rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i]);
     lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
 
@@ -3695,8 +3680,9 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
 
     if(mass_flag[i]==0 && scale[i]==0)      residual = (mass - mass_ref[i]); // Lambda H kinematics
-    else if(mass_flag[i]==1)                residual = (mass - mass_ref[i])*weight;  // weight Sigma0:
-    else if(scale[i] && mass_flag[i]==0)    residual = (mass - mass_ref[i])*weightT;  // weight Lambda T kinematics  
+    else if(mass_flag[i]==1 && scale[i]==0)                residual = (mass - mass_ref[i])*weight;  // weight Sigma0:
+    else if(scale[i] && mass_flag[i]==0)   residual = (mass - mass_ref[i])*weightT;  // weight Lambda T kinematics
+    
     else if(mass_flag[i]==3 )               residual = (mass_nnL - mass_ref[i])*weightnnL;  // weight nnL
     else if(mass_flag[i]==2 )               residual = (mass_MgL - mass_ref[i])*weightAl;  // MgL events
 
@@ -3721,11 +3707,9 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
   }//end for 
 
   
-  //  cout<<" chi2 "<<chi2 <<endl;
-  
   
   fval=chi2;
-  //  delete mom;  
+
   
   
 }//end fcn
