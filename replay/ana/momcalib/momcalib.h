@@ -265,10 +265,10 @@ class momcalib : public tree
   double chi_S=0.0;
   double chi2_init=0.0;
   //--- Event Selection mass cut ---//
-  double mmL_range = 0.005; // [GeV/c^2]
-  double mmS_range = 0.005; // [GeV/c^2]
-  //  double mmL_range = 0.003; // [GeV/c^2]
-  //  double mmS_range = 0.003; // [GeV/c^2]
+  //  double mmL_range = 0.005; // [GeV/c^2]
+  //  double mmS_range = 0.005; // [GeV/c^2]
+  double mmL_range = 0.003; // [GeV/c^2]
+  double mmS_range = 0.003; // [GeV/c^2]
   //  double mmL_range = 0.002; // [GeV/c^2]
   //  double mmS_range = 0.002; // [GeV/c^2]
   

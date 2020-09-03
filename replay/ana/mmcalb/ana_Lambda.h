@@ -60,6 +60,7 @@ struct TreeBranch{
   double Rp_mix[10];
   double dpe,dpe_,dpk;
   int Rs2_pad[100],Ls2_pad[100];
+  int Rs2_paddle,Ls2_paddle;
   double RS2T_F1[16],RS2B_F1[16],RS2T_ref,RS2B_ref,RS2T_F1_c[16],RS2B_F1_c[16],RS2T_F1_b[16],RS2B_F1_b[16];
   double LS2T_F1[16],LS2B_F1[16],LS2T_ref,LS2B_ref,LS2T_F1_c[16],LS2B_F1_c[16],LS2T_F1_b[16],LS2B_F1_b[16];
   double Rtof[100],Ltof[100];
@@ -205,6 +206,8 @@ private:
     TH2D *h_Rs2x_ct;
     TH2D *h_a1sum_ct, *h_a2sum_ct;
     TH1D *h_mm, *h_mmall, *h_mmfoil;
+    TH1D *h_mix;
+    TH1D *h_mm_nnL_c, *h_peak_nnL_c, *h_acc_nnL_c;
     TH1D *h_mmbg, *h_mmallbg, *h_mmfoilbg;
     TH2D *h_Lp_mm, *h_Ll_mm, *h_Ltgy_mm, *h_Ltgth_mm, *h_Ltgph_mm;
     TH2D *h_Lvx_mm, *h_Lvy_mm, *h_Lvz_mm;

@@ -2047,7 +2047,6 @@ void ana::Loop_c(){
   bool R_FP = false; // RHRS FP plane cut
   bool Kaon = false; // Kaon cut
   bool zcut = false; // z-vertex cut
-  
 
   /////////////////////
   //// Coincidence ////
@@ -2079,6 +2078,7 @@ void ana::Loop_c(){
 	  Kaon = false;
 	  zcut = false; // z-vertex cut
 	  fill_flag =false;
+	  bool padcut = false; // LS2 paddle cut < 111369 
 	  bool Rpathl_flag = false;
 	  bool Lpathl_flag = false;
 	  bool track_flag  = false;
@@ -2089,6 +2089,8 @@ void ana::Loop_c(){
 	  int R_s2tpad = (int) R_s2_t_pads[rt];
 	  double Lpathl = L_tr_pathl[lt] + L_s2_trpath[lt];
 	  double Rpathl = R_tr_pathl[rt] + R_s2_trpath[rt]; 
+
+	  if(L_s2pad <= 10 || runnum>111369) padcut = true; 
 	  if(R_s2pad == R_s2tpad && L_s2pad == L_s2tpad) track_flag =true;
 	  if(rpathl_cutmin< Rpathl && Rpathl < rpathl_cutmax) Rpathl_flag =true;
 	  if(lpathl_cutmin< Lpathl && Lpathl < lpathl_cutmax) Lpathl_flag =true;
@@ -2228,7 +2230,8 @@ void ana::Loop_c(){
 	  tr.ct_cut=0;
 	  tr.pid_cut=0;
 	  tr.acc_cut=0;
-	  
+	  tr.Ls2_paddle =-1;
+	  tr.Rs2_paddle =-1;
 
 	  
 	  //------  Set Tree Branch --------//
@@ -2236,6 +2239,7 @@ void ana::Loop_c(){
 	  
 	  // ---- Tree Branch RHRS -------//
 	  tr.Rs2_pad[rt]  =(int)R_s2_trpad[rt];
+	  tr.Rs2_paddle   = tr.Rs2_pad[rt];
 	  tr.Rs2ra_p[tr.Rs2_pad[rt]] = R_s2_ra_p[tr.Rs2_pad[rt]];
 	  tr.Rs2la_p[tr.Rs2_pad[rt]] = R_s2_la_p[tr.Rs2_pad[rt]];
 	  tr.Rs0ra_p=R_s0_ra_p[rt];
@@ -2250,6 +2254,7 @@ void ana::Loop_c(){
 
 	    //-------- Tree Branch LHRS ------------//
 	  tr.Ls2_pad[lt] =(int)L_s2_trpad[lt];
+	  tr.Ls2_paddle  = tr.Ls2_pad[lt];
 	  tr.Ls2ra_p[tr.Ls2_pad[lt]] = L_s2_ra_p[tr.Ls2_pad[lt]];
 	  tr.Ls2la_p[tr.Ls2_pad[lt]] = L_s2_la_p[tr.Ls2_pad[lt]];
 	  tr.LXFP=L_tr_x[lt];
@@ -2581,7 +2586,8 @@ void ana::Loop_c(){
                 h_mm_nnL  ->Fill( mm_nnL );
 		h_mm_H3L  ->Fill( mm_H3L );
                 h_ct_wK_z->Fill( ct );                
-        
+		if(padcut)h_mm_nnL_c  ->Fill( mm_nnL );
+		
 	      }
 	    
 		    
@@ -2606,6 +2612,11 @@ void ana::Loop_c(){
 		h_acc_H3L     ->Fill(mm_H3L);
                 h_acc_L       ->Fill(mm_L);
                 h_ct_wK_z_acc ->Fill( ct );
+		if(padcut)h_acc_nnL_c     ->Fill(mm_nnL);
+		for(int imix =0; imix<10;imix++){
+		  h_mix->Fill(mm_mix[imix]);
+		}
+
 	     }
 
 	  	 
@@ -2687,7 +2698,9 @@ void ana::Loop_c(){
     h_acc_L->Scale(2.0/40.);
     h_mm_MgL_acc->Scale(2.0/40.);
     //    h_acc_Al->Scale(2.0/40.);
+    h_mix->Scale(2.0/40./10.);
     h_acc_nnL->Scale(2.0/40.);
+    h_acc_nnL_c->Scale(2.0/40.);
     h_acc_H3L->Scale(2.0/40.);
     h_mm_acc->Scale(2.0/40.);
     h_mmallbg->Scale(1./20.);
@@ -2705,6 +2718,7 @@ void ana::Loop_c(){
     
     h_peak_L  -> Add(h_mm_L,h_acc_L,1,-1.0);
     h_peak_nnL-> Add(h_mm_nnL,h_acc_nnL,1,-1.0);
+    h_peak_nnL_c-> Add(h_mm_nnL_c,h_acc_nnL_c,1,-1.0);
     h_peak_H3L-> Add(h_mm_H3L,h_acc_H3L,1,-1.0);
     h_peak_mm -> Add(h_mm,h_mm_acc,1,-1.0);
     //    h_peak_Al->  Add(h_mm_Al,h_mm_Al_acc,1.,-1.0);
@@ -3067,8 +3081,8 @@ void ana::MakeHist(){
   tree_out ->Branch("Rp_mix"        ,tr.Rp_mix      ,"Rp_mix[10]/D"     );  
   tree_out ->Branch("Lp"        ,&tr.momL      ,"momL/D"     );
   tree_out ->Branch("Lp_b"        ,&tr.momL_b      ,"momL_b/D"     );
-  tree_out ->Branch("Rs2_pad",tr.Rs2_pad,"Rs2_pad[100]/I");
-  tree_out ->Branch("Ls2_pad",tr.Ls2_pad,"Ls2_pad[100]/I");
+  tree_out ->Branch("Rs2_pad",&tr.Rs2_paddle,"Rs2_pad/I");
+  tree_out ->Branch("Ls2_pad",&tr.Ls2_paddle,"Ls2_pad/I");
 
   tree_out ->Branch("Rth_fp"          ,&tr.RXpFP        ,"RXpFP/D"       );  
   tree_out ->Branch("Lth_fp"          ,&tr.LXpFP        ,"LXpFP/D"       );  
@@ -3380,6 +3394,13 @@ void ana::MakeHist(){
   h_peak_nnL       = new TH1D("h_peak_nnL"      ,"h_peak_nnL"      , bin_mm,min_mm,max_mm); //nnL mass range bin=2 MeV
   h_peak_H3L       = new TH1D("h_peak_H3L"      ,"h_peak_H3L"      , bin_mm,min_mm,max_mm); //H3L mass range bin=2 MeV  
 
+  h_mix       = new TH1D("h_mix"      ,"h_mix"      , bin_mm,min_mm,max_mm); //Lambda mass ACC  bin=2 MeV
+
+  
+  h_mm_nnL_c       = new TH1D("h_mm_nnL_c"      ,"h_mm_nnL_c"      , bin_mm,min_mm,max_mm); //nnLambda mass range bin=2 MeV
+  h_acc_nnL_c      = new TH1D("h_acc_nnL_c"      ,"h_acc_nnL_c"   , bin_mm,min_mm,max_mm); //nnLambda mass range bin=2 MeV  
+  h_peak_nnL_c     = new TH1D("h_peak_nnL_c"      ,"h_peak_nnL_c"      , bin_mm,min_mm,max_mm); //nnLambda mass range bin=2 MeV
+  
 
   h_Rz     = new TH1D("h_Rz", "h_Rz",1000,-0.2,0.2);
   h_Rz_c   = new TH1D("h_Rz_c", "h_Rz_c",1000,-0.2,0.2);
@@ -3518,8 +3539,9 @@ void ana::Swich(bool nnL, bool scale){
     //====== Missing Mass MeV order =====//
     min_mm=-300.;
     max_mm=200.;
-    bin_mm=(int)( (max_mm-min_mm)*2. ); // 0.5MeV/bin;
-
+    //    bin_mm=(int)( (max_mm-min_mm)*2. ); // 0.5MeV/bin;
+    //    bin_mm=(int)( (max_mm-min_mm)*1. ); // 1 MeV/bin;
+    bin_mm=(int)( (max_mm-min_mm)*0.5 ); // 2 MeV/bin;
     //==================================//
 
 

@@ -27,11 +27,13 @@ nworkers=8
 date=datetime.date.today()
 #matrix="../matrix/matrix_new.list"
 #matrix="../matrix/matrix_test.list"
-matrix="../matrix/test/matrix_test6.list"
+#matrix="../matrix/test/matrix_test6.list"
 #matrix="../matrix/matrix_wAl.list"
 #matrix="../matrix/matrix_wAl_25.list"
 #matrix="../matrix/matrix_test.list"
 #matrix="../matrix/matrix_wPathL.list"
+matrix="../matrix/matrix_2020.list"
+
 root_dir="../rootfiles/mmass/ana_Lambda/"+str(date)
 pdf_dir ="../pdf/mmass/ana_Lambda/"+str(date)
 name=[]
