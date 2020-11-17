@@ -82,7 +82,7 @@ void calcAcc(){
     int ENum=T->GetEntries();
     double ratio =(double)ENum/(double)Ntot;
     double   theta_gen_accep = 6.7272080607340551e-2; // rad
-    double   phi_gen_accep = 6.9319187228489870e-2; // rad
+    //    double   phi_gen_accep = 6.9319187228489870e-2; // rad
 
     // Accepctance calc
     
@@ -136,7 +136,8 @@ void calcAcc(){
     double Rp_x,Rp_y,Rp_z,Lp_x,Lp_y,Lp_z;
     double theta,phi;
     double Rp_xg,Rp_yg,Rp_zg,Lp_xg,Lp_yg,Lp_zg;
-    double theta_g,phi_g;    
+    double theta_g,phi_g;
+    cout<<" Fill Start "<<endl;
     for(int i=0;i<ENum;i++){
       T->GetEntry(i);
       //      Tg->GetEntry(i);

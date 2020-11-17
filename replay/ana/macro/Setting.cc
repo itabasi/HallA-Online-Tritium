@@ -287,8 +287,7 @@ void Setting::Initialize(){
   gStyle->SetNdivisions(505,"Z"); // tertiary*10000 + secondary*100 + first
 
 // stat box
-//  gStyle->SetOptStat("");
-  gStyle->SetOptStat(000001111);  
+  gStyle->SetOptStat("");
 //  gStyle->SetStatW(0.15);
   gStyle->SetStatFontSize(0.04);
   gStyle->SetStatTextColor(1);

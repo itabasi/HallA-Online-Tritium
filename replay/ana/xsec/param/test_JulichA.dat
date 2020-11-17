@@ -1,0 +1,4 @@
+### FSI tabel with Julich A Potential (2-Gauss potential) #####
+# krel [MeV] # Influence Factor(S) # Influence Factor(T)
+10 1.00001 1
+20 1.00001 1

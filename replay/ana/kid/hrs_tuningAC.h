@@ -1,4 +1,3 @@
-
 #ifndef hrs_tuningAC_h
 #define hrs_tuningAC_h 1
 
@@ -126,7 +125,7 @@ class tuningAC{
  double rtof[16];
  double rbeta,rbeta_k,lbeta;
  double Rs2_off,Ls2_off; 
-n double Rs2_tcorr,Ls2_tcorr;
+ double Rs2_tcorr,Ls2_tcorr;
  int Ls2pads,Rs2pads;
  bool cut_ac1,cut_ac2,cut_beta;
  int nac1,nac2,nac3,n;
@@ -487,7 +486,7 @@ tuningAC::~tuningAC(){}
 void tuningAC::SetRun(string ifname){
 
 
-  if(mode=="G"||mode=="T" ){T=new TChain("tree"); }
+  if(mode=="G"){T=new TChain("tree"); }
   else {T=new TChain("T");}
   T->Add(ifname.c_str());
   ENum=T->GetEntries();
@@ -498,7 +497,8 @@ void tuningAC::SetRun(string ifname){
 void tuningAC::SetRunList(string ifname){
   cout<<"Set Run List "<<endl;
   
-  if(mode=="G"||mode=="T" ){T=new TChain("tree"); }
+  //  if(mode=="G"||mode=="T" ){T=new TChain("tree"); }
+  if(mode=="G" ){T=new TChain("tree"); }
   else {T=new TChain("T");}
 
   ifstream ifp(Form("%s",ifname.c_str()),ios::in);
@@ -592,14 +592,21 @@ void tuningAC::SetBranch(){
  T->SetBranchAddress("L.tr.p",Lp);  
  T->SetBranchStatus("L.tr.vz",1);    
  T->SetBranchAddress("L.tr.vz",Lvz);
-
+ T->SetBranchStatus("ct",1);    
+ T->SetBranchAddress("ct",&tcoin_t);
+ 
  if(mode=="T"){
  T->SetBranchStatus("ct",1);    
  T->SetBranchAddress("ct",&tcoin_t);
- T->SetBranchStatus("ac1_sum",1);
- T->SetBranchAddress("ac1_sum",&Ra1sum);
- T->SetBranchStatus("ac2_sum",1);
- T->SetBranchAddress("ac2_sum",&Ra2sum);
+ // T->SetBranchStatus("ac1_sum",1);
+ // T->SetBranchAddress("ac1_sum",&Ra1sum);
+ // T->SetBranchStatus("ac2_sum",1);
+ // T->SetBranchAddress("ac2_sum",&Ra2sum);
+
+ T->SetBranchStatus("ac1_npe_sum",1);
+ T->SetBranchAddress("ac1_npe_sum",&Ra1sum);
+ T->SetBranchStatus("ac2_npe_sum",1);
+ T->SetBranchAddress("ac2_npe_sum",&Ra2sum); 
  T->SetBranchStatus("mm",1);
  T->SetBranchAddress("mm",&mm);
  T->SetBranchStatus("Lz",1);    
@@ -690,21 +697,30 @@ void tuningAC::SetParam(){
    //===========================//
    //== AC2 Upper threshold ====//
    //===========================//
- ac1_adc[0]=0.48;
- ac1_adc[1]=1.0;
+   // ac1_adc[0]=0.48;
+   // ac1_adc[1]=1.0;
+   // ac1_adc[2]=1.5;
+   // ac2_adc[0]=1.0;
+   // ac2_adc[1]=2.0;
+   // ac2_adc[2]=3.0;
+ 
+ ac1_adc[0]=1.0;
+ ac1_adc[1]=1.2;
  ac1_adc[2]=1.5;
-
- ac2_adc[0]=1.0;
- ac2_adc[1]=2.0;
- ac2_adc[2]=3.0;
+   
+ ac2_adc[0]=3.0;
+ ac2_adc[1]=5.0;
+ ac2_adc[2]=7.0;
 
  ac2_kcut_max=12.0;
+ 
  //---- AC1 -----//
  min_ac1=0.0; // AC1 minmum
- th1_max=10.0; // AC1 maximum 
+ // th1_max=10.0; // AC1 maximum
+ // th1_max=30.0; // AC1 maximum 
 
  min_ac1=0.0;
- max_ac1=10.0;
+ max_ac1=30.0;
  min_ac2=0.0; 
  max_ac2=50.0;  
  //--- AC2 -----//
@@ -712,8 +728,9 @@ void tuningAC::SetParam(){
  // min_ac2=0.0;
 
   th2_max=10.;
-  th_ac2_t=10.0; // FIll Cut of hmm_ac1 (Upper cut)
-  //  th_ac2_t=max_ac2;
+  //  th_ac2_t=10.0; // FIll Cut of hmm_ac1 (Upper cut)
+  //  th_ac2_t=10.0; // FIll Cut of hmm_ac1 (Upper cut)
+  th_ac2_t=max_ac2;
   //  th_ac2_b=min_ac2;
  /*
  for(int i=0;i<nth;i++){
@@ -784,26 +801,35 @@ void tuningAC::MakeHist(){
 
  min_vdc=-0.2e-6;
  max_vdc= 1.2e-6;
- bin_vdc=(max_vdc-min_vdc)/tdc_time*1.0e6;
- bin_vdc=(int)bin_vdc;
+ bin_vdc=fabs(max_vdc-min_vdc)/tdc_time*1.0e6;
+ // bin_vdc=(int)bin_vdc;
+  bin_vdc=1000;
  min_s0=-10;
  max_s0=10000;
- bin_s0=int(max_s0-min_s0);
+ bin_s0=int(fabs(max_s0-min_s0));
 
 
  min_s2=-10;
  max_s2=5000;
  bin_s2=max_s2-min_s2;
-        bin_coin=(int)(max_coin-min_coin)/tdc_time;
-        bin_coin_c=(int)(max_coin_c-min_coin_c)/tdc_time;
+ //        bin_coin=(int)(max_coin-min_coin)/tdc_time;
+ //        bin_coin_c=(int)(max_coin_c-min_coin_c)/tdc_time;
+ bin_coin=1000;
+ bin_coin_c=1000; 
         bin_beta=6000;
 	bin_adc=(int)max_adc-min_adc;
 	bin_ac1=(int)(max_ac1-min_ac1)*3; 
-	bin_ac2=(int)(max_ac2-min_ac2)*3; 
+	bin_ac2=(int)(max_ac2-min_ac2)*3;
+
+	if(mode=="T"){
+	  bin_ac1=(int)(max_ac1-min_ac1)*100; 
+	  bin_ac2=(int)(max_ac2-min_ac2)*100;
+	}
   min_mm=0.5;
   max_mm=1.5;
-  bin_mm=(max_mm-min_mm)/0.002; //Counts/2 MeV
+  bin_mm=fabs(max_mm-min_mm)/0.002; //Counts/2 MeV
   bin_mm=(int)bin_mm;
+
 
 
   // iter_ac1=40; //NIter
@@ -816,7 +842,7 @@ void tuningAC::MakeHist(){
   bin_ac2=(max_ac2-min_ac2)*100; 
 }
 
-
+  //  cout<<"bin_mm "<<bin_mm<<" bin_s0 "<<bin_s0<<" bin_ac1 "<<bin_ac1<<" bin_ac2 "<<bin_ac2<<" bin_mm "<<bin_mm<<" bin_vdc "<<bin_vdc<<" bin_coin "<<bin_coin<<" bin_coin_c "<<bin_coin_c<<endl;
  hcoin_t=new TH1F("hcoin_t","Coincidence time S2R-S2L[ns] ",(int)bin_coin,min_coin,max_coin);
  hcoin_tc=new TH1F("hcoin_tc","Coincidence time w/ Path Length Correction  S2R-S2L[ns] ",bin_coin_c,min_coin_c,max_coin_c);
 
@@ -1224,6 +1250,9 @@ void tuningAC::Fill(){
    }
 
 
+
+   if(mode=="T")mm =(mm)/1000. +1.115683;
+   
  pe_=Lp[0];//*sqrt(1+pow(Lth[0],2)+pow(Lph[0],2));
  pk=Rp[0];//*sqrt(1+pow(Rth[0],2)+pow(Rph[0],2));
  ppi=Rp[0];//*sqrt(1+pow(Rth[0],2)+pow(Rph[0],2));
@@ -1242,6 +1271,8 @@ void tuningAC::Fill(){
  lpath_corr=lpathl/lbeta/c;
  
 
+
+ 
  
  if(mode=="H"){
  Rs2_off=s2f1_off(Rs2pads,"R",mode,kine);
@@ -1306,15 +1337,16 @@ void tuningAC::Fill(){
    //========= Fill Hist =====================//
    //========================================//
 
-
+   //   cout<<"coi_trig "<<coin_trig<<" cut_vz "<<cut_vz<<" rpathl "<<cut_rpathl<<" lpathl "<<cut_lpathl<<" track "<<cut_track<<endl;
    if(coin_trig && cut_vz && cut_lpathl && cut_rpathl && cut_track){
+     
  hcoin_t->Fill(coin_t);
  hcoin_tc->Fill(coin_tc);
  ha1_a2->Fill(Ra1sum,Ra2sum);// AC1 vs AC2
  hcoin_ac1_all->Fill(coin_tc,Ra1sum);
  hcoin_ac2_all->Fill(coin_tc,Ra2sum);
 
- 
+ // cout<<"coin_tc "<<coin_tc<<" Ra1 "<<Ra1sum<<" Ra2 "<<Ra2sum<<endl;
  //========== W/o AC cut Missing mass ==============//
 
  if(coin_tc<1.0 && -1.0<coin_tc) hmm->Fill(mm);
@@ -1509,7 +1541,7 @@ void tuningAC::Fitting(){
  }else if(mode=="T"){
  def_sig_p=0.841; def_mean_p=-8.21;
  def_sig_pi=0.275; def_mean_pi=3.049;
- def_sig_k=0.454; def_mean_k=-0.095;
+ def_sig_k=0.454; def_mean_k=0.0;
  def_acc=22.7;
 }
     
@@ -1543,7 +1575,7 @@ cout<<"defined parameters in SR analysis"<<endl;
  fp_pc->SetParLimits(2,0.8*def_sig_p,1.2*def_sig_p);
  fp_pc->SetParameter(3,def_acc);
 
- hcoin_k->Fit("facc_kc","Rq","",min_coin_c,min_coin_c+3.0);
+ hcoin_k->Fit("facc_kc","Rq","RQ",min_coin_c,min_coin_c+3.0);
  def_acc_k=facc_kc->GetParameter(0);
 
  fk_kc->SetParameter(1,def_mean_k);
@@ -1552,9 +1584,9 @@ cout<<"defined parameters in SR analysis"<<endl;
  fk_kc->SetParLimits(2,0.8*def_sig_k,1.2*def_sig_k);
  fk_kc->FixParameter(3,def_acc_k);
 
- hcoin_k->Fit("fk_kc","Rq","",def_mean_k-3*def_sig_k,def_mean_k+3*def_sig_k);
- hcoin_pi->Fit("fpi_pic","Rq","",def_mean_pi-3*def_sig_pi,def_mean_pi+3*def_sig_pi);
- hcoin_p->Fit("fp_pc","Rq","",def_mean_p-3*def_sig_p,def_mean_p+3*def_sig_p);
+ hcoin_k->Fit("fk_kc","Rq","RQ",def_mean_k-3*def_sig_k,def_mean_k+3*def_sig_k);
+ hcoin_pi->Fit("fpi_pic","Rq","RQ",def_mean_pi-3*def_sig_pi,def_mean_pi+3*def_sig_pi);
+ hcoin_p->Fit("fp_pc","Rq","RQ",def_mean_p-3*def_sig_p,def_mean_p+3*def_sig_p);
 
  def_num_k=fk_kc->GetParameter(0);
  def_mean_k=fk_kc->GetParameter(1);
@@ -2303,6 +2335,9 @@ void tuningAC::Tuning(){
    if(ac2_down && z_cut
        && Ra1sum<th_ac1[fom_th1] &&th_ac2[fom_th2]>Ra2sum && Ra2sum>th_ac2_b)ac2_flag=true;
 
+
+   //     cout<<"coin_tc "<<coin_tc<<endl;
+   
    
    if(z_cut && coin_trig)ct_c=coin_tc;
    
@@ -2351,7 +2386,7 @@ void tuningAC::Tuning(){
   fbg_L->SetParameter(0,-1137.13); 
   fbg_L->SetParameter(1,1071.8);
 
-  hmm_p->Fit("fbg_L","","",1.09,1.13);
+  hmm_p->Fit("fbg_L","RQ","RQ",1.09,1.13);
   pbg[0]=fbg_L->GetParameter(0);
   pbg[1]=fbg_L->GetParameter(1);
 
@@ -2362,7 +2397,7 @@ void tuningAC::Tuning(){
   //  fbg_S->FixParameter(1,-352.65);
   fbg_S->SetParameter(0,448.634); 
   fbg_S->SetParameter(1,-352.65);
-  hmm_p->Fit("fbg_S","","",1.17,1.26);
+  hmm_p->Fit("fbg_S","RQ","RQ",1.17,1.26);
   pbg_S[0]=fbg_S->GetParameter(0);
   pbg_S[1]=fbg_S->GetParameter(1);
 
@@ -2376,7 +2411,7 @@ void tuningAC::Tuning(){
   fL_p->SetParameter(0,3.07090e+00); 
   fL_p->SetParameter(1,1.11546e+00);
   fL_p->SetParameter(2,3.6814e-03);
-  hmm_p->Fit("fL_p","","",min_L,max_L);
+  hmm_p->Fit("fL_p","RQ","RQ",min_L,max_L);
   pL[0]=fL_p->GetParameter(0);
   pL[1]=fL_p->GetParameter(1); 
   pL[2]=fL_p->GetParameter(2);  
@@ -2393,7 +2428,7 @@ void tuningAC::Tuning(){
   fS_p->SetParameter(0,1.06770); 
   fS_p->SetParameter(1,1.19941);
   fS_p->SetParameter(2,4.9135e-3);
-  hmm_p->Fit("fS_p","","",min_S,max_S);
+  hmm_p->Fit("fS_p","RQ","RQ",min_S,max_S);
 
   pS[0]=fS_p->GetParameter(0);
   pS[1]=fS_p->GetParameter(1); 
@@ -2414,7 +2449,7 @@ void tuningAC::Tuning(){
   fL_all->SetParameter(3,pL[1]);
   fL_all->SetParameter(4,pL[2]);
 
-  hmm_p->Fit("fL_all","","",min_L,max_L);
+  hmm_p->Fit("fL_all","RQ","RQ",min_L,max_L);
   pbg[0]=fL_all->GetParameter(0);
   pbg[1]=fL_all->GetParameter(1);
   pL[0]=fL_all->GetParameter(2);
@@ -2439,7 +2474,7 @@ void tuningAC::Tuning(){
   fS_all->SetParameter(3,pS[1]);
   fS_all->SetParameter(4,pS[2]);
 
-  hmm_p->Fit("fS_all","","",min_S,max_S);
+  hmm_p->Fit("fS_all","RQ","RQ",min_S,max_S);
   pbg_S[0]=fS_all->GetParameter(0);
   pbg_S[1]=fS_all->GetParameter(1);
   pS[0]=fS_all->GetParameter(2);
@@ -2477,8 +2512,8 @@ void tuningAC::Tuning(){
 	hmm_fom_acc->Scale(2.0/100.);
 	hmm_fom_p->Add(hmm_fom,hmm_fom_acc,1.0,-1.0);
 
-	hmm_fom->Fit("fL_fom_bg","Rq","",1.08,1.15);
-	hmm_fom->Fit("fS_fom_bg","Rq","",1.17,1.23);
+	hmm_fom->Fit("fL_fom_bg","Rq","RQ",1.08,1.15);
+	hmm_fom->Fit("fS_fom_bg","Rq","RQ",1.17,1.23);
 
 	
 	for(int i=0;i<3;i++){
@@ -2495,8 +2530,8 @@ void tuningAC::Tuning(){
 	fS_fom->SetParLimits(1,1.180,1.200);
 	fS_fom->SetParameter(2,6.0e-3);
 
-	hmm_fom->Fit("fL_fom","Rq","",1.1,1.15);
-	hmm_fom->Fit("fS_fom","Rq","",1.17,1.23);
+	hmm_fom->Fit("fL_fom","Rq","RQ",1.1,1.15);
+	hmm_fom->Fit("fS_fom","Rq","RQ",1.17,1.23);
 
 	NL_err=fL_fom->GetParError(0);
 	NS_err=fS_fom->GetParError(0);
@@ -2596,7 +2631,7 @@ void tuningAC::Draw(){
       fk_fom->Draw("same");
 
 
-      
+
 
 
  
@@ -2628,6 +2663,8 @@ void tuningAC::Draw(){
    };
 
 
+
+   
    c16=new TCanvas("c16","c16");
    c16->Divide(4,4);
    for(int i=0;i<16;i++){
@@ -2643,11 +2680,14 @@ void tuningAC::Draw(){
     fk[l][fom_max_th1][1]->SetFillColor(3);            
     fk[l][fom_max_th1][1]->Draw("same");        
    };
+
+
    
 
    gsum_k_ac1[0][0]->GetYaxis()->SetRangeUser(500.0,3000);
       c17=new TCanvas("c17","c17");
       c17->cd();
+      if(nth>=3){
       for(int i=0;i<3;i++){
  gsum_k_ac1[i][i]->SetFillColor(i+1);
  gsum_k_ac1[i][i]->SetMarkerColor(i+1);
@@ -2657,19 +2697,26 @@ void tuningAC::Draw(){
  else  gsum_k_ac1[i][i]->Draw("P");
 
 	   }
-
+      }
       c18=new TCanvas("c18","c18");
       c18->cd();
-      for(int i=0;i<3;i++){
- gsum_k_ac2[i][i]->SetFillColor(i+1);
- gsum_k_ac2[i][i]->SetMarkerColor(i+1);
- gsum_k_ac2[i][i]->SetFillStyle(3005);
 
- if(i==0)gsum_k_ac2[i][i]->Draw("AP");
- else  gsum_k_ac2[i][i]->Draw("P");
+
+      cout<<"test0"<<endl;
+      if(nth>3){
+      for(int i=0;i<3;i++){
+	gsum_k_ac2[i][i]->SetFillColor(i+1);
+	gsum_k_ac2[i][i]->SetMarkerColor(i+1);
+	gsum_k_ac2[i][i]->SetFillStyle(3005);
+	
+	if(i==0)gsum_k_ac2[i][i]->Draw("AP");
+	else  gsum_k_ac2[i][i]->Draw("P");
       }
 
-      
+      }
+
+
+         cout<<"test01"<<endl;
       
    c21=new TCanvas("c21","c21");
    c21->Divide(4,4);
@@ -2696,7 +2743,7 @@ void tuningAC::Draw(){
 
    };
       
-
+   cout<<"test1"<<endl;
 
    c22=new TCanvas("c22","c22");
    c22->Divide(4,4);
@@ -2762,7 +2809,7 @@ void tuningAC::Draw(){
       c30=new TCanvas("c30","AC1 threshold");     
       c30->Divide(2,1);
 
-
+      //      cout<<"test3"<<endl;
 	for(int i=0;i<nth;i++){
 	  //	  c30->cd(i+1);
       
@@ -2867,6 +2914,8 @@ void tuningAC::Write(){
  gL_FOM_ac2[fom_max_th1]->SetName(Form("gL_FOM_ac2_%d",fom_max_th1));
  gL_FOM_ac2[fom_max_th1]->Write();  
 
+
+ if(nth>=3){
  for(int i=0;i<3;i++){
  gSN_k_ac1[i][i]->SetFillColor(i+1);
  gSN_k_ac1[i][i]->SetMarkerColor(i+1);
@@ -2935,6 +2984,7 @@ void tuningAC::Write(){
  
  }
 
+ }
 
  gSN_k_ac1[fom_max_th2][fom_max_th2]->SetName(Form("gSN_k_ac1_%d",fom_max_th2));
  gSN_k_ac1[fom_max_th2][fom_max_th2]->Write(); 

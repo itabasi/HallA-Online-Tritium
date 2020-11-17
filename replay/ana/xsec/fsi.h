@@ -19,6 +19,7 @@ public:
   void SetParam(string ifpname);
   void SetMom();
   void SetHist();
+  void JostParam();
   double Chi2(TH1D* hmm, TH1D* hmmFSI);
   void SetFermiMom(string ifpname);
   TLorentzVector CalcPn(TLorentzVector P2n);
@@ -26,12 +27,14 @@ public:
   TLorentzVector CalcPn_deu(TLorentzVector P2n);
   TLorentzVector CalcPn_test(TLorentzVector P2n);
   double PhaseShift(double q, int LL, int potential);
+  
   double CalcQ(TLorentzVector Pn, TLorentzVector Pp, TLorentzVector Pv, TLorentzVector PK);
   double CalcQ2(TLorentzVector Pn, TLorentzVector Pp, TLorentzVector Pv, TLorentzVector PK);
   complex<double> vlkkp(double skp,double skpp,int lcall);
   complex<double> vofq(double q2);
   void NewRoot(string ofname);
   void InfluenceFactor(string pname, int l);
+  void InfluenceFactorVscale(string pname, int l);
   double InfluenceFactor2(double kreol, int potential);
   TRandom random;
   //------- NewRoot    -------//
@@ -39,8 +42,11 @@ public:
   TTree* Tnew;
   float fsiw;
 
-  double fac0,fac1,fac2,fac3,fac1t,fac2t,fac3t;
-  double fac1_2,fac2_2,fac3_2;
+  double fac0,fac1,fac2,fac3,fac1t,fac2t,fac3t,fac1s,fac2s,fac3s,ton1s,ton1t,ton1,ton2,ton2s,ton2t,ton3,ton3s,ton3t,toff1,toff1s,toff1t,toff2,toff2s,toff2t,toff3,toff3s,toff3t;
+
+  double era1,era1s,era1t,era2,era2s,era2t,era3,era3s,era3t;
+  
+  double fac1_2,fac2_2,fac3_2,fac1_2t,fac2_2t,fac3_2t,fac1_2s,fac2_2s,fac3_2s;
   double fac1_test,fac2_test,fac3_test;
   double Prel,Prel2,Prel_test;
   double mm;
@@ -60,16 +66,24 @@ public:
   double w2[nmax3];
   double w3[nmax3];
 
+  double w1t[nmax3];
+  double w2t[nmax3];
+  double w3t[nmax3];
+  
   int np1,np2,np3;
   
   //-------- SetHist ---------//
+
   TGraphErrors* gf0;
   TGraphErrors* gf1;
   TGraphErrors* gf2;
   TGraphErrors* gf3;
   TGraphErrors* gf1t;
   TGraphErrors* gf2t;
-  TGraphErrors* gf3t;  
+  TGraphErrors* gf3t;
+  TGraphErrors* gf1_all;
+  TGraphErrors* gf2_all;
+  TGraphErrors* gf3_all;  
   TGraphErrors* gxf1;
   TGraphErrors* gxf2;
   TGraphErrors* gxf3;
@@ -81,7 +95,10 @@ public:
   TGraphErrors* gI1;
   TGraphErrors* gI2; 
   TGraphErrors* gI3; 
-
+  TGraphErrors* gI[100];
+  TGraphErrors* gIs[100];
+  TGraphErrors* gIt[100];
+  
   TGraphErrors* gI00;
   TGraphErrors* gI01;
   TGraphErrors* gI02; 
@@ -137,23 +154,99 @@ public:
   TGraphErrors* gfth1;
   TGraphErrors* gfth2;
   TGraphErrors* gfth3;
+
+
+
   
+  // T matrix calc
+  
+  TGraphErrors* gIton1s;
+  TGraphErrors* gIton2s;
+  TGraphErrors* gIton3s;
+
+  TGraphErrors* gIton1t;
+  TGraphErrors* gIton2t;
+  TGraphErrors* gIton3t;
+
+  TGraphErrors* gIton1;
+  TGraphErrors* gIton2;
+  TGraphErrors* gIton3;  
+
+
+  TGraphErrors* gItoff1s;
+  TGraphErrors* gItoff2s;
+  TGraphErrors* gItoff3s;
+
+  TGraphErrors* gItoff1t;
+  TGraphErrors* gItoff2t;
+  TGraphErrors* gItoff3t;
+
+  TGraphErrors* gItoff1;
+  TGraphErrors* gItoff2;
+  TGraphErrors* gItoff3;    
+
+
+  // ERA calc.
+  
+  TGraphErrors* gIera1;
+  TGraphErrors* gIera2;
+  TGraphErrors* gIera3;  
+  
+  TGraphErrors* gIera1s;
+  TGraphErrors* gIera2s;
+  TGraphErrors* gIera3s;  
+  
+  TGraphErrors* gIera1t;
+  TGraphErrors* gIera2t;
+  TGraphErrors* gIera3t;  
+  
+  
+  
+  TF1* fJl[100];
+  TF1* fJls[100];
+  TF1* fJlt[100];
   TH1F* hmm1;
   TH1F* hmm_fsi1;
   TH1F* hmm_fsi2;
   TH1F* hmm_fsi3;
+
+  TH1F* hmm_fsi1t;
+  TH1F* hmm_fsi2t;
+  TH1F* hmm_fsi3t;
+
+  TH1F* hmm_fsi1s;
+  TH1F* hmm_fsi2s;
+  TH1F* hmm_fsi3s;
+  
+  
   TH1F* hmm_fsi1_2;
   TH1F* hmm_fsi2_2;
   TH1F* hmm_fsi3_2;
-  TH1F* hmm_fsi1_test;
-  TH1F* hmm_fsi2_test;
-  TH1F* hmm_fsi3_test;     
+  
+  TH1F* hmm_fsi1_2s;
+  TH1F* hmm_fsi2_2s;
+  TH1F* hmm_fsi3_2s;
+
+  TH1F* hmm_fsi1_2t;
+  TH1F* hmm_fsi2_2t;
+  TH1F* hmm_fsi3_2t;
+
   TH1F* hmm;
   TH1F* hmm_L;
   TH1F* hmm_nnL;
 
 
-  
+  TH1F* hmm_Jl[100];
+  TH1F* hmm_Jls[100];
+  TH1F* hmm_Jlt[100];
+
+  TH1F* hmm_Jl_2[100];
+  TH1F* hmm_Jl_2s[100];
+  TH1F* hmm_Jl_2t[100];  
+  //-------- JostParam ---------//
+  string vname[100];
+  double r_s[100],a_s[100],r_t[100],a_t[100];
+  int vmax=10;
   //-------- SetMom   --------//
 
   
@@ -179,19 +272,22 @@ public:
   ofstream* ofp3;
   ofstream* ofp1t;
   ofstream* ofp2t;
-  ofstream* ofp3t;  
+  ofstream* ofp3t;
+  ofstream* ofp[100];
+  ofstream* ofps[100];
+  ofstream* ofpt[100];
   //------- PhaseShift ------//
   double ampj,ampj2,amtag,amtag2,fmu,fmunn,amu,fnucl,fnucl2,hbarc2;
   double skz,skz2,eon,eoff,rho,ekpj,ektag,lpjmax,skp,skpp,skp2,skpp2,vv1,uofq,fthecm,q2;
   double POL[nmax2],deltal[60];
   double skk[nmax2],x[nmax2],w[nmax2],wt[nmax2],pol[nmax2+1],pols[nmax2+1],xvq[nmax2],wvq[nmax2];
-  complex<double> gren[nmax2+1][nmax2+1],ul[nmax2+1][nmax2+1],gren2[nmax2+1][nmax2+1],v[nmax2],v0[nmax2],ton[60],ton0[60],tborn[60],delta_rad[60],jon[60];
+  complex<double> gren[nmax2+1][nmax2+1],ul[nmax2+1][nmax2+1],gren2[nmax2+1][nmax2+1],v[nmax2],v0[nmax2],ton[60],ton0[60],tborn[60],delta_rad[60],jon[60],toff[nmax3];
   complex<double> fthe[nmax2],fthe1[nmax2],fthe0[nmax2],Rl[nmax2+1],Rl0[nmax2+1],V[nmax2+1],fthel[20],ftheL;
   complex<double>Psi[180],Psi0[180],psi[180],psi0[180];
   complex<double> xi, vq,v2,vv,delta,det,ron,ron0,fborn,fborn0,fthed;
   double va,b_a,vr,b_r,b_r2,b_a2,vqa,vqr,ronr,tonre,tonim,tbornre,tbornim,perre,perim,delrad,delrad0,deldeg,deldega,tcross,cross[180],tcross1,tcross0,tcrossl;
   complex<double> expL[20];
-  double I0,I1,Il[20],Il0[20],IJ,IERA;
+  double I0,I1,Il[20],Il0[20],IJ,IERA,Iton,Itoff;
   double f2[180];
   TF1* fI0;
   const int n1 =40;

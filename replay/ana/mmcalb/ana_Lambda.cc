@@ -959,7 +959,6 @@ void ana::MixedEvent(int rt, int lt){
 
   
   TVector3 L_v_mix[nmixed], R_v_mix[nmixed], B_v_mix[nmixed]; 
-  double mass_mix[nmixed];
   
   for(int i=0;i<nmixed;i++){
 
@@ -976,7 +975,7 @@ void ana::MixedEvent(int rt, int lt){
     mass_mix[i] = sqrt( (Ee + mt - L_E[i] - R_E[i])*(Ee + mt - L_E[i] - R_E[i])
 			- (B_v_mix[i] - L_v_mix[i] - R_v_mix[i])*(B_v_mix[i] - L_v_mix[i] - R_v_mix[i]) );
 
-    //    cout<<" mass_mix "<<mass_mix[i]<<" mh "<<mh<<" i "<<i<<endl;
+
     mm_mix[i]=mass_mix[i] - mh;
     mm_mix[i]=mm_mix[i]*1000.; // GeV -> MeV  
 
@@ -988,10 +987,6 @@ void ana::MixedEvent(int rt, int lt){
     tr.mm_mixed[i] = -10000.;
     else
       tr.mm_mixed[i] = mm_mix[i];
-    
-    //    cout<<" nev "<<tr.nev<<" i "<<i<<" mm "<<tr.mm_mixed[i]<<" bp "<<B_p<<" Rp "<<R_tr_p_mix[i]<<" Lp "<<L_p<<" L_px "<<L_px<<endl;
-
-    
   }
   
 
@@ -1000,6 +995,88 @@ void ana::MixedEvent(int rt, int lt){
 }
 
 //////////////////////////////////////////////////////////////////////
+
+
+void ana::MixedEventAll(int rt, int lt){
+
+  // record RHRS events
+
+
+
+  
+  double R_pz = R_p/sqrt(1.0*1.0 + R_tr_tg_th[rt]*R_tr_tg_th[rt] + R_tr_tg_ph[rt]* R_tr_ph[rt] );
+  double R_px = R_pz * R_tr_tg_th[rt] ;
+  double R_py = R_pz * R_tr_tg_ph[rt] ;
+  
+  double L_pz = L_p/sqrt(1.0*1.0 + L_tr_tg_th[lt]*L_tr_tg_th[lt] + L_tr_tg_ph[lt]* L_tr_tg_ph[lt] );
+  double L_px = L_pz * L_tr_tg_th[lt] ;
+  double L_py = L_pz * L_tr_tg_ph[lt] ; 
+
+  
+  for(int i=0;i<nmixed;i++){
+    R_tr_p_mix_all[i]  = R_tr_p_mix_all[i+1];
+    R_tr_px_mix_all[i] = R_tr_px_mix_all[i+1];
+    R_tr_py_mix_all[i] = R_tr_py_mix_all[i+1];
+    R_tr_pz_mix_all[i] = R_tr_pz_mix_all[i+1];
+    R_tr_th_mix_all[i] = R_tr_th_mix_all[i+1];
+    R_tr_ph_mix_all[i] = R_tr_ph_mix_all[i+1];
+    
+  }
+  
+  R_tr_p_mix_all[nmixed-1]   = R_p;
+  R_tr_px_mix_all[nmixed-1]  = R_px;
+  R_tr_py_mix_all[nmixed-1]  = R_py;
+  R_tr_pz_mix_all[nmixed-1]  = R_pz;
+  
+  R_tr_th_mix_all[nmixed-1] = R_tr_tg_th[rt];
+  R_tr_ph_mix_all[nmixed-1] = R_tr_tg_ph[rt];
+  
+  
+  double Ee;
+  Ee =sqrt(B_p*B_p + Me*Me);
+  double L_E[nmixed],R_E[nmixed];
+  
+
+  
+  TVector3 L_v_mix_all[nmixed], R_v_mix_all[nmixed], B_v_mix_all[nmixed]; 
+  
+  for(int i=0;i<nmixed;i++){
+
+   L_E[i]     = sqrt( Me*Me + L_p*L_p );
+   R_E[i]     = sqrt( MK*MK + R_tr_p_mix_all[i]*R_tr_p_mix_all[i] );
+
+
+    B_v_mix_all[i].SetXYZ(0.0,0.0,B_p);
+    L_v_mix_all[i].SetXYZ(L_px, L_py, L_pz);
+    R_v_mix_all[i].SetXYZ(R_tr_px_mix_all[i], R_tr_py_mix_all[i], R_tr_pz_mix_all[i]);
+    R_v_mix_all[i].RotateX(  13.2/180.*PI );
+    L_v_mix_all[i].RotateX( -13.2/180.*PI );
+
+    mass_mix_all[i]=-10000.0;
+    mass_mix_all[i] = sqrt( (Ee + mt - L_E[i] - R_E[i])*(Ee + mt - L_E[i] - R_E[i])
+			- (B_v_mix_all[i] - L_v_mix_all[i] - R_v_mix_all[i])*(B_v_mix_all[i] - L_v_mix_all[i] - R_v_mix_all[i]) );
+
+    //    cout<<" mass_mix_all "<<mass_mix_all[i]<<" mh "<<mh<<" i "<<i<<endl;
+    mass_mix_all[i]=mass_mix_all[i] - mh;
+    mass_mix_all[i]=mass_mix_all[i]*1000.; // GeV -> MeV  
+
+    tr.Rp_mix_all[i]=R_tr_p_mix_all[i];
+    tr.R_tr_th_mix_all[i]=R_tr_th_mix_all[i];
+    tr.R_tr_ph_mix_all[i]=R_tr_ph_mix_all[i];
+
+    //    cout<<"mm_mixed_all "<<mm_mixed_all[i]<<endl;
+    
+    if(fabs(mass_mix_all[i])>10000.)tr.mm_mixed_all[i] = -10000.;
+    else tr.mm_mixed_all[i] = mass_mix_all[i];
+
+    
+    
+  }
+  
+
+
+        
+}
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -2096,8 +2173,8 @@ void ana::Loop_c(){
 	  if(lpathl_cutmin< Lpathl && Lpathl < lpathl_cutmax) Lpathl_flag =true;
 	  
 	  if(Rpathl_flag && Lpathl_flag)pathl_flag =true;
-
-	  
+	  //	  pathl_flag =true; // as a test 
+	  //	  track_flag =true; // as a test
 	  for(int pad=0;pad<16;pad++){
 	    tr.Rs2ra_p[pad]= -1000.;
 	    tr.Rs2la_p[pad]= -1000.;
@@ -2169,8 +2246,6 @@ void ana::Loop_c(){
 	  tr.LYpt_b =  -1000.;	    
 	  tr.momL_b =  -1000.;
 	  
-	  tr.Lp[lt] =-100.;
-	  tr.Lp[rt] =-100.;
 	  tr.Bp     =-100.;
 	  tr.dpe     = -100.;
 	  tr.dpk = -100.;
@@ -2195,6 +2270,7 @@ void ana::Loop_c(){
 	  tr.missing_mass_nnL_all   =-100000.;
 	  tr.missing_mass_MgL_all   =-100000.;
 	  tr.missing_mass_acc =-100000.;
+	  tr.missing_mass_acc_all =-100000.;
 	  tr.missing_mass_L   =-100000.;
 	  tr.missing_mass_nnL =-100000.;
 	  tr.missing_mass_H3L =-100000.;
@@ -2209,8 +2285,10 @@ void ana::Loop_c(){
 	  tr.missing_mass_Al_bg=-100000.;	    
 	  tr.Al_cut=false;
 
-	  for(int i=0;i<nmixed;i++)tr.mm_mixed[i] = -10000.;
-	  
+	  for(int i=0;i<nmixed;i++){
+	    tr.mm_mixed[i]     = -10000.;
+	    tr.mm_mixed_all[i] = -10000.;
+	  }
 	  tr.Rpathl=-100.; tr.Lpathl=-100.;
 	  tr.Rpathl_c=-100.; tr.Lpathl_c=-100.;
 	  ct=-1000.0;
@@ -2295,6 +2373,7 @@ void ana::Loop_c(){
 	  
 	  //	  if( L_Tr && L_FP && R_Tr && R_FP && track_flag && pathl_flag){
 	  if( L_Tr && L_FP && R_Tr && R_FP){
+	  //	  if( L_Tr && L_FP && R_Tr && R_FP && padcut){
 
 
 	    //--- Set Tree Branch w/o Matrix Tuning ----//
@@ -2460,14 +2539,13 @@ void ana::Loop_c(){
             double mass,mass_c, mm,mm_c,mass_L,mass_nnL,mm_L,mm_nnL,mm_Al,mass_Al,mass2,mm2,mass_MgL;
 	    double mass_pc, mass_H3L,mm_H3L,mm_MgL;
 
-	    
+
+
             mass = sqrt( (Ee + mt - L_E - R_E)*(Ee + mt - L_E - R_E)
                               - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 
 	    mm=mass - mh;
 	    mm = mm*1000.; // GeV -> MeV
-
-
 
 	    
 	    // Lambda Mass //
@@ -2514,9 +2592,15 @@ void ana::Loop_c(){
 	       h_mmbg->Fill( mm );
 	     }
 	   }
-	   
-	  
+	   // Kaon && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) && zcut
+	   if(((-35<ct && ct<-15.0) || (15.0<ct && ct<35)))MixedEventAll(rt,lt);
+	   if(((-35<ct && ct<-15.0) || (15.0<ct && ct<35)) && Kaon && zcut)MixedEvent(rt,lt);	   
 
+
+ if( Kaon && fabs(ct)<0.8  && track_flag && pathl_flag && zcut){
+   h_mm_nnL_c  ->Fill( mm_nnL );
+ }
+	   
 	    if( Kaon && fabs(ct)<1.0  && track_flag && pathl_flag){
 	      
               h_mmall ->Fill( mm );
@@ -2586,7 +2670,7 @@ void ana::Loop_c(){
                 h_mm_nnL  ->Fill( mm_nnL );
 		h_mm_H3L  ->Fill( mm_H3L );
                 h_ct_wK_z->Fill( ct );                
-		if(padcut)h_mm_nnL_c  ->Fill( mm_nnL );
+
 		
 	      }
 	    
@@ -2643,6 +2727,8 @@ void ana::Loop_c(){
 	      
 	      
 	      tr.missing_mass = mm          ; tr.coin_time =ct         ;
+	      if((-35<ct && ct <-15) || (15<ct && ct<35))
+		tr.missing_mass_acc_all = mm;
 	      //	     tr.AC1_sum      = R_a1_asum_p/400. ; tr.AC2_sum   =R_a2_asum_p/400.;
 	      tr.AC1_sum      = R_a1_asum_p ; tr.AC2_sum   =R_a2_asum_p;
 	      tr.ct_acc=ctime;
@@ -2662,8 +2748,11 @@ void ana::Loop_c(){
 	      if(Kaon &&  zcut && ((-35<ct && ct<-15.0) || (15.0<ct && ct<35))){
 		h_mm_acc->Fill( mm ); //with Kaon Cut
 		tr.missing_mass_acc=mm;
+
+		
+		
 		// mixed event
-		MixedEvent(rt,lt);
+
 		
 	      }   
           } // if L_Tr && L_FP && R_Tr && R_FP
@@ -2700,7 +2789,7 @@ void ana::Loop_c(){
     //    h_acc_Al->Scale(2.0/40.);
     h_mix->Scale(2.0/40./10.);
     h_acc_nnL->Scale(2.0/40.);
-    h_acc_nnL_c->Scale(2.0/40.);
+    h_acc_nnL_c->Scale(1.6/40.);
     h_acc_H3L->Scale(2.0/40.);
     h_mm_acc->Scale(2.0/40.);
     h_mmallbg->Scale(1./20.);
@@ -3021,7 +3110,8 @@ void ana::MakeHist(){
 
   cout<<"Make Hist "<<endl;
   tree_out = new TTree("T","T");
-  if(calib_mode)tree_out = tree->CloneTree(0);
+  //  if(calib_mode)
+    tree_out = tree->CloneTree(0);
 
 
   tree_out ->Branch("pid_cut"        ,&tr.pid_cut      ,"pid_cut/I"     );
@@ -3036,12 +3126,14 @@ void ana::MakeHist(){
   tree_out ->Branch("mm_b",&tr.missing_mass_b ,"missing_mass_b/D");
   tree_out ->Branch("mm_L",&tr.missing_mass_L ,"missing_mass_L/D");
   tree_out ->Branch("mm_mix",tr.mm_mixed ,"mm_mix[10]/D");
+  tree_out ->Branch("mm_mix_all",tr.mm_mixed_all ,"mm_mix_all[10]/D");
   tree_out ->Branch("mm_nnL",&tr.missing_mass_nnL ,"missing_mass_nnL/D");
   tree_out ->Branch("mm_H3L",&tr.missing_mass_H3L ,"missing_mass_H3L/D");
   tree_out ->Branch("mm_cut",&tr.missing_mass_cut ,"missing_mass_cut/D");
   tree_out ->Branch("mm_MgL",&tr.missing_mass_MgL ,"missing_mass_MgL/D");
   tree_out ->Branch("mm_MgL_acc",&tr.missing_mass_MgL_acc ,"missing_mass_MgL_acc/D");
   tree_out ->Branch("mm_acc",&tr.missing_mass_acc ,"missing_mass_acc/D");
+  tree_out ->Branch("mm_acc_all",&tr.missing_mass_acc_all ,"missing_mass_acc_all/D");
   tree_out ->Branch("mm_L_all",&tr.missing_mass_Lam_all ,"missing_mass_Lam_all/D");
   tree_out ->Branch("mm_nnL_all",&tr.missing_mass_nnL_all ,"missing_mass_nnL_all/D");
   tree_out ->Branch("mm_MgL_all",&tr.missing_mass_MgL_all ,"missing_mass_MgL_all/D");
@@ -3541,7 +3633,8 @@ void ana::Swich(bool nnL, bool scale){
     max_mm=200.;
     //    bin_mm=(int)( (max_mm-min_mm)*2. ); // 0.5MeV/bin;
     //    bin_mm=(int)( (max_mm-min_mm)*1. ); // 1 MeV/bin;
-    bin_mm=(int)( (max_mm-min_mm)*0.5 ); // 2 MeV/bin;
+    //    bin_mm=(int)( (max_mm-min_mm)*0.5 ); // 2 MeV/bin;
+    bin_mm=(int)( (max_mm-min_mm)*0.2 ); // 5 MeV/bin;
     //==================================//
 
 

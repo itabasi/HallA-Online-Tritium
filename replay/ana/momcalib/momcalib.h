@@ -19,8 +19,12 @@ bool Al_mode = false;
 bool nnL_mode  = false;
 bool form_mode = false;
 bool Al_check  = false;
+
 //bool form_mode = true;
 //bool Initial=true;
+//bool scale_calib = false;
+bool scale_calib = true;
+
 const int MAX=1000;
 int nite=0;
 int MODE=5;
@@ -39,6 +43,7 @@ bool Goga=false;
 
 extern double s2f1_off(int i,char* ARM,char* MODE, int KINE);
 extern void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/);
+extern void fcn_scale(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/);
 extern void fcn_new(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/);
 extern double tuning(double* pa, int j, int MODE); 
 extern  double Calc_ras(double a,double b,double c){return  a *b + c;};  
@@ -391,6 +396,7 @@ void momcalib::nmatrix(int n){
   }else if(n==6){nnp=6; nParamTp=462;
   }else{cout<<"Matrix parameter's Errror "<<endl;exit(1);}
 
+  //  if(scale_calib) nParamTp +=1;
 
 };
 
@@ -1622,11 +1628,11 @@ void momcalib::momCorr(bool rarm, bool larm){
     //    plossCorr(ploss_f);  // test
 
     if(runnum<=111220 || (111480<=runnum && 111542>=runnum))Lp[0]=Lp[0];
+    else if(larm && scale_calib)Lp[0]=2.21807/2.1*Lp[0]*Opt_par_L[nParamTp];
     else if(larm)Lp[0]=2.21807/2.1*Lp[0];
 
-    plossCorr(ploss_f);
-    //    plossCorr(ploss);
 
+    plossCorr(ploss_f);
     
     //==== Right Hand Coorinate ====//
 
@@ -2576,7 +2582,7 @@ void momcalib::MomTuning(string ofname){
     //    */
 
     cout<<" Lambda  mean : "<<Lam_mean*1000.<< " MeV"<<endl;
-    cout<<" Lambda  sigma : "<<Lam_sigma*1000<<" MeV"<<endl;
+    cout<<" Lambda  width : "<<Lam_sigma*1000<<" MeV"<<endl;
 
 
     for(int i=0 ; i<nite ; i++){
@@ -2687,6 +2693,18 @@ void momcalib::MomTuning(string ofname){
       }
     }
 
+
+    if(scale_calib && MODE==0){
+
+		    *ofs2 << Opt_par[2*nParamTp] 
+			  << " " << 0 
+			  << " " << 0
+			  << " " << 0
+			  << " " << 0
+			  << " " << 0 << endl;		    
+		    
+    }
+    
     if(MODE==-1 || MODE==0){
       ofs1->close();
       ofs1->clear();
@@ -3498,6 +3516,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
   //  momcalib* mom=new momcalib();
   double dpk, dpe_,dpe;
   TVector3 L_v, R_v, B_v;
+  double Lp_scale;
   //======= Coincidence analysis ========//
   
   for(int i=0;i<nParamTp;i++){
@@ -3520,6 +3539,8 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
   }
 
 
+
+  
   //======================================//
 
   
@@ -3565,7 +3586,11 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     if(scale[i])lp_ref=2.21807;
     else lp_ref=2.1;
 
+    
+    if(scale_calib)Lp_scale = param[2*nParamTp];
+    else Lp_scale = 1.0;
 
+    
     // ===== Al range Flag ======//
     //    if(mass_flag[i]==2 && Al_range<fabs(MM[i]-mass_ref[i]))continue;
 
@@ -3584,9 +3609,9 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 									     
     //==== momentum tuning ==========//
 
-    if(MT_f[8])Rp = calcf2t_mom(par_R, rx_fp[i], rth_fp[i], ry_fp[i], rph_fp[i],rz[i]);
 
-
+    if(MT_f[8] )Rp = calcf2t_mom(par_R, rx_fp[i], rth_fp[i], ry_fp[i], rph_fp[i],rz[i]);
+    
     //==== Scaled to Nomal =======//    
     rx_fp[i]  = rx_fp[i]  * XFPr + XFPm;
     rth_fp[i] = rth_fp[i] * XpFPr + XpFPm;
@@ -3611,6 +3636,9 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
     if(MT_f[9])Lp = calcf2t_mom(par_L, lx_fp[i], lth_fp[i], ly_fp[i], lph_fp[i], lz[i]);
 
+    //    if(MT_f[9] && ( (!scale[i] && scale_calib) || !scale_calib ))
+    //      Lp = calcf2t_mom(par_L, lx_fp[i], lth_fp[i], ly_fp[i], lph_fp[i], lz[i]);
+    
     //==== Scaled to Nomal =======//
     
     lx_fp[i]  = lx_fp[i]  * XFPr + XFPm;
@@ -3623,8 +3651,8 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     //=============================//
 
 
-    if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1; 
 
+    if(scale[i] && MT_f[9]) Lp = Lp *2.21807/2.1*Lp_scale; 
 
     //==== E loss Calib =====//
 
@@ -3716,11 +3744,249 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
 
 
+
+// #############################################################
+void fcn_scale(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/)
+// #############################################################
+{
+  
+  const double sigma = 0.001;//[GeV/c^2]
+  double ztR      = 0.0;
+  double refpos   = 0.0;
+  double residual = 0.0;
+  double ang      = 0.0;
+  double sspos    = 0.0;
+  double total_chi2 = 0.0;
+  double mass,mass_MgL,mass_nnL;
+  double Ee,Ee_,Ek;
+  double rbeta,lbeta;
+  double ref_rp=0.0;
+  double ref_lp=0.0;
+  double rp_ref=1.8;
+  double lp_ref=2.1;
+  //  double rp,lp;
+  double Chi2=0.0;
+  double chi2=0.0;
+  double rx_c,ry_c,rth_c,rph_c,rz_c,lx_c,ly_c,lth_c,lph_c;
+  double par_R[nParamTp],par_L[nParamTp];
+  double parR[nParamTp],parL[nParamTp];
+  double lp_x;
+  double lp_y;
+  double lp_z;
+  double rp_x;
+  double rp_y;
+  double rp_z;
+  double Rp,Lp,Bp;
+  double MgL_weight;
+  //  momcalib* mom=new momcalib();
+  double dpk, dpe_,dpe;
+  TVector3 L_v, R_v, B_v;
+  double Lp_scale;
+  //======= Coincidence analysis ========//
+  
+  for(int i=0;i<nParamTp;i++){
+      par_R[i]=Opt_par[i];
+      par_L[i]=Opt_par_L[i];
+
+  }
+
+
+
+  
+  //======================================//
+
+  
+  for(int i=0 ; i<ntune_event ; i++){
+
+    //====== Initialization ========//
+    residual =0.0;
+    ref_rp=0.0;
+    ref_lp=0.0;
+    ref_rp=rp[i];
+    ref_lp=lp[i];
+    mass  = 0.0;
+    mass_MgL = 0.0;
+    mass_nnL = 0.0;
+    dpe_=0.0;
+    dpk=0.0;
+    lp_x=0.0;
+    lp_y=0.0;
+    lp_z=0.0;
+    rp_x=0.0;
+    rp_y=0.0;
+    rp_z=0.0;
+    Rp=0.0;
+    Lp=0.0;
+    Bp=0.0;
+
+
+    Rp = rp[i];
+    Lp = lp[i];
+    Bp = bp[i];
+
+    dpk  = drp[i];
+    dpe_ = dlp[i];
+    dpe  = dbp[i];
+
+
+
+    if(nrun[i]<=111220 || (111480<=nrun[i] && 111542>=nrun[i])) scale[i]=false; // pe=2.1 GeV
+    else scale[i]=true;
+
+
+
+    
+    if(scale[i])lp_ref=2.21807;
+    else lp_ref=2.1;
+
+    
+    if(scale_calib)Lp_scale = param[2*nParamTp];
+    else Lp_scale = 1.0;
+
+    /*
+    
+    // RHRS //
+    //======== Scaled paramters ===============//
+
+    rx_fp[i]  = (rx_fp[i]-XFPm)/XFPr;
+    rth_fp[i] = (rth_fp[i]-XpFPm)/XpFPr;
+    ry_fp[i]  = (ry_fp[i]-YFPm)/YFPr;
+    rph_fp[i] = (rph_fp[i]-YpFPm)/YpFPr;
+    rz[i]     = (rz[i]-Ztm)/Ztr;
+    Rp        = (Rp - PRm)/PRr;
+
+									     
+    //==== momentum tuning ==========//
+
+
+    if(MT_f[8] )Rp = calcf2t_mom(par_R, rx_fp[i], rth_fp[i], ry_fp[i], rph_fp[i],rz[i]);
+    
+    //==== Scaled to Nomal =======//    
+    rx_fp[i]  = rx_fp[i]  * XFPr + XFPm;
+    rth_fp[i] = rth_fp[i] * XpFPr + XpFPm;
+    ry_fp[i]  = ry_fp[i]  * YFPr + YFPm;
+    rph_fp[i] = rph_fp[i] * YpFPr + YpFPm;
+    rz[i]     = rz[i] * Ztr +Ztm;
+    Rp        = Rp * PRr +PRm;    
+    //=============================//
+   
+
+    // LHRS //
+    
+    //======== Scaled paramters ===============//
+
+    lx_fp[i]  = (lx_fp[i]-XFPm)/XFPr;
+    lth_fp[i] = (lth_fp[i]-XpFPm)/XpFPr;
+    ly_fp[i]  = (ly_fp[i]-YFPm)/YFPr;
+    lph_fp[i] = (lph_fp[i]-YpFPm)/YpFPr;
+    lz[i]     = (lz[i]-Ztm)/Ztr;
+    Lp        = (Lp - PLm)/PLr;
+    //==== momentum tuning ==========//
+
+    if(MT_f[9])Lp = calcf2t_mom(par_L, lx_fp[i], lth_fp[i], ly_fp[i], lph_fp[i], lz[i]);
+
+    //    if(MT_f[9] && ( (!scale[i] && scale_calib) || !scale_calib ))
+    //      Lp = calcf2t_mom(par_L, lx_fp[i], lth_fp[i], ly_fp[i], lph_fp[i], lz[i]);
+    
+    //==== Scaled to Nomal =======//
+    
+    lx_fp[i]  = lx_fp[i]  * XFPr + XFPm;
+    lth_fp[i] = lth_fp[i] * XpFPr + XpFPm;
+    ly_fp[i]  = ly_fp[i]  * YFPr + YFPm;
+    lph_fp[i] = lph_fp[i] * YpFPr + YpFPm;
+    lz[i]     = lz[i]*Ztr + Ztm;
+    Lp        = Lp   *PLr + PLm;
+    
+    //=============================//
+
+    */
+
+    
+
+    if(scale[i] && MT_f[9]) Lp = Lp *2.21807/2.1*Lp_scale; 
+
+    //==== E loss Calib =====//
+
+    Bp = Bp - dpe;
+    Rp = Rp + dpk;
+    Lp = Lp + dpe_;
+
+    //    if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1;  // test Scaled after Eloss
+    
+    //------ Set Physics value --------//
+    Ee = sqrt(pow(Bp,2)+pow(Me,2));
+    Ee_= sqrt(pow(Lp,2)+pow(Me,2));
+    Ek = sqrt(pow(Rp,2)+pow(MK,2));
+    
+    rbeta=Rp/Ek; 
+    lbeta=Lp/Ee_; 
+
+    //==== Right Hand coordinate =====//
+
+    rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i]);
+    lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
+
+    lp_x = lp_z *    lth[i] ;
+    lp_y = lp_z *    lph[i] ; 
+    rp_x = rp_z *    rth[i] ;
+    rp_y = rp_z *    rph[i] ;
+
+
+    B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
+    R_v.SetXYZ(rp_x, rp_y, rp_z);
+    L_v.SetXYZ(lp_x, lp_y, lp_z);
+
+
+    R_v.RotateX(  13.2/180.*3.14);
+    L_v.RotateX( -13.2/180.*3.14);
+
+
+    mass = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
+		 - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
+    
+    mass_nnL = sqrt( (Ee + MTr - Ee_ - Ek)*(Ee + MTr - Ee_ - Ek)
+		     - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
+    
+
+    //======================//
+    //====== Residual ======//
+    //======================//
+
+
+
+
+    if(mass_flag[i]==0 && scale[i]==0)      residual = (mass - mass_ref[i]); // Lambda H kinematics
+    else if(mass_flag[i]==1 && scale[i]==0)                residual = (mass - mass_ref[i])*weight;  // weight Sigma0:
+    else if(scale[i] && mass_flag[i]==0)   residual = (mass - mass_ref[i])*weightT;  // weight Lambda T kinematics
+    
+    else if(mass_flag[i]==3 )               residual = (mass_nnL - mass_ref[i])*weightnnL;  // weight nnL
+
+
+
+ 
+     chi2=chi2 + pow(residual/sigma,2.0)/ntune_event;
+
+    
+  }//end for 
+
+  
+  
+  fval=chi2;
+
+  
+  
+} //end fcn_scale
+
+
+
+
+
 // #############################################################
 void fcn_new(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/)
 // #############################################################
 {
     cout<<"test new"<<endl;
+    // not working now
   double sigma = 0.002;//[GeV/c^2]
   double mean  =0.0;
   double ztR      = 0.0;
@@ -3989,7 +4255,7 @@ void fcn_new(int &nPar, double* /*grad*/, double &fval, double* param, int /*ifl
 double momcalib::tune(double* pa, int j, int MODE) 
 // #############################################################
 {
-
+n
   
   double chi = 0.0;
   double arglist[10]; 
@@ -4002,7 +4268,9 @@ double momcalib::tune(double* pa, int j, int MODE)
     arm=2;  }
 
 
+  if(scale_calib) allparam += 1;
 
+  
   cout<<"mode "<<MODE<<" allParam "<<allparam<<endl;
 
 
@@ -4084,8 +4352,16 @@ double momcalib::tune(double* pa, int j, int MODE)
   char pname[500];
 
 
+  if(scale_calib){
+    start[allparam-1] = 1.0;
+    step[allparam-1] = 1.0e-3;
+
+  }
+  
 
 
+
+  
   for(int i=0 ; i<allparam ; i++){
     sprintf(pname,"param_%d",i+1);
    
@@ -4140,6 +4416,181 @@ double momcalib::tune(double* pa, int j, int MODE)
   return chi;
 }
 
+
+
+
+///////////////////////////////////////////////////////////
+
+
+// #############################################################
+double momcalib::tune_Tkine(double* pa, int j, int MODE) 
+// #############################################################
+{
+n
+  
+  double chi = 0.0;
+  double arglist[10]; 
+  int ierflg = 0;
+  int allparam = nParamTp;
+  int arm=1;
+
+  if(MODE==0){
+    allparam=nParamTp*2;
+    arm=2;  }
+
+
+  if(scale_calib) allparam += 1;
+
+  
+  cout<<"mode "<<MODE<<" allParam "<<allparam<<endl;
+
+
+  TMinuit* minuit= new TMinuit(allparam);
+
+  //  if(form_mode)  minuit->SetFCN(fcn_new); // fcn Chi-square function as a test
+  //  else
+    minuit->SetFCN(fcn); // fcn Chi-square function
+  
+  double start[allparam];
+  double step[allparam];
+
+
+  const int nMatT =nnp;  
+  const int nXf   =nnp;
+  const int nXpf  =nnp;
+  const int nYf   =nnp;
+  const int nYpf  =nnp;
+  const int nZt   =nnp;
+  const int nnn   =nnp;
+  int nfix=0;
+  //  nfix=3;
+
+  // The number of order is reduced for test (4-->2)
+
+
+  int npar=0;
+  int a=0,b=0,c=0,d=0,e=0;
+
+
+  for(int f=0;f<arm;f++){
+    for (int n=0;n<nMatT+1;n++){
+      for(e=0;e<n+1;e++){
+	for (d=0;d<n+1;d++){
+	  for (c=0;c<n+1;c++){ 
+	    for (b=0;b<n+1;b++){
+	      for (a=0;a<n+1;a++){ 
+		if (a+b+c+d+e==n){
+		  if (a<=nXf && b<=nXpf && c<=nYf && d<=nYpf && e<=nZt && a+b+c+d+e<=nnn){
+
+		    if(n<nfix){
+		    start[npar] = pa[npar];
+		    step[npar] = 0.0;
+
+		    }else{
+
+		    start[npar] = pa[npar];
+		    step[npar] = 1.0e-3;
+		    }
+
+		  }
+		  else{
+		    start[npar] = 0.0;
+		    step[npar] = 0.0;
+
+		  }
+		  npar++;
+
+		}
+	      }
+	    }
+	  }
+	}    
+      }
+    }
+  }
+
+
+
+
+  // ~~~ Chi-square ~~~~
+  arglist[0] = 1;
+  minuit -> mnexcm("SET ERR",arglist,1,ierflg);
+  minuit -> SetPrintLevel(-1);
+  
+  double LLim[allparam];// Lower limit for all of the parameter
+  double ULim[allparam];// Upper limit for all of the parameter
+
+  char pname[500];
+
+
+  if(scale_calib){
+    start[allparam-1] = 1.0;
+    step[allparam-1] = 1.0e-3;
+
+  }
+  
+
+
+
+  
+  for(int i=0 ; i<allparam ; i++){
+    sprintf(pname,"param_%d",i+1);
+   
+    LLim[i] = pa[i] - 5.0; // temp
+    ULim[i] = pa[i] + 5.0; // temp
+    //    step[i] = 10.0;  // test
+    //    LLim[i] = pa[i]; // temp
+    //    ULim[i] = pa[i]; // temp
+
+    minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
+	  
+  }
+
+
+
+
+  
+  // ~~~~ Strategy ~~~~
+  //  arglist[0] = 2.0; // original
+  arglist[0] = 1.0; // test
+  //arglist[0] = 0.0;   // test
+  minuit->mnexcm("SET STR",arglist,1,ierflg);
+ 
+  // ~~~~ Migrad + Simplex  ~~~~ 
+  arglist[0] = 20000;
+  arglist[1] = 0.01;
+  minuit -> mnexcm("MINImize",arglist,2,ierflg); // Chi-square minimization
+  
+  double amin,edm,errdef;
+  int nvpar,nparx,icstat;
+  double er;
+  
+  minuit -> mnstat(amin,edm,errdef,nvpar,nparx,icstat);
+  minuit -> mnprin(0,amin);
+
+  if(amin>0) chi=amin;
+
+  
+  for(int i=0 ; i<allparam ; i++){
+    if(MODE==0){
+      minuit -> GetParameter(i,Opt_par[i],er);
+      if(i<nParamTp){minuit -> GetParameter(i,Opt_par_R[i],er);}// RHRS momentum parameter
+      else if(nParamTp<=i){minuit -> GetParameter(i,Opt_par_L[i-nParamTp],er);}// RHRS momentum parameters
+      
+      
+    }else if(MODE==-1){minuit -> GetParameter(i,Opt_par_R[i],er);// RHRS momentum parameters
+    }else if(MODE==1){minuit -> GetParameter(i,Opt_par_L[i],er);// LHRS momentum parameters
+    }
+  }
+
+  
+  return chi;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////
  
 // ###################################################
 double calcf2t_mom(double* P, double xf, double xpf, 

@@ -20,7 +20,7 @@ void kaon_check(){
   T->SetBranchAddress("z_cut",&z_cut); 
   T->SetBranchStatus("ct",1);
   T->SetBranchAddress("ct",&ct);
-  T->SetBranchStatus("runnum",1);
+nnn  T->SetBranchStatus("runnum",1);
   T->SetBranchAddress("runnum",&nrun);
 
   int ENum = T->GetEntries();
@@ -30,7 +30,8 @@ void kaon_check(){
 
   for(int i=0;i<ENum;i++){
     T->GetEntry(i);
-    if(pid_cut>0 && z_cut>0){
+    //    if(pid_cut>0 && z_cut>0){
+    if(z_cut>0){
       hct->Fill(ct);
       double ct_acc=ct;
       if(fabs( ct_acc )<80. && fabs(ct_acc)>20.){
@@ -108,7 +109,7 @@ void kaon_check(){
     fpi_2->Draw("same");
 
 
-    TFile* ofp=new TFile("./pion.root","recreate");
+    TFile* ofp=new TFile("./pion_wopid.root","recreate");
     hct->Write();
     hct_acc->Write();
     hct_peak->Write();

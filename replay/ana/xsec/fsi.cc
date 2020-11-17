@@ -46,7 +46,9 @@ extern void DGauss(double* Y ,double *WY, int N);
 extern complex<double>LEQ1(complex<double>* A, complex<double>* B,int N,int LA);
 extern complex<double>LEQ2(complex<double>* A, complex<double>* B, complex<double>* R,int N,int LA);
 extern void LEQ3(complex<double>* A, complex<double>* B, complex<double>* R, int N);
-
+extern double Jl0(double p0,double a0, double r0);
+extern double fJ(double* x, double* par);
+extern double fJ2(double* x, double* par);
 bool SIMC    = true;
 bool TClone  = false;
 //bool E09     = false;
@@ -55,6 +57,9 @@ bool Deu     = false;
 bool E09     = true;
 bool Lam     = true;
 bool single  = true;
+//bool Vscale  = true;
+bool Vscale  = false;
+
 /////////////////////////////////////////////////////////////////////////
 
 void fsi::NewRoot(string ofname){
@@ -69,9 +74,22 @@ void fsi::NewRoot(string ofname){
     Tnew -> Branch("fac1",&fac1,"fac1/D");
     Tnew -> Branch("fac2",&fac2,"fac2/D");
     Tnew -> Branch("fac3",&fac3,"fac3/D");
+    Tnew -> Branch("fac1s",&fac1s,"fac1s/D");
+    Tnew -> Branch("fac2s",&fac2s,"fac2s/D");
+    Tnew -> Branch("fac3s",&fac3s,"fac3s/D");        
+    Tnew -> Branch("fac1t",&fac1t,"fac1t/D");
+    Tnew -> Branch("fac2t",&fac2t,"fac2t/D");
+    Tnew -> Branch("fac3t",&fac3t,"fac3t/D");    
     Tnew -> Branch("fac1_2",&fac1_2,"fac1_2/D");
     Tnew -> Branch("fac2_2",&fac2_2,"fac2_2/D");
-    Tnew -> Branch("fac3_2",&fac3_2,"fac3_2/D");    
+    Tnew -> Branch("fac3_2",&fac3_2,"fac3_2/D");
+    Tnew -> Branch("fac1_2s",&fac1_2s,"fac1_2s/D");
+    Tnew -> Branch("fac2_2s",&fac2_2s,"fac2_2s/D");
+    Tnew -> Branch("fac3_2s",&fac3_2s,"fac3_2s/D");    
+    Tnew -> Branch("fac1_2t",&fac1_2t,"fac1_2t/D");
+    Tnew -> Branch("fac2_2t",&fac2_2t,"fac2_2t/D");
+    Tnew -> Branch("fac3_2t",&fac3_2t,"fac3_2t/D");
+    
     Tnew -> Branch("Perl",&Prel,"Prel/D");
     Tnew -> Branch("Perl2",&Prel2,"Prel2/D");
     Tnew -> Branch("pL",&pL,"pL/D");
@@ -108,7 +126,7 @@ void fsi::SetParam(string ifpname){
 
   string buf;
   int s=0;
-  string vname[10];
+  string vnames[10];
   ifstream ifp(ifpname.c_str(),ios::in);
   if(ifp.fail()){cout<<"Could not find Files "<<ifpname<<endl;exit(1);}
 
@@ -116,15 +134,15 @@ void fsi::SetParam(string ifpname){
     getline(ifp,buf);
     if(buf[0]=='#')continue;
     stringstream sbuf(buf);
-    sbuf >> vname[s];
-    cout<<" file : "<<vname[s]<<endl;
+    sbuf >> vnames[s];
+    cout<<" file : "<<vnames[s]<<endl;
     s++;
   }
 
   
-  ifstream ifp1(vname[0].c_str(),ios::in);
-  ifstream ifp2(vname[1].c_str(),ios::in);
-  ifstream ifp3(vname[2].c_str(),ios::in);
+  ifstream ifp1(vnames[0].c_str(),ios::in);
+  ifstream ifp2(vnames[1].c_str(),ios::in);
+  ifstream ifp3(vnames[2].c_str(),ios::in);
 
 
   int i1=0;
@@ -133,7 +151,7 @@ void fsi::SetParam(string ifpname){
     getline(ifp1,buf);
     if(buf[0]=='#' || buf.length()==0 )continue;
     stringstream sbuf(buf);
-    sbuf >> krel1[i1] >> w1[i1];
+    sbuf >> krel1[i1] >> w1[i1] >> w1t[i1];
     i1++;
   }
 
@@ -145,7 +163,7 @@ void fsi::SetParam(string ifpname){
     getline(ifp2,buf);
     stringstream sbuf(buf);
     if(buf[0]=='#' ||  buf.length()==0 )continue;
-    sbuf >> krel2[i2] >> w2[i2];
+    sbuf >> krel2[i2] >> w2[i2] >> w2t[i2];
     //    cout<<"i "<<i2<<" krel "<<krel2[i2]<<" w2 "<<w2[i2]<<endl;
     i2++;
   }
@@ -157,11 +175,35 @@ void fsi::SetParam(string ifpname){
     getline(ifp3,buf);
     if(buf[0]=='#' || buf.length()==0 )continue;
     stringstream sbuf(buf);
-    sbuf >> krel3[i3] >> w3[i3];
+    sbuf >> krel3[i3] >> w3[i3] >> w3t[i3];
     i3++;
   }
   
   np3 =i3;
+
+
+  
+  
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+void fsi::JostParam(){
+
+  vname[0] = "E09";     a_s[0] = -2.68; r_s[0] = 2.91; a_t[0] = -1.66; r_t[0] = 3.33;
+  vname[1] = "Verma";   a_s[1] = -2.29; r_s[1] = 3.15; a_t[1] = -1.77; r_t[1] = 3.25;
+  vname[2] = "Jue_A";   a_s[2] = -1.60; r_s[2] = 1.33; a_t[2] = -1.6; r_t[2] = 3.15;
+  vname[3] = "Jue_B";   a_s[3] = -0.57; r_s[3] = 7.65; a_t[3] = -1.94; r_t[3] = 2.42;
+  vname[4] = "NSC97a";  a_s[4] = -0.77; r_s[4] = 6.09; a_t[4] = -2.15; r_t[4] = 2.71;
+  vname[5] = "NSC97b";  a_s[5] = -0.97; r_s[5] = 5.09; a_t[5] = -2.09; r_t[5] = 2.80;
+  vname[6] = "NSC97c";  a_s[6] = -1.28; r_s[6] = 4.22; a_t[6] = -2.07; r_t[6] = 2.86;
+  vname[7] = "NSC97d";  a_s[7] = -1.82; r_s[7] = 3.52; a_t[7] = -1.94; r_t[7] = 3.01;
+  vname[8] = "NSC97e";  a_s[8] = -2.24; r_s[8] = 3.24; a_t[8] = -1.83; r_t[8] = 3.14;
+  vname[9] = "NSC97f";  a_s[9] = -2.68; r_s[9] = 3.07; a_t[9] = -1.67; r_t[9] = 3.34;
+  
+
+  vmax=10;
+  
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -207,56 +249,61 @@ void fsi::InfluenceFactor(string pname, int ll){
 
   //  fI0 = new TF1("fI0","[0]/x*",0,);
   bool test =true;
- //  test =false;
+  //  test =false;
   string pname0 = pname + "_3He.dat";
   string pname1 = pname + "_Verma.dat";
   string pname2 = pname + "_JulichA.dat";
   string pname3 = pname + "_JulichB.dat";
   
-  string pname1t = pname + "_Verma_T.dat";
-  string pname2t = pname + "_JulichA_T.dat";
-  string pname3t = pname + "_JulichB_T.dat";
+  //  string pname1t = pname + "_Verma_T.dat";
+  //  string pname2t = pname + "_JulichA_T.dat";
+  //  string pname3t = pname + "_JulichB_T.dat";
 
   ofp0 = new ofstream(pname0.c_str());
   ofp1 = new ofstream(pname1.c_str());
   ofp2 = new ofstream(pname2.c_str());
   ofp3 = new ofstream(pname3.c_str());
 
-  ofp1t = new ofstream(pname1t.c_str());
-  ofp2t = new ofstream(pname2t.c_str());
-  ofp3t = new ofstream(pname3t.c_str());  
+  //  ofp1t = new ofstream(pname1t.c_str());
+  //  ofp2t = new ofstream(pname2t.c_str());
+  //  ofp3t = new ofstream(pname3t.c_str());  
 
 
   *ofp0 << "### FSI tabel with 3He Potential (2-Gauss potential) #####"<<endl;
-  *ofp0<<"# Weight # krel [MeV] "<<endl;
+
   
   *ofp1 << "### FSI tabel with Verma Potential (2-Gauss potential) #####"<<endl;
-  *ofp1<<"# Weight # krel [MeV] "<<endl;
+  *ofp1<<"# krel [MeV] # Influence Factor(S) # Influence Factor(T)"<<endl;
 
   *ofp2 << "### FSI tabel with Julich A Potential (2-Gauss potential) #####"<<endl;
-  *ofp2<<"# Weight # krel [MeV] "<<endl;
+  *ofp2<<"# krel [MeV] # Influence Factor(S) # Influence Factor(T)"<<endl;
+  //  *ofp2<<"# Weight # krel [MeV] "<<endl;
 
   *ofp3 << "### FSI tabel with Julich B Potential (2-Gauss potential) #####"<<endl;
-  *ofp3<<"# Weight # krel [MeV] "<<endl;
+  *ofp3<<"# krel [MeV] # Influence Factor(S) # Influence Factor(T)"<<endl;
+  //  *ofp3<<"# Weight # krel [MeV] "<<endl;
 
 
-  *ofp1t << "### FSI tabel with Verma Potential Triplet (2-Gauss potential) #####"<<endl;
-  *ofp1t<<"# Weight # krel [MeV] "<<endl;
+  
 
-  *ofp2t << "### FSI tabel with Julich A Potential Triplet (2-Gauss potential) #####"<<endl;
-  *ofp2t<<"# Weight # krel [MeV] "<<endl;
+  //  *ofp1t << "### FSI tabel with Verma Potential Triplet (2-Gauss potential) #####"<<endl;
+  //  *ofp1t<<"# Weight # krel [MeV] "<<endl;
 
-  *ofp3t << "### FSI tabel with Julich B Potential Triplet (2-Gauss potential) #####"<<endl;
-  *ofp3t<<"# Weight # krel [MeV] "<<endl;  
+  //  *ofp2t << "### FSI tabel with Julich A Potential Triplet (2-Gauss potential) #####"<<endl;
+  //  *ofp2t<<"# Weight # krel [MeV] "<<endl;
+
+  //  *ofp3t << "### FSI tabel with Julich B Potential Triplet (2-Gauss potential) #####"<<endl;
+  //  *ofp3t<<"# Weight # krel [MeV] "<<endl;  
 
   
   double qmin = 0.0;
   double qmax = 2000;
-  int imax = 2000;
-
+  int imax = 500;
+  //  double qmax = 300;
+  //  int imax = 300;
   if(test){
 
-    qmax =200;
+    qmax =500;
     imax = 50;
   }
   
@@ -280,6 +327,10 @@ void fsi::InfluenceFactor(string pname, int ll){
     grad01 -> SetPoint(ii,qi,delrad0);
     gradI1 -> SetPoint(ii,delrad0,fac1);
 
+    ton1s  = Iton;
+    toff1s = Itoff;
+    era1s  = IERA;
+    
     for(int l=0;l<=ll;l++){
       gradl1[l] -> SetPoint(ii,qi,deltal[l]);
       gIl1[l]   -> SetPoint(ii,qi,Il[l]);
@@ -288,11 +339,14 @@ void fsi::InfluenceFactor(string pname, int ll){
       gfi1[l]   -> SetPoint(ii,qi,imag(fthel[l]));
     }
 
+
+    
     if(ii==0){
       for(int th =0;th<180;th++)
 	gfth1->SetPoint(th,th,cross[th]);
     }
-    
+
+
     fac2 = PhaseShift(qi, ll, 2);
     gx2    ->SetPoint(ii,qi,tcross0);
     gxf2   ->SetPoint(ii,qi,tcross);
@@ -302,6 +356,10 @@ void fsi::InfluenceFactor(string pname, int ll){
     grad02 ->SetPoint(ii,qi,delrad0);
     gradI2 ->SetPoint(ii,delrad0,fac2);
 
+    ton2s = Iton;
+    toff2s = Itoff;
+    era2s  = IERA;
+  
     for(int l=0;l<=ll;l++){
       gradl2[l] -> SetPoint(ii,qi,deltal[l]);
       gIl2[l]   -> SetPoint(ii,qi,Il[l]);
@@ -325,6 +383,12 @@ void fsi::InfluenceFactor(string pname, int ll){
     grad03 -> SetPoint(ii,qi,delrad0);    
     gradI3 -> SetPoint(ii,delrad0,fac3);
 
+    ton3s  = Iton;
+    toff3s = Itoff;
+    era3s  = IERA;
+
+
+    
     for(int l=0;l<=ll;l++){
       gradl3[l] -> SetPoint(ii,qi,deltal[l]);
       gIl3[l]   -> SetPoint(ii,qi,Il[l]);
@@ -344,13 +408,85 @@ void fsi::InfluenceFactor(string pname, int ll){
     if(fac3<0 || fac3>100.) fac3 = 1.0;
 
 
-    fac1t = PhaseShift(qi, ll, -1);
-    fac2t = PhaseShift(qi, ll, -2);
-    fac3t = PhaseShift(qi, ll, -3);
+    fac1t  = PhaseShift(qi, ll, -1);
+    ton1t  = Iton;
+    toff1t = Itoff;
+    era1t  = IERA;
+    
+    fac2t  = PhaseShift(qi, ll, -2);
+    ton2t  = Iton;
+    toff2t = Itoff;
+    era2t  = IERA;
+    
+    fac3t  = PhaseShift(qi, ll, -3);
+    ton3t  = Iton;
+    toff3t = Itoff;
+    era3t  = IERA;
 
-    fac1t = (fac1 + 3*fac1t)/4.;
-    fac2t = (fac2 + 3*fac2t)/4.;
-    fac3t = (fac3 + 3*fac3t)/4.;	
+    
+    //    fac1t = (fac1 + 3*fac1t)/4.;
+    //    fac2t = (fac2 + 3*fac2t)/4.;
+    //    fac3t = (fac3 + 3*fac3t)/4.;	
+    
+    ton1 = (ton1s + 3.0*ton1t)/4.0;
+    ton2 = (ton2s + 3.0*ton2t)/4.0;
+    ton3 = (ton3s + 3.0*ton3t)/4.0;
+
+    toff1 = (toff1s + 3.0*toff1t)/4.0;
+    toff2 = (toff2s + 3.0*toff2t)/4.0;
+    toff3 = (toff3s + 3.0*toff3t)/4.0;
+
+    era1 = (era1s + 3.0*era1t)/4.0;
+    era2 = (era2s + 3.0*era2t)/4.0;
+    era3 = (era3s + 3.0*era3t)/4.0;
+
+
+    //==== T-operater on-shell =======//
+    
+    gIton1s-> SetPoint(ii,qi,ton1s);
+    gIton2s-> SetPoint(ii,qi,ton2s);
+    gIton3s-> SetPoint(ii,qi,ton3s);
+    
+    gIton1t-> SetPoint(ii,qi,ton1t);
+    gIton2t-> SetPoint(ii,qi,ton2t);
+    gIton3t-> SetPoint(ii,qi,ton3t);
+
+    gIton1-> SetPoint(ii,qi,ton1);
+    gIton2-> SetPoint(ii,qi,ton2);
+    gIton3-> SetPoint(ii,qi,ton3);
+
+
+    //==== T-operater half off-shell =======//    
+
+    gItoff1s-> SetPoint(ii,qi,toff1s);
+    gItoff2s-> SetPoint(ii,qi,toff2s);
+    gItoff3s-> SetPoint(ii,qi,toff3s);
+
+    gItoff1t-> SetPoint(ii,qi,toff1t);
+    gItoff2t-> SetPoint(ii,qi,toff2t);
+    gItoff3t-> SetPoint(ii,qi,toff3t);
+
+    gItoff1 -> SetPoint(ii,qi,toff1);
+    gItoff2 -> SetPoint(ii,qi,toff2);
+    gItoff3 -> SetPoint(ii,qi,toff3);
+
+
+    //==== ERA caluclaiton =======//    
+
+    gIera1s-> SetPoint(ii,qi,era1s);
+    gIera2s-> SetPoint(ii,qi,era2s);
+    gIera3s-> SetPoint(ii,qi,era3s);
+
+    gIera1t-> SetPoint(ii,qi,era1t);
+    gIera2t-> SetPoint(ii,qi,era2t);
+    gIera3t-> SetPoint(ii,qi,era3t);
+
+    gIera1 -> SetPoint(ii,qi,era1);
+    gIera2 -> SetPoint(ii,qi,era2);
+    gIera3 -> SetPoint(ii,qi,era3);
+
+    
+    //====== Influence Factor ===========//
     
     gf1 -> SetPoint(ii,qi,fac1);
     gf2 -> SetPoint(ii,qi,fac2);
@@ -359,18 +495,58 @@ void fsi::InfluenceFactor(string pname, int ll){
     gf1t -> SetPoint(ii,qi,fac1t);
     gf2t -> SetPoint(ii,qi,fac2t);
     gf3t -> SetPoint(ii,qi,fac3t);    
-    
-   *ofp0 << qi << " " << fac0 <<endl;
-   *ofp1 << qi << " " << fac1 <<endl;
-   *ofp2 << qi << " " << fac2 <<endl;
-   *ofp3 << qi << " " << fac3 <<endl;
 
-   *ofp1t << qi << " " << fac1t <<endl;
-   *ofp2t << qi << " " << fac2t <<endl;
-   *ofp3t << qi << " " << fac3t <<endl;
-   
+    gf1_all -> SetPoint(ii,qi,(fac1 + 3.0* fac1t)/4.0);
+    gf2_all -> SetPoint(ii,qi,(fac2 + 3.0* fac1t)/4.0);
+    gf3_all -> SetPoint(ii,qi,(fac3 + 3.0* fac3t)/4.0);        
+
+    
+    *ofp0 << qi << " " << fac0 << endl;
+    *ofp1 << qi << " " << fac1 <<" "<< fac1t <<endl;
+    *ofp2 << qi << " " << fac2 <<" "<< fac2t <<endl;
+    *ofp3 << qi << " " << fac3 <<" "<< fac3t <<endl;
+
+    
+    
+    //   *ofp0 << qi << " " << fac0 <<endl;
+    //   *ofp1 << qi << " " << fac1 <<endl;
+    //   *ofp2 << qi << " " << fac2 <<endl;
+    //   *ofp3 << qi << " " << fac3 <<endl;
+    //   *ofp1t << qi << " " << fac1t <<endl;
+    //   *ofp2t << qi << " " << fac2t <<endl;
+    //   *ofp3t << qi << " " << fac3t <<endl;
+
+    
     ii++;
   }
+
+
+  
+  for(int i=0;i<vmax;i++){
+    fJl[i]->Write();
+    fJls[i]->Write();
+    fJlt[i]->Write();
+  }
+  
+  for(int l=0;l<=ll;l++){
+    gradl1[l]->Write();
+    gradl2[l]->Write();
+    gradl3[l]->Write();
+    gIl1[l]  -> Write();
+    gIl2[l]  -> Write();
+    gIl3[l]  -> Write();
+    gIl01[l] -> Write();
+    gIl02[l] -> Write();
+    gIl03[l] -> Write();    
+    gfr1[l]  -> Write();
+    gfi1[l]  -> Write();
+    gfr2[l]  -> Write();
+    gfi2[l]  -> Write();
+    gfr3[l]  -> Write();
+    gfi3[l]  -> Write();    
+  }
+
+
   
   gf0->Write();
   gf1->Write();
@@ -378,7 +554,10 @@ void fsi::InfluenceFactor(string pname, int ll){
   gf3->Write();
   gf1t->Write();
   gf2t->Write();
-  gf3t->Write();  
+  gf3t->Write();
+  gf1_all->Write();
+  gf2_all->Write();
+  gf3_all->Write();    
   gxf1->Write();
   gxf2->Write();
   gxf3->Write();
@@ -406,36 +585,152 @@ void fsi::InfluenceFactor(string pname, int ll){
   gfth1->Write();
   gfth2->Write();
   gfth3->Write();
+  gIton1s->Write();
+  gIton1t->Write();
+  gIton1 ->Write();
+  gIton2s->Write();
+  gIton2t->Write();
+  gIton2 ->Write();
+  gIton3s->Write();
+  gIton3t->Write();
+  gIton3 ->Write();
+  gItoff1s->Write();
+  gItoff1t->Write();
+  gItoff1 ->Write();
+  gItoff2s->Write();
+  gItoff2t->Write();
+  gItoff2 ->Write();
+  gItoff3s->Write();
+  gItoff3t->Write();
+  gItoff3 ->Write();  
 
-  for(int l=0;l<=ll;l++){
-    gradl1[l]->Write();
-    gradl2[l]->Write();
-    gradl3[l]->Write();
-    gIl1[l]  -> Write();
-    gIl2[l]  -> Write();
-    gIl3[l]  -> Write();
-    gIl01[l] -> Write();
-    gIl02[l] -> Write();
-    gIl03[l] -> Write();    
-    gfr1[l]  -> Write();
-    gfi1[l]  -> Write();
-    gfr2[l]  -> Write();
-    gfi2[l]  -> Write();
-    gfr3[l]  -> Write();
-    gfi3[l]  -> Write();    
-  }
+  gIera1s->Write();
+  gIera1t->Write();
+  gIera1 ->Write();
+  gIera2s->Write();
+  gIera2t->Write();
+  gIera2 ->Write();
+  gIera3s->Write();
+  gIera3t->Write();
+  gIera3 ->Write();
 
+  
   ofp0->close();
   ofp1->close();
   ofp2->close();
   ofp3->close();
 
-  ofp1t->close();
-  ofp2t->close();
-  ofp3t->close();  
+  //  ofp1t->close();
+  //  ofp2t->close();
+  //  ofp3t->close();  
   
   
 }
+
+
+////////////////////////////////////////////////////////////
+
+void fsi::InfluenceFactorVscale(string pname, int ll){
+
+
+  cout<<"===================================================="<<endl;
+  cout<<"======< InfluenceFacroe Vscale Calculation >======="<<endl;
+  cout<<"===================================================="<<endl;
+  
+  int ii=0;
+
+  bool test =true;
+  test =false;
+
+  string pnames[100];
+  int nv =30;
+  double ss;
+
+   
+  double qmin = 0.0;
+  double qmax = 2000;
+  int imax = 500;
+  if(test){
+    qmax =500;
+    imax = 50;
+  }
+  
+
+  double va_s = -167.34; // Verma Va Singlet
+  double va_t = -132.42; // Verma Va Triplet
+  double b_as = 1.1;     // Verma beta Singlet
+  double b_at = 1.1;     // Verma beta Triplet
+  double re  = 2.91 ;   // Verma effective range
+  double fac,fac_s,fac_t;
+  
+  double a_s = -2.29; // Verma scattering range Singlet
+  double r_s =  3.15; // Verma effective  range Singlet
+  double a_t = -1.77; // Verma scattering range Triplet
+  double r_t =  3.25; // Verma effective  range Singlet
+  
+  for(int n =0;n<nv;n++){
+
+    ss = (1.0 + (double)n/(double)nv);
+
+    cout<<" n : "<<n<<" scale fac "<<ss<<endl;
+    pnames[n] = pname + Form("_scale%d.dat",n);
+    ofp[n] = new ofstream(pnames[n].c_str());
+    *ofp[n] << Form("### FSI tabel with V scale fac(%4f) (2-Gauss potential) #####",ss)<<endl;
+    gI[n]= new TGraphErrors();
+    gIs[n]= new TGraphErrors();
+    gIt[n]= new TGraphErrors();
+    gI[n]->SetName(Form("gI_%d",n));
+    gIs[n]->SetName(Form("gIs_%d",n));
+    gIt[n]->SetName(Form("gIt_%d",n));
+
+    
+  for(int i=1; i<imax;i++){
+    double qi = (qmax - qmin)/(double)imax * (double)i +qmin;
+
+    // Singlet  Calculation //
+    v_a = va_s * ss;   beta_a = b_as; 
+    a_0 = a_s;         r_0 = r_s;
+    fac_s   = PhaseShift(qi, ll, 0);
+    
+    if(fac_s<0 || fac_s>100.) fac_s = 1.0;
+    gIs[n]    -> SetPoint(i-1,qi,fac_s);
+
+    // Triplet Calculatuion //
+
+    v_a = va_t * ss;    beta_a = b_at; 
+    a_0 = a_t;         r_0 = r_t;
+    fac_t   = PhaseShift(qi, ll, 0);
+   
+    if(fac_s<0 || fac_s>100.) fac_s = 1.0;
+    gIt[n]    -> SetPoint(i-1,qi,fac_t);    
+  
+    // 0.25 * 1S0 + 0.75 * 3S1 //
+    fac = (fac_s + 3.0 * fac_t)/4.0;
+    gI[n]    -> SetPoint(i-1,qi,fac);    
+
+    *ofp[n] << qi << " " << fac_s <<" "<< fac_t <<endl;
+    
+  } // end for i
+
+  gI[n] ->Write();
+  gIs[n]->Write();
+  gIt[n]->Write();
+  
+  ofp[n]->close();
+
+  
+  } // end for n
+  
+
+
+
+    
+
+  
+  
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -482,6 +777,23 @@ void fsi::SetHist(){
   gf3t->SetMarkerStyle(31);
   gf3t->SetMarkerColor(4);
 
+
+
+  gf1_all = new TGraphErrors();
+  gf1_all->SetName("gf1_all");
+  gf1_all->SetTitle("Verma Potentail FSI Influence Factor ; P_{#Lambda-n} [MeV] ; FSI Influence factor");
+  gf1_all->SetMarkerStyle(31);
+  gf1_all->SetMarkerColor(1);
+  gf2_all = new TGraphErrors();
+  gf2_all->SetName("gf2_all");
+  gf2_all->SetTitle("Julich A Potentail FSI Influence Factor ; P_{#Lambda-n} [MeV] ; FSI Influence factor");
+  gf2_all->SetMarkerStyle(31);
+  gf2_all->SetMarkerColor(2);
+  gf3_all = new TGraphErrors();
+  gf3_all->SetName("gf3_all");
+  gf3_all->SetTitle("Julich B Potentail FSI Influence Factor ; P_{#Lambda-n} [MeV] ; FSI Influence factor");
+  gf3_all->SetMarkerStyle(31);
+  gf3_all->SetMarkerColor(4);  
 
 
 
@@ -667,6 +979,196 @@ void fsi::SetHist(){
   gfth3->SetMarkerColor(4);
   
 
+  gIton1 = new TGraphErrors();
+  gIton1->SetName("gIton1");
+  gIton1->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (0.75 ^{3}S_{1} + 0.25 ^{1}S_{0})");
+  gIton1->SetMarkerStyle(7);
+  gIton1->SetMarkerColor(1);
+
+  gIton1s = new TGraphErrors();
+  gIton1s->SetName("gIton1s");
+  gIton1s->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{1}S_{0})");
+  gIton1s->SetMarkerStyle(2);
+  gIton1s->SetMarkerColor(1);
+
+  gIton1t = new TGraphErrors();
+  gIton1t->SetName("gIton1t");
+  gIton1t->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{3}S_{1})");
+  gIton1t->SetMarkerStyle(2);
+  gIton1t->SetMarkerColor(1);    
+
+
+
+
+
+  gIton2 = new TGraphErrors();
+  gIton2->SetName("gIton2");
+  gIton2->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (0.75 ^{3}S_{1} + 0.25 ^{1}S_{0})");
+  gIton2->SetMarkerStyle(7);
+  gIton2->SetMarkerColor(2);
+
+  gIton2s = new TGraphErrors();
+  gIton2s->SetName("gIton2s");
+  gIton2s->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{1}S_{0})");
+  gIton2s->SetMarkerStyle(2);
+  gIton2s->SetMarkerColor(2);
+
+  gIton2t = new TGraphErrors();
+  gIton2t->SetName("gIton2t");
+  gIton2t->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{3}S_{1})");
+  gIton2t->SetMarkerStyle(2);
+  gIton2t->SetMarkerColor(2);    
+
+  
+
+
+
+  gIton3 = new TGraphErrors();
+  gIton3->SetName("gIton3");
+  gIton3->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (0.75 ^{3}S_{1} + 0.25 ^{1}S_{0})");
+  gIton3->SetMarkerStyle(7);
+  gIton3->SetMarkerColor(3);
+
+  gIton3s = new TGraphErrors();
+  gIton3s->SetName("gIton3s");
+  gIton3s->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{1}S_{0})");
+  gIton3s->SetMarkerStyle(3);
+  gIton3s->SetMarkerColor(3);
+
+  gIton3t = new TGraphErrors();
+  gIton3t->SetName("gIton3t");
+  gIton3t->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{3}S_{1})");
+  gIton3t->SetMarkerStyle(3);
+  gIton3t->SetMarkerColor(3);    
+
+
+
+
+
+  // half off-shell
+  
+  gItoff1 = new TGraphErrors();
+  gItoff1->SetName("gItoff1");
+  gItoff1->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (0.75 ^{3}S_{1} + 0.25 ^{1}S_{0})");
+  gItoff1->SetMarkerStyle(3);
+  gItoff1->SetMarkerColor(1);
+
+  gItoff1s = new TGraphErrors();
+  gItoff1s->SetName("gItoff1s");
+  gItoff1s->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{1}S_{0})");
+  gItoff1s->SetMarkerStyle(3);
+  gItoff1s->SetMarkerColor(1);
+
+  gItoff1t = new TGraphErrors();
+  gItoff1t->SetName("gItoff1t");
+  gItoff1t->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{3}S_{1})");
+  gItoff1t->SetMarkerStyle(3);
+  gItoff1t->SetMarkerColor(1);    
+
+
+  gItoff2 = new TGraphErrors();
+  gItoff2->SetName("gItoff2");
+  gItoff2->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (0.75 ^{3}S_{1} + 0.25 ^{1}S_{0})");
+  gItoff2->SetMarkerStyle(2);
+  gItoff2->SetMarkerColor(2);  
+
+  gItoff2s = new TGraphErrors();
+  gItoff2s->SetName("gItoff2s");
+  gItoff2s->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{1}S_{0})");
+  gItoff2s->SetMarkerStyle(2);
+  gItoff2s->SetMarkerColor(2);
+
+  gItoff2t = new TGraphErrors();
+  gItoff2t->SetName("gItoff2t");
+  gItoff2t->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{3}S_{1})");
+  gItoff2t->SetMarkerStyle(2);
+  gItoff2t->SetMarkerColor(2);    
+
+  
+  gItoff3 = new TGraphErrors();
+  gItoff3->SetName("gItoff3");
+  gItoff3->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (0.75 ^{3}S_{1} + 0.25 ^{1}S_{0})");
+  gItoff3->SetMarkerStyle(7);
+  gItoff3->SetMarkerColor(3);
+
+  gItoff3s = new TGraphErrors();
+  gItoff3s->SetName("gItoff3s");
+  gItoff3s->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{1}S_{0})");
+  gItoff3s->SetMarkerStyle(3);
+  gItoff3s->SetMarkerColor(3);
+
+  gItoff3t = new TGraphErrors();
+  gItoff3t->SetName("gItoff3t");
+  gItoff3t->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{3}S_{1})");
+  gItoff3t->SetMarkerStyle(3);
+  gItoff3t->SetMarkerColor(3);    
+
+
+  //======== Influence Factor ERA caluration ==========//
+
+
+  gIera1 = new TGraphErrors();
+  gIera1->SetName("gIera1");
+  gIera1->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (0.75 ^{3}S_{1} + 0.25 ^{1}S_{0})");
+  gIera1->SetMarkerStyle(7);
+  gIera1->SetMarkerColor(1);
+
+  gIera1s = new TGraphErrors();
+  gIera1s->SetName("gIera1s");
+  gIera1s->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{1}S_{0})");
+  gIera1s->SetMarkerStyle(2);
+  gIera1s->SetMarkerColor(1);
+
+  gIera1t = new TGraphErrors();
+  gIera1t->SetName("gIera1t");
+  gIera1t->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{3}S_{1})");
+  gIera1t->SetMarkerStyle(2);
+  gIera1t->SetMarkerColor(1);    
+
+
+
+
+
+  gIera2 = new TGraphErrors();
+  gIera2->SetName("gIera2");
+  gIera2->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (0.75 ^{3}S_{1} + 0.25 ^{1}S_{0})");
+  gIera2->SetMarkerStyle(7);
+  gIera2->SetMarkerColor(2);
+
+  gIera2s = new TGraphErrors();
+  gIera2s->SetName("gIera2s");
+  gIera2s->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{1}S_{0})");
+  gIera2s->SetMarkerStyle(2);
+  gIera2s->SetMarkerColor(2);
+
+  gIera2t = new TGraphErrors();
+  gIera2t->SetName("gIera2t");
+  gIera2t->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{3}S_{1})");
+  gIera2t->SetMarkerStyle(2);
+  gIera2t->SetMarkerColor(2);    
+
+  
+
+
+
+  gIera3 = new TGraphErrors();
+  gIera3->SetName("gIera3");
+  gIera3->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (0.75 ^{3}S_{1} + 0.25 ^{1}S_{0})");
+  gIera3->SetMarkerStyle(7);
+  gIera3->SetMarkerColor(3);
+
+  gIera3s = new TGraphErrors();
+  gIera3s->SetName("gIera3s");
+  gIera3s->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{1}S_{0})");
+  gIera3s->SetMarkerStyle(3);
+  gIera3s->SetMarkerColor(3);
+
+  gIera3t = new TGraphErrors();
+  gIera3t->SetName("gIera3t");
+  gIera3t->SetTitle("Verma Potentail w FSI Influence Factor (ERA); P_{#Lambda-n} [MeV] ; Influence Factor (^{3}S_{1})");
+  gIera3t->SetMarkerStyle(3);
+  gIera3t->SetMarkerColor(3);    
+
 
   for(int l=0;l<20;l++){
     gradl1[l] = new TGraphErrors();
@@ -774,33 +1276,141 @@ void fsi::SetHist(){
   
   double min_mm = -300.;
   double max_mm =  200.;
-  int bin_mm = (int)(max_mm-min_mm)/2;
-  
-  hmm = new TH1F("hmm","Missing Mass w/o FSI ; -B_{#Lambda} [MeV] ; Counts/1MeV",bin_mm,min_mm,max_mm);
+  int bin_mm = (int)(max_mm-min_mm)/2;  // 2 MeV bin
+  //  bin_mm = (int)(max_mm-min_mm)/1;  // 1 MeV bin
+  // bin_mm = (int)(max_mm-min_mm)/5; // 5 MeV bin
+  int bin_size = (int)(max_mm - min_mm)/bin_mm;
+  hmm = new TH1F("hmm",Form("Missing Mass w/o FSI ; -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
 
-  hmm ->SetLineColor(1);
+  hmm ->SetLineColor(8);
+  hmm ->SetFillColor(8);
+  hmm ->SetFillStyle(3002);
   
-  hmm_fsi1 = new TH1F("hmm_fsi1","Missing Mass w/ FSI (Verma potenrial); -B_{#Lambda} [MeV] ; Counts/1MeV",bin_mm,min_mm,max_mm);
-  hmm_fsi1 ->SetLineColor(6);
+  hmm_fsi1 = new TH1F("hmm_fsi1",Form("Missing Mass w/ FSI (Verma potenrial); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi1 ->SetLineColor(1);
   
-  hmm_fsi2 = new TH1F("hmm_fsi2","Missing Mass w/ FSI (Verma potenrial); -B_{#Lambda} [MeV] ; Counts/1MeV",bin_mm,min_mm,max_mm);
+  hmm_fsi2 = new TH1F("hmm_fsi2",Form("Missing Mass w/ FSI (Julich A potenrial); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
   hmm_fsi2 ->SetLineColor(2);
-  hmm_fsi3 = new TH1F("hmm_fsi3","Missing Mass w/ FSI (Verma potenrial); -B_{#Lambda} [MeV] ; Counts/1MeV",bin_mm,min_mm,max_mm);
+  hmm_fsi3 = new TH1F("hmm_fsi3",Form("Missing Mass w/ FSI (Julich B potenrial); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
   hmm_fsi3 ->SetLineColor(4);
 
 
-  hmm_fsi1_2 = new TH1F("hmm_fsi1_2","Missing Mass (Calc B) w/ FSI (Verma potenrial); -B_{#Lambda} [MeV] ; Counts/1MeV",bin_mm,min_mm,max_mm);
-  hmm_fsi1_2 ->SetLineColor(6);
+  hmm_fsi1_2 = new TH1F("hmm_fsi1_2",Form("Missing Mass (Calc B) w/ FSI (Verma potenrial); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi1_2 ->SetLineColor(1);
   hmm_fsi1_2 ->SetLineStyle(10);
   
-  hmm_fsi2_2 = new TH1F("hmm_fsi2_2","Missing Mass (Calc B) w/ FSI (Verma potenrial); -B_{#Lambda} [MeV] ; Counts/1MeV",bin_mm,min_mm,max_mm);
+  hmm_fsi2_2 = new TH1F("hmm_fsi2_2",Form("Missing Mass (Calc B) w/ FSI (Julich A potenrial); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
   hmm_fsi2_2 ->SetLineColor(2);
   hmm_fsi2_2 ->SetLineStyle(10);  
 
-  hmm_fsi3_2 = new TH1F("hmm_fsi3_2","Missing Mass (Calc B) w/ FSI (Verma potenrial); -B_{#Lambda} [MeV] ; Counts/1MeV",bin_mm,min_mm,max_mm);
+  hmm_fsi3_2 = new TH1F("hmm_fsi3_2",Form("Missing Mass (Calc B) w/ FSI (Julich B potenrial); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
   hmm_fsi3_2 ->SetLineColor(4);
-  hmm_fsi3_2 ->SetLineStyle(10);  
+  hmm_fsi3_2 ->SetLineStyle(10);
+
+
+  // Singlet
+
+  hmm_fsi1s = new TH1F("hmm_fsi1s",Form("Missing Mass w/ FSI (Verma potenrial Singlet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi1s ->SetLineColor(1);
   
+  hmm_fsi2s = new TH1F("hmm_fsi2s",Form("Missing Mass w/ FSI (Julich A potenrial Singlet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi2s ->SetLineColor(2);
+  hmm_fsi3s = new TH1F("hmm_fsi3s",Form("Missing Mass w/ FSI (Julich B potenrial Singlet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi3s ->SetLineColor(4);
+
+
+  hmm_fsi1_2s = new TH1F("hmm_fsi1_2s",Form("Missing Mass (Calc B) w/ FSI (Verma potenrial Singlet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi1_2s ->SetLineColor(1);
+  hmm_fsi1_2s ->SetLineStyle(10);
+  
+  hmm_fsi2_2s = new TH1F("hmm_fsi2_2s",Form("Missing Mass (Calc B) w/ FSI (Julich A potenrial Singlet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi2_2s ->SetLineColor(2);
+  hmm_fsi2_2s ->SetLineStyle(10);  
+
+  hmm_fsi3_2s = new TH1F("hmm_fsi3_2s",Form("Missing Mass (Calc B) w/ FSI (Julich B potenrial Singlet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi3_2s ->SetLineColor(4);
+  hmm_fsi3_2s ->SetLineStyle(10);    
+
+
+  // Triplet
+
+  hmm_fsi1t = new TH1F("hmm_fsi1t",Form("Missing Mass w/ FSI (Verma potenrial Triplet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi1t ->SetLineColor(6);
+  
+  hmm_fsi2t = new TH1F("hmm_fsi2t",Form("Missing Mass w/ FSI (Julich A potenrial Triplet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi2t ->SetLineColor(2);
+  hmm_fsi3t = new TH1F("hmm_fsi3t",Form("Missing Mass w/ FSI (Julich B potenrial Triplet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi3t ->SetLineColor(4);
+
+  hmm_fsi1_2t = new TH1F("hmm_fsi1_2t",Form("Missing Mass (Calc B) w/ FSI (Verma potenrial Triplet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi1_2t ->SetLineColor(6);
+  hmm_fsi1_2t ->SetLineStyle(10);
+  
+  hmm_fsi2_2t = new TH1F("hmm_fsi2_2t",Form("Missing Mass (Calc B) w/ FSI (Julich A potenrial Triplet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi2_2t ->SetLineColor(2);
+  hmm_fsi2_2t ->SetLineStyle(10);  
+
+  hmm_fsi3_2t = new TH1F("hmm_fsi3_2t",Form("Missing Mass (Calc B) w/ FSI (Julich B potenrial Triplet); -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
+  hmm_fsi3_2t ->SetLineColor(4);
+  hmm_fsi3_2t ->SetLineStyle(10);    
+
+  
+
+  for(int i=0;i<vmax;i++){
+
+    fJls[i] = new TF1(Form("fJls_%d",i),fJ,0,2000,2);
+    fJls[i]->SetTitle(Form("%s_s ; P_{rel} [MeV] ;Influence Factor (^{1}S_{0})",vname[i].c_str()));
+    fJls[i]->SetParameter(0,a_s[i]);
+    fJls[i]->SetParameter(1,r_s[i]);
+    fJls[i]->SetNpx(2000);
+    fJlt[i] = new TF1(Form("fJlt_%d",i),fJ,0,2000,2);
+    fJlt[i]->SetTitle(Form("%s_t ; P_{rel} [MeV] ;Influence Factor (^{3}S_{1})",vname[i].c_str()));
+    fJlt[i]->SetParameter(0,a_t[i]);
+    fJlt[i]->SetParameter(1,r_t[i]);    
+    fJlt[i]->SetNpx(2000);
+    fJl[i] = new TF1(Form("fJl_%d",i),fJ2,0,2000,4);
+    fJl[i]->SetTitle(Form("%s ; P_{rel} [MeV] ;Influence Factor (0.25 ^{1}S_{0} + 0.75 ^{3}S_{1})",vname[i].c_str()));
+    fJl[i]->SetParameter(0,a_s[i]);
+    fJl[i]->SetParameter(1,r_s[i]);        
+    fJl[i]->SetParameter(2,a_t[i]);
+    fJl[i]->SetParameter(3,r_t[i]);        
+    fJl[i]->SetNpx(2000);
+    //    cout<<"test "<<i<<endl;
+    
+    hmm_Jl[i]= new TH1F(Form("hmm_Jl_%d",i),Form("w/ FSI (Jost Function ) %s Potential (0.25 ^{1}S_{0} + 0.75 ^{3}S_{1})",vname[i].c_str()),bin_mm,min_mm,max_mm);
+    hmm_Jls[i]= new TH1F(Form("hmm_Jls_%d",i),Form("w/ FSI (Jost Function ) %s Potential (^{1}S_{0})",vname[i].c_str()),bin_mm,min_mm,max_mm);
+    hmm_Jlt[i]= new TH1F(Form("hmm_Jlt_%d",i),Form("w/ FSI (Jost Function ) %s Potential (^{3}S_{1})",vname[i].c_str()),bin_mm,min_mm,max_mm);        
+
+    hmm_Jl_2[i]= new TH1F(Form("hmm_Jl2_%d",i),Form("w/ FSI (Jost Function ) %s Potential (0.25 ^{1}S_{0} + 0.75 ^{3}S_{1})",vname[i].c_str()),bin_mm,min_mm,max_mm);
+    hmm_Jl_2s[i]= new TH1F(Form("hmm_Jl_2s_%d",i),Form("w/ FSI (Jost Function ) %s Potential (^{1}S_{0})",vname[i].c_str()),bin_mm,min_mm,max_mm);
+    hmm_Jl_2t[i]= new TH1F(Form("hmm_Jl_2t_%d",i),Form("w/ FSI (Jost Function ) %s Potential (^{3}S_{1})",vname[i].c_str()),bin_mm,min_mm,max_mm);
+
+
+    hmm_Jl[i]->SetLineColor(i+1);
+    hmm_Jls[i]->SetLineColor(i+1);
+    hmm_Jlt[i]->SetLineColor(i+1);
+    hmm_Jl_2[i]->SetLineColor(i+1);
+    hmm_Jl_2s[i]->SetLineColor(i+1);
+    hmm_Jl_2t[i]->SetLineColor(i+1);
+    fJl[i]->SetLineColor(i+1);
+    fJls[i]->SetLineColor(i+1);
+    fJlt[i]->SetLineColor(i+1);
+    if(i==9){
+    hmm_Jl[i]->SetLineColor(i+2);
+    hmm_Jls[i]->SetLineColor(i+2);
+    hmm_Jlt[i]->SetLineColor(i+2);
+    hmm_Jl_2[i]->SetLineColor(i+2);
+    hmm_Jl_2s[i]->SetLineColor(i+2);
+    hmm_Jl_2t[i]->SetLineColor(i+2);
+    fJl[i]->SetLineColor(i+2);
+    fJls[i]->SetLineColor(i+2);
+    fJlt[i]->SetLineColor(i+2);
+
+    }
+  }
+
+
+ 
   hmm_L = new TH1F("hmm_L","H mass Missing Mass w/o FSI ; -B_{#Lambda} [MeV] ; Counts/1MeV",bin_mm,min_mm,max_mm);
   hmm_nnL = new TH1F("hmm_nnL","T mass Missing Mass w/o FSI ; -B_{#Lambda} [MeV] ; Counts/1MeV",bin_mm,min_mm,max_mm);    
 
@@ -918,9 +1528,21 @@ void fsi::SetMom(){
     fac1  = 0.0;
     fac2  = 0.0;
     fac3  = 0.0;
+    fac1t  = 0.0;
+    fac2t  = 0.0;
+    fac3t  = 0.0;
+    fac1s  = 0.0;
+    fac2s  = 0.0;
+    fac3s  = 0.0;    
     fac1_2  = 0.0;
     fac2_2  = 0.0;
     fac3_2  = 0.0;
+    fac1_2s  = 0.0;
+    fac2_2s  = 0.0;
+    fac3_2s  = 0.0;
+    fac1_2t  = 0.0;
+    fac2_2t  = 0.0;
+    fac3_2t  = 0.0;
     
     T->GetEntry(n);
 
@@ -1005,130 +1627,276 @@ void fsi::SetMom(){
     Prel = CalcQ(Pn,Pp,Pv,PK); // MeV
     Prel2 = CalcQ2(Pn_2,Pp_2,Pv_2,PK_2); // MeV  New version 
 
-    //    cout<<" Pn "<<Pn.P()<<" Pn_2 "<<Pn_2.P()<<" Perl "<<Prel<<" Prel2 "<<Prel2<<endl;
-    
+
+ 
     
     for(int i=0;i<np1;i++){
-      //      cout<<" i "<<i<<" Prel "<<Prel<<" krel1 "<<krel1[i]<<endl;
       if(Prel < krel1[i]){
-	if(i==0 || i==np1-1)fac1 = w1[i];
-	else {
+	if(i==0 || i==np1-1){
+	  fac1s = w1[i];
+	  fac1t = w1t[i];
+	  fac1  = (fac1s + 3.0*fac1t)/4.0;	  
+	}else {
 	  double a = (w1[i+1] -w1[i])/(krel1[i+1] - krel1[i]);
 	  double b = w1[i] - a*krel1[i];
-	  fac1   =  a*Prel  + b;}
+	  double at = (w1t[i+1] -w1t[i])/(krel1[i+1] - krel1[i]);
+	  double bt = w1t[i] - at*krel1[i];
+	  
+	  fac1s   =  a*Prel  + b;
+	  fac1t   =  at*Prel  + bt;
+	  fac1    =(fac1s + 3.0*fac1t)/4.0;
+
+	}
+	
 	break;
-      }else if(i==np1-1)fac1 = w1[i];
+      }else if(i==np1-1){
+	fac1s = w1[i];
+	fac1t = w1t[i];
+	fac1  = (fac1s + 3.0*fac1t)/4.0;	  
+      }
     } // end fac1
     
     
     for(int i=0;i<np2;i++){
       if(Prel < krel2[i]){
-	if(i==0 || i==np2-1)fac2 = w2[i];
-	else {
+	if(i==0 || i==np2-1){
+ 	  fac2s = w2[i];
+	  fac2t = w2t[i];
+	  fac2  = (fac2s + 3.0*fac2t)/4.0;	  	  
+	}else {
 	  double a = (w2[i+1] -w2[i])/(krel2[i+1] - krel2[i]);
 	  double b = w2[i] - a*krel2[i];
-	  fac2 = a*Prel + b;
-	  //	  cout<<" n "<<n<<" fac2 "<<fac2<<endl;
+
+	  double at = (w2t[i+1] -w2t[i])/(krel2[i+1] - krel2[i]);
+	  double bt = w2t[i] - at*krel2[i];
+	  
+	  fac2s =  a*Prel   + b;
+	  fac2t =  at*Prel  + bt;
+	  fac2  = (fac2s + 3.0*fac2t)/4.0;	  
 	}
 	break;
-      }else if(i==np2-1)fac2 = w2[i];
+      }else if(i==np2-1){
+	fac2s = w2[i];
+	fac2t = w2t[i];
+	fac2  = (fac2s + 3.0*fac2t)/4.0;	  	  
+      }
     } // end fac2
     
      
     for(int i=0;i<np3;i++){
       if(Prel < krel3[i]){
-	if(i==0 || i==np3-1)fac3 = w3[i];
-	else {
+	if(i==0 || i==np3-1){
+	  fac3s   = w3[i];
+	  fac3t  = w3t[i];
+	  fac3   = (fac3s + 3.0*fac3t)/4.0;	  	  	  
+	}else {
 	  double a = (w3[i+1] -w3[i])/(krel3[i+1] - krel3[i]);
 	  double b = w3[i] - a*krel3[i];
-	  fac3 = a*Prel + b;  }
+	  double at = (w3t[i+1] -w3t[i])/(krel3[i+1] - krel3[i]);
+	  double bt = w3t[i] - at*krel3[i];
+	  
+	  fac3s =  a*Prel   + b;
+	  fac3t =  at*Prel  + bt;
+	  fac3  = (fac3s + 3.0*fac3t)/4.0;	  	  
+	}
+	
 	break;
-      }else if(i==np3-1)fac3 = w3[i];
-    } // end fac1
+      }else if(i==np3-1){
+	fac3   = w3[i];
+	fac3t  = w3t[i];
+	fac3   = (fac3s + 3.0*fac3t)/4.0;	  	  	  
+      }
+    } // end fac3
     
-    
+
 
 
     //  Prel2  //
 
+
+    
     for(int i=0;i<np1;i++){
-      //      cout<<" i "<<i<<" Prel2 "<<Prel2<<" krel1 "<<krel1[i]<<endl;
       if(Prel2 < krel1[i]){
-	if(i==0 || i==np1-1)fac1_2 = w1[i];
-	else {
+	if(i==0 || i==np1-1){
+	  fac1_2s = w1[i];
+	  fac1_2t = w1t[i];
+	  fac1_2  = (fac1_2s + 3.0*fac1_2t)/4.0;	  
+	}else {
 	  double a = (w1[i+1] -w1[i])/(krel1[i+1] - krel1[i]);
 	  double b = w1[i] - a*krel1[i];
-	  fac1_2   =  a*Prel2  + b;}
+	  double at = (w1t[i+1] -w1t[i])/(krel1[i+1] - krel1[i]);
+	  double bt = w1t[i] - at*krel1[i];
+	  
+	  fac1_2s   =  a*Prel2  + b;
+	  fac1_2t   =  at*Prel2  + bt;
+	  fac1_2    =(fac1_2s + 3.0*fac1_2t)/4.0;
+
+	}
+	
 	break;
-      }else if(i==np1-1)fac1_2 = w1[i];
+      }else if(i==np1-1){
+	fac1_2s = w1[i];
+	fac1_2t = w1t[i];
+	fac1_2  = (fac1_2s + 3.0*fac1_2t)/4.0;	  
+      }
     } // end fac1_2
     
-    
+
+
     for(int i=0;i<np2;i++){
       if(Prel2 < krel2[i]){
-	if(i==0 || i==np2-1)fac2_2 = w2[i];
-	else {
+	if(i==0 || i==np2-1){
+ 	  fac2_2s = w2[i];
+	  fac2_2t = w2t[i];
+	  fac2_2  = (fac2_2s + 3.0*fac2_2t)/4.0;	  	  
+	}else {
 	  double a = (w2[i+1] -w2[i])/(krel2[i+1] - krel2[i]);
 	  double b = w2[i] - a*krel2[i];
-	  fac2_2 = a*Prel2 + b;
-	  //	  cout<<" n "<<n<<" fac2_2 "<<fac2_2<<endl;
+
+	  double at = (w2t[i+1] -w2t[i])/(krel2[i+1] - krel2[i]);
+	  double bt = w2t[i] - at*krel2[i];
+	  
+	  fac2_2s =  a*Prel2   + b;
+	  fac2_2t =  at*Prel2  + bt;
+	  fac2_2  = (fac2_2s + 3.0*fac2_2t)/4.0;	  
 	}
 	break;
-      }else if(i==np2-1)fac2_2 = w2[i];
+      }else if(i==np2-1){
+	fac2_2s = w2[i];
+	fac2_2t = w2t[i];
+	fac2_2  = (fac2_2s + 3.0*fac2_2t)/4.0;	  	  
+      }
     } // end fac2_2
     
-
-
-
      
     for(int i=0;i<np3;i++){
       if(Prel2 < krel3[i]){
-	if(i==0 || i==np3-1)fac3_2 = w3[i];
-	else {
+	if(i==0 || i==np3-1){
+	  fac3_2s   = w3[i];
+	  fac3_2t  = w3t[i];
+	  fac3_2   = (fac3_2s + 3.0*fac3_2t)/4.0;	  	  	  
+	}else {
 	  double a = (w3[i+1] -w3[i])/(krel3[i+1] - krel3[i]);
 	  double b = w3[i] - a*krel3[i];
-	  fac3_2 = a*Prel2 + b;  }
+	  double at = (w3t[i+1] -w3t[i])/(krel3[i+1] - krel3[i]);
+	  double bt = w3t[i] - at*krel3[i];
+	  
+	  fac3_2s =  a*Prel2   + b;
+	  fac3_2t =  at*Prel2  + bt;
+	  fac3_2  = (fac3_2s + 3.0*fac3_2t)/4.0;	  	  
+	}
+	
 	break;
-      }else if(i==np3-1)fac3_2 = w3[i];
-    } // end fac3
-    
+      }else if(i==np3-1){
+	fac3_2s  = w3[i];
+	fac3_2t  = w3t[i];
+	fac3_2   = (fac3_2s + 3.0*fac3_2t)/4.0;	  	  	  
+      }
+    } // end fac3_2
     
 
-    // I(nn) = I(n)*2
 
-
-    if(E09){
-    fac1 = (fac1-1.0)     +1.0;
-    fac2 = (fac2-1.0)     +1.0;
-    fac3 = (fac3-1.0)     +1.0;
-    fac1_2 = (fac1_2-1.0) +1.0;
-    fac2_2 = (fac2_2-1.0) +1.0;
-    fac3_2 = (fac3_2-1.0) +1.0;
     
-    }else{
+
+    
+
+    if(!E09){
     fac1 = (fac1-1.0)*2.0 +1.0;
     fac2 = (fac2-1.0)*2.0 +1.0;
     fac3 = (fac3-1.0)*2.0 +1.0;
     fac1_2 = (fac1_2-1.0)*2.0 +1.0;
     fac2_2 = (fac2_2-1.0)*2.0 +1.0;
-    fac3_2 = (fac3_2-1.0)*2.0 +1.0;    
+    fac3_2 = (fac3_2-1.0)*2.0 +1.0;
+
+    fac1s = (fac1s-1.0)*2.0 +1.0;
+    fac2s = (fac2s-1.0)*2.0 +1.0;
+    fac3s = (fac3s-1.0)*2.0 +1.0;
+    fac1_2s = (fac1_2s-1.0)*2.0 +1.0;
+    fac2_2s = (fac2_2s-1.0)*2.0 +1.0;
+    fac3_2s = (fac3_2s-1.0)*2.0 +1.0;
+
+    fac1t = (fac1t-1.0)*2.0 +1.0;
+    fac2t = (fac2t-1.0)*2.0 +1.0;
+    fac3t = (fac3t-1.0)*2.0 +1.0;
+    fac1_2t = (fac1_2t-1.0)*2.0 +1.0;
+    fac2_2t = (fac2_2t-1.0)*2.0 +1.0;
+    fac3_2t = (fac3_2t-1.0)*2.0 +1.0;        
+    
     }
     
 
+
+    /*    
     //test //
-    //    fac3 *=4.0*PI;
-    //    cout<<"mmnuc "<<mmnuc<<" ML+n "<<ML+Mn<<endl;
+    if(Prel>400){
+    fac1 = 1.0;
+    fac2 = 1.0;
+    fac3 = 1.0;
+    }
+    if(Prel2>400){
+    fac1_2 = 1.0;
+    fac2_2 = 1.0;
+    fac3_2 = 1.0;
+    }
+    */
+
+    
 
               mm =(mmnuc - MnnL )*1000.; // -BL [MeV]
     if(E09)   mm =(mmnuc - MH3L )*1000.; // -BL [MeV]
     if(Deu)   mm =(mmnuc - (ML+Mn) )*1000.; // -BL [MeV]
 
-    //    cout<<"mm "<<mm<<endl;
+
     hmm -> Fill(mm);
+
+    // Single //
+    hmm_fsi1s ->Fill(mm , fac1s);
+    hmm_fsi2s ->Fill(mm , fac2s);
+    hmm_fsi3s ->Fill(mm , fac3s);
+    hmm_fsi1_2s ->Fill(mm , fac1_2s);
+    hmm_fsi2_2s ->Fill(mm , fac2_2s);
+    hmm_fsi3_2s ->Fill(mm , fac3_2s);
+
+
+    for(int i=0;i<vmax;i++){
+      double s = Jl0(Prel,a_s[i],r_s[i]);
+      double t = Jl0(Prel,a_t[i],r_t[i]);
+      double s2 = Jl0(Prel2,a_s[i],r_s[i]);
+      double t2 = Jl0(Prel2,a_t[i],r_t[i]);
+
+      // Cut off Parameter
+      double cut_off = 100000.;
+      if(Prel  > cut_off){  s= 1.0; t =1.0;}
+      if(Prel2 > cut_off){  s2= 1.0; t2 =1.0;}
+    if(!E09){
+    s = (s-1.0)*2.0 +1.0;
+    t = (t-1.0)*2.0 +1.0;
+    s2 = (s2-1.0)*2.0 +1.0;
+    t2 = (t2-1.0)*2.0 +1.0;    
+    }
+    
+      hmm_Jls[i] ->Fill(mm,s );
+      hmm_Jlt[i] ->Fill(mm,t );
+      hmm_Jl[i] ->Fill(mm,(s+3.0*t)/4.0 );
+
+      hmm_Jl_2s[i] ->Fill(mm,s2 );
+      hmm_Jl_2t[i] ->Fill(mm,t2 );
+      hmm_Jl_2[i] ->Fill(mm,(s2+3.0*t2)/4.0 );
+      
+    }
+    
+
+    // Triplet //
+    hmm_fsi1t ->Fill(mm , fac1t);
+    hmm_fsi2t ->Fill(mm , fac2t);
+    hmm_fsi3t ->Fill(mm , fac3t);
+    hmm_fsi1_2t ->Fill(mm , fac1_2t);
+    hmm_fsi2_2t ->Fill(mm , fac2_2t);
+    hmm_fsi3_2t ->Fill(mm , fac3_2t);        
+    // Single +3. Triple /4.0 
     hmm_fsi1 ->Fill(mm , fac1);
     hmm_fsi2 ->Fill(mm , fac2);
     hmm_fsi3 ->Fill(mm , fac3);
-
     hmm_fsi1_2 ->Fill(mm , fac1_2);
     hmm_fsi2_2 ->Fill(mm , fac2_2);
     hmm_fsi3_2 ->Fill(mm , fac3_2);    
@@ -1143,18 +1911,37 @@ void fsi::SetMom(){
   
 
 
+  for(int i=0;i<vmax;i++){
+    hmm_Jl[i]->Write();
+    hmm_Jl_2[i]->Write();
+    hmm_Jls[i]->Write();
+    hmm_Jl_2s[i]->Write();
+    hmm_Jlt[i]->Write();
+    hmm_Jl_2t[i]->Write();    
+  }
   
-
+  
   hmm->Write();
   hmm_L->Write();
   hmm_nnL->Write();
   hmm_fsi1->Write();
   hmm_fsi2->Write();
   hmm_fsi3->Write();
-
   hmm_fsi1_2->Write();
   hmm_fsi2_2->Write();
   hmm_fsi3_2->Write();  
+  hmm_fsi1s->Write();
+  hmm_fsi2s->Write();
+  hmm_fsi3s->Write();
+  hmm_fsi1_2s->Write();
+  hmm_fsi2_2s->Write();
+  hmm_fsi3_2s->Write();    
+  hmm_fsi1t->Write();
+  hmm_fsi2t->Write();
+  hmm_fsi3t->Write();
+  hmm_fsi1_2t->Write();
+  hmm_fsi2_2t->Write();
+  hmm_fsi3_2t->Write();  
 
   
 }
@@ -1506,8 +2293,11 @@ double fsi::PhaseShift(double qq, int LL, int potential){
     else if(model==-1){ a0 = -1.77; r0 = 3.25;}
     else if(model==-2){ a0 = -1.6;  r0 = 3.15;}
     else if(model==-3){ a0 = -1.94; r0 = 2.42;}
-
-
+    
+	 if(Vscale){
+	   a0 = a_0;
+	   r0 = r_0;
+	 }
 
 	 double R0 = 3.15; //test
 	 // test
@@ -1516,10 +2306,11 @@ double fsi::PhaseShift(double qq, int LL, int potential){
   // Kinematics
  
     if(nr_mode){
-      skz = skz/hbarc;
-      skz2 = skz*skz;
-      eon = hbarc2*skz2/2.0/fmu;
-      rho = fmu*skz/hbarc2;
+      skz = skz/hbarc; // [1/fm]
+      skz2 = skz*skz;  
+      eon = hbarc2*skz2/2.0/fmu; // Kinematics Energy [MeV]
+      rho = fmu*skz/hbarc2; // Desity of states/energy [1/(MeV*fm^3)]
+
     }else {
       skz2 = skz*skz;
       ekpj  = sqrt(ampj2   + skz2);
@@ -1556,7 +2347,6 @@ double fsi::PhaseShift(double qq, int LL, int potential){
       //      int l = ll+1;
       int l = ll;
       // start K',K'' loop to 40 & 50
-
 
       for(int kp=0;kp <= nrp1;kp++){ // DO 40
 	skp = skk[kp];
@@ -1608,11 +2398,12 @@ double fsi::PhaseShift(double qq, int LL, int potential){
 	}
       }
       
-
+      // AX =B matrix : R(E-VGo)=V   (C.11) 
       // A : gren[i][j] = E -V * Go (C.11)
       // B : V
-      // R : =(E - V * Go)^-1 * V (A) = A^-1 * B -> set B 
+      // X : R =(E - V * Go)^-1 * V (A) = A^-1 * B -> retrun X :  R | k> half-off shell 
 
+      
 
       ron  = complex<double>(0.0,0.0);
       ron0 = complex<double>(0.0,0.0);
@@ -1620,13 +2411,42 @@ double fsi::PhaseShift(double qq, int LL, int potential){
       LEQ3(A0,v0,Rl0,nrp1);
 
 
+
+      //==============================================//
+      //=======< T matrix calculation >===============//
+      //==============================================//
+
+      
+      // calc T matrix : T = R - i*pi*R*delta(E-Ho)T (C.12)
+      // delta(E-Ho) = rho*delta(k-k')
+      // <k|T = 1/(1+ i*rho*<k|R|k>)<k|R    (5.60)
+      
+      complex<double>T[nmax3];
+      toff[l] = complex<double>(0.0,0.0);
+
+      
+      for(int i=0;i<=nrp1;i++){
+
+	T[i] = complex<double>(0.0,0.0);
+	T[i] = 1.0/(1.0 + xi* rho * Rl[nrp1] * PI )* Rl[i];
+	toff[l] += T[i];
+      }
+
+
+      toff[l] = toff[l]/double(nrp1+1.0);
+
+
+      
       ron       = Rl[nrp1];
       ron0      = Rl0[nrp1];
       ronr      = real(ron);
       delrad0   = atan(skz/(-1./a0 + r0*skz*skz/2.0));
       delrad    = -atan(PI*rho*ronr);
       deltal[l] = delrad;
-      ton[l]    = ron/(1.0 +xi*PI*rho*ron);
+
+      //      ton[l]    = ron/(1.0 +xi*PI*rho*ron);
+      
+      ton[l]    = T[nrp1];
       ton0[l]   = ron0/(1.0 +xi*PI*rho*ron0);
       jon[l]    = ton[l]/(1.0 - xi*PI*rho*ton[l]);
       vv        = vlkkp(skz,skz,ll);
@@ -1670,7 +2490,8 @@ double fsi::PhaseShift(double qq, int LL, int potential){
       Psi[ithe]    = complex<double>(0.0,0.0);
       Psi0[ithe]   = complex<double>(0.0,0.0);
       psi[ithe]    = complex<double>(0.0,0.0);
-      psi0[ithe]   = complex<double>(0.0,0.0);      
+      psi0[ithe]   = complex<double>(0.0,0.0);
+      
       for(int l =0;l <= lpjmax;l++){ // DO 90
 	double ll=(double)l;
 	fthe[ithe]   =  fthe[ithe]   + (2.0*ll +1.0)*ton[l]*pol[l]/4.0/PI;
@@ -1715,13 +2536,10 @@ double fsi::PhaseShift(double qq, int LL, int potential){
 
     // Jost Fanction
     
-    double alpha =  (1.+sqrt(1. - 2.*r0/a0) / r0);
-    double beta  =  + alpha -2.0/r0 ;
+    double alpha =  ( 1. + sqrt(1. - 2.*r0/a0)) / r0;
+    double beta  =  (-1. + sqrt(1. - 2.*r0/a0)) / r0;
+    
     complex<double> Jl = (skz - xi*beta)/(skz - xi*alpha);
-
-    //    Jl = 1.0 + 1./skz*(ton[LL]/(1.0-xi*ton[LL]*rho*PI));
-    Jl = 1.0 + 1./skz/hbarc*ron;
-    //    cout<<"skz "<<skz<<" Jl "<<Jl<<" ton "<<ton[LL]<<" rho "<<rho<<" ron "<<ron<<endl;
     
     complex<double> exp =complex<double>(cos(skz*r0),sin(skz*r0));
     complex<double> phi   =  exp + ftheL/r0*exp;
@@ -1729,11 +2547,20 @@ double fsi::PhaseShift(double qq, int LL, int potential){
     complex<double> phi0  =  exp;
 
 
-    I0  = 1./( real(Jl*conj(Jl)) ); // Jost Fanction    
+    I0  = 1./( real(Jl*conj(Jl)) ); // Jost Fanction
     I1 = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0); // ERA
- 
+    IERA = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0); // ERA
 
-    //    double I = real((psi[0]/psi0[0])*conj(psi[0]/psi0[0]));
+    // T-operator matrix : I = <k'|T
+    // if( k'==k) Iton (on-shell)
+    // Iton  : <k|T|k> on-shell
+    // Itoff : Sum(k'=0 ... nrp1+1 ) <k|T|k'>/(nrp1+1)  half-off-shell
+    
+    Iton  = sqrt( real( ton[LL]  * conj(ton[LL] )   )  );
+    Itoff = sqrt( real( toff[LL] * conj(toff[LL])   )  );
+    
+
+    
     double I =real( phi/phi0 *conj(phi/phi0) );
     
     for(int l=0;l<=LL;l++){
@@ -1805,11 +2632,42 @@ complex<double> fsi::vofq(double q2){
    b_a  = 0.964;
    
  }
-  
 
- //test
- // va   = 0.0; // MeV
- // b_a  = 0.0;   // fm
+
+ 
+ // test 
+
+ if(Vscale){
+
+   va  =   v_a;
+   b_a =   beta_a;
+   
+ }
+ 
+ /*
+
+ if(model==1){ // Verma model
+    va    = -167.34; // MeV
+    b_a   = 1.1;  //fm  
+  }else if(model ==2){// julich A
+    va    = -167.34*1.5; // MeV
+    b_a   = 1.1;  //fm  
+  }else if(model ==3){// julich B
+    va    = -167.34*2.0; // MeV
+    b_a   = 1.1;  //fm     
+ }else if(model==-1){
+   va   = -132.42;
+   b_a  = 1.1;
+ }else if(model==-2){
+   va   = -132.42*1.5;
+   b_a  = 1.1;   
+ }else if(model==-3){
+   va   = -132.42*2.0;
+   b_a  = 1.1;   
+   
+}
+ 
+ */
 
   
   if(!nr_mode){
@@ -1819,7 +2677,7 @@ complex<double> fsi::vofq(double q2){
 
   b_a2 = b_a*b_a;
   b_r2 = b_r*b_r;
-
+  
 
   // Vq : Integral exp(-iqx)*V(x)
   // -> Fourier transform V(q)= sqrt(pi/a)^3*exp(-q2/4a)  
@@ -1846,7 +2704,7 @@ int main(int argc, char** argv){
 
 
   int ch; char* mode="C";
-  string ifname = "../rootfiles/simc/3H_test.root";
+  string ifname = "../rootfiles/simc/nnL_simc.root";
   string ofname = "./test.root";
   string ofPname ="./param/test";
   string pname ="./param/potential.list";
@@ -1857,7 +2715,7 @@ int main(int argc, char** argv){
   string L;
   extern char *optarg;
 
-  while((ch=getopt(argc,argv,"h:p:s:r:w:f:s:l:TDHeIbcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:p:s:r:w:f:s:l:TDHeISbcop"))!=-1){
     switch(ch){
             
     case 'f':
@@ -1868,9 +2726,16 @@ int main(int argc, char** argv){
 
     case 's':
       ifname = optarg;
-      cout<<"output root filename : "<<ofname<<endl;      
+      cout<<"input root filename : "<<ofname<<endl;
+      root_mode =true;
       break;
 
+    case 'S':
+      cout<<" Vscale mode ON "<<endl;
+      Vscale =true;
+      break;
+
+      
     case 'D':
 
       Deu =true;
@@ -1970,12 +2835,16 @@ printf("\n");
   TApplication *theApp =new TApplication("App",&argc,argv);
   gSystem->Load("libMinuit");
   fsi* FSI =new fsi();
+  FSI->JostParam();
   if(root_mode)  FSI -> SetBranch(ifname);
   FSI -> NewRoot(ofname);
+  cout<<"param_mode "<<param_mode<<endl;
   if(param_mode) FSI -> SetParam(pname);
   FSI -> SetHist();
   FSI -> SetFermiMom(fermi_mom);
-  if(write_mode) FSI -> InfluenceFactor(ofPname,l);
+  if(write_mode && !Vscale) FSI -> InfluenceFactor(ofPname,l);
+  if(write_mode &&  Vscale) FSI -> InfluenceFactorVscale(ofPname,l);
+
   if(param_mode) FSI -> SetMom();
 
   cout<<endl;
@@ -2334,5 +3203,64 @@ void LEQ3(complex<double>*A, complex<double>* B, complex<double>* R,int N){
   }
 
 
+
+};
+
+//////////////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////////////
+
+double Jl0(double p0,double a0, double r0){
+
+
+  
+  double  krel = p0/197.3269718;
+  double alpha =  ( 1. + sqrt(1. - 2.*r0/a0)) / r0;
+  double beta  =  (-1. + sqrt(1. - 2.*r0/a0)) / r0;
+  complex<double> xi(0.0,1.0);
+  complex<double> Jl = (krel - xi*beta)/(krel - xi*alpha);
+  double I = 1./real(Jl* conj(Jl));
+  
+  return I;
+
+
+};
+
+double fJ(double *x ,double *par){
+
+  double  krel = x[0]/197.3269718;
+  double a0 = par[0];
+  double r0 = par[1];
+  double alpha =  ( 1. + sqrt(1. - 2.*r0/a0)) / r0;
+  double beta  =  (-1. + sqrt(1. - 2.*r0/a0)) / r0;
+  complex<double> xi(0.0,1.0);
+  complex<double> Jl = (krel - xi*beta)/(krel - xi*alpha);
+  double I = 1./real(Jl* conj(Jl));
+  return I;  
+
+};
+
+double fJ2(double *x ,double *par){
+
+  double  krel = x[0]/197.3269718;
+  double as = par[0];
+  double rs = par[1];
+  double at = par[2];
+  double rt = par[3];
+  double alpha =  ( 1. + sqrt(1. - 2.*rs/as)) / rs;
+  double beta  =  (-1. + sqrt(1. - 2.*rs/as)) / rs;
+  complex<double> xi(0.0,1.0);
+  complex<double> Jls = (krel - xi*beta)/(krel - xi*alpha);
+
+  double alpha_t =  ( 1. + sqrt(1. - 2.*rt/at)) / rt;
+  double beta_t  =  (-1. + sqrt(1. - 2.*rt/at)) / rt;
+  complex<double> Jlt = (krel - xi*beta_t)/(krel - xi*alpha_t);  
+  
+  double I = 0.25/real(Jls* conj(Jls)) + 0.75/real(Jlt* conj(Jlt));
+
+  //  cout<<"test "<<endl;
+  return I;  
 
 };

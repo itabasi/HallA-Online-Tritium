@@ -13,22 +13,22 @@ CXXFLAGS = -Wall -O2 $(ROOTFLAGS)
 CXXLIBS = $(ROOTLIBS)
 
 # mp (Make Parameter)
-#TARGET1= hrs_tof_twcorr
-#OBJS1=   hrs_tof_twcorr.o 
+
 
 TARGET1= xsec
 OBJS1=   xsec.o Setting.o 
-TARGET1= fsi
-OBJS1=   fsi.o Setting.o 
+TARGET2= fsi
+OBJS2=   fsi.o Setting.o 
+
 .PHONY: all
 all: $(TARGET1)\
      $(TARGET2)
+
 $(LIBDIR)/%.o : %.cc
 	$(CXX) $(CFLAGS) -c -o $@ $< -MMD $(CXXFLAGS)
-
 $(TARGET1): $(patsubst %,$(LIBDIR)/%,$(OBJS1))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
-$(TARGET1): $(patsubst %,$(LIBDIR)/%,$(OBJS2))
+$(TARGET2): $(patsubst %,$(LIBDIR)/%,$(OBJS2))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 .PHONY: clean
 clean:

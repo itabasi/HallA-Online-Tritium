@@ -21,6 +21,7 @@ public:
   void SetLAccept_new(string ifpname);
   void SetRAccept(string ifpname);
   double PhaseShift();
+  double Lab_to_CM(TLorentzVector R_v, TLorentzVector VF_v);
   complex<double> vlkkp(double skp,double skpp,int lcall);
   complex<double> vofq(double q2);
   //  void DGauss(double* Y,double* WY, int N);
@@ -43,7 +44,7 @@ public:
   double hrs_angle = 13.2*PI/180.;
   double gen_theta_accept =  6.7272080607340551e-2;
   double Qc;
-  double kaon_survival_ratio;
+  double kaon_survival_ratio,kaon_eff;
   // ----- SetXS ----//
   int nEe_=0; int nEk=0;
   int nth   = 100;

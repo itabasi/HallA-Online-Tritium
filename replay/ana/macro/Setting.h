@@ -45,6 +45,7 @@
 #include "TArrow.h"
 #include "TDatime.h"
 #include "TMarker.h"
+#include "Math/ProbFunc.h"
 
 class Setting
 {

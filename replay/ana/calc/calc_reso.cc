@@ -42,7 +42,8 @@ void calc_reso(){
 
 
 
-  bool nnL=false;
+  //bool nnL=false;
+  bool nnL=true;
   //==== Hydrogen run ======//
   Mt    = 938.27; // [MeV/c^2] proton mass
   M_HYP = 1115.68; //[MeV/c^2] Lambda mass
@@ -65,8 +66,10 @@ void calc_reso(){
   th_ee_= 13.2*3.14/180.;
   th_ek = 13.2*3.14/180.;
   th_e_k = th_ee_ + th_ek;
-  sig_th_ee_ =  7.0e-3/2.35;
-  sig_th_ek  =  7.0e-3/2.35;
+  sig_th_ee_ =  7.0e-3/1.55;
+  sig_th_ek  =  7.0e-3/1.55;
+  //  sig_th_ee_ =  7.0e-3/2.35;
+  //  sig_th_ek  =  7.0e-3/2.35;
   //  sig_th_e_k =  7.0e-3;
   sig_pe  = pe  * 1.2e-4/2.35;
   sig_pe_ = pe_ * 2.5e-4/2.35;

@@ -232,10 +232,13 @@ void I()
   hframe[1] -> GetXaxis() -> SetTitle( "Relative momentum of #Lambda-n [MeV/c]" );
   hframe[1] -> GetYaxis() -> SetTitle( "Enhancement factor (^{3}S_{1})" );
 
-  for ( int i=0; i<15; i++ ) {
-    en1t_fac[i] -> Draw( "same" );
-  }
+  //  for ( int i=0; i<15; i++ ) {
+  //    en1t_fac[i] -> Draw( "same" );
+  //  }
 
+  en1t_fac[13] -> Draw( "same" );
+  en1t_fac[9]  -> Draw( "same" );
+  en1t_fac[11] -> Draw( "same" );  
 
   p1[2] -> cd();
   p1[2] -> SetGridy();
@@ -244,9 +247,14 @@ void I()
   hframe[2] -> GetXaxis() -> SetTitle( "Relative momentum of #Lambda-n [MeV/c]" );
   hframe[2] -> GetYaxis() -> SetTitle( "Enhancement factor (0.25 * ^{1}S_{0} + 0.75 * ^{3}S_{1})" );
 
-  for ( int i=0; i<15; i++ ) {
-    en1_fac[i] -> Draw( "same" );
-  }
+
+
+  en1_fac[13] -> Draw( "same" );
+  en1_fac[9] -> Draw( "same" );
+  en1_fac[11] -> Draw( "same" );
+  //  for ( int i=0; i<15; i++ ) {
+  //    en1_fac[i] -> Draw( "same" );
+  //  }
 
 
   c1 -> Update();

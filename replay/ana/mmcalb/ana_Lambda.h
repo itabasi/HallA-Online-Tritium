@@ -14,6 +14,7 @@ struct TreeBranch{
   int z_cut,pid_cut,ct_cut,acc_cut;
   int nev,nrun;
   double missing_mass_MgL;
+  double missing_mass_acc_all;
   double missing_mass_MgL_acc;
   double missing_mass, coin_time;
   double missing_mass_acc;
@@ -57,7 +58,7 @@ struct TreeBranch{
   double LXt,LYt,LXpt,LYpt;
   double Lp[100],Rp[100],Bp;
   double Lp_c[100],Rp_c[100],Bp_c;  
-  double Rp_mix[10];
+  double Rp_mix[10],Rp_mix_all[10];
   double dpe,dpe_,dpk;
   int Rs2_pad[100],Ls2_pad[100];
   int Rs2_paddle,Ls2_paddle;
@@ -75,7 +76,13 @@ struct TreeBranch{
   double R_tr_pz_mix[10];
   double R_tr_th_mix[10];
   double R_tr_ph_mix[10];
-  
+  double R_tr_p_mix_all[10];
+  double R_tr_px_mix_all[10];
+  double R_tr_py_mix_all[10];
+  double R_tr_pz_mix_all[10];
+  double R_tr_th_mix_all[10];
+  double R_tr_ph_mix_all[10];
+  double mm_mixed_all[10];
   //  double L_tr_p_mix[10];
   //  double R_tr_th_mix[10];
   //  double R_tr_ph_mix[10];
@@ -129,6 +136,8 @@ class ana : public Tree
   //    double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
   double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
   void MixedEvent(int rt, int lt);
+  void MixedEventAll(int rt, int lt);
+ 
  private:
   int ENumMax;
   int ENum;
@@ -311,8 +320,16 @@ public:
   double L_tr_ph_mix[10];
   double mixed_acc[10];
   double mm_mix[10];
-
-  
+  double mass_mix[10];
+  double R_tr_p_mix_all[10];
+  double R_tr_px_mix_all[10];
+  double R_tr_py_mix_all[10];
+  double R_tr_pz_mix_all[10];
+  double R_tr_th_mix_all[10];
+  double R_tr_ph_mix_all[10];  
+  double mm_mix_all[10];
+  double mass_mix_all[10];
+  double mm_mixed_all[10];
 };
 
 #endif

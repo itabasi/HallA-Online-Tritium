@@ -8,5 +8,7 @@ const double rho_Al = 2.81;       // [g/cm3]
 const double length = 250.0 ;  // [mm]
 const double thickness_1H = 70.8e-3; // [g/cm2]
 const double thickness_3H = 84.8e-3; // [g/cm2]
-const double thickness_3He = 53.4e-3; // [g/cm2] 
+const double thickness_3He = 53.4e-3; // [g/cm2]
+
+double v_a, beta_a , a_0,r_0;
 #endif

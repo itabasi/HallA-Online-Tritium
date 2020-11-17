@@ -2,11 +2,16 @@
 
 void Fitting_Lam(){
 
-  string rname  = "../rootfiles/mmass/ana_Lambda/mmcalib_new/nnL_small_Ole_all.root";
+  //  string rname  = "../rootfiles/mmass/ana_Lambda/mmcalib_new/nnL_small_Ole_all.root";
+  //  string rname  = "../rootfiles/mmass/ana_Lambda/2020-09-06_3/nnL_small_Ole_all.root";
+  string rname  = "../rootfiles/mmass/ana_Lambda/2020-09-11/nnL_small_Ole_all.root";
+  
+  string rname2 = "../rootfiles/fsi/3HL_5MeVbin.root";
+  string rnameL  = "../rootfiles/fsi/Lam_5MeVbin.root";
+  
   //string rname2 = "../rootfiles/fsi/nnL_fsi_l3.root";
-  string rname2 = "../rootfiles/fsi/nnL_fsi_wb_l3.root";
-
-  string rnameL  = "../rootfiles/fsi/Lam_fsi.root";
+  //  string rname2 = "../rootfiles/fsi/nnL_fsi_wb_l3.root";
+  //  string rnameL  = "../rootfiles/fsi/Lam_fsi.root";
 
 
 
@@ -22,10 +27,11 @@ void Fitting_Lam(){
   //  TH1D* hL =(TH1D*)fL->Get("hmm_L");
   //  hexp->Add(hL,-80./1000000.);
   TH1F* hmm  =(TH1F*)f2->Get("hmm_L");
+  hmm->SetName("hmm");
   //  TH1F* hmm  =(TH1F*)f2->Get("hmm_fsi1");
   TH1F* hmmL  =(TH1F*)fL->Get("hmm_L");
   //  hmm->SetName("hmm");
-
+  //  hmm_L->SetName("hmm_L");
   TH1D* hexp2 = (TH1D*)hexp->Clone();
   //  TH1D* hmmL = (TH1D*)hmm->Clone();
   hexp2->SetName("hexp2");
@@ -120,4 +126,8 @@ void Fitting_Lam(){
   TCanvas* c1 =new TCanvas("c1","c1");
   c1->cd();  
   gchi->Draw("AP");
+
+  TCanvas* c2 =new TCanvas("c2","c2");
+  c2->cd();    
+  hexp->Draw();
 }

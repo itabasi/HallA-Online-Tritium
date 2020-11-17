@@ -33,7 +33,7 @@ double expgaus2(double *x, double *par) {
 
 void pion_tail(){
 
-    string ifname = "pion.root";
+    string ifname = "pion_wopid.root";
 
     TFile* ifp=new TFile(ifname.c_str());
     TH1F* hct =((TH1F*)ifp->Get("hct_peak"));
@@ -74,9 +74,11 @@ void pion_tail(){
     fall->SetLineColor(3);
     fall->Draw("same");
     double Ntot = hct->Integral(hct->GetXaxis()->FindBin(-1),hct->GetXaxis()->FindBin(1));
+    double Npi= fpi2->Integral(-1.,1.);
     cout<<"=========================="<<endl;
     cout<<"Integral fk "<<fk->Integral(-1,1)*10.<<endl;
     cout<<"Integral hct"<<Ntot<<endl;
+    cout<<"Integral pi "<<Npi<<endl;
     cout<<"pion tail "<<Ntot -fk->Integral(-1,1)*10.<<endl;
 
 }
