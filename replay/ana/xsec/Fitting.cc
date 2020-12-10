@@ -66,8 +66,6 @@ void Fitting(){
   int nmin  = hmm->GetXaxis()->GetXmin();
   int nmax  = hmm->GetXaxis()->GetXmax();
 
-
-
   
   double ymax0 = hexp -> GetBinContent(hexp->GetMaximumBin());
   double ymax1 = hmm  -> GetBinContent(hmm->GetMaximumBin());
@@ -90,6 +88,9 @@ void Fitting(){
   TGraphErrors* gchi=new TGraphErrors();
   gchi->SetMarkerStyle(3);
   gchi->SetMarkerColor(2);
+
+
+
   double chi2,chi2_min,w,wmin;
   int wmax=100;
   double width = 0.01;

@@ -2420,7 +2420,7 @@ double fsi::PhaseShift(double qq, int LL, int potential){
       // calc T matrix : T = R - i*pi*R*delta(E-Ho)T (C.12)
       // delta(E-Ho) = rho*delta(k-k')
       // <k|T = 1/(1+ i*rho*<k|R|k>)<k|R    (5.60)
-      
+      // T = 1.0
       complex<double>T[nmax3];
       toff[l] = complex<double>(0.0,0.0);
 

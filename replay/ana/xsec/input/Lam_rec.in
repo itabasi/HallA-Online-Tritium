@@ -1,0 +1,13 @@
+###########################
+### Set root files (COMMENT)
+#0  RHRS Generation ROOT (made in HRS.cc)
+#1  LHRS Generation ROOT (made in HRS.cc)
+#2  RHRS Reconstruction File (made in main.cc)
+#3  LHRS Reconstruction File (made in main.cc)
+#4  New Root File (calc missing mass )
+###########################
+../root/Lam_RHRS_ita.root
+../root/Lam_LHRS_ita.root
+./recondata/Lam_RHRS_recon.dat
+./recondata/Lam_LHRS_recon.dat
+../root/Lam_ita_recon.root

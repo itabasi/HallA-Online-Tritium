@@ -31,6 +31,7 @@ Double_t ef_1s( Double_t* x, Double_t* par ) {
   Double_t alpha = ( 1 - TMath::Sqrt( 1 - 2 * r / a ) ) / r;
   Double_t  beta = ( 1 + TMath::Sqrt( 1 - 2 * r / a ) ) / r;
 
+  
   return  ( q*q + beta*beta) / ( q*q + alpha*alpha );
 
 }
@@ -51,6 +52,8 @@ Double_t ef_1( Double_t* x, Double_t* par ) {
   Double_t alpha_t = ( 1 - TMath::Sqrt( 1 - 2 * r_t / a_t ) ) / r_t;
   Double_t  beta_t = ( 1 + TMath::Sqrt( 1 - 2 * r_t / a_t ) ) / r_t;
 
+
+  
   return    0.25 * ( q*q + beta_s*beta_s ) / ( q*q + alpha_s*alpha_s )
           + 0.75 * ( q*q + beta_t*beta_t ) / ( q*q + alpha_t*alpha_t );
 

@@ -4,16 +4,19 @@ void Fitting_Lam(){
 
   //  string rname  = "../rootfiles/mmass/ana_Lambda/mmcalib_new/nnL_small_Ole_all.root";
   //  string rname  = "../rootfiles/mmass/ana_Lambda/2020-09-06_3/nnL_small_Ole_all.root";
-  string rname  = "../rootfiles/mmass/ana_Lambda/2020-09-11/nnL_small_Ole_all.root";
+  //  string rname  = "../rootfiles/mmass/ana_Lambda/2020-09-11/nnL_small_Ole_all.root";
   
-  string rname2 = "../rootfiles/fsi/3HL_5MeVbin.root";
-  string rnameL  = "../rootfiles/fsi/Lam_5MeVbin.root";
-  
+  //  string rname2 = "../rootfiles/fsi/3HL_5MeVbin.root";
+  //  string rnameL  = "../rootfiles/fsi/Lam_5MeVbin.root";
   //string rname2 = "../rootfiles/fsi/nnL_fsi_l3.root";
   //  string rname2 = "../rootfiles/fsi/nnL_fsi_wb_l3.root";
   //  string rnameL  = "../rootfiles/fsi/Lam_fsi.root";
+  //  string rnameL  = "../rootfiles/fsi/Lam_fsi.root";
 
 
+  string rname  = "../rootfiles/mmass/ana_Lambda/best/nnL_small_Ole_all.root";
+  string rname2 = "../rootfiles/fsi/mmass/nnL_2MeVBin.root";
+  string rnameL  = "../rootfiles/fsi/mmass/Lam_2MeVBin.root";
 
   TFile * f1 =new TFile(rname.c_str());
   TFile * f2 =new TFile(rname2.c_str());
@@ -102,11 +105,14 @@ void Fitting_Lam(){
   double nLam = hexp2->Integral(hexp2->FindBin(-5.0),hexp2->FindBin(5.0));
   cout<<"wmin "<<wmin<<" rate "<<ymax0/ymax1<<" chi2 "<<chi2_min<<" nLam "<<nLam<<endl;  
 
-  int binL = hmmL->GetXaxis()->GetNbins();
+
   //  cout<<" binL "<<binL<<" bin "<<nbins<<endl;
   //  double nL = hmmL->Integral(hmmL->FindBin(-5.0),hmmL->FindBin(5.0))*2.0;
-  
 
+
+
+  
+  int binL = hmmL->GetXaxis()->GetNbins();
   double nL = hmmL->GetEntries();  
   hmmL->Scale(nLam/nL*2.0);
   
@@ -130,4 +136,5 @@ void Fitting_Lam(){
   TCanvas* c2 =new TCanvas("c2","c2");
   c2->cd();    
   hexp->Draw();
+  
 }
