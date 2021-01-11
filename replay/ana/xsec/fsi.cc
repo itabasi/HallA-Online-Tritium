@@ -59,7 +59,8 @@ bool Lam     = true;
 bool single  = true;
 //bool Vscale  = true;
 bool Vscale  = false;
-
+//bool Cha_mode =true;
+bool Cha_mode =false;
 /////////////////////////////////////////////////////////////////////////
 
 void fsi::NewRoot(string ofname){
@@ -303,8 +304,8 @@ void fsi::InfluenceFactor(string pname, int ll){
   //  int imax = 300;
   if(test){
 
-    qmax =500;
-    imax = 50;
+    qmax =250;
+    imax = 125;
   }
   
   for(int i=1; i<imax;i++){
@@ -640,7 +641,7 @@ void fsi::InfluenceFactorVscale(string pname, int ll){
   int ii=0;
 
   bool test =true;
-  test =false;
+  //  test =false;
 
   string pnames[100];
   int nv =30;
@@ -651,8 +652,8 @@ void fsi::InfluenceFactorVscale(string pname, int ll){
   double qmax = 2000;
   int imax = 500;
   if(test){
-    qmax =500;
-    imax = 50;
+    qmax =250;
+    imax =125;
   }
   
 
@@ -680,7 +681,7 @@ void fsi::InfluenceFactorVscale(string pname, int ll){
     gIs[n]= new TGraphErrors();
     gIt[n]= new TGraphErrors();
     gI[n]->SetName(Form("gI_%d",n));
-    gIs[n]->SetName(Form("gIs_%d",n));
+    gIs[n]->SetName(Form("gIqs_%d",n));
     gIt[n]->SetName(Form("gIt_%d",n));
 
     
@@ -715,6 +716,7 @@ void fsi::InfluenceFactorVscale(string pname, int ll){
   gI[n] ->Write();
   gIs[n]->Write();
   gIt[n]->Write();
+  gIT[n]->Write();
   
   ofp[n]->close();
 
@@ -1610,9 +1612,13 @@ void fsi::SetMom(){
     pn2  = Pn_2.P();
 
     if(Deu){
-      Pn.SetPxPyPzE(-Pp.Px(), -Pp.Py(), -Pp.Pz(), Trec);
-      Pn_2.SetPxPyPzE(-Pp.Px(), -Pp.Py(), -Pp.Pz(), Trec);
-      //      cout<<"Deu "<<Deu<<endl;
+      //      double En_d = sqrt(Pp.Px()*Pp.Px() +Pp.Py()*Pp.Py()+Pp.Pz()*Pp.Pz() + Mn*Mn);
+      double En_d = MD - Ep + Em;
+      Pn.SetPxPyPzE(-Pp.Px(), -Pp.Py(), -Pp.Pz(), En_d);
+      Pn_2.SetPxPyPzE(-Pp.Px(), -Pp.Py(), -Pp.Pz(), En_d);      
+      //      Pn.SetPxPyPzE(-Pp.Px(), -Pp.Py(), -Pp.Pz(), Trec);
+      //      Pn_2.SetPxPyPzE(-Pp.Px(), -Pp.Py(), -Pp.Pz(), Trec);
+      //      cout<<"Deu mode "<<Deu<<" En_d "<<En_d<<" Trec "<<Trec<<endl;
     }
     //    Pn.SetPxPyPzE(Pnx,Pny,Pnz,En);
     //    Prel = CalcQ(Pn,Pp,APv,PK); // MeV
@@ -2262,7 +2268,7 @@ double fsi::CalcQ2(TLorentzVector Pn, TLorentzVector Pp, TLorentzVector Pv, TLor
 /////////////////////////////////////////////////////////////////////////
 double fsi::PhaseShift(double qq, int LL, int potential){
 
-
+  
   
   //======= Energy Order is MeV ========//
   // fmu : dueteron mode
@@ -2283,7 +2289,7 @@ double fsi::PhaseShift(double qq, int LL, int potential){
   nrp1 = n1+n2;
   ftheL = complex<double>(0.0,0.0);
 
-
+  if(Cha_mode && model==2 && skz >100)model=1;
     
     double a0,r0;
          if(model==0){  a0 = -2.68; r0 = 2.91;}
@@ -2300,9 +2306,11 @@ double fsi::PhaseShift(double qq, int LL, int potential){
 	 }
 
 	 double R0 = 3.15; //test
-	 // test
-	 //	 r0 = 100000.;
+	 //test
+	 if(Cha_mode)r0 =3.15;
 
+
+	 
   // Kinematics
  
     if(nr_mode){
@@ -2436,6 +2444,16 @@ double fsi::PhaseShift(double qq, int LL, int potential){
       toff[l] = toff[l]/double(nrp1+1.0);
 
 
+      // Calc Influence Factor
+      // I =  <k| (1 + TGo)
+      
+
+
+
+
+
+
+      
       
       ron       = Rl[nrp1];
       ron0      = Rl0[nrp1];
@@ -2548,7 +2566,16 @@ double fsi::PhaseShift(double qq, int LL, int potential){
 
 
     I0  = 1./( real(Jl*conj(Jl)) ); // Jost Fanction
-    I1 = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0); // ERA
+    if(Cha_mode)I1 = pow( sin(skz*hbarc*r0 + deltal[LL])/sin(skz*hbarc*r0) ,2.0); // ERA sin function (Cha's D thisis)
+    else I1 = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0); // ERA sin function
+    
+
+
+
+
+
+    
+    
     IERA = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0); // ERA
 
     // T-operator matrix : I = <k'|T
@@ -2570,7 +2597,7 @@ double fsi::PhaseShift(double qq, int LL, int potential){
     
     if( I0 >100.  ) I0 = 0.0;
     if( I1 >100.  ) I1 = 0.0;
-
+    if(Cha_mode) I = I1;
     
     if(tcross0>0 || I <100.) return I;
     else     return 1.0;
@@ -2578,6 +2605,528 @@ double fsi::PhaseShift(double qq, int LL, int potential){
 
 }
 
+///////////////////////////////////////////////////////////////////////
+
+
+double fsi::CalcIfac(int LL, int potential, double Prel){
+
+  
+  //======= Energy Order is MeV ========//
+  // fmu : dueteron mode
+  amu    = Mu*1000.;
+  fnucl  = Mp*1000.;
+  fnucl2 = fnucl*fnucl;
+  hbarc2 = hbarc*hbarc;
+  ampj   =  (ML*1000.);
+  ampj2  = ampj*ampj;
+  amtag  = Mn*1000.;
+  amtag2 = amtag*amtag;
+  fmu = ampj*amtag/(ampj+amtag);
+  fmunn = ampj*fnucl/(ampj+fnucl);
+  xi=complex<double>(0.0,1.0);
+
+
+  
+  model = potential;
+  //  cout<<" Potential "<<model<<endl;
+  nrp1 = n1+n2;
+  ftheL = complex<double>(0.0,0.0);
+
+  
+  //  skz = 100.0; // MeV test 
+  skz = Prel; // MeV test 
+    // Kinematics
+
+ 
+    if(nr_mode){
+      skz = skz/hbarc; // [1/fm]
+      skz2 = skz*skz;  
+      eon = hbarc2*skz2/2.0/fmu; // Kinematics Energy [MeV]
+      rho = fmu*skz/hbarc2; // Desity of states/energy [1/(MeV*fm^3)]
+
+    }else {
+      skz2 = skz*skz;
+      ekpj  = sqrt(ampj2   + skz2);
+      ektag = sqrt( amtag2 + skz2);
+      eon = ekpj + ektag;
+      rho = skz*ekpj*ektag/eon;
+    }
+    
+    // Get Gauss pts and wtss for integral v(q)Pl(x)dx (x=cos(theta))
+  
+    DGauss(xvq,wvq,npot);
+    DGauss(x,w,n1);
+    for( int i =0; i<n1;i++){ // DO 20
+      skk[i] = skz  * (x[i]+1.0);
+      wt[i]  = w[i] * skz;
+
+    } // end 20
+    DGauss(x,w,n2);
+    for( int i =0; i<n2;i++){ // DO 21
+      int  ii = i +n1;
+      double coss = cos(PI*(x[i]+1.0)/4.0);
+      skk[ii] = 2.0 * skz +2.0 *skz * tan(PI*(x[i]+1.0 )/4.0);
+      wt[ii]  = 2.0* PI * 0.25 *skz/coss/coss*w[i];
+      //      cout<<"i "<<i<<" skk "<<skk[i]<<" skz "<<skz*hbarc<<endl;
+    } // end 21
+
+    // Set Last Segment
+    skk[nrp1] = skz;
+
+    // start the l-loop Do 30
+    // LL = the physical L . (0,1,2, ....)
+
+    lpjmax =LL;
+
+
+    
+
+    //==============================================//
+    //============= Loop Calc T-operator ===========//
+    //==============================================//
+
+
+
+    
+    for(int ll=0;ll<=lpjmax;ll++){ // DO 30
+      //      int l = ll+1;
+      int l = ll;
+      // start K',K'' loop to 40 & 50
+
+      for(int ki =0; ki<=nrp1;ki++){  // Set skz
+
+
+	skz = skk[ki]; // [1/fm]
+	skz2 = skz*skz;  
+	eon = hbarc2*skz2/2.0/fmu; // Kinematics Energy [MeV]
+	rho = fmu*skz/hbarc2; // Desity of states/energy [1/(MeV*fm^3)]
+
+	
+	for(int kp=0;kp <= nrp1;kp++){ // DO 40
+	  skp = skk[kp];
+	  for(int kpp=0;kpp <= nrp1;kpp++){ // DO 50
+	    skpp  = skk[kpp];
+	    skpp2 = skpp*skpp;
+	    // Initialization
+	    gren[kp][kpp] = complex<double>(0.0,0.0);
+	    ul[kp][kpp]   = complex<double>(0.0,0.0);
+	    // ============== //
+	    v2 = vlkkp(skp,skpp,ll);
+	    ul[kp][kpp]  = v2;
+	    eoff = hbarc2*skpp2/2.0/fmu;
+	    if(!nr_mode)eoff=sqrt(ampj2+skpp2)+ sqrt(amtag2+skpp2);
+	    if(kpp != nrp1)gren[kp][kpp] = wt[kpp]*skpp2*ul[kp][kpp]/(eon - eoff); 
+	    if(kp==kpp)  delta = complex<double>(1.0,0.0);
+	    else 	       delta = complex<double>(0.0,0.0);
+	    
+	    gren[kp][kpp] = delta - gren[kp][kpp];
+	    //	    cout<<"kp "<<kp<<" kpp "<<kpp<<" gren "<<gren[kp][kpp]<<endl;
+	    // gren : I - V * Go  
+	  } // END 50
+	} // END 40
+	
+	
+	
+
+	// Set the constant vector i.e. the B column matrix
+	// in thet matrix equation AX = B
+	
+	
+	for(int i=0;i<nmax2;i++){
+	  v[i]  = ul[i][nrp1];  // DO 60
+	  v0[i] = ul[i][nrp1]; 
+	}
+	
+	
+      int nmax3=(nrp1+1)*(nrp1+1);
+      complex<double>A[nmax3],A0[nmax3];
+      for(int i=0;i<=nrp1;i++){
+	for(int j=0;j<=nrp1;j++){
+	  
+	  //	  if(i!=j) A0[i*(nrp1+1)+j] = complex<double>(0.0,0.0);
+	  //	  else A0[i*(nrp1+1)+j]=gren[i][j];
+	  A[i*(nrp1+1)+j] = gren[i][j];
+	  //	  cout<<"i "<<i<<" j "<<j<<" A "<<gren[i][j]<<endl;
+	}
+      }
+      
+      // AX =B matrix : R(E-VGo)=V   (C.11) 
+      // A : gren[i][j] = E -V * Go (C.11)
+      // B : V
+      // X : R =(E - V * Go)^-1 * V (A) = A^-1 * B -> retrun X :  R | k> half-off shell 
+
+      
+      
+      LEQ3(A,v,Rl,nrp1);
+
+      
+      
+      
+      //==============================================//
+      //=======< T matrix calculation >===============//
+      //==============================================//
+      
+      
+      // calc T matrix : T = R - i*pi*R*delta(E-Ho)T (C.12)
+      // delta(E-Ho) = rho*delta(k-k')
+      // <k|T = 1/(1+ i*rho*<k|R|k>)<k|R    (5.60)
+      complex<double>T[nmax3]; // T-operator in 2-body scattering 
+     
+      for(int i=0;i<=nrp1;i++){
+	
+	T[i] = complex<double>(0.0,0.0);
+	T[i] = 1.0/(1.0 + xi* rho * Rl[nrp1] * PI )* Rl[i];
+	To[ki][i][ll] = T[i];
+	//	cout<<"ll "<<ll<<" ki "<<ki<<" i "<<i<<" To "<<To[ki][i][ll]
+	//	    <<" Rl "<<Rl[i]<<" Rl[nrp1 ]"<<Rl[nrp1]<<endl;
+      }
+
+
+
+      }
+      
+
+
+
+      
+      // Calc Influence Factor
+      // I =  <k| (1 + TGo)
+
+      for(int kp=0;kp <= nrp1;kp++){ // DO 40
+	skp = skk[kp];
+	Ifac[kp][ll] = 0.0;
+	for(int kpp=0;kpp <= nrp1;kpp++){ // DO 50
+	  skpp  = skk[kpp];
+	  skpp2 = skpp*skpp;
+	  // Initialization
+	  Ts[kp][kpp]    = complex<double>(0.0,0.0);
+	  v2 = vlkkp(skp,skpp,ll);
+	  eoff = hbarc2*skpp2/2.0/fmu;
+	  if(!nr_mode)eoff=sqrt(ampj2+skpp2)+ sqrt(amtag2+skpp2);
+	  if(kpp != nrp1)Ts[kp][kpp] = wt[kpp]*skpp2*To[kp][kpp][ll]/(eon - eoff); 
+	  if(kp==kpp)  delta = complex<double>(1.0,0.0);
+	  else 	       delta = complex<double>(0.0,0.0);
+
+	  Ts[kp][kpp] = delta + Ts[kp][kpp];
+	  Ifac[kp][ll]   += real( sqrt( real(Ts[kp][kpp])* conj(Ts[kp][kpp] )) );
+
+	  // Ts : E - To (T-operator) * Go  
+	} // END 50
+
+
+
+	I0 =Ifac[kp][ll]; // Ifac = Ts*Ts
+
+      } // END 40
+    }  // end loop L
+
+
+
+
+    
+    return I0;
+    
+}
+
+////////////////////////////////////////////////////////////////////////
+
+/*
+double fsi::CalcIfac_new(int LL, int potential, double Prel){
+
+  cout<<"======================================="<<endl;
+  cout<<"===  start Calc Influence Factor  ====="<<endl;
+  cout<<"======================================="<<endl;
+  
+  //======= Energy Order is MeV ========//
+  // fmu : dueteron mode
+  amu    = Mu*1000.;
+  fnucl  = Mp*1000.;
+  fnucl2 = fnucl*fnucl;
+  hbarc2 = hbarc*hbarc;
+  ampj   =  (ML*1000.);
+  ampj2  = ampj*ampj;
+  amtag  = Mn*1000.;
+  amtag2 = amtag*amtag;
+  fmu = ampj*amtag/(ampj+amtag);
+  fmunn = ampj*fnucl/(ampj+fnucl);
+  xi=complex<double>(0.0,1.0);
+
+
+  
+  model = potential;
+  nrp1 = n1+n2;
+  ftheL = complex<double>(0.0,0.0);
+  skz = Prel; // MeV test 
+
+
+ 
+    if(nr_mode){
+      skz = skz/hbarc; // [1/fm]
+      skz2 = skz*skz;  
+      eon = hbarc2*skz2/2.0/fmu; // Kinematics Energy [MeV]
+      rho = fmu*skz/hbarc2; // Desity of states/energy [1/(MeV*fm^3)]
+
+    }else {
+      skz2 = skz*skz;
+      ekpj  = sqrt(ampj2   + skz2);
+      ektag = sqrt( amtag2 + skz2);
+      eon = ekpj + ektag;
+      rho = skz*ekpj*ektag/eon;
+    }
+    
+    // Get Gauss pts and wtss for integral v(q)Pl(x)dx (x=cos(theta))
+  
+    DGauss(xvq,wvq,npot);
+    DGauss(x,w,n1);
+    for( int i =0; i<n1;i++){ // DO 20
+      skk[i] = skz  * (x[i]+1.0);
+      wt[i]  = w[i] * skz;
+
+    } // end 20
+    DGauss(x,w,n2);
+    for( int i =0; i<n2;i++){ // DO 21
+      int  ii = i +n1;
+      double coss = cos(PI*(x[i]+1.0)/4.0);
+      skk[ii] = 2.0 * skz +2.0 *skz * tan(PI*(x[i]+1.0 )/4.0);
+      wt[ii]  = 2.0* PI * 0.25 *skz/coss/coss*w[i];
+      //      cout<<"i "<<i<<" skk "<<skk[i]<<" skz "<<skz*hbarc<<endl;
+    } // end 21
+
+    // Set Last Segment
+    skk[nrp1] = skz;
+
+    // start the l-loop Do 30
+    // LL = the physical L . (0,1,2, ....)
+
+    lpjmax =LL;
+    int ll = LL;
+
+    
+
+
+    
+    //==============================================//
+    //============= Loop Calc T-operator ===========//
+    //==============================================//
+
+
+
+      for(int ki =0; ki<=nrp1;ki++){  // Set skz
+
+
+	skz = skk[ki]; // [1/fm]
+	skz2 = skz*skz;  
+	eon = hbarc2*skz2/2.0/fmu; // Kinematics Energy [MeV]
+	rho = fmu*skz/hbarc2; // Desity of states/energy [1/(MeV*fm^3)]
+
+      
+
+	skz = skk[ki]; // [1/fm]
+	skz2 = skz*skz;  
+	eon = hbarc2*skz2/2.0/fmu; // Kinematics Energy [MeV]
+	rho = fmu*skz/hbarc2; // Desity of states/energy [1/(MeV*fm^3)]
+
+	
+	for(int kp=0;kp <= nrp1;kp++){ // DO 40
+	  skp = skk[kp];
+	  for(int kpp=0;kpp <= nrp1;kpp++){ // DO 50
+	    skpp  = skk[kpp];
+	    skpp2 = skpp*skpp;
+	    // Initialization
+	    gren[kp][kpp] = complex<double>(0.0,0.0);
+	    ul[kp][kpp]   = complex<double>(0.0,0.0);
+	    // ============== //
+	    v2 = vlkkp(skp,skpp,ll);
+	    ul[kp][kpp]  = v2;
+	    eoff = hbarc2*skpp2/2.0/fmu;
+	    if(!nr_mode)eoff=sqrt(ampj2+skpp2)+ sqrt(amtag2+skpp2);
+	    if(kpp != nrp1)gren[kp][kpp] = wt[kpp]*skpp2*ul[kp][kpp]/(eon - eoff); 
+	    if(kp==kpp)  delta = complex<double>(1.0,0.0);
+	    else 	       delta = complex<double>(0.0,0.0);
+	    
+	    gren[kp][kpp] = delta - gren[kp][kpp];
+	    //	    cout<<"kp "<<kp<<" kpp "<<kpp<<" gren "<<gren[kp][kpp]<<endl;
+	    // gren : I - V * Go  
+	  } // END 50
+	} // END 40
+	
+	
+	
+
+	// Set the constant vector i.e. the B column matrix
+	// in thet matrix equation AX = B
+	
+	
+	for(int i=0;i<nmax2;i++){
+	  v[i]  = ul[i][nrp1];  // DO 60
+	  v0[i] = ul[i][nrp1]; 
+	}
+	
+	
+      int nmax3=(nrp1+1)*(nrp1+1);
+      complex<double>A[nmax3],A0[nmax3];
+      for(int i=0;i<=nrp1;i++){
+	for(int j=0;j<=nrp1;j++){
+	  
+	  //	  if(i!=j) A0[i*(nrp1+1)+j] = complex<double>(0.0,0.0);
+	  //	  else A0[i*(nrp1+1)+j]=gren[i][j];
+	  A[i*(nrp1+1)+j] = gren[i][j];
+	  //	  cout<<"i "<<i<<" j "<<j<<" A "<<gren[i][j]<<endl;
+	}
+      }
+      
+      // AX =B matrix : R(E-VGo)=V   (C.11) 
+      // A : gren[i][j] = E -V * Go (C.11)
+      // B : V
+      // X : R =(E - V * Go)^-1 * V (A) = A^-1 * B -> retrun X :  R | k> half-off shell 
+
+      
+      
+      LEQ3(A,v,Rl,nrp1);
+
+      
+      
+      
+      //==============================================//
+      //=======< T matrix calculation >===============//
+      //==============================================//
+      
+      
+      // calc T matrix : T = R - i*pi*R*delta(E-Ho)T (C.12)
+      // delta(E-Ho) = rho*delta(k-k')
+      // <k|T = 1/(1+ i*rho*<k|R|k>)<k|R    (5.60)
+      complex<double>T[nmax3]; // T-operator in 2-body scattering 
+     
+      for(int i=0;i<=nrp1;i++){
+	
+	T[i] = complex<double>(0.0,0.0);
+	T[i] = 1.0/(1.0 + xi* rho * Rl[nrp1] * PI )* Rl[i];
+	To[ki][i][LL] = T[i];
+
+      }
+
+
+}
+      
+
+
+
+      
+      // Calc Influence Factor
+      // I =  <k| (1 + TGo)
+
+      for(int kp=0;kp <= nrp1;kp++){ // DO 40
+	skp = skk[kp];
+	Ifac[kp][ll] = 0.0;
+	for(int kpp=0;kpp <= nrp1;kpp++){ // DO 50
+	  skpp  = skk[kpp];
+	  skpp2 = skpp*skpp;
+	  // Initialization
+	  Ts[kp][kpp]    = complex<double>(0.0,0.0);
+	  v2 = vlkkp(skp,skpp,ll);
+	  eoff = hbarc2*skpp2/2.0/fmu;
+	  if(!nr_mode)eoff=sqrt(ampj2+skpp2)+ sqrt(amtag2+skpp2);
+	  if(kpp != nrp1)Ts[kp][kpp] = wt[kpp]*skpp2*To[kp][kpp][ll]/(eon - eoff); 
+	  if(kp==kpp)  delta = complex<double>(1.0,0.0);
+	  else 	       delta = complex<double>(0.0,0.0);
+
+	  Ts[kp][kpp] = delta + Ts[kp][kpp];
+	  Ifac[kp][ll]   += real( sqrt( real(Ts[kp][kpp])* conj(Ts[kp][kpp] )) );
+
+	  // Ts : E - To (T-operator) * Go  
+	} // END 50
+	//	gIT[ll]->SetPoint(kp,skp*hbarc,Ifac[kp][ll]);
+	//      gIT[ll]->Write();	
+	//	cout<<"kp "<<kp<<" Ifac "<<Ifac[kp][ll]<<endl;
+	I0 =Ifac[kp][ll];
+
+      } // END 40
+
+
+
+
+
+    
+    return I0;
+    
+}
+
+*/
+
+///////////////////////////////////////////////////////////////////////
+
+void fsi::GetIfac(int LL, int potentail, string pname){
+
+  cout<<"======================================="<<endl;
+  cout<<"===  start Calc Influence Factor  ====="<<endl;
+  cout<<"======================================="<<endl;
+
+
+
+
+  string pname1 = pname + "_Verma.dat";
+  string pname2 = pname + "_JulichA.dat";
+  string pname3 = pname + "_JulichB.dat";
+
+  ofp[1] = new ofstream(pname1.c_str());
+  ofp[2] = new ofstream(pname2.c_str());
+  ofp[3] = new ofstream(pname3.c_str());
+
+
+  
+  *ofp[1] << "### FSI tabel with Verma Potential (2-Gauss potential) calculated by T-operator (on-shell approximation) #####"<<endl;
+  *ofp[1]<<"# krel [MeV] # Influence Factor(S) # Influence Factor(T)"<<endl;
+
+  *ofp[2] << "### FSI tabel with Julich A Potential (2-Gauss potential)  calculated by T-operator (on-shell approximation)#####"<<endl;
+  *ofp[2]<<"# krel [MeV] # Influence Factor(S) # Influence Factor(T)"<<endl;
+
+  *ofp[3] << "### FSI tabel with Julich B Potential (2-Gauss potential)  calculated by T-operator (on-shell approximation)#####"<<endl;
+  *ofp[3]<<"# krel [MeV] # Influence Factor(S) # Influence Factor(T)"<<endl;
+  
+
+  bool test=true;
+  test =false;
+  int npmax =50;
+  double Prel=0.0;          
+  for(int i=1;i<=3;i++){ // Potential
+    gIT[i]= new TGraphErrors();
+    gIT[i]->SetName(Form("gIT_%d",i));    
+    gIT[i]->SetMarkerStyle(7);
+    gIT[i]->SetMarkerColor(i);
+    gITs[i]= new TGraphErrors();
+    gITs[i]->SetName(Form("gITs_%d",i));    
+    gITs[i]->SetMarkerStyle(3);
+    gITs[i]->SetMarkerColor(i);
+    gITt[i]= new TGraphErrors();
+    gITt[i]->SetName(Form("gITt_%d",i));    
+    gITt[i]->SetMarkerStyle(3);
+    gITt[i]->SetMarkerColor(i);
+    Prel=0.0;
+    if(test)npmax=5;  
+    for(int p=0;p<npmax;p++){
+      Prel += 3.*(double)(p+1);
+      double Is = CalcIfac(0,i,Prel);
+      double It = CalcIfac(0,-i,Prel);
+      double I  = (Is+3.0*It)/4.0;
+      gITs[i]->SetPoint(p,Prel,Is);
+      gITt[i]->SetPoint(p,Prel,It);
+      gIT[i] ->SetPoint(p,Prel,I );
+      cout<<"potential "<<i<<" i "<<p<<" / "<<npmax<<" Prel "<<Prel<<" I "<<I<<endl;
+      
+      *ofp[i] << Prel << " " << Is <<" "<< It <<endl;
+      
+      
+    }
+    
+    gITs[i]->Write();
+    gITt[i]->Write();
+    gIT[i] ->Write();
+    ofp[i] ->close();      
+  }
+    
+  
+  
+}
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -2809,24 +3358,6 @@ int main(int argc, char** argv){
 
 
 
-  //===== test ======//
-
-  /*
-int i,n,nu,MaxNu = 3;
-double x,dx,xmin,xmax;
-n = 100;
-xmin = 0.0; xmax = 10.0;
-dx = (xmax - xmin) / n;
-for (i = 0; i <= n; i++) {
-x = xmin + i * dx;
-printf("%f ", x);
-for (nu = 0; nu <= MaxNu; nu++)
-printf("%f ", gsl_sf_bessel_In(nu, x));
-printf("\n");
-}
-  */
-//================y
-  
 
   
   string fermi_mom="./param/2h_AV18_K.dat";
@@ -2842,9 +3373,9 @@ printf("\n");
   if(param_mode) FSI -> SetParam(pname);
   FSI -> SetHist();
   FSI -> SetFermiMom(fermi_mom);
-  if(write_mode && !Vscale) FSI -> InfluenceFactor(ofPname,l);
-  if(write_mode &&  Vscale) FSI -> InfluenceFactorVscale(ofPname,l);
-
+  if(write_mode)  FSI ->GetIfac(0,1, ofPname); // T-operator calc.
+  //  if(write_mode && !Vscale) FSI -> InfluenceFactor(ofPname,l);
+  //  if(write_mode &&  Vscale) FSI -> InfluenceFactorVscale(ofPname,l);
   if(param_mode) FSI -> SetMom();
 
   cout<<endl;

@@ -1,0 +1,3910 @@
+C* BRIDGE PROGRAM FOR HYPERON-NUCLEON ( NSC97 ) POTENTIAL
+C* ------------------------------------------------------------------
+C*  For S=-1 YN potential ( by. Vincent Stokes ) 1997.11.26
+C*  NSC97
+C*   Modified by Hisahiko Yamamura  1998.12.8
+C*   Communication -->
+C*     COMMON/POTJYN/VYN1N(10,8,3),VYN3H(10,8)
+C*
+c   11/28/2020  d12.6--->d13.6  (file name changed: nijyn97m-->nij97m2)
+c
+      SUBROUTINE POTCHECK(MYNPOT)
+      MYNPOT=1
+      END
+C *******************************************************************
+      SUBROUTINE POTLSJ(P1,P2,LL,IS,J,V00,V02,V20,V22,KOPPEL)
+C*     TOTAL ISOSPIN = 1/2
+C *******************************************************************
+C
+      IMPLICIT REAL*8(A-H,O-Z)
+      REAL*8       MPROT,MNEUT,MLAMB,MSIGP,MSIGN,MSIGM
+      LOGICAL    KOPPEL
+      DIMENSION  RMSQ(2),CONV(2,2)
+     .          ,V00(2,2),V02(2,2),V20(2,2),V22(2,2)
+C*
+      COMMON/POTJYN/VYN1H(10,8,3),VYN3H(10,8)
+c*
+      COMMON/BNLSM/MPROT,MNEUT,MLAMB,MSIGP,MSIGN,MSIGM
+      COMMON/HQCP/HC,PI
+C*
+c*      DATA MPROT/938.27231D0/,MNEUT/939.56563D0/,MLAMB/1115.63D0/,
+c*     .     MSIGP/1189.37D0/ ,MSIGN/1192.55D0/ ,MSIGM/1197.43D0/
+C*      DATA HC/197.3288D0/
+c*      DATA HC/197.327053d0/
+C **
+C*     VERSION NUMBER: NYMOD
+           NYMOD=6
+C*     FOR ISOSIN-BASIS: NBASE
+           NBASE=1
+C*     TOTAL ISOSPIN: N2IT
+           N2IT=1
+C*     TOTAL PARTICLE CHARGE: NQCHN
+           NQCHN=0
+C*     PRINTING OPTION
+           NS=0
+*
+           AMN=(MPROT+MNEUT)/2.D0
+           AMY=MLAMB
+           RMSQ(1)=DSQRT( AMY*AMN/(AMY+AMN) )
+           AMY=(MSIGP+2.D0*MSIGN+MSIGM)/4.D0
+           RMSQ(2)=DSQRT( AMY*AMN/(AMY+AMN) )
+***    CONVF=HC/(2.D0*PI)**3 *P1*P2
+***     extra factor by Stokes
+       CONVF=HC/(2.D0*PI)**3 *P1*P2  *4.D0*PI
+      QI=P2*HC
+      QF=P1*HC
+      IUSPIN=MOD(LL+IS+1,2)
+      DO 1 L=1,2
+      DO 1 M=1,2
+         CONV(L,M)=CONVF*2.D0*RMSQ(L)*RMSQ(M)
+         V02(L,M)=0.D0
+         V20(L,M)=0.D0
+    1    V22(L,M)=0.D0
+C
+       CALL PWHNPOT(NYMOD,J,QI,QF,NBASE,N2IT,NQCHN,NS)
+      K=J+1
+      IF(KOPPEL) THEN
+           L=1
+           M=1
+              V00(L,M)= VYN1H(K,3,1)*CONV(L,M)
+              V02(L,M)=-VYN1H(K,4,1)*CONV(L,M)
+              V20(L,M)=-VYN1H(K,6,1)*CONV(L,M)
+              V22(L,M)= VYN1H(K,5,1)*CONV(L,M)
+           L=1
+           M=2
+              V00(L,M)= VYN1H(K,3,2)*CONV(L,M)
+              V02(L,M)=-VYN1H(K,4,2)*CONV(L,M)
+              V20(L,M)=-VYN1H(K,6,2)*CONV(L,M)
+              V22(L,M)= VYN1H(K,5,2)*CONV(L,M)
+           L=2
+           M=2
+              V00(L,M)= VYN1H(K,3,3)*CONV(L,M)
+              V02(L,M)=-VYN1H(K,4,3)*CONV(L,M)
+              V20(L,M)=-VYN1H(K,6,3)*CONV(L,M)
+              V22(L,M)= VYN1H(K,5,3)*CONV(L,M)
+      ELSEIF (IS.EQ.0) THEN
+              V00(1,1)= VYN1H(K,1,1)*CONV(1,1)
+              V00(1,2)= VYN1H(K,1,2)*CONV(1,2)
+              V00(2,2)= VYN1H(K,1,3)*CONV(2,2)
+      ELSE
+          ID=2
+          IF(J.EQ.0) ID=5
+              V00(1,1)= VYN1H(K,ID,1)*CONV(1,1)
+              V00(1,2)= VYN1H(K,ID,2)*CONV(1,2)
+              V00(2,2)= VYN1H(K,ID,3)*CONV(2,2)
+      ENDIF
+C
+       CALL PWHNPOT(NYMOD,J,QF,QI,NBASE,N2IT,NQCHN,NS)
+      K=J+1
+      IF(KOPPEL) THEN
+           L=2
+           M=1
+              V00(L,M)= VYN1H(K,3,2)*CONV(L,M)
+              V02(L,M)=-VYN1H(K,6,2)*CONV(L,M)
+              V20(L,M)=-VYN1H(K,4,2)*CONV(L,M)
+              V22(L,M)= VYN1H(K,5,2)*CONV(L,M)
+      ELSEIF (IS.EQ.0) THEN
+              V00(2,1)= VYN1H(K,1,2)*CONV(2,1)
+      ELSE
+          ID=2
+          IF(J.EQ.0) ID=5
+              V00(2,1)= VYN1H(K,ID,2)*CONV(2,1)
+      ENDIF
+      RETURN
+      END
+C *******************************************************************
+      SUBROUTINE POTLSJ3(P1,P2,LL,IS,J,V00,V02,V20,V22,KOPPEL)
+C*      TOTAL ISOSPIN = 3/2
+C *******************************************************************
+C
+      IMPLICIT real*8(A-H,O-Z)
+      REAL*8       MPROT,MNEUT,MLAMB,MSIGP,MSIGN,MSIGM
+      LOGICAL    KOPPEL
+      DIMENSION  RMSQ(2),CONV(2,2)
+     .          ,V00(2,2),V02(2,2),V20(2,2),V22(2,2)
+C*
+      COMMON/POTJYN/VYN1H(10,8,3),VYN3H(10,8)
+c*
+      COMMON/BNLSM/MPROT,MNEUT,MLAMB,MSIGP,MSIGN,MSIGM
+      COMMON/HQCP/HC,PI
+C*
+c*      DATA MPROT/938.27231D0/,MNEUT/939.56563D0/,MLAMB/1115.63D0/,
+c*     .     MSIGP/1189.37D0/ ,MSIGN/1192.55D0/ ,MSIGM/1197.43D0/
+C*      DATA HC/197.3288D0/
+c*      DATA HC/197.327053d0/
+C **
+C*     VERSION NUMBER: NYMOD
+           NYMOD=6
+C*     FOR ISOSIN-BASIS: NBASE
+           NBASE=1
+C*     TOTAL ISOSPIN: N2IT
+           N2IT=3
+C*     TOTAL PARTICLE CHARGE: NQCHN
+           NQCHN=0
+C*     PRINTING OPTION
+           NS=0
+*
+           AMN=(MPROT+MNEUT)/2.D0
+           AMY=MLAMB
+           RMSQ(1)=DSQRT( AMY*AMN/(AMY+AMN) )
+           AMY=(MSIGP+2.D0*MSIGN+MSIGM)/4.D0
+           RMSQ(2)=DSQRT( AMY*AMN/(AMY+AMN) )
+***    CONVF=HC/(2.D0*PI)**3 *P1*P2
+***     extra factor by Stokes
+       CONVF=HC/(2.D0*PI)**3 *P1*P2  *4.D0*PI
+      QI=P2*HC
+      QF=P1*HC
+      IUSPIN=MOD(LL+IS+1,2)
+      DO 1 L=1,2
+      DO 1 M=1,2
+         CONV(L,M)=CONVF*2.D0*RMSQ(L)*RMSQ(M)
+         V00(L,M)=0.d0
+         V02(L,M)=0.D0
+         V20(L,M)=0.D0
+    1    V22(L,M)=0.D0
+C
+       CALL PWHNPOT(NYMOD,J,QI,QF,NBASE,N2IT,NQCHN,NS)
+      K=J+1
+      IF(KOPPEL) THEN
+           L=2
+           M=2
+              V00(L,M)= VYN3H(K,3)*CONV(L,M)
+              V02(L,M)=-VYN3H(K,4)*CONV(L,M)
+              V20(L,M)=-VYN3H(K,6)*CONV(L,M)
+              V22(L,M)= VYN3H(K,5)*CONV(L,M)
+      ELSEIF (IS.EQ.0) THEN
+              V00(2,2)= VYN3H(K,1)*CONV(2,2)
+      ELSE
+          ID=2
+          IF(J.EQ.0) ID=5
+              V00(2,2)= VYN3H(K,ID)*CONV(2,2)
+      ENDIF
+      RETURN
+      END
+C* --------------------------------------------------------------------
+C* BRIDGE PROGRAM FOR HYPERON-NUCLEON POTENTIAL (NSC97)--- END
+C* ********************************************************************
+C* HYPERON - NUCLEON POTENTIAL ( NSC97 ) PROGRAM
+C* --------------------------------------------------------------------
+c 6/2/1997
+C* NSC97 potential ( S=-1 )
+c*  PUBLICATION: Phys.Rev.C59(1999)1
+c*    write -- comment out
+C    For avoiding duplication  with NIJ93,
+c              jfac  --> jfacx     6
+c              qfac  --> qfacx    10+4
+c              fdexp --> fdexpx   12+3
+c              ce1   --> ce1x             12+2
+C*
+C **********************************************************************
+      subroutine pwhnpot(nymod,j,qi,qf,nbase,n2it,nqchn,ns)
+C **********************************************************************
+C
+C     HYPERON - NUCLEON POTENTIAL PROGRAM :
+C
+C     NYMOD = 0: soft-core model corresponding to Phys.Rev.C40(1989)2226
+C     NYMOD = 1--6: different versions from fits to YN data
+C
+C INPUT :
+C     J     = total angular momentum (should be less than 7)
+C             Internal or flavor symmetry:
+C                singlet               : PFAC= (-)**J
+C                triplet-uncoupled     : PFAC=-(-)**J
+C                triplet-coupled       : PFAC= (-)**J
+C                singlet-triplet mixing: PFAC=-1 (all J)
+C             ==>
+C                PFAC = +1D0 : if  symmetric under Y-N interchange
+C                PFAC = -1D0 : if asymmetric under Y-N interchange
+C
+C     QI    = center-of-mass momentum initial state (MeV)
+C     QF    = center-of-mass momentum  final  state (MeV)
+C
+C     NBASE = 1 : potentials on isospin basis  ==> N2IT  is relevant.
+C           = 2 : potentials on particle basis ==> NQCHN is relevant.
+C
+C     N2IT  = 1 : total isospin = 1/2,
+C                 calculates channel (Lam-Nuc, Sig-Nuc)
+C           = 3 : total isospin = 3/2
+C                 calculates channel (Sig-Nuc)
+C
+C     NQCHN =-1 : total particle charge = -1,
+C                 Sigma(-)-neutron
+C           = 0 : total particle charge =  0,
+C                 Lambda-neutron, Sigma(0)-neutron, Sigma(-)-proton
+C           =+1 : total particle charge = +1,
+C                 Lambda-proton,  Sigma(+)-neutron, Sigma(0)-proton
+C           =+2 : total particle charge = +2,
+C                 Sigma(+)-proton
+C
+C     NS    = 0 : noprint
+C           = 1 : restricted printing
+C           = 2 : extensive printing. The program prints R(fm),
+C                 and the total potentials on isospin-basis
+C           = 3 : extra printing. The program prints also the
+C                 potentials on the isospin-basis per meson-type
+C
+C END INPUT DESCRIPTION. ***********************************************
+C
+C     Potential decomposition in momentum-space plane-wave basis:
+C
+C     V(QF,QI) = VC*P1 + VSIG*P2 + VTEN*P3 + VSO*P4 + VSO2*P5 + VASO*P6
+C
+C     VC   = central potential
+C     VSIG = spin-spin potential
+C     VTEN = tensor potential
+C     VSO  = spin-orbit potential
+C     VSO2 = quadratic spin-orbit potential
+C     VASO = antisymmetric spin-orbit potential (not used)
+C
+C     P1 = 1,
+C     P2 = SIGM(1).SIGM(2)
+C     P3 = (SIGM(1).K)*(SIGM(2).K) - (K2/3)*SIGM(1).SIGM(2)
+C     P4 = (I/2)*(SIGM(1)+SIGM(2)).N,
+C     P5 = (SIGM(1).N)*(SIGM(2).N)
+C     P6 = (I/2)*(SIGM(1)-SIGM(2)).N,
+C
+C     K = QF - QI,   Q = (QF+QI)/2,   N = QI X QF = Q X K
+C
+C     NOTE: different decomposition of P3 term compared to Phys.Rev.D17
+C     ***** VASO was not(!) included in the fit to the YN data
+C           (it is here only included for future reference).
+C
+C OUTPUT: NIJMEGEN SOFT-CORE HYPERON-NUCLEON POTENTIALS
+C
+C AD NBASE = 1:
+C     The potentials on the isospin-basis are communicated to the
+C     calling program via
+C     COMMON/POTJYN/VYN1H(10,8,3),VYN3H(10,8)
+C           where (1-10,*,*)     labels V(J+1)
+C                 (*,1-8,*)      labels particular LSJ combination
+C                 VYN1H(*,*,1-3) = Isospin-1/2 potentials labeled as
+C                                ln-ln, ln-sn, sn-sn
+C                 VYN3H(*,*)     = Isospin-3/2 potential labeled as
+C                                sn-sn
+C     NOTE: For convenience they are also stored in VYNPOT (see below)
+C
+C     NOTE: The hyperon-nucleon potentials were fitted without VASO (!).
+C           It is here only included for future reference
+C
+C AD NBASE = 2:
+C     The potentials on the particle-basis are communicated to the
+C     calling program via
+C     COMMON/POTSM1/VYNPOT(10,8,3,3)
+C            with nomenclature :
+C     VYNPOT(J+1,1,*,*):   < L'=J,S'=0 | V(J) | L=J,S=0 >    1S0,1P1,1D2
+C     VYNPOT(J+1,2,*,*):   < L'=J,S'=1 | V(J) | L=J,S=1 >        3P1,3D1
+C     VYNPOT(J+1,3,*,*): < L'=J-1,S'=1 | V(J) | L=J-1,S=1 >      3S1,3P2
+C     VYNPOT(J+1,4,*,*): < L'=J-1,S'=1 | V(J) | L=J+1,S=1 >      3SD,3PF
+C     VYNPOT(J+1,5,*,*): < L'=J+1,S'=1 | V(J) | L=J+1,S=1 >  3P0,3D1,3F2
+C     VYNPOT(J+1,6,*,*): < L'=J+1,S'=1 | V(J) | L=J-1,S=1 >      3DS,3FP
+C     VYNPOT(J+1,7,*,*):   < L'=J,S'=1 | V(J) | L=J,S=0 >        31P,31D
+C     VYNPOT(J+1,8,*,*):   < L'=J,S'=0 | V(J) | L=J,S=1 >        13P,13D
+C     Lambda-Nucleon channel   (nqchn=0,+1)  :  3x3 full matrix
+C     Sigma-Nucleon channel    (nqchn=-1,+2) :  1x1 submatrix
+C                 which is same as VYN3H(10,8) in COMMON/POTJYN/
+C     For convenience, in case of NBASE=1, the isospin potentials are
+C     also stored in this matrix:  n2it=3,    1x1 submatrix
+C                                  n2it=1,    3x3 matrix
+C
+C*----------------------------------------------------------------------
+C*    Defining the K-matrix as   2i*mu*q*K = (1-S)(1+S)^-1
+C*    (so for singlet channel   tan(delta)=-2*mu*q*K )
+C*    the partial-wave Lippmann-Schwinger equation reads
+C*
+C*       K(q'q) = V(q'q) + 2/pi int dk k^2 V(q'k) G(q,k) K(kq)
+C*    with
+C*       G(q,k) = P / (E(q) - k^2/2/mu)
+C*       V(q'k) = 1 / (4*pi) * VPOT(QI=k,QF=q')
+C*
+C*    Note: SYM convention is used, so additional minus sign in
+C*    off-diagonal tensor potential (shows up in mixing parameter)
+C*----------------------------------------------------------------------
+C
+C END OUTPUT DESCRIPTION. **********************************************
+C
+C     UNITS :  QI, QF  in MeV
+C              VYNPOT(J+1,K,*,*)  in MeV**-2
+C
+C     OBE-parameters, nomenclature in the program :
+C
+C     PAR(1,I) = XS     F1     GV1    FV1    GDEL   GD1    FA1    GSPAIR
+C     PAR(2,I) = XT     ALPV   ALVE   ALVM   GS*    PSID   ALPA   GVPAIR
+C     PAR(3,I) = X1P1   FX0    GOM    FOM    GEPS   GPOM   GPS21  FVPAIR
+C     PAR(4,I) = X3P27  PIONC  AM1RO  ARO    AMD    1.0    GPS29  GAPAIR
+C     PAR(5,I) = XHIGHL PION0  AM2RO  BRO    AM1SI  ASI    GT1    HAPAIR
+C     PAR(6,I) = AMPRO  ETA    AMOM   ELPHI  AM2SI  BSI    GT9    GPPAIR
+C     PAR(7,I) = ALM1   AMX0   AMFI   PSIS1  AM1ST  1.0    FT1    HOPAIR
+C     PAR(8,I) = ALM27  ALMP8  ALMV8  PSIS8  ALMS8  AMA2   FT9    GEPAIR
+C     PAR(9,I) = ALM8S  ALMP1  ALMV1  THS1   ALMS1  AMPOM  SU3F   GPIET
+C     PAR(10,I)= ALM10  THPS   THV    THS2   AMEPS  THD    SONV   GPIETP
+C     PAR(11,I)= ALM8A  THPE   THRO   THDE   GAMEP  AHYPC  SONPV  GPIPOM
+C     PAR(12,I)= ALM10S ALAMK  ALMKS  ALMKP  AMSCK  AMKSS  SONSC  SCALE
+C
+C     ALM27 = ALAM IRREP 27      , ALM10 = ALAM IRREP 10
+C     ALM8S = ALAM IRREP 27+8S   , ALM8A = ALAM IRREP 10*+8A
+C
+C     Parameters for MODEL D and F :
+C     PAR(1-2,1)=XS,XT: hardcore parameters (not used in soft-core)
+C     PAR(3-5,1)=X3P27,X3P8,XHIGHL: hardcore parameters (not used)
+C
+C     PAR(3,2-6):          NN coupling to physical "singlet" meson;
+C                          true singlet couplings F9,... are calculated.
+C
+C     F1,F6,F9:            pseudoscalar pseudo-vector coupling constants
+C     GV1,ALVE,GV9:        vector G-type coupling constants
+C     FV1,FV6,FV9:         vector F-type coupling constants
+C     GS1,GS6,GS9:         scalar coupling constants
+C     GPOM,GA2:            (Pomeron+F+F') ,A2 coupling constants
+C     THPS,THV,THS:        pseudoscalar, vector, scalar mixing angles
+C     ARO,AM1RO,BRO,AM2RO: broad rho-meson parameters (PRD17 values)
+C     ASI,AM1SI,BSI,AM2SI: broad rho-meson parameters (PRD17 values)
+C     AMD,AMSST:           Delta, S(975) meson mass
+C
+C     ALMP8, ALMP1, ALAMK: pseudoscalar cutoff masses
+C     ALMV8, ALMV1, ALMKS: vector cutoff masses
+C     ALMS8, ALMS1, ALMKP: scalar cutoff masses
+C
+C BEGIN PROGRAM ********************************************************
+      implicit real*8(a-h,o-z)
+      real*8 mprot,mneut,mlamb,msigp,msig0,msigm
+      dimension am1(3),am2(3)
+      logical iso1h,iso3h
+      common/mesons/par(12,8)
+      common/massyn/xm1l(2,3),xm1r(2,3),xm3l(2),xm3r(2)
+      common/propyn/proll,prols,pross,pross3,prorho
+      common/ynmodl/imodl
+      common/formff/almp8,almv8,alms8, almp1,almv1,alms1,
+     .              alamk,almks,almkp
+      common/frmc40/alm1hu,alm3hu,alm1hc,alm3hc
+      common/allps/ ame,amx,amk,bmk(3),pimm(3)
+      common/allvc/ aro,bro,am1ro,am2ro,amom,amfi,amks,bmks(3)
+      common/allsc/ asi,bsi,am1si,am2si,asst,bsst,amsst,am2st,amd,amsck
+      common/alldf/ ampom,amf2,ama2,amkss
+      common/coupl8/fp(12),gv(12),fv(12),gs(12),gd(12)
+      common/coupls/fp0(4),gv0(4),fv0(4),gs0(4),gd0(4)
+      common/copmyn/copmat(14,7)
+      common/lamsig/s0lmix
+      common/potjyn/vyn1h(10,8,3),vyn3h(10,8)
+      common/potsm1/vynpot(10,8,3,3)
+      common/inmes/ inps,invc,insc,indf
+      character*4 inps(4),invc(4),insc(4),indf(4)
+      character sysi(2)*14,sysp(-1:2)*16,typv(8)*15
+      data sysi/'LAMBDA-NUCLEON','SIGMA-NUCLEON'/
+      data sysp/'SIGMA(-)-NEUTRON','LAMBDA-NEUTRON',
+     .          'LAMBDA-PROTON','SIGMA(+)-PROTON'/
+      data typv/'  <0,J|V|J,0>  ','  <1,J|V|J,1>  ','<1,J-1|V|J-1,1>',
+     .          '<1,J-1|V|J+1,1>','<1,J+1|V|J+1,1>','<1,J+1|V|J-1,1>',
+     .          '  <1,J|V|J,0>  ','  <0,J|V|J,1>  '/
+      data n2/6/, pim/138.041d0/
+      data sr2/1.41421356237309505d0/,sr3/1.7320508075688772935d0/
+      data nymodh/-10/,nbaseh/-10/,n2ith/-10/,nqchnh/-10/,j0/-10/
+      data mprot/938.27231d0/,mneut/939.56563d0/,mlamb/1115.63d0/,
+     .     msigp/1189.37d0/,msig0/1192.55d0/,msigm/1197.43d0/
+
+      if(nymodh.eq.nymod) goto 100
+      nbaseh=-10
+      j0=-10
+      nymodh=nymod
+      imodl=nymod
+      nloc=1
+      ame=548.8d0
+      amk=495.8d0
+      amx=957.5d0
+      amfi=1019.5d0
+      amom=783.9d0
+      amks=892.6d0
+**    Lambda-Sigma0 mixing: Dalitz and von Hippel, PL 10 (1964) 153.
+      s0lmix=-2d0*((msig0-msigp)-(mneut-mprot))/(sr3*(msig0-mlamb))
+
+C*    Setting the OBE-parameters
+      call obepar(imodl,ns)
+
+C*    Hard-core parameters (models D and F); not used here
+      xs =par(1,1)
+      xt =par(2,1)
+      x1p=par(3,1)
+      x3p27=par(4,1)
+      x3p8s=par(5,1)
+      xhighl=x3p27
+
+C*    Two-pole approximation unstable mesons
+      aro  =par(4,4)
+      am1ro=par(4,3)
+      bro  =par(5,4)
+      am2ro=par(5,3)
+      asi  =par(5,6)
+      am1si=par(5,5)
+      bsi  =par(6,6)
+      am2si=par(6,5)
+      amd  =par(4,5)
+      amsst=par(7,5)
+      amsck=par(12,5)
+
+C*    Diffractive masses
+      ama2 =par(8,6)
+      ampom=par(9,6)
+      amf2 =ampom
+      amkss=par(12,6)
+      ahypc=par(11,6)
+
+C*    Form factor masses
+      if(imodl.eq.0) then
+C*      PRC40 cutoff masses according to SU(3) multiplets
+        alm27=par(8,1)
+        alm8s=par(9,1)
+        alm10=par(10,1)
+        alm8a=par(11,1)
+        alm10s=par(12,1)
+      elseif(imodl.ge.1) then
+C*      cutoff masses according to type of meson exchange
+        almp8=par(8,2)
+        almv8=par(8,3)
+        alms8=par(8,5)
+        almp1=par(9,2)
+        almv1=par(9,3)
+        alms1=par(9,5)
+        alamk=par(12,2)
+        almks=par(12,3)
+        almkp=par(12,4)
+        if(alamk.eq.0d0) alamk=almp8
+        if(almks.eq.0d0) almks=almv8
+        if(almkp.eq.0d0) almkp=alms8
+      endif
+
+C*    Apply SU(3) relations to coupling constants
+      call obecop(ns)
+C*    Setting coupling constant combinations for specific channels
+      call copstr1(fp,fp0,fp,fp0,inps,copmat(1,1))
+      call copstr1(gv,gv0,gv,gv0,invc,copmat(1,2))
+      call copstr1(gv,gv0,fv,fv0,invc,copmat(1,3))
+      call copstr1(fv,fv0,gv,gv0,invc,copmat(1,4))
+      call copstr1(fv,fv0,fv,fv0,invc,copmat(1,5))
+      call copstr1(gs,gs0,gs,gs0,insc,copmat(1,6))
+      call copstr1(gd,gd0,gd,gd0,indf,copmat(1,7))
+
+  100 if(nbaseh.eq.nbase .and. nqchnh.eq.nqchn .and.
+     .   n2ith.eq.n2it) goto 200
+      nbaseh=nbase
+      nqchnh=nqchn
+      n2ith=n2it
+      iso1h=(nbase.eq.1 .and. n2it.eq.1) .or.
+     .      (nbase.eq.2 .and. iabs(2*nqchn-1).eq.1)
+      iso3h=n2it.eq.3 .or. nbase.eq.2
+C*    baryon masses
+      if(nbase.eq.1) then
+C*      Potentials on isospin basis, so averaged masses
+        if(n2it.eq.1) then
+C*        (Lambda-Nucleon, Sigma-Nucleon) scattering
+          am1(1)=mlamb
+          am1(2)=(msigp+2d0*msig0+msigm)/4d0
+          am2(1)=(mneut+mprot)/2d0
+          am2(2)=(mneut+mprot)/2d0
+        elseif(n2it.eq.3) then
+C*        Sigma-Nucleon scattering
+          am1(3)=(msigp+msigm)/2d0
+          am2(3)=(mneut+mprot)/2d0
+        endif
+      elseif(nbase.eq.2) then
+C*      Potentials on particle basis, so particular channel masses, but
+C*      similar states in different isospin channels should be the same.
+        if(nqchn.eq.-1) then
+C*        Sigma(-)-neutron scattering
+          am1(3)=msigm
+          am2(3)=mneut
+        elseif(nqchn.eq.0) then
+C*        Lambda-neutron scattering
+          am1(1)=mlamb
+          am1(2)=(msig0+msigm)/2d0
+          am1(3)=(msig0+msigm)/2d0
+          am2(1)=mneut
+          am2(2)=(mneut+mprot)/2d0
+          am2(3)=(mneut+mprot)/2d0
+        elseif(nqchn.eq.+1) then
+C*        Lambda-proton scattering
+          am1(1)=mlamb
+          am1(2)=(msigp+msig0)/2d0
+          am1(3)=(msigp+msig0)/2d0
+          am2(1)=mprot
+          am2(2)=(mneut+mprot)/2d0
+          am2(3)=(mneut+mprot)/2d0
+        elseif(nqchn.eq.+2) then
+C*        Sigma(+)-proton scattering
+          am1(3)=msigp
+          am2(3)=mprot
+        endif
+      endif
+
+C*    Mass factors for second part in vector propagator.
+C*    Coupling constant multiplied by  -(B3-B1)*(B4-B2)/mes**2
+      if(iso1h) then
+        proll =-(am2(1)-am1(1))*(am1(1)-am2(1))/amks**2
+        prols =-(am2(2)-am1(1))*(am1(2)-am2(1))/amks**2
+        pross =-(am2(2)-am1(2))*(am1(2)-am2(2))/amks**2
+        prorho=-(am1(2)-am1(1))*(am2(2)-am2(1))
+      endif
+      if(iso3h) then
+        pross3=-(am2(3)-am1(3))*(am1(3)-am2(3))/amks**2
+      endif
+
+C*    Mass factors for baryon legs in each potential.
+      if(iso1h) then
+        xm1l(1,1)=1d0/am1(1)
+        xm1r(1,1)=1d0/am2(1)
+        xm1l(2,1)=1d0/dsqrt(am1(1)*am2(1))
+        xm1r(2,1)=1d0/dsqrt(am2(1)*am1(1))
+        xm1l(1,2)=1d0/dsqrt(am1(1)*am1(2))
+        xm1r(1,2)=1d0/dsqrt(am2(1)*am2(2))
+        xm1l(2,2)=1d0/dsqrt(am1(1)*am2(2))
+        xm1r(2,2)=1d0/dsqrt(am2(1)*am1(2))
+        xm1l(1,3)=1d0/am1(2)
+        xm1r(1,3)=1d0/am2(2)
+        xm1l(2,3)=1d0/dsqrt(am1(2)*am2(2))
+        xm1r(2,3)=1d0/dsqrt(am2(2)*am1(2))
+      endif
+      if(iso3h) then
+        xm3l(1)=1d0/am1(3)
+        xm3r(1)=1d0/am2(3)
+        xm3l(2)=1d0/dsqrt(am1(3)*am2(3))
+        xm3r(2)=1d0/dsqrt(am2(3)*am1(3))
+      endif
+
+C*    Incorporate different baryon masses between initial and final
+C*    state, which modifies propagator and therefore pion, kaon, K*.
+C*    pion(1--2): modification in LN->SN
+C*    kaon(1--3): modification in SN->NS, LN->NL, LN->NS
+C*    K*(1--3):   modification in SN->NS, LN->NL, LN->NS
+      pimm(1)=pim
+      if(iso1h) then
+        pimm(2)=pim
+     .         *dsqrt(1d0-((am1(2)-am2(2)+am2(1)-am1(1))/2d0/pim)**2)
+        bmk(1) =amk *dsqrt(1d0-((am1(2)-am2(2))/amk)**2)
+        bmk(2) =amk *dsqrt(1d0-((am1(1)-am2(1))/amk)**2)
+        bmk(3) =amk
+     .         *dsqrt(1d0-((am2(2)-am1(2)+am2(1)-am1(1))/2d0/amk)**2)
+        bmks(1)=amks*dsqrt(1d0-((am1(2)-am2(2))/amks)**2)
+        bmks(2)=amks*dsqrt(1d0-((am1(1)-am2(1))/amks)**2)
+        bmks(3)=amks
+     .         *dsqrt(1d0-((am2(2)-am1(2)+am2(1)-am1(1))/2d0/amks)**2)
+      endif
+      if(iso3h) then
+        bmk(1) =amk *dsqrt(1d0-((am1(3)-am2(3))/amk)**2)
+        bmks(1)=amks*dsqrt(1d0-((am1(3)-am2(3))/amks)**2)
+      endif
+
+      if(imodl.eq.0) then
+C*      PRC40 model has one averaged modified kaon and K*.
+        pimm(2)=0.9531d0*pim
+        bmk(1) =453.4d0
+        bmks(1)=869.1d0
+      endif
+
+  200 if(imodl.ne.0 .or. j0.eq.j) goto 300
+C*    Cutoff masses according to SU(3) multiplets and flavor symmetry
+      if(mod(j,2).eq.0) then
+        alm1hu=alm8a
+        if(.not.iso1h) alm3hu=alm10
+        if(iso1h) alm3hu=alm10s
+        alm1hc=alm8s
+        alm3hc=alm27
+      elseif(mod(j,2).eq.1) then
+        alm1hu=alm8s
+        alm3hu=alm27
+        alm1hc=alm8a
+        if(.not.iso1h) alm3hc=alm10
+        if(iso1h) alm3hc=alm10s
+      endif
+
+  300 call vmatpyn(j,qi,qf,nbase,n2it,nqchn,nloc,ns)
+      j0=j
+
+      if(ns.ge.2) then
+c        if(nbase.eq.1) write(*,14) sysi((n2it+1)/2),j,qf,qi
+c        if(nbase.eq.2) write(*,15) sysp(nqchn),j,qf,qi
+      endif
+   14 format(/,1x,a14,' POTENTIALS IN THE ISOSPIN CHANNEL : J=',i2,/,
+     .       15x,' QF=',d14.6,'   QI=',d14.6,' (MeV)')
+   15 format(/,1x,a16,' POTENTIALS ON THE PARTICLE BASIS : J=',i2,/,
+     .       17x,' QF=',d14.6,'   QI=',d14.6,' (MeV)')
+
+      j1=j+1
+      do 301 k=1,8
+        if(nbase.eq.1) then
+          if(n2it.eq.3) then
+            vynpot(j1,k,1,1) = vyn3h(j1,k)
+c            if(ns.ge.2) write(n2,320) typv(k),vynpot(j1,k,1,1)
+  320       format(4x,a15,3x,d13.6)
+          else
+            index=0
+            do 310 ic1=1,2
+            do 310 ic2=ic1,2
+              index=index+1
+              vynpot(j1,k,ic1,ic2)=vyn1h(j1,k,index)
+  310       continue
+            vynpot(j1,k,2,1)=vynpot(j1,k,1,2)
+  311       continue
+c            if(ns.ge.2) write(n2,321) typv(k),
+c     .                  ((vynpot(j1,k,ii,jj),jj=1,2),ii=1,2)
+  321       format(4x,a15,2x,2(1x,d13.6),/,21x,2(1x,d13.6))
+          endif
+        elseif(nbase.eq.2) then
+          if(nqchn.eq.-1 .or. nqchn.eq.2) then
+            vynpot(j1,k,1,1) = vyn3h(j1,k)
+c            if(ns.ge.2) write(n2,330) typv(k),vynpot(j1,k,1,1)
+  330       format(4x,a15,3x,d13.6)
+          elseif(nqchn.eq.0) then
+            vynpot(j1,k,1,1) = vyn1h(j1,k,1)
+            vynpot(j1,k,1,2) = vyn1h(j1,k,2)/sr3
+            vynpot(j1,k,1,3) =-vyn1h(j1,k,2)*sr2/sr3
+            vynpot(j1,k,2,2) =(vyn1h(j1,k,3)+2d0*vyn3h(j1,k))/3d0
+            vynpot(j1,k,2,3) =(vyn3h(j1,k)-vyn1h(j1,k,3))*sr2/3d0
+            vynpot(j1,k,3,3) =(2d0*vyn1h(j1,k,3)+vyn3h(j1,k))/3d0
+            vynpot(j1,k,2,1) = vynpot(j1,k,1,2)
+            vynpot(j1,k,3,1) = vynpot(j1,k,1,3)
+            vynpot(j1,k,3,2) = vynpot(j1,k,2,3)
+c            if(ns.ge.2) write(n2,331) typv(k),
+c     .                  ((vynpot(j1,k,ii,jj),jj=1,3),ii=1,3)
+  331       format(4x,a15,2x,3(1x,d13.6),/,
+     .                   21x,3(1x,d13.6),/,21x,3(1x,d13.6))
+          elseif(nqchn.eq.1) then
+            vynpot(j1,k,1,1) = vyn1h(j1,k,1)
+            vynpot(j1,k,1,2) = vyn1h(j1,k,2)*sr2/sr3
+            vynpot(j1,k,1,3) =-vyn1h(j1,k,2)/sr3
+            vynpot(j1,k,2,2) =(2d0*vyn1h(j1,k,3)+vyn3h(j1,k))/3d0
+            vynpot(j1,k,2,3) =(vyn3h(j1,k)-vyn1h(j1,k,3))*sr2/3d0
+            vynpot(j1,k,3,3) =(vyn1h(j1,k,3)+2d0*vyn3h(j1,k))/3d0
+            vynpot(j1,k,2,1) = vynpot(j1,k,1,2)
+            vynpot(j1,k,3,1) = vynpot(j1,k,1,3)
+            vynpot(j1,k,3,2) = vynpot(j1,k,2,3)
+c            if(ns.ge.2) write(n2,332) typv(k),
+c     .                  ((vynpot(j1,k,ii,jj),jj=1,3),ii=1,3)
+  332       format(4x,a15,2x,3(1x,d13.6),/,
+     .                   21x,3(1x,d13.6),/,21x,3(1x,d13.6))
+          endif
+        endif
+  301 continue
+
+      return
+      end
+C **********************************************************************
+      subroutine vmatpyn(jj,qi,qf,nbase,n2it,nqchn,nloc,ns)
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      character typm(4)*4,typv(8)*13,chan1h(3)*5,chan3h*5
+      common/potjyn/vyn1h(10,8,3),vyn3h(10,8)
+      common/vmesyn/wyn1h(8,3),wyn3h(8)
+      common/ynmodl/imodl
+      common/special/icop
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      common/jfacx/jmmm,jmm,jm,j,jp,jpp,jppp,j1,tjmm,tjm,tj,tjp,tjpp,tjj
+      common/cq12/e00,f00,g00,e11,f11,g11,emm,epp,gmm,gpp,fmm,fpm,fpp,
+     .            hpp,hmm,nq12
+      common/symfac/pp(8)
+      data typm/'PSSC','VCTR','SCAL','DIFR'/
+      data typv/'  <0,J|J,0>  ','  <1,J|J,1>  ','<1,J-1|J-1,1>',
+     .          '<1,J-1|J+1,1>','<1,J+1|J+1,1>','<1,J+1|J-1,1>',
+     .          '  <1,J|J,0>  ','  <0,J|J,1>  '/
+      data chan1h/'LN-LN','LN-SN','SN-SN'/
+      data chan3h/'SN-SN'/, ampro/938.27231d0/
+      data n2/6/, pi/3.14159265358979323846d0/, jj0/-10/
+
+      nq12=1
+c      if(ns.ge.2)  write(*,99) qf,qi
+   99 format(/,1x,' POTENTIALS IN THE ISOSPIN CHANNELS:',
+     .            '  QF=',d13.6,'  QI=',d13.6,' MeV')
+
+C*    J-dependent factors
+      if(jj.ne.jj0) then
+        call ppfac(jj,pp)
+        jj0=jj
+        j1=jj+1
+        j=jj
+        jmmm=j-3
+        jmm =j-2
+        jm  =j-1
+        jp  =j+1
+        jpp =j+2
+        jppp=j+3
+        tjmm=2d0*j-3d0
+        tjm =2d0*j-1d0
+        tj  =2d0*j+1d0
+        tjp =2d0*j+3d0
+        tjpp=2d0*j+5d0
+        tjj =dsqrt(j*(j+1d0))
+C*      J-dependent coefficients for quadratic spin-orbit
+        e00 = j*jm/tjm/tj
+        f00 =-2d0*(j*j+jm)/tjm/tjp
+        g00 = jp*jpp/tj/tjp
+        e11 = jm*jpp/tjm/tj
+        f11 =-2d0*jm*jpp/tjm/tjp
+        g11 = jm*jpp/tj/tjp
+        emm =-jm*jmm/tjm/tjmm
+        epp =-j*(2d0*j*j+7d0*jp)/tj/tj/tjp
+        gmm =-(2d0*j*j-3d0*j+2d0)*jp/tjm/tj/tj
+        gpp =-jpp*jppp/tjp/tjpp
+        fmm = 2d0*(2d0*j*j*j-3d0*j*j-2d0*jm)/tj/tj/tjmm
+        fpm = 2d0*tjj/tj/tj
+        fpp = 2d0*(2d0*j*j*j+9d0*j*j+10d0*j+1d0)/tj/tj/tjpp
+        hpp = (2d0*j*j+5d0*j+4d0)/tj
+        hmm = (2d0*j*j-jm)/tj
+      endif
+
+C*    Momentum factors
+      qi2=qi*qi
+      qf2=qf*qf
+      qiqf=qi*qf
+      qi2f2=qi2+qf2
+      qi2f22=qi2f2*qi2f2
+      qipf2=(qi+qf)*(qi+qf)
+      s2psi=2d0*qiqf/qi2f2
+      spsi2=qf2/qi2f2
+      cpsi2=qi2/qi2f2
+      xcom=0.5d0*qi2f2/qiqf
+      facm=2d0*pi/qiqf
+      facdf=4d0*pi/ampro**2
+
+C*    Initialization potentials
+      do 1 ik=1,8
+        do 2 ic=1,3
+          vyn1h(j1,ik,ic)=0d0
+    2   continue
+        vyn3h(j1,ik)=0d0
+    1 continue
+
+      if(nbase.eq.1) then
+C*      Potentials on isospin basis; only I=n2it needed
+        ii1=n2it
+        ii2=n2it
+      elseif(nbase.eq.2) then
+C*      Potentials on particle basis; I=3/2 (and I=1/2) needed
+        ii1=iabs(2*nqchn-1)
+        ii2=3
+      endif
+
+C*    Lambda-Sigma(0) mixing: Lp and Ln can exchange pion/rho/del/a2
+      icsb=0
+      if(nbase.eq.2) then
+        if(nqchn.eq.0) icsb=-1
+        if(nqchn.eq.1) icsb=+1
+      endif
+
+      do 11 imes=1,4
+        do 12 ipot=1,8
+          if(ii1.eq.1) then
+            do 120 ic=1,3
+              wyn1h(ipot,ic)=0d0
+  120       continue
+          endif
+          if(ii2.eq.3) wyn3h(ipot)=0d0
+   12   continue
+        if(imodl.eq.0) then
+          if(imes.eq.1) then
+            call psprc40(jj,ii1,ii2,nloc,icsb)
+          elseif(imes.eq.2) then
+            call vcprc40(jj,ii1,ii2,nloc,icsb)
+          elseif(imes.eq.3) then
+            call scprc40(jj,ii1,ii2,nloc,icsb)
+          elseif(imes.eq.4) then
+            call dfprc40(jj,ii1,ii2,nloc,icsb)
+          endif
+        else
+          icop=0
+          if(imes.eq.1) then
+            call psscalyn(jj,ii1,ii2,nloc,icsb)
+          elseif(imes.eq.2) then
+            call vectoryn(jj,ii1,ii2,nloc,icsb)
+          elseif(imes.eq.3) then
+            call scalaryn(jj,ii1,ii2,nloc,icsb)
+          elseif(imes.eq.4) then
+            call difracyn(jj,ii1,ii2,nloc,icsb)
+          endif
+        endif
+
+        if(ns.eq.3) then
+c          write(n2,311) typm(imes),typv
+  311     format(1x,a4,':',9x,8(1x,a13))
+          do 41 ip=ii1,ii2,2
+            if(ip.eq.3) then
+c              write(n2,411) ip,chan3h,(wyn3h(npot),npot=1,8)
+            else
+              do 410 ich=1,3
+c                write(n2,411) ip,chan1h(ich),(wyn1h(npot,ich),npot=1,8)
+  410         continue
+            endif
+  411       format(1x,'ISO=',i1,'/2',1x,a5,8(2x,d13.6))
+   41     continue
+        endif
+
+        do 50 ip=ii1,ii2,2
+        do 50 npot=1,8
+          if(ip.eq.3) then
+            vyn3h(j1,npot)=vyn3h(j1,npot)+wyn3h(npot)
+          else
+            do 51 ich=1,3
+              vyn1h(j1,npot,ich)=vyn1h(j1,npot,ich)+wyn1h(npot,ich)
+   51       continue
+          endif
+   50   continue
+   11 continue
+
+      if(ns.ge.2) then
+c        write(n2,312) typv
+  312   format(/,1x,'TOTAL POTENTIALS:',8(1x,a13))
+        do 61 ip=ii1,ii2,2
+          if(ip.eq.3) then
+c            write(n2,611) ip,chan3h,(vyn3h(j1,npot),npot=1,8)
+          else
+            do 610 ich=1,3
+c              write(n2,611) ip,chan1h(ich),(vyn1h(j1,npot,ich),npot=1,8)
+  610       continue
+          endif
+  611     format(1x,'ISO=',i1,'/2',3x,a5,2x,8(2x,d13.6))
+   61   continue
+      endif
+
+      return
+      end
+C **********************************************************************
+      subroutine psscalyn(j,ii1,ii2,nloc,icsb)
+C **********************************************************************
+C
+C     PSEUDO-SCALAR MESONS : CALCULATION POTENTIALS ON ISOSPIN BASIS
+C
+C     I=1/2: LN->LN    LN->NL;  LN->SN  LN->NS;   SN->SN    SN->NS
+C            et/x0/pi1 kaon2    pi2     kaon3     et/x0/pi1 kaon1
+C     I=3/2: SN->SN    SN->NS
+C            et/x0/pi1 kaon1
+C
+C     Symmetry factor regulated with md,mx in call psfunp(md,mx,...)
+C     Only calculates potential that is needed ==> loop from ii1 to ii2.
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      common/allps/ ame,amx,amk,bmk(3),pimm(3)
+      common/formff/almp8,almv8,alms8, almp1,almv1,alms1,
+     .              alamk,almks,almkp
+      common/vmesyn/wyn1h(8,3),wyn3h(8)
+      common/copmyn/ps31e,ps31x,ps31p,ps31k, ps11e,ps11x,ps11p,
+     .              ps11k,ps12p,ps12k,ps13e,ps13x,ps13p,ps13k,
+     .              copdum(14,6)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      dimension amps(7),x(7), u(-3:12),r(-3:12),eln(15),ern(15)
+      dimension uet(-2:2),ux0(-2:2),up1(-2:2),up2(-2:2),
+     .          uk1(-2:2),uk2(-2:2),uk3(-2:2),
+     .          ret(-1:1),rx0(-1:1),rp1(-1:1),rp2(-1:1),
+     .          rk1(-1:1),rk2(-1:1),rk3(-1:1)
+      data u/16*0d0/,r/16*0d0/
+
+C*    Possible mesons being exchanged
+      amps(1)=ame
+      amps(2)=amx
+      npi=1
+      nka=1
+      if(ii1.eq.1) then
+        nka=3
+        npi=2
+      endif
+      do 1 ip=1,npi
+        amps(2+ip)=pimm(ip)
+    1 continue
+      do 2 ik=1,nka
+        amps(4+ik)=bmk(ik)
+    2 continue
+
+      kom=1
+      jmax=j+2
+      do 10 in=1,4+nka
+        if(in.eq.1) then          ! eta
+          alm=almp8
+        elseif(in.eq.2) then      ! eta'
+          alm=almp1
+        elseif(in.eq.3) then      ! pion
+          alm=almp8
+        elseif(in.eq.4) then      ! pion
+          if(npi.ne.2) goto 10
+          alm=almp8
+        elseif(in.eq.5) then      ! kaon
+          alm=alamk
+        else                      ! kaon
+          if(nka.ne.3) goto 10
+          alm=alamk
+        endif
+        ames=amps(in)/alm
+        x(in)=xcom+0.5d0*amps(in)**2/qiqf
+        y=2d0*qiqf/alm**2
+        call plexp(x(in),y,ames,jmax,kom,eln,ern)
+        do 11 k=0,jmax
+          u(k)=eln(k+1)
+          r(k)=ern(k+1)
+   11   continue
+        do 15 nn=-2,2
+          if(in.eq.1) then
+            uet(nn)=u(j+nn)
+          elseif(in.eq.2) then
+            ux0(nn)=u(j+nn)
+          elseif(in.eq.3) then
+            up1(nn)=u(j+nn)
+          elseif(in.eq.4) then
+            up2(nn)=u(j+nn)
+          elseif(in.eq.5) then
+            uk1(nn)=u(j+nn)
+          elseif(in.eq.6) then
+            uk2(nn)=u(j+nn)
+          elseif(in.eq.7) then
+            uk3(nn)=u(j+nn)
+          endif
+   15   continue
+        do 16 nn=-1,1
+          if(in.eq.1) then
+            ret(nn)=r(j+nn)
+          elseif(in.eq.2) then
+            rx0(nn)=r(j+nn)
+          elseif(in.eq.3) then
+            rp1(nn)=r(j+nn)
+          elseif(in.eq.4) then
+            rp2(nn)=r(j+nn)
+          elseif(in.eq.5) then
+            rk1(nn)=r(j+nn)
+          elseif(in.eq.6) then
+            rk2(nn)=r(j+nn)
+          elseif(in.eq.7) then
+            rk3(nn)=r(j+nn)
+          endif
+   16   continue
+   10 continue
+
+      do 20 isoloop=ii1,ii2,2
+        if(isoloop.eq.3) then
+          call psfunp(1,0,ps31e,x(1),uet,ret,nloc,wyn3h)
+          call psfunp(1,0,ps31x,x(2),ux0,rx0,nloc,wyn3h)
+          call psfunp(1,0,ps31p,x(3),up1,rp1,nloc,wyn3h)
+          call psfunp(0,1,ps31k,x(5),uk1,rk1,nloc,wyn3h)
+        elseif(isoloop.eq.1) then
+          call psfunp(1,0,ps11e,x(1),uet,ret,nloc,wyn1h(1,1))
+          call psfunp(1,0,ps11x,x(2),ux0,rx0,nloc,wyn1h(1,1))
+          call psfunp(1,0,icsb*ps11p,x(3),up1,rp1,nloc,wyn1h(1,1))
+          call psfunp(0,1,ps11k,x(6),uk2,rk2,nloc,wyn1h(1,1))
+          call psfunp(1,0,ps12p,x(4),up2,rp2,nloc,wyn1h(1,2))
+          call psfunp(0,1,ps12k,x(7),uk3,rk3,nloc,wyn1h(1,2))
+          call psfunp(1,0,ps13e,x(1),uet,ret,nloc,wyn1h(1,3))
+          call psfunp(1,0,ps13x,x(2),ux0,rx0,nloc,wyn1h(1,3))
+          call psfunp(1,0,ps13p,x(3),up1,rp1,nloc,wyn1h(1,3))
+          call psfunp(0,1,ps13k,x(5),uk1,rk1,nloc,wyn1h(1,3))
+        endif
+   20 continue
+
+      return
+      end
+C **********************************************************************
+      subroutine vectoryn(j,ii1,ii2,nloc,icsb)
+C **********************************************************************
+C
+C     VECTOR MESONS : CALCULATION POTENTIALS ON ISOSPIN BASIS
+C
+C     I=1/2: LN->LN     LN->NL;  LN->SN  LN->NS;   SN->SN    SN->NS
+C            om/phi/rho K*(2)    rho     K*(3)     om/phi/rho K*(1)
+C     I=3/2: SN->SN     SN->NS
+C            om/phi/rho K*(1)
+C
+C     Symmetry factor regulated with md,mx in call vcfunp(md,mx,...)
+C     Only calculates potential that is needed ==> loop from ii1 to ii2.
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      common/allvc/ aro,bro,am1ro,am2ro,amom,amfi,amks,bmks(3)
+      common/massyn/xm1l(2,3),xm1r(2,3),xm3l(2),xm3r(2)
+      common/propyn/proll,prols,pross,pross3,prorho
+      common/formff/almp8,almv8,alms8, almp1,almv1,alms1,
+     .              alamk,almks,almkp
+      common/vmesyn/wyn1h(8,3),wyn3h(8)
+      common/copmyn/copdum1(14),
+     .              gg31o,gg31f,gg31r,gg31k, gg11o,gg11f,gg11r,
+     .              gg11k,gg12r,gg12k,gg13o,gg13f,gg13r,gg13k,
+     .              gf31o,gf31f,gf31r,gf31k, gf11o,gf11f,gf11r,
+     .              gf11k,gf12r,gf12k,gf13o,gf13f,gf13r,gf13k,
+     .              fg31o,fg31f,fg31r,fg31k, fg11o,fg11f,fg11r,
+     .              fg11k,fg12r,fg12k,fg13o,fg13f,fg13r,fg13k,
+     .              ff31o,ff31f,ff31r,ff31k, ff11o,ff11f,ff11r,
+     .              ff11k,ff12r,ff12k,ff13o,ff13f,ff13r,ff13k,
+     .              copdum2(14,2)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      dimension amvc(7),x(7), eln(15),ern(15),
+     .          u(-3:12),r(-3:12),s(-3:12),g(-3:12)
+      dimension uom(-3:3),ufi(-3:3),ur1(-3:3),ur2(-3:3),
+     .          uk1(-3:3),uk2(-3:3),uk3(-3:3),
+     .          rom(-2:2),rfi(-2:2),rr1(-2:2),rr2(-2:2),
+     .          rk1(-2:2),rk2(-2:2),rk3(-2:2),
+     .          som(-1:1),sfi(-1:1),sr1(-1:1),sr2(-1:1),
+     .          sk1(-1:1),sk2(-1:1),sk3(-1:1),
+     .          gom(-2:2),gfi(-2:2),gr1(-2:2),gr2(-2:2),
+     .          gk1(-2:2),gk2(-2:2),gk3(-2:2)
+      data u/16*0d0/,r/16*0d0/,s/16*0d0/,g/16*0d0/
+
+      kom=1
+      jmax=j+3
+C*    Possible mesons being exchanged
+      amvc(1)=amom
+      amvc(2)=amfi
+      amvc(3)=am1ro
+      amvc(4)=am2ro
+      nka=1
+      if(ii1.eq.1) nka=3
+      do 1 ik=1,nka
+        amvc(4+ik)=bmks(ik)
+    1 continue
+
+      do 10 in=1,4+nka
+        if(in.eq.1) then                   ! omega
+          alm=almv1
+        elseif(in.eq.2) then               ! phi
+          alm=almv8
+        elseif(in.eq.3 .or. in.eq.4) then  ! rho
+          alm=almv8
+        elseif(in.eq.5) then               ! K*
+          alm=almks
+        else                               ! K*
+          if(nka.ne.3) goto 10
+          alm=almks
+        endif
+        alm2=alm*alm
+        ames=amvc(in)/alm
+        ams2=amvc(in)**2
+        x(in)=xcom+0.5d0*ams2/qiqf
+        y=2d0*qiqf/alm2
+        call plexp(x(in),y,ames,jmax,kom,eln,ern)
+        do 11 k=1,jmax
+          u(k)=eln(k+1)
+          r(k)=ern(k+1)
+          s(k)=(k*ern(k)+(k+1)*ern(k+2))/(2*k+1)
+          g(k)=(eln(k+2)-eln(k))/(2*k+1)
+   11   continue
+        u(0)=eln(1)
+        r(0)=ern(1)
+        s(0)=ern(2)
+        arg=(qipf2+ams2)/alm2
+        g(0)=(eln(2)-eln(1))-fdexpx(-qipf2/alm2)*ce1x(arg)
+        do 15 nn=-3,3
+          if(in.eq.1) then
+            uom(nn)=u(j+nn)
+          elseif(in.eq.2) then
+            ufi(nn)=u(j+nn)
+          elseif(in.eq.3) then
+            ur1(nn)=aro*u(j+nn)
+          elseif(in.eq.4) then
+            ur2(nn)=bro*u(j+nn)
+          elseif(in.eq.5) then
+            uk1(nn)=u(j+nn)
+          elseif(in.eq.6) then
+            uk2(nn)=u(j+nn)
+          elseif(in.eq.7) then
+            uk3(nn)=u(j+nn)
+          endif
+   15   continue
+        do 16 nn=-2,2
+          if(in.eq.1) then
+            rom(nn)=r(j+nn)
+            gom(nn)=g(j+nn)
+          elseif(in.eq.2) then
+            rfi(nn)=r(j+nn)
+            gfi(nn)=g(j+nn)
+          elseif(in.eq.3) then
+            rr1(nn)=aro*r(j+nn)
+            gr1(nn)=aro*g(j+nn)
+          elseif(in.eq.4) then
+            rr2(nn)=bro*r(j+nn)
+            gr2(nn)=bro*g(j+nn)
+          elseif(in.eq.5) then
+            rk1(nn)=r(j+nn)
+            gk1(nn)=g(j+nn)
+          elseif(in.eq.6) then
+            rk2(nn)=r(j+nn)
+            gk2(nn)=g(j+nn)
+          elseif(in.eq.7) then
+            rk3(nn)=r(j+nn)
+            gk3(nn)=g(j+nn)
+          endif
+   16   continue
+        do 17 nn=-1,1
+          if(in.eq.1) then
+            som(nn)=s(j+nn)
+          elseif(in.eq.2) then
+            sfi(nn)=s(j+nn)
+          elseif(in.eq.3) then
+            sr1(nn)=aro*s(j+nn)
+          elseif(in.eq.4) then
+            sr2(nn)=bro*s(j+nn)
+          elseif(in.eq.5) then
+            sk1(nn)=s(j+nn)
+          elseif(in.eq.6) then
+            sk2(nn)=s(j+nn)
+          elseif(in.eq.7) then
+            sk3(nn)=s(j+nn)
+          endif
+   17   continue
+   10 continue
+
+      do 20 isoloop=ii1,ii2,2
+        if(isoloop.eq.3) then
+          y1=xm3l(1)
+          y2=xm3r(1)
+          call vcfunp(1,0,gg31o,gf31o,fg31o,ff31o,x(1),
+     .                uom,rom,som,gom,y1,y2,nloc,wyn3h)
+          call vcfunp(1,0,gg31f,gf31f,fg31f,ff31f,x(2),
+     .                ufi,rfi,sfi,gfi,y1,y2,nloc,wyn3h)
+          call vcfunp(1,0,gg31r,gf31r,fg31r,ff31r,x(3),
+     .                ur1,rr1,sr1,gr1,y1,y2,nloc,wyn3h)
+          call vcfunp(1,0,gg31r,gf31r,fg31r,ff31r,x(4),
+     .                ur2,rr2,sr2,gr2,y1,y2,nloc,wyn3h)
+          y1=xm3l(2)
+          y2=xm3r(2)
+          call vcfunp(0,1,gg31k,gf31k,fg31k,ff31k,x(5),
+     .                uk1,rk1,sk1,gk1,y1,y2,nloc,wyn3h)
+        elseif(isoloop.eq.1) then
+          y1=xm1l(1,1)
+          y2=xm1r(1,1)
+          call vcfunp(1,0,gg11o,gf11o,fg11o,ff11o,x(1),
+     .                uom,rom,som,gom,y1,y2,nloc,wyn1h(1,1))
+          call vcfunp(1,0,gg11f,gf11f,fg11f,ff11f,x(2),
+     .                ufi,rfi,sfi,gfi,y1,y2,nloc,wyn1h(1,1))
+          call vcfunp(1,0,icsb*gg11r,icsb*gf11r,icsb*fg11r,icsb*ff11r,
+     .                x(3),ur1,rr1,sr1,gr1,y1,y2,nloc,wyn1h(1,1))
+          call vcfunp(1,0,icsb*gg11r,icsb*gf11r,icsb*fg11r,icsb*ff11r,
+     .                x(4),ur2,rr2,sr2,gr2,y1,y2,nloc,wyn1h(1,1))
+          y1=xm1l(2,1)
+          y2=xm1r(2,1)
+          call vcfunp(0,1,gg11k,gf11k,fg11k,ff11k,x(6),
+     .                uk2,rk2,sk2,gk2,y1,y2,nloc,wyn1h(1,1))
+          y1=xm1l(1,2)
+          y2=xm1r(1,2)
+          call vcfunp(1,0,gg12r,gf12r,fg12r,ff12r,x(3),
+     .                ur1,rr1,sr1,gr1,y1,y2,nloc,wyn1h(1,2))
+          call vcfunp(1,0,gg12r,gf12r,fg12r,ff12r,x(4),
+     .                ur2,rr2,sr2,gr2,y1,y2,nloc,wyn1h(1,2))
+          y1=xm1l(2,2)
+          y2=xm1r(2,2)
+          call vcfunp(0,1,gg12k,gf12k,fg12k,ff12k,x(7),
+     .                uk3,rk3,sk3,gk3,y1,y2,nloc,wyn1h(1,2))
+          y1=xm1l(1,3)
+          y2=xm1r(1,3)
+          call vcfunp(1,0,gg13o,gf13o,fg13o,ff13o,x(1),
+     .                uom,rom,som,gom,y1,y2,nloc,wyn1h(1,3))
+          call vcfunp(1,0,gg13f,gf13f,fg13f,ff13f,x(2),
+     .                ufi,rfi,sfi,gfi,y1,y2,nloc,wyn1h(1,3))
+          call vcfunp(1,0,gg13r,gf13r,fg13r,ff13r,x(3),
+     .                ur1,rr1,sr1,gr1,y1,y2,nloc,wyn1h(1,3))
+          call vcfunp(1,0,gg13r,gf13r,fg13r,ff13r,x(4),
+     .                ur2,rr2,sr2,gr2,y1,y2,nloc,wyn1h(1,3))
+          y1=xm1l(2,3)
+          y2=xm1r(2,3)
+          call vcfunp(0,1,gg13k,gf13k,fg13k,ff13k,x(5),
+     .                uk1,rk1,sk1,gk1,y1,y2,nloc,wyn1h(1,3))
+        endif
+   20 continue
+
+C*    Contribution from second part in vector propagator.
+C*    Coupling constant =  -(B3-B1)*(B4-B2)/mes**2
+      do 30 isoloop=ii1,ii2,2
+        if(isoloop.eq.3) then
+          gg=gg31k*pross3
+          call vcfunp2(0,1,gg,x(5),uk1,rk1,gk1,
+     .                 xm3l(2),xm3r(2),nloc,wyn3h)
+        elseif(isoloop.eq.1) then
+          gg=gg11k*proll
+          call vcfunp2(0,1,gg,x(6),uk2,rk2,gk2,
+     .                 xm1l(2,1),xm1r(2,1),nloc,wyn1h(1,1))
+          gg=gg12r*prorho/am1ro**2
+          call vcfunp2(1,0,gg,x(3),ur1,rr1,gr1,
+     .                 xm1l(1,2),xm1r(1,2),nloc,wyn1h(1,2))
+          gg=gg12r*prorho/am2ro**2
+          call vcfunp2(1,0,gg,x(4),ur2,rr2,gr2,
+     .                 xm1l(1,2),xm1r(1,2),nloc,wyn1h(1,2))
+          gg=gg12k*prols
+          call vcfunp2(0,1,gg,x(7),uk3,rk3,gk3,
+     .                 xm1l(2,2),xm1r(2,2),nloc,wyn1h(1,2))
+          gg=gg13k*pross
+          call vcfunp2(0,1,gg,x(5),uk1,rk1,gk1,
+     .                 xm1l(2,3),xm1r(2,3),nloc,wyn1h(1,3))
+        endif
+   30 continue
+
+      return
+      end
+C **********************************************************************
+      subroutine scalaryn(j,ii1,ii2,nloc,icsb)
+C **********************************************************************
+C
+C     SCALAR MESONS : CALCULATION POTENTIALS ON ISOSPIN BASIS
+C
+C     I=1/2: LN->LN     LN->NL;  LN->SN  LN->NS;   SN->SN     SN->NS
+C            eps/S*/del kappa    del     kappa     eps/S*/del kappa
+C     I=3/2: SN->SN     SN->NS
+C            eps/S*/del kappa
+C
+C     Symmetry factor regulated with md,mx in call scfunp(md,mx,...)
+C     Only calculates potential that is needed ==> loop from ii1 to ii2.
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      common/allsc/ asi,bsi,am1si,am2si,asst,bsst,amsst,am2st,amd,amsck
+      common/massyn/xm1l(2,3),xm1r(2,3),xm3l(2),xm3r(2)
+      common/formff/almp8,almv8,alms8, almp1,almv1,alms1,
+     .              alamk,almks,almkp
+      common/vmesyn/wyn1h(8,3),wyn3h(8)
+      common/copmyn/copdum1(14,5),
+     .              gs31e,gs31s,gs31d,gs31k, gs11e,gs11s,gs11d,
+     .              gs11k,gs12d,gs12k,gs13e,gs13s,gs13d,gs13k,
+     .              copdum2(14)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      dimension amsc(5),x(5), eln(15),ern(15),
+     .          u(-3:12),r(-3:12),g(-3:12)
+      dimension ue1(-3:3),ue2(-3:3),uss(-3:3),ude(-3:3),ukp(-3:3),
+     .          re1(-1:1),re2(-1:1),rss(-1:1),rde(-1:1),rkp(-1:1),
+     .          ge1(-2:2),ge2(-2:2),gss(-2:2),gde(-2:2),gkp(-2:2)
+      data u/16*0d0/,r/16*0d0/,g/16*0d0/
+
+C*    Possible mesons being exchanged
+      amsc(1)=am1si
+      amsc(2)=am2si
+      amsc(3)=amsst
+      amsc(4)=amd
+      amsc(5)=amsck
+
+      kom=1
+      jmax=j+3
+      do 10 in=1,5
+        if(in.eq.1 .or. in.eq.2) then  ! epsilon
+          alm=alms1
+        elseif(in.eq.3) then           ! S*
+          alm=alms8
+        elseif(in.eq.4) then           ! delta
+          alm=alms8
+        else                           ! kappa
+          alm=almkp
+        endif
+        alm2=alm*alm
+        ames=amsc(in)/alm
+        ams2=amsc(in)**2
+        x(in)=xcom+0.5d0*ams2/qiqf
+        y=2d0*qiqf/alm2
+        call plexp(x(in),y,ames,jmax+1,kom,eln,ern)
+        do 11 k=1,jmax
+          u(k)=eln(k+1)
+          r(k)=ern(k+1)
+          g(k)=(eln(k+2)-eln(k))/(2*k+1)
+   11   continue
+        u(0)=eln(1)
+        r(0)=ern(1)
+        arg=(qipf2+ams2)/alm2
+        g(0)=(eln(2)-eln(1))-fdexpx(-qipf2/alm2)*ce1x(arg)
+        do 15 nn=-3,3
+          if(in.eq.1) then
+            ue1(nn)=asi*u(j+nn)
+          elseif(in.eq.2) then
+            ue2(nn)=bsi*u(j+nn)
+          elseif(in.eq.3) then
+            uss(nn)=u(j+nn)
+          elseif(in.eq.4) then
+            ude(nn)=u(j+nn)
+          elseif(in.eq.5) then
+            ukp(nn)=u(j+nn)
+          endif
+   15   continue
+        do 16 nn=-2,2
+          if(in.eq.1) then
+            ge1(nn)=asi*g(j+nn)
+          elseif(in.eq.2) then
+            ge2(nn)=bsi*g(j+nn)
+          elseif(in.eq.3) then
+            gss(nn)=g(j+nn)
+          elseif(in.eq.4) then
+            gde(nn)=g(j+nn)
+          elseif(in.eq.5) then
+            gkp(nn)=g(j+nn)
+          endif
+   16   continue
+        do 17 nn=-1,1
+          if(in.eq.1) then
+            re1(nn)=asi*r(j+nn)
+          elseif(in.eq.2) then
+            re2(nn)=bsi*r(j+nn)
+          elseif(in.eq.3) then
+            rss(nn)=r(j+nn)
+          elseif(in.eq.4) then
+            rde(nn)=r(j+nn)
+          elseif(in.eq.5) then
+            rkp(nn)=r(j+nn)
+          endif
+   17   continue
+   10 continue
+
+      do 20 isoloop=ii1,ii2,2
+        if(isoloop.eq.3) then
+          y1=xm3l(1)
+          y2=xm3r(1)
+          call scfunp(1,0,gs31e,x(1),ue1,re1,ge1,y1,y2,nloc,wyn3h)
+          call scfunp(1,0,gs31e,x(2),ue2,re2,ge2,y1,y2,nloc,wyn3h)
+          call scfunp(1,0,gs31s,x(3),uss,rss,gss,y1,y2,nloc,wyn3h)
+          call scfunp(1,0,gs31d,x(4),ude,rde,gde,y1,y2,nloc,wyn3h)
+          y1=xm3l(2)
+          y2=xm3r(2)
+          call scfunp(0,1,gs31k,x(5),ukp,rkp,gkp,y1,y2,nloc,wyn3h)
+        elseif(isoloop.eq.1) then
+          y1=xm1l(1,1)
+          y2=xm1r(1,1)
+          call scfunp(1,0,gs11e,x(1),ue1,re1,ge1,y1,y2,nloc,wyn1h(1,1))
+          call scfunp(1,0,gs11e,x(2),ue2,re2,ge2,y1,y2,nloc,wyn1h(1,1))
+          call scfunp(1,0,gs11s,x(3),uss,rss,gss,y1,y2,nloc,wyn1h(1,1))
+          call scfunp(1,0,icsb*gs11d,x(4),ude,rde,gde,
+     .                y1,y2,nloc,wyn1h(1,1))
+          y1=xm1l(2,1)
+          y2=xm1r(2,1)
+          call scfunp(0,1,gs11k,x(5),ukp,rkp,gkp,y1,y2,nloc,wyn1h(1,1))
+          y1=xm1l(1,2)
+          y2=xm1r(1,2)
+          call scfunp(1,0,gs12d,x(4),ude,rde,gde,y1,y2,nloc,wyn1h(1,2))
+          y1=xm1l(2,2)
+          y2=xm1r(2,2)
+          call scfunp(0,1,gs12k,x(5),ukp,rkp,gkp,y1,y2,nloc,wyn1h(1,2))
+          y1=xm1l(1,3)
+          y2=xm1r(1,3)
+          call scfunp(1,0,gs13e,x(1),ue1,re1,ge1,y1,y2,nloc,wyn1h(1,3))
+          call scfunp(1,0,gs13e,x(2),ue2,re2,ge2,y1,y2,nloc,wyn1h(1,3))
+          call scfunp(1,0,gs13s,x(3),uss,rss,gss,y1,y2,nloc,wyn1h(1,3))
+          call scfunp(1,0,gs13d,x(4),ude,rde,gde,y1,y2,nloc,wyn1h(1,3))
+          y1=xm1l(2,3)
+          y2=xm1r(2,3)
+          call scfunp(0,1,gs13k,x(5),ukp,rkp,gkp,y1,y2,nloc,wyn1h(1,3))
+        endif
+   20 continue
+
+      return
+      end
+C **********************************************************************
+      subroutine difracyn(j,ii1,ii2,nloc,icsb)
+C **********************************************************************
+C
+C     DIFFRACTIVE MESONS : CALCULATION POTENTIALS ON ISOSPIN BASIS
+C
+C     I=1/2: LN->LN     LN->NL;  LN->SN  LN->NS;   SN->SN     SN->NS
+C            pom/f2/a2  K**      a2      K**       pom/f2/a2  K**
+C     I=3/2: SN->SN     SN->NS
+C            pom/f2/a2  K**
+C
+C     Symmetry factor regulated with md,mx in call dffunp(md,mx,...)
+C     Only calculates potential that is needed ==> loop from ii1 to ii2.
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      common/alldf/ ampom,amf2,ama2,amkss
+      common/massyn/xm1l(2,3),xm1r(2,3),xm3l(2),xm3r(2)
+      common/vmesyn/wyn1h(8,3),wyn3h(8)
+      common/copmyn/copdum(14,6),
+     .              gd31p,gd31f,gd31a,gd31k, gd11p,gd11f,gd11a,
+     .              gd11k,gd12a,gd12k,gd13p,gd13f,gd13a,gd13k
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      dimension amdf(4), eln(15),ern(15),
+     .          r(-3:12),s(-3:12),g(-3:12)
+      dimension rpo(-3:3),rf2(-3:3),ra2(-3:3),rkd(-3:3),
+     .          spo(-1:1),sf2(-1:1),sa2(-1:1),skd(-1:1),
+     .          gpo(-2:2),gf2(-2:2),ga2(-2:2),gkd(-2:2)
+      data r/16*0d0/,s/16*0d0/,g/16*0d0/
+
+C*    Possible mesons being exchanged
+      amdf(1)=ampom
+      amdf(2)=amf2
+      amdf(3)=ama2
+      amdf(4)=amkss
+
+      kom=2
+      jmax=j+3
+      do 10 in=1,4
+        ams2=amdf(in)**2
+        y=0.5d0*qiqf/ams2
+        call plexp(xcom,y,0d0,jmax+1,kom,eln,ern)
+        do 11 k=1,jmax
+          r(k)=ern(k+1)
+          s(k)=(k*ern(k)+(k+1)*ern(k+2))/(2*k+1)
+          g(k)=(ern(k+2)-ern(k))/(2*k+1)
+   11   continue
+        r(0)=ern(1)
+        s(0)=ern(2)
+        g(0)=(ern(2)-ern(1))-2d0*fdexpx(-qipf2/4d0/ams2)*ams2/qiqf
+        do 15 nn=-3,3
+          if(in.eq.1) then
+            rpo(nn)=r(j+nn)
+          elseif(in.eq.2) then
+            rf2(nn)=r(j+nn)
+          elseif(in.eq.3) then
+            ra2(nn)=r(j+nn)
+          elseif(in.eq.4) then
+            rkd(nn)=r(j+nn)
+          endif
+   15   continue
+        do 16 nn=-2,2
+          if(in.eq.1) then
+            gpo(nn)=g(j+nn)
+          elseif(in.eq.2) then
+            gf2(nn)=g(j+nn)
+          elseif(in.eq.3) then
+            ga2(nn)=g(j+nn)
+          elseif(in.eq.4) then
+            gkd(nn)=g(j+nn)
+          endif
+   16   continue
+        do 17 nn=-1,1
+          if(in.eq.1) then
+            spo(nn)=s(j+nn)
+          elseif(in.eq.2) then
+            sf2(nn)=s(j+nn)
+          elseif(in.eq.3) then
+            sa2(nn)=s(j+nn)
+          elseif(in.eq.4) then
+            skd(nn)=s(j+nn)
+          endif
+   17   continue
+   10 continue
+
+      do 20 isoloop=ii1,ii2,2
+        if(isoloop.eq.3) then
+          y1=xm3l(1)
+          y2=xm3r(1)
+          call dffunp(1,0,gd31p,rpo,spo,gpo,y1,y2,nloc,wyn3h)
+          call dffunp(1,0,gd31f,rf2,sf2,gf2,y1,y2,nloc,wyn3h)
+          call dffunp(1,0,gd31a,ra2,sa2,ga2,y1,y2,nloc,wyn3h)
+          y1=xm3l(2)
+          y2=xm3r(2)
+          call dffunp(0,1,gd31k,rkd,skd,gkd,y1,y2,nloc,wyn3h)
+        elseif(isoloop.eq.1) then
+          y1=xm1l(1,1)
+          y2=xm1r(1,1)
+          call dffunp(1,0,gd11p,rpo,spo,gpo,y1,y2,nloc,wyn1h(1,1))
+          call dffunp(1,0,gd11f,rf2,sf2,gf2,y1,y2,nloc,wyn1h(1,1))
+          call dffunp(1,0,icsb*gd11a,ra2,sa2,ga2,y1,y2,nloc,wyn1h(1,1))
+          y1=xm1l(2,1)
+          y2=xm1r(2,1)
+          call dffunp(0,1,gd11k,rkd,skd,gkd,y1,y2,nloc,wyn1h(1,1))
+          y1=xm1l(1,2)
+          y2=xm1r(1,2)
+          call dffunp(1,0,gd12a,ra2,sa2,ga2,y1,y2,nloc,wyn1h(1,2))
+          y1=xm1l(2,2)
+          y2=xm1r(2,2)
+          call dffunp(0,1,gd12k,rkd,skd,gkd,y1,y2,nloc,wyn1h(1,2))
+          y1=xm1l(1,3)
+          y2=xm1r(1,3)
+          call dffunp(1,0,gd13p,rpo,spo,gpo,y1,y2,nloc,wyn1h(1,3))
+          call dffunp(1,0,gd13f,rf2,sf2,gf2,y1,y2,nloc,wyn1h(1,3))
+          call dffunp(1,0,gd13a,ra2,sa2,ga2,y1,y2,nloc,wyn1h(1,3))
+          y1=xm1l(2,3)
+          y2=xm1r(2,3)
+          call dffunp(0,1,gd13k,rkd,skd,gkd,y1,y2,nloc,wyn1h(1,3))
+        endif
+   20 continue
+
+      return
+      end
+C **********************************************************************
+      block data
+C **********************************************************************
+      common/inmes/inps,invc,insc,indf
+      character*4 inps(4),invc(4),insc(4),indf(4)
+C*    Ordering: pion,kaon,eta,x0;           rho,K*,omega,phi;
+C*              delta,kappa,epsilon,S*;     a2,K**,pomeron,f2
+      data inps/'yes','yes','yes','yes'/
+      data invc/'yes','yes','yes','yes'/
+      data insc/'yes','yes','yes','yes'/
+      data indf/'yes','yes','yes','yes'/
+c     data inps/'no','no','no','no'/
+c     data invc/'no','no','no','no'/
+c     data insc/'no','no','no','no'/
+c     data indf/'no','no','no','no'/
+      end
+C **********************************************************************
+      subroutine obepar(nymod,ns)
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      common/mesons/par(12,8)
+      dimension parc40(8,12),par97a(8,12),par97b(8,12),
+     .          par97c(8,12),par97d(8,12),par97e(8,12),par97f(8,12)
+      character ynpot(0:6)*8
+      data ynpot/'YNPRC40','YNSC97a','YNSC97b',
+     .           'YNSC97c','YNSC97d','YNSC97e','YNSC97f'/
+C
+C     OBE-parameters :
+C
+C   PAR( 1,I)= XS     F1     GV1    FV1   GDEL   GA2    FA1    GSPAIR
+C   PAR( 2,I)= XT     ALP    ALVE   ALVM  GS*    PSID   ALPA   GVPAIR
+C   PAR( 3,I)= X1P    FX0    GOM    FOM   GEPS   GPOM   GPS21  FVPAIR
+C   PAR( 4,I)= X3P27  PIONC  AM1RO  ARO   AMD    1.0    GPS29  GAPAIR
+C   PAR( 5,I)= X3P8S  PION0  AM2RO  BRO   AM1SI  ASI    GT1    HAPAIR
+C   PAR( 6,I)= PROTON ETA    AMOM   ELPHI AM2SI  BSI    GT9    GPPAIR
+C   PAR( 7,I)= ALM1   AMX0   AMFI   PSIS1 AM1ST  1.0    FT1    HOPAIR
+C   PAR( 8,I)= ALM27  ALMP8  ALMV8  PSIS8 ALMS8  AMA2   FT9    GEPAIR
+C   PAR( 9,I)= ALM8S  ALMP1  ALMV1  THS1  ALMS1  AMPOM  SU3F   GPIET
+C   PAR(10,I)= ALM10  THPS   THV    THS2  AMEPS  THD    SONV   GPIETP
+C   PAR(11,I)= ALM8A  THPE   THRO   THDE  GAMEP  AHYPC  SONPV  GPIPOM
+C   PAR(12,I)= ALM10* ALAMK  ALMKS  ALMKP AMSCK  AMKSS  SONSC  RSCAL
+C
+C **********************************************************************
+C
+C     Soft-core model Phys.Rev. C40 parameters: chi**2=15.6669
+      DATA PARC40/
+     1  .00000000D+00, .27204360D+00, .89147280D+00, .37625470D+01
+     a, .12773420D+01, .44372200D+00, .00000000D+00, .00000000D+00
+     2, .00000000D+00, .35500000D+00, .10000000D+01, .27500000D+00
+     b,-.83893630D+00, .15000000D+02, .00000000D+00, .00000000D+00
+     3, .00000000D+00, .14410100D+00, .29466300D+01, .90959000D+00
+     c, .47677330D+01, .29628260D+01, .00000000D+00, .00000000D+00
+     4, .00000000D+00, .13957000D+03, .64744000D+03, .19068000D+00
+     d, .96200000D+03, .10000000D+01, .00000000D+00, .00000000D+00
+     5, .00000000D+00, .13496000D+03, .89817000D+03, .79649000D+00
+     e, .50045000D+03, .18719000D+00, .00000000D+00, .00000000D+00
+     6, .93825930D+03, .54880000D+03, .78390000D+03,-.99796760D+01
+     f, .10471400D+04, .60105000D+00, .00000000D+00, .00000000D+00
+     7, .96452420D+03, .95750000D+03, .10195000D+04, .90000000D+02
+     g, .99300000D+03, .10000000D+01, .00000000D+00, .00000000D+00
+     8, .10200000D+04, .96452420D+03, .96452420D+03, .90000000D+02
+     h, .96452420D+03, .30780960D+03, .00000000D+00, .00000000D+00
+     9, .82000000D+03, .96452420D+03, .96452420D+03,-.54500000D+02
+     i, .96452420D+03, .30780960D+03, .10000000D+01, .00000000D+00
+     X, .12300000D+04,-.23000000D+02, .37500000D+02, .49105000D+02
+     j, .76000000D+03, .37500000D+02, .10000000D+01, .00000000D+00
+     Y, .12705000D+04, .00000000D+00, .00000000D+00, .00000000D+00
+     k, .64000000D+03, .00000000D+00, .10000000D+01, .00000000D+00
+     Z, .12705000D+04, .00000000D+00, .00000000D+00, .00000000D+00
+     l, .10000000D+04, .30780960D+03, .10000000D+01, .00000000D+00/
+C **********************************************************************
+C
+C     Soft-core model YNSC97a parameters: chi**2=15.6763  (0.4447)
+      DATA PAR97A/
+     1 0.00000000D+00,0.27286460D+00,0.83689020D+00,0.35317360D+01
+     a,0.13951110D+01,0.00000000D+00,0.19116910D-01,0.00000000D+00
+     2,0.00000000D+00,0.35500000D+00,0.10000000D+01,0.44466980D+00
+     b,-.83893630D+00,0.00000000D+00,0.47488710D-01,0.00000000D+00
+     3,0.00000000D+00,0.14410100D+00,0.29213270D+01,0.11833530D+01
+     c,0.45978860D+01,0.28640680D+01,0.86287360D-01,0.00000000D+00
+     4,0.00000000D+00,0.13957000D+03,0.62873660D+03,0.15874030D+00
+     d,0.96200000D+03,0.10000000D+01,0.45600040D-01,0.00000000D+00
+     5,0.00000000D+00,0.13496000D+03,0.87817630D+03,0.78320850D+00
+     e,0.50852320D+03,0.19986490D+00,0.26464790D+00,0.00000000D+00
+     6,0.93825930D+03,0.54880000D+03,0.78390000D+03,-.17497440D+01
+     f,0.10437910D+04,0.55240990D+00,0.92380480D+00,0.00000000D+00
+     7,0.93955270D+03,0.95750000D+03,0.10195000D+04,0.90000000D+02
+     g,0.99300000D+03,0.10000000D+01,0.11168330D+01,0.00000000D+00
+     8,0.96452420D+03,0.12546290D+04,0.89506900D+03,0.90000000D+02
+     h,0.54871570D+03,0.30780960D+03,0.37420910D+00,0.00000000D+00
+     9,0.96452420D+03,0.87209190D+03,0.94933130D+03,-.54500000D+02
+     i,0.98899220D+03,0.30780960D+03,0.10000000D+01,0.00000000D+00
+     X,0.12300000D+04,-.23000000D+02,0.37500000D+02,0.37071340D+02
+     j,0.76000000D+03,0.37500000D+02,0.82847700D+00,0.00000000D+00
+     Y,0.81000000D+03,0.00000000D+00,0.00000000D+00,0.00000000D+00
+     k,0.64000000D+03,0.00000000D+00,0.95709300D+00,0.00000000D+00
+     Z,0.00000000D+00,0.12816430D+04,0.11845150D+04,0.93574810D+03
+     l,0.13000000D+04,0.30780960D+03,0.91777310D+00,0.00000000D+00/
+C **********************************************************************
+C
+C     Soft-core model YNSC97b parameters: chi**2=15.8186  (0.4247)
+      DATA PAR97B/
+     1 0.00000000D+00,0.27286460D+00,0.83689020D+00,0.35317360D+01
+     a,0.13951110D+01,0.00000000D+00,0.19116910D-01,0.00000000D+00
+     2,0.00000000D+00,0.35500000D+00,0.10000000D+01,0.42466980D+00
+     b,-.83893630D+00,0.00000000D+00,0.47488710D-01,0.00000000D+00
+     3,0.00000000D+00,0.14410100D+00,0.29213270D+01,0.11833530D+01
+     c,0.45978860D+01,0.28640680D+01,0.86287360D-01,0.00000000D+00
+     4,0.00000000D+00,0.13957000D+03,0.62873660D+03,0.15874030D+00
+     d,0.96200000D+03,0.10000000D+01,0.45600040D-01,0.00000000D+00
+     5,0.00000000D+00,0.13496000D+03,0.87817630D+03,0.78320850D+00
+     e,0.50852320D+03,0.19986490D+00,0.26464790D+00,0.00000000D+00
+     6,0.93825930D+03,0.54880000D+03,0.78390000D+03,-.17497440D+01
+     f,0.10437910D+04,0.55240990D+00,0.92380480D+00,0.00000000D+00
+     7,0.93955270D+03,0.95750000D+03,0.10195000D+04,0.90000000D+02
+     g,0.99300000D+03,0.10000000D+01,0.11168330D+01,0.00000000D+00
+     8,0.96452420D+03,0.12546290D+04,0.89506900D+03,0.90000000D+02
+     h,0.54871570D+03,0.30780960D+03,0.37420910D+00,0.00000000D+00
+     9,0.96452420D+03,0.87209190D+03,0.94933130D+03,-.54500000D+02
+     i,0.98899220D+03,0.30780960D+03,0.10000000D+01,0.00000000D+00
+     X,0.12300000D+04,-.23000000D+02,0.37500000D+02,0.37316250D+02
+     j,0.76000000D+03,0.37500000D+02,0.89462580D+00,0.00000000D+00
+     Y,0.81000000D+03,0.00000000D+00,0.00000000D+00,0.00000000D+00
+     k,0.64000000D+03,0.00000000D+00,0.10025570D+01,0.00000000D+00
+     Z,0.00000000D+00,0.12816430D+04,0.11845150D+04,0.93574810D+03
+     l,0.13000000D+04,0.30780960D+03,0.94620540D+00,0.00000000D+00/
+C **********************************************************************
+C
+C     Soft-core model YNSC97c parameters: chi**2=15.6156  (0.4047)
+      DATA PAR97C/
+     1 0.00000000D+00,0.27286460D+00,0.83689020D+00,0.35317360D+01
+     a,0.13951110D+01,0.00000000D+00,0.19116910D-01,0.00000000D+00
+     2,0.00000000D+00,0.35500000D+00,0.10000000D+01,0.40466980D+00
+     b,-.83893630D+00,0.00000000D+00,0.47488710D-01,0.00000000D+00
+     3,0.00000000D+00,0.14410100D+00,0.29213270D+01,0.11833530D+01
+     c,0.45978860D+01,0.28640680D+01,0.86287360D-01,0.00000000D+00
+     4,0.00000000D+00,0.13957000D+03,0.62873660D+03,0.15874030D+00
+     d,0.96200000D+03,0.10000000D+01,0.45600040D-01,0.00000000D+00
+     5,0.00000000D+00,0.13496000D+03,0.87817630D+03,0.78320850D+00
+     e,0.50852320D+03,0.19986490D+00,0.26464790D+00,0.00000000D+00
+     6,0.93825930D+03,0.54880000D+03,0.78390000D+03,-.17497440D+01
+     f,0.10437910D+04,0.55240990D+00,0.92380480D+00,0.00000000D+00
+     7,0.93955270D+03,0.95750000D+03,0.10195000D+04,0.90000000D+02
+     g,0.99300000D+03,0.10000000D+01,0.11168330D+01,0.00000000D+00
+     8,0.96452420D+03,0.12546290D+04,0.89506900D+03,0.90000000D+02
+     h,0.54871570D+03,0.30780960D+03,0.37420910D+00,0.00000000D+00
+     9,0.96452420D+03,0.87209190D+03,0.94933130D+03,-.54500000D+02
+     i,0.98899220D+03,0.30780960D+03,0.10000000D+01,0.00000000D+00
+     X,0.12300000D+04,-.23000000D+02,0.37500000D+02,0.37565290D+02
+     j,0.76000000D+03,0.37500000D+02,0.98531330D+00,0.00000000D+00
+     Y,0.81000000D+03,0.00000000D+00,0.00000000D+00,0.00000000D+00
+     k,0.64000000D+03,0.00000000D+00,0.10220780D+01,0.00000000D+00
+     Z,0.00000000D+00,0.12816430D+04,0.11845150D+04,0.93574810D+03
+     l,0.13000000D+04,0.30780960D+03,0.98975610D+00,0.00000000D+00/
+C **********************************************************************
+C
+C     Soft-core model YNSC97d parameters: chi**2=15.7586  (0.3847)
+      DATA PAR97D/
+     1 0.00000000D+00,0.27286460D+00,0.83689020D+00,0.35317360D+01
+     a,0.13951110D+01,0.00000000D+00,0.19116910D-01,0.00000000D+00
+     2,0.00000000D+00,0.35500000D+00,0.10000000D+01,0.38466980D+00
+     b,-.83893630D+00,0.00000000D+00,0.47488710D-01,0.00000000D+00
+     3,0.00000000D+00,0.14410100D+00,0.29213270D+01,0.11833530D+01
+     c,0.45978860D+01,0.28640680D+01,0.86287360D-01,0.00000000D+00
+     4,0.00000000D+00,0.13957000D+03,0.62873660D+03,0.15874030D+00
+     d,0.96200000D+03,0.10000000D+01,0.45600040D-01,0.00000000D+00
+     5,0.00000000D+00,0.13496000D+03,0.87817630D+03,0.78320850D+00
+     e,0.50852320D+03,0.19986490D+00,0.26464790D+00,0.00000000D+00
+     6,0.93825930D+03,0.54880000D+03,0.78390000D+03,-.17497440D+01
+     f,0.10437910D+04,0.55240990D+00,0.92380480D+00,0.00000000D+00
+     7,0.93955270D+03,0.95750000D+03,0.10195000D+04,0.90000000D+02
+     g,0.99300000D+03,0.10000000D+01,0.11168330D+01,0.00000000D+00
+     8,0.96452420D+03,0.12546290D+04,0.89506900D+03,0.90000000D+02
+     h,0.54871570D+03,0.30780960D+03,0.37420910D+00,0.00000000D+00
+     9,0.96452420D+03,0.87209190D+03,0.94933130D+03,-.54500000D+02
+     i,0.98899220D+03,0.30780960D+03,0.10000000D+01,0.00000000D+00
+     X,0.12300000D+04,-.23000000D+02,0.37500000D+02,0.38305840D+02
+     j,0.76000000D+03,0.37500000D+02,0.10900670D+01,0.00000000D+00
+     Y,0.81000000D+03,0.00000000D+00,0.00000000D+00,0.00000000D+00
+     k,0.64000000D+03,0.00000000D+00,0.10842260D+01,0.00000000D+00
+     Z,0.00000000D+00,0.12816430D+04,0.11845150D+04,0.93574810D+03
+     l,0.13000000D+04,0.30780960D+03,0.10373180D+01,0.00000000D+00/
+C **********************************************************************
+C
+C     Soft-core model YNSC97e parameters: chi**2=16.0599  (0.3747)
+      DATA PAR97E/
+     1 0.00000000D+00,0.27286460D+00,0.83689020D+00,0.35317360D+01
+     a,0.13951110D+01,0.00000000D+00,0.19116910D-01,0.00000000D+00
+     2,0.00000000D+00,0.35500000D+00,0.10000000D+01,0.37466980D+00
+     b,-.83893630D+00,0.00000000D+00,0.47488710D-01,0.00000000D+00
+     3,0.00000000D+00,0.14410100D+00,0.29213270D+01,0.11833530D+01
+     c,0.45978860D+01,0.28640680D+01,0.86287360D-01,0.00000000D+00
+     4,0.00000000D+00,0.13957000D+03,0.62873660D+03,0.15874030D+00
+     d,0.96200000D+03,0.10000000D+01,0.45600040D-01,0.00000000D+00
+     5,0.00000000D+00,0.13496000D+03,0.87817630D+03,0.78320850D+00
+     e,0.50852320D+03,0.19986490D+00,0.26464790D+00,0.00000000D+00
+     6,0.93825930D+03,0.54880000D+03,0.78390000D+03,-.17497440D+01
+     f,0.10437910D+04,0.55240990D+00,0.92380480D+00,0.00000000D+00
+     7,0.93955270D+03,0.95750000D+03,0.10195000D+04,0.90000000D+02
+     g,0.99300000D+03,0.10000000D+01,0.11168330D+01,0.00000000D+00
+     8,0.96452420D+03,0.12546290D+04,0.89506900D+03,0.90000000D+02
+     h,0.54871570D+03,0.30780960D+03,0.37420910D+00,0.00000000D+00
+     9,0.96452420D+03,0.87209190D+03,0.94933130D+03,-.54500000D+02
+     i,0.98899220D+03,0.30780960D+03,0.10000000D+01,0.00000000D+00
+     X,0.12300000D+04,-.23000000D+02,0.37500000D+02,0.38881920D+02
+     j,0.76000000D+03,0.37500000D+02,0.11453390D+01,0.00000000D+00
+     Y,0.81000000D+03,0.00000000D+00,0.00000000D+00,0.00000000D+00
+     k,0.64000000D+03,0.00000000D+00,0.11371790D+01,0.00000000D+00
+     Z,0.00000000D+00,0.12816430D+04,0.11845150D+04,0.93574810D+03
+     l,0.13000000D+04,0.30780960D+03,0.10613970D+01,0.00000000D+00/
+C **********************************************************************
+C
+C     Soft-core model YNSC97f parameters: chi**2=16.6656  (0.3647)
+      DATA PAR97F/
+     1 0.00000000D+00,0.27286460D+00,0.83689020D+00,0.35317360D+01
+     a,0.13951110D+01,0.00000000D+00,0.19116910D-01,0.00000000D+00
+     2,0.00000000D+00,0.35500000D+00,0.10000000D+01,0.36466980D+00
+     b,-.83893630D+00,0.00000000D+00,0.47488710D-01,0.00000000D+00
+     3,0.00000000D+00,0.14410100D+00,0.29213270D+01,0.11833530D+01
+     c,0.45978860D+01,0.28640680D+01,0.86287360D-01,0.00000000D+00
+     4,0.00000000D+00,0.13957000D+03,0.62873660D+03,0.15874030D+00
+     d,0.96200000D+03,0.10000000D+01,0.45600040D-01,0.00000000D+00
+     5,0.00000000D+00,0.13496000D+03,0.87817630D+03,0.78320850D+00
+     e,0.50852320D+03,0.19986490D+00,0.26464790D+00,0.00000000D+00
+     6,0.93825930D+03,0.54880000D+03,0.78390000D+03,-.17497440D+01
+     f,0.10437910D+04,0.55240990D+00,0.92380480D+00,0.00000000D+00
+     7,0.93955270D+03,0.95750000D+03,0.10195000D+04,0.90000000D+02
+     g,0.99300000D+03,0.10000000D+01,0.11168330D+01,0.00000000D+00
+     8,0.96452420D+03,0.12546290D+04,0.89506900D+03,0.90000000D+02
+     h,0.54871570D+03,0.30780960D+03,0.37420910D+00,0.00000000D+00
+     9,0.96452420D+03,0.87209190D+03,0.94933130D+03,-.54500000D+02
+     i,0.98899220D+03,0.30780960D+03,0.10000000D+01,0.00000000D+00
+     X,0.12300000D+04,-.23000000D+02,0.37500000D+02,0.39648140D+02
+     j,0.76000000D+03,0.37500000D+02,0.11881200D+01,0.00000000D+00
+     Y,0.81000000D+03,0.00000000D+00,0.00000000D+00,0.00000000D+00
+     k,0.64000000D+03,0.00000000D+00,0.12422520D+01,0.00000000D+00
+     Z,0.00000000D+00,0.12816430D+04,0.11845150D+04,0.93574810D+03
+     l,0.13000000D+04,0.30780960D+03,0.10699960D+01,0.00000000D+00/
+C **********************************************************************
+
+      do 1 i=1,12
+      do 1 j=1,8
+        if(nymod.eq.0) par(i,j) = parc40(j,i)
+        if(nymod.eq.1) par(i,j) = par97a(j,i)
+        if(nymod.eq.2) par(i,j) = par97b(j,i)
+        if(nymod.eq.3) par(i,j) = par97c(j,i)
+        if(nymod.eq.4) par(i,j) = par97d(j,i)
+        if(nymod.eq.5) par(i,j) = par97e(j,i)
+        if(nymod.eq.6) par(i,j) = par97f(j,i)
+    1 continue
+      if(ns.ge.1) then
+c        write(*,2) ynpot(nymod)
+    2   format(/,' OBEPAR -> PARAMETERS: ',A8,/)
+        do 3 i=1,12
+c          write(*,4) i,(par(i,j),j=1,4),(par(i,j),j=5,8)
+    3   continue
+    4   format(1x,'i=',i2,4(d15.7,2x),/,5x,4(d15.7,2x))
+      endif
+
+      return
+      end
+C **********************************************************************
+      subroutine obecop(ns)
+C **********************************************************************
+C*    FP  pseudoscalar pseudovector (IPV=1)
+C*    GV  vector direct     = electric
+C*    FV  vector derivative = magnetic
+C*        IGM=0/1: SU3 for Dirac/Pauli magnetic coupling constants
+C*    Octet coupling constants. Storage example for pseudoscalars:
+C*      1=Nuc-Nuc-pion       5=Lam-Nuc-kaon       9=Nuc-Nuc-eta8
+C*      2=Sig-Sig-pion       6=Lam-Cas-kaon      10=Lam-Lam-eta8
+C*      3=Lam-Sig-pion       7=Sig-Nuc-kaon      11=Sig-Sig-eta8
+C*      4=Cas-Cas-pion       8=Sig-Cas-kaon      12=Cas-Cas-eta8
+C*    Singlet coupling constants. Storage example for pseudoscalars:
+C*      1=Nuc-Nuc-eta1  2=Lam-Lam-eta1  3=Sig-Sig-eta1  4=Cas-Cas-eta1
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      common/mesons/par(12,8)
+      common/allps/ ame,amx,amk,bmk(3),pimm(3)
+      common/allvc/ aro,bro,am1ro,am2ro,amom,amfi,amks,bmks(3)
+      common/allsc/ asi,bsi,am1si,am2si,asst,bsst,amsst,am2st,amd,amsck
+      common/alldf/ ampom,amf2,ama2,amkss
+      common/coupl8/fp(12),gv(12),fv(12),gs(12),gd(12)
+      common/coupls/fp0(4),gv0(4),fv0(4),gs0(4),gd0(4)
+      common/ynmodl/imodl
+      character ynpot(0:6)*8
+      data ynpot/'YNPRC40','YNSC97a','YNSC97b',
+     .           'YNSC97c','YNSC97d','YNSC97e','YNSC97f'/
+      data sr2/1.414213562373095d0/,sr3/1.7320508075688772935d0/,
+     .     srpi/1.7724538509055160273d0/, conv/57.2957795130823208768d0/
+      data n2/6/,icall/0/, ampro/938.27231d0/
+
+C*    Charge-symmetry breaking (no breaking when value=1)
+      sonv  = par(10,7)
+      sonpv = par(11,7)
+      sonsc = par(12,7)
+      if(sonpv.eq.0d0) sonpv=1d0
+      if(sonv .eq.0d0) sonv =sonpv
+      if(sonsc.eq.0d0) sonsc=sonpv
+
+      rscal=dsqrt(par(12,8))
+C*    Pseudoscalar mesons
+      fp(1)=par(1,2)
+      alpv =par(2,2)
+      fx0  =par(3,2)
+      thps =par(10,2)
+C*    Vector mesons
+      gv(1)=par(1,3)
+      alve =par(2,3)
+      gom  =par(3,3)
+      thv  =par(10,3)
+      fv(1)=par(1,4)
+      alvm =par(2,4)
+      fom  =par(3,4)
+C*    Scalar mesons
+      gdel=par(1,5)
+      gsst=par(2,5)
+      geps=par(3,5)
+      ths =par(10,4)
+C*    Two-nonet parameters for scalar mesons
+      elphi = par(6,4)
+      psis1 = par(7,4)
+      psis8 = par(8,4)
+      ths1  = par(9,4)
+      ths2  = par(10,4)
+C*    Diffractive mesons
+      ga2  =par(1,6)
+      gpom =par(3,6)
+      psid =par(2,6)
+      thd  =par(10,6)
+C*    Angles from degrees to radians
+      thpsd=thps
+      thvd =thv
+      thsd =ths
+      thdd =thd
+      psidd=psid
+      elphid=elphi
+      thps=thps/conv
+      thv =thv /conv
+      ths =ths /conv
+      thd =thd /conv
+      psid=psid/conv
+      elphi=elphi/conv
+      psis1=psis1/conv
+      psis8=psis8/conv
+      ths1 =ths1 /conv
+      ths2 =ths2 /conv
+
+C*    Pseudoscalar coupling constants
+C*       IPV=0/1: SU3 for pseudoscalar/pseudovector coupling constants
+      ipv=1
+      cost=dcos(thps)
+      sint=dsin(thps)
+      fp0(1)=(fx0-sint*(4d0*alpv-1d0)*fp(1)/sr3)/cost
+      call su3f(fp,fp0,alpv)
+C*    SU(3)-symmetry breaking:
+      if(sonpv.ne.1d0) call su3fsb(fp,fp0,sonpv)
+C*    ETA - X0 mixing
+      do 11 js=1,4
+        jo=js+8
+        wov=fp(jo)
+        wsv=fp0(js)
+        fp0(js)= cost*wsv+sint*wov
+        fp(jo) =-sint*wsv+cost*wov
+   11 continue
+
+C*    Vector coupling constants
+C*       IGM=0/1: SU3 for Dirac/Pauli coupling constants
+      igm=0
+      cost=dcos(thv)
+      sint=dsin(thv)
+      if(igm.eq.0) then
+        gv0(1)=(gom-sint*(4d0*alve-1d0)*gv(1)/sr3)/cost
+        fv0(1)=(fom-sint*(4d0*alvm-1d0)*fv(1)/sr3)/cost
+      elseif(igm.eq.1) then
+        gv0(1)=(gom-sint*(4d0*alve-1d0)*gv(1)/sr3)/cost
+        fv0(1)=(gom+fom-sint*(4d0*alvm-1d0)*(gv(1)+fv(1))/sr3)/cost
+        fv(1)=gv(1)+fv(1)
+      endif
+      call su3f(gv,gv0,alve)
+      call su3f(fv,fv0,alvm)
+C*    SU(3)-symmetry breaking:
+      if(sonv.ne.1d0) call su3fsb(gv,gv0,sonv)
+      if(sonv.ne.1d0) call su3fsb(fv,fv0,sonv)
+      do 12 js=1,4
+        jo=js+8
+        wog=gv(jo)
+        wof=fv(jo)
+        wsg=gv0(js)
+        wsf=fv0(js)
+        gv(jo) = cost*wsg+sint*wog
+        gv0(js)=-sint*wsg+cost*wog
+        fv(jo) = cost*wsf+sint*wof
+        fv0(js)=-sint*wsf+cost*wof
+   12 continue
+      if(igm.eq.1) then
+        do 121 i=1,12
+  121     fv(i)=fv(i)-gv(i)
+        do 122 i=1,4
+  122     fv0(i)=fv0(i)-gv0(i)
+      endif
+
+C*    Scalar coupling constants
+      ioptsc=3
+      if(ioptsc.eq.3) then
+C*      Redefinition epsilon and S* NN couplings:
+        gepsi = geps
+        gssti = gsst
+        call cnstr97(elphid,gepsi,gssti,geps,gsst,ns)
+      endif
+      gs(1)=gdel
+      cost=dcos(ths)
+      sint=dsin(ths)
+      gs0(1) = cost*geps-sint*gsst
+      als = 1d0
+      if(gs(1).ne.0d0) then
+        als=0.25d0*(1d0 + (sint*geps+cost*gsst)*sr3/gs(1))
+      endif
+      call su3f(gs,gs0,als)
+C*    SU(3)-symmetry breaking:
+      if(sonsc.ne.1d0) call su3fsb(gs,gs0,sonsc)
+      do 13 js=1,4
+        jo=js+8
+        wos=gs(jo)
+        wss=gs0(js)
+        gs(jo) = cost*wss+sint*wos
+        gs0(js)=-sint*wss+cost*wos
+   13 continue
+
+C*    Diffractive coupling constants
+      ald=1d0
+      gd(1)=ga2
+      sint=dsin(thd)
+      cost=dcos(thd)
+      gd0(1)=gpom*dcos(psid)
+      if(gd(1).ne.0d0) ald=(1d0+sr3*dsin(psid)*gpom/gd(1))/4d0
+      call su3f(gd,gd0,ald)
+      do 14 js=1,4
+        jo=js+8
+        wod=gd(jo)
+        wsd=gd0(js)
+        gd(jo) = cost*wsd+sint*wod
+        gd0(js)=-sint*wsd+cost*wod
+   14 continue
+
+      if(sonpv.ne.1d0 .or. sonv.ne.1d0 .or. sonsc.ne.1d0) then
+c        if(icall.eq.0) write(n2,300) sonpv,sonv,sonsc
+  300   format(' *** SU(3) charge-symmetry breaking (deviation from 1):'
+     .      ,/,'     sonpv=',f7.4,'  sonv=',f7.4,'  sonsc=',f7.4)
+      endif
+
+      if(icall.eq.0) then
+c        write(n2,93) ynpot(imodl), (fp(i),i=1,8),(gv(i),i=1,8),
+c     .               (fv(i),i=1,8),(gs(i),i=1,8),(gd(i),i=1,8)
+   93   format(/,2x,a8,' COUPLING CONSTANTS (I=1 and I=1/2 mesons):',
+     .         /,6x,'    nnp  ','    ssp  ','    slp  ','    ccp  ',
+     .              '    lnk  ','    lck  ','    snk  ','    sck  ',
+     .         /,'  fp =',8f9.5,/,'  gv =',8f9.5,/,'  fv =',8f9.5,
+     .         /,'  gs =',8f9.5,/,'  gd =',8f9.5)
+c        write(n2,94) ynpot(imodl),(fp(i),i=9,12),(fp0(i),i=1,4),
+c     .     (gv(i),i=9,12),(gv0(i),i=1,4),(fv(i),i=9,12),(fv0(i),i=1,4),
+c     .     (gs(i),i=9,12),(gs0(i),i=1,4),(gd(i),i=9,12),(gd0(i),i=1,4)
+   94   format(/,2x,a8,' COUPLING CONSTANTS (I=0 sing and oct mesons):',
+     .         /,6x,'    nne  ','    lle  ','    sse  ','    cce  ',
+     .              '    nnx  ','    llx  ','    ssx  ','    ccx  ',
+     .         /,'  fp =',8f9.5,/,'  gv =',8f9.5,/,'  fv =',8f9.5,
+     .         /,'  gs =',8f9.5,/,'  gd =',8f9.5,/)
+      endif
+
+      return
+      end
+C **********************************************************************
+      subroutine su3f(gg,gg0,alf)
+C*    Octet coupling constants. Storage example for pseudoscalars:
+C*      1=Nuc-Nuc-pion       5=Lam-Nuc-kaon       9=Nuc-Nuc-eta8
+C*      2=Sig-Sig-pion       6=Lam-Cas-kaon      10=Lam-Lam-eta8
+C*      3=Lam-Sig-pion       7=Sig-Nuc-kaon      11=Sig-Sig-eta8
+C*      4=Cas-Cas-pion       8=Sig-Cas-kaon      12=Cas-Cas-eta8
+C*    Singlet coupling constants. Storage example for pseudoscalars:
+C*      1=Nuc-Nuc-eta1  2=Lam-Lam-eta1  3=Sig-Sig-eta1  4=Cas-Cas-eta1
+C*    Phase convention of de Swart, Rev.Mod.Phys.35(1963)916
+C*    Carruthers, "Introduction to Unitary Symmetry", Interscience 1966
+C-----------------------------------------------------------------------
+C*             ( S(0)/sr2+L/sr6        S(+)           p    )
+C*    Baryon = (     S(-)        -S(0)/sr2+L/sr6      n    )
+C*             (    -X(-)              X(0)        -2L/sr6 )
+C*
+C*             ( pi(0)/sr2+eta8/sr6       pi(+)             K(+)    )
+C*    Meson  = (    pi(-)           -pi(0)/sr2+eta8/sr6     K(0)    )
+C*             (     K(-)                barK(0)         -2eta8/sr6 )
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      dimension gg(12),gg0(4)
+      data sr3/1.7320508075688772935d0/
+
+      goct=gg(1)
+      gsin=gg0(1)
+      gg(2) =  goct*2d0*alf
+      gg(3) =  goct*(1d0-alf)*2d0/sr3
+      gg(4) = -goct*(1d0-2d0*alf)
+      gg(5) = -goct*(1d0+2d0*alf)/sr3
+      gg(6) =  goct*(4d0*alf-1d0)/sr3
+      gg(7) = -gg(4)
+      gg(8) = -gg(1)
+      gg(9) =  gg(6)
+      gg(10)= -gg(3)
+      gg(11)=  gg(3)
+      gg(12)=  gg(5)
+      gg0(2)= gsin
+      gg0(3)= gsin
+      gg0(4)= gsin
+
+      return
+      end
+C **********************************************************************
+      subroutine su3fsb(gg,gg0,son)
+C*    Octet coupling constants. Storage example for pseudoscalars:
+C*      1=Nuc-Nuc-pion       5=Lam-Nuc-kaon       9=Nuc-Nuc-eta8
+C*      2=Sig-Sig-pion       6=Lam-Cas-kaon      10=Lam-Lam-eta8
+C*      3=Lam-Sig-pion       7=Sig-Nuc-kaon      11=Sig-Sig-eta8
+C*      4=Cas-Cas-pion       8=Sig-Cas-kaon      12=Cas-Cas-eta8
+C*    Singlet coupling constants. Storage example for pseudoscalars:
+C*      1=Nuc-Nuc-eta1  2=Lam-Lam-eta1  3=Sig-Sig-eta1  4=Cas-Cas-eta1
+C*    Breaking of SU(3) according to 3P0 model
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      dimension gg(12),gg0(4)
+
+*     kaon:
+      gg(5) = gg(5) - gg(5)*(1d0-son)
+      gg(6) = gg(6) - gg(6)*(1d0-son)
+      gg(7) = gg(7) - gg(7)*(1d0-son)
+      gg(8) = gg(8) - gg(8)*(1d0-son)
+*     eta
+      gg(10)= gg(10)
+      gg(11)= gg(11)-gg(11)*(1d0-son*son)/3d0
+      gg(12)= gg(12)-gg(12)*(1d0-son*son)*8d0/9d0
+*     eta'
+      gg0(2)= gg0(2)-gg0(2)*(1d0-son*son)
+      gg0(3)= gg0(3)+gg0(3)*(1d0-son*son)/3d0
+      gg0(4)= gg0(4)-gg0(4)*(1d0-son*son)*4d0/3d0
+
+      return
+      end
+C **********************************************************************
+      subroutine cnstr97(elphid,geps,gsst,gepsnw,gsstnw,ns)
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+C*    Computation alternative Geps, GS* from the elliptic constraint:
+C*    Volume integral VNN constant
+      common/ynmodl/imodl
+      common/allsc/asi,bsi,am1si,am2si,asst,bsst,amsst,am2st,amd,amsck
+      data sr2/1.41421356237309505d0/,sr3/1.7320508075688772935d0/,
+     .     conv/57.2957795130823208768d0/, pim/138.041d0/,imodlh/-10/
+
+      elphi=elphid/conv
+      cosfi=dcos(elphi)
+      sinfi=dsin(elphi)
+      bmsi =asi*(pim/am1si)**2 + bsi*(pim/am2si)**2
+      bmsst=(pim/amsst)**2
+      cf   =dsqrt(bmsi*geps**2 + bmsst*gsst**2)
+
+C*    Standard ellipse parameters, X^2/A^2 + Y^2/B^2 = :
+      aa = 1d0/dsqrt(bmsi)
+      bb = 1d0/dsqrt(bmsst)
+      xx = geps/cf
+      yy = gsst/cf
+
+C*    Polar coordinates, (ELPHI,RR):
+      epsi2 = 1d0-(bb/aa)**2
+      rr    = bb/dsqrt(1d0-epsi2*cosfi**2)
+
+      gepsnw= cf*rr*cosfi
+      gsstnw= cf*rr*sinfi
+
+C*    computation ELPHI0: corresponds to input Geps,GS*:
+      if(ns.ge.1) then
+        arg = gsst/geps
+        elphi0=datan(arg)*conv
+        if(imodlh.ne.imodl) then
+c          write(*,11) elphid,gepsnw,gsstnw,elphi0,geps,gsst
+   11     format(' IN CNSTR97: ELPHID=',d14.7,' GEPSNW=',d14.7,
+     .           ' GSSTNW=',d14.7,/,12x,' ELPHI0=',d14.7,
+     .           ' GEPS  =',d14.7,' GSST  =',d14.7)
+          imodlh=imodl
+        endif
+      endif
+
+      return
+      end
+C **********************************************************************
+      subroutine ppfac(j,pp)
+C*    Flavor symmetry factor: factor +/-1 under final-state interchange
+      implicit real*8 (a-h,o-z)
+      real*8 pp(8)
+
+      pp(1)= (-1d0)**j
+      pp(2)=-(-1d0)**j
+      pp(3)= (-1d0)**j
+      pp(4)= pp(3)
+      pp(5)= pp(3)
+      pp(6)= pp(3)
+      pp(7)=-1d0
+      pp(8)= pp(7)
+
+      return
+      end
+C **********************************************************************
+      subroutine copstr0(a,a0,b,b0,yesmes,copset)
+C*    Calculates all possible coupling constant products for the
+C*    baryon-baryon one-meson exchanges in the strangeness S=0 channel.
+C*    Reaction:                 B3  |     |  B4
+C*                  coupling      a |-----| b
+C*                              B1  |     |  B2
+C*    a(12): BB-octet couplings       a0(4): BB-singlet couplings
+C*
+C*    Symmetry factor under baryon interchange regulated with ppfac
+C*
+C*    Example for pseudoscalar:
+C*    I=0 or 1: NN->NN  et/x0/pi
+C*
+C*    Coupling constant labeling:
+C*    8: 1=Nuc-Nuc-pion       5=Lam-Nuc-kaon       9=Nuc-Nuc-eta8
+C*       2=Sig-Sig-pion       6=Lam-Cas-kaon      10=Lam-Lam-eta8
+C*       3=Lam-Sig-pion       7=Sig-Nuc-kaon      11=Sig-Sig-eta8
+C*       4=Cas-Cas-pion       8=Sig-Cas-kaon      12=Cas-Cas-eta8
+C*    1: 1=Nuc-Nuc-eta1  2=Lam-Lam-eta1  3=Sig-Sig-eta1  4=Cas-Cas-eta1
+C **********************************************************************
+      implicit real*8 (a-h,o-z)
+      dimension a(12),a0(4),b(12),b0(4),copset(6)
+      character*4 yesmes(4)
+      data sr2/1.41421356237309505d0/,sr3/1.7320508075688772935d0/
+
+C*    Set certain exchanges to zero:
+      do 1 i=1,3
+        if(yesmes(i).eq.'no') then
+          do 2 j=1,4
+            a(4*(i-1)+j)=0d0
+            b(4*(i-1)+j)=0d0
+    2     continue
+        endif
+    1 continue
+      if(yesmes(4).eq.'no') then
+        do 3 j=1,4
+          a0(j)=0d0
+          b0(j)=0d0
+    3   continue
+      endif
+C*    Total isospin = 0:
+      copset(1) = 0.5d0*a(9)*b(9)    ! NN -> NN (eta)
+      copset(2) = 0.5d0*a0(1)*b0(1)  ! NN -> NN (eta')
+      copset(3) =-1.5d0*a(1)*b(1)    ! NN -> NN (pi)
+C*    Total isospin = 1:
+      copset(4) = 0.5d0*a(9)*b(9)    ! NN -> NN (eta)
+      copset(5) = 0.5d0*a0(1)*b0(1)  ! NN -> NN (eta')
+      copset(6) = 0.5d0*a(1)*b(1)    ! NN -> NN (pi)
+
+      return
+      end
+C **********************************************************************
+      subroutine copstr1(a,a0,b,b0,yesmes,copset)
+C*    Calculates all possible coupling constant products for the
+C*    baryon-baryon one-meson exchanges in the strangeness S=-1 channel.
+C*    Reaction:                 B3  |     |  B4
+C*                  coupling      a |-----| b
+C*                              B1  |     |  B2
+C*    a(12): BB-octet couplings       a0(4): BB-singlet couplings
+C*
+C*    We include Lambda-Sigma(0) mixing,
+C*    so pi,rho,del,a2 can couple to Lambda-Lambda (forbidden by SU(3))
+C*    Symmetry factor under baryon interchange regulated with ppfac
+C*
+C*    Example for pseudoscalar:
+C*    I=3/2: SN->SN    SN->NS
+C*           et/x0/pi  kaon
+C*    I=1/2: LN->LN    LN->NL;  LN->SN  LN->NS;   SN->SN    SN->NS
+C*           et/x0/pi  kaon     pi      kaon      et/x0/pi  kaon
+C*
+C*    Coupling constant labeling:
+C*    8: 1=Nuc-Nuc-pion       5=Lam-Nuc-kaon       9=Nuc-Nuc-eta8
+C*       2=Sig-Sig-pion       6=Lam-Cas-kaon      10=Lam-Lam-eta8
+C*       3=Lam-Sig-pion       7=Sig-Nuc-kaon      11=Sig-Sig-eta8
+C*       4=Cas-Cas-pion       8=Sig-Cas-kaon      12=Cas-Cas-eta8
+C*    1: 1=Nuc-Nuc-eta1  2=Lam-Lam-eta1  3=Sig-Sig-eta1  4=Cas-Cas-eta1
+C **********************************************************************
+      implicit real*8 (a-h,o-z)
+      dimension a(12),a0(4),b(12),b0(4),copset(14)
+      character*4 yesmes(4)
+      common/lamsig/s0lmix
+      data sr2/1.41421356237309505d0/,sr3/1.7320508075688772935d0/
+
+C*    Set certain exchanges to zero:
+      do 1 i=1,3
+        if(yesmes(i).eq.'no') then
+          do 2 j=1,4
+            a(4*(i-1)+j)=0d0
+            b(4*(i-1)+j)=0d0
+    2     continue
+        endif
+    1 continue
+      if(yesmes(4).eq.'no') then
+        do 3 j=1,4
+          a0(j)=0d0
+          b0(j)=0d0
+    3   continue
+      endif
+C*    Total isospin = 3/2:
+      copset( 1) = a(11)*b(9)        ! SN -> SN (eta)
+      copset( 2) = a0(3)*b0(1)       ! SN -> SN (eta')
+      copset( 3) = a(2)*b(1)         ! SN -> SN (pi)
+      copset( 4) = 2d0*a(7)*b(7)     ! SN -> NS (K)
+C*    Total isospin = 1/2:
+      copset( 5) = a(10)*b(9)        ! LN -> LN (eta)
+      copset( 6) = a0(2)*b0(1)       ! LN -> LN (eta')
+      copset( 7) = s0lmix*a(3)*b(1)  ! LN -> LN (pi) [charge symmetry]
+      copset( 8) = a(5)*b(5)         ! LN -> NL (K)
+      copset( 9) =-sr3*a(3)*b(1)     ! LN -> SN (pi)
+      copset(10) =-sr3*a(5)*b(7)     ! LN -> NS (K)
+      copset(11) = a(11)*b(9)        ! SN -> SN (eta)
+      copset(12) = a0(3)*b0(1)       ! SN -> SN (eta')
+      copset(13) =-2d0*a(2)*b(1)     ! SN -> SN (pi)
+      copset(14) =-a(7)*b(7)         ! SN -> NS (K)
+
+      return
+      end
+C **********************************************************************
+      subroutine copstr2(a,a0,b,b0,yesmes,copset)
+C*    Calculates all possible coupling constant products for the
+C*    baryon-baryon one-meson exchanges in the strangeness S=-2 channel.
+C*    Reaction:                 B3  |     |  B4
+C*                  coupling      a |-----| b
+C*                              B1  |     |  B2
+C*    a(12): BB-octet couplings       a0(4): BB-singlet couplings
+C*    Symmetry factor under baryon interchange regulated with ppfac
+C*
+C*    Example for pseudoscalar:
+C*    I=0: LL->LL    LL->XN   LL->SS   XN->XN      XN->SS   SS->SS
+C*         et/x0     kaon     pi       et/x0/pi    kaon     et/x0/pi
+C*    I=1: XN->XN    XN->SL   XN->SS   SL->SL      SL->SS   SS->SS
+C*         et/x0/pi  kaon(2)  kaon     et/x0/pi    pi       et/x0/pi
+C*    I=2: SS->SS  et/x0/pi
+C*
+C*    Coupling constant labeling:
+C*    8: 1=Nuc-Nuc-pion       5=Lam-Nuc-kaon       9=Nuc-Nuc-eta8
+C*       2=Sig-Sig-pion       6=Lam-Cas-kaon      10=Lam-Lam-eta8
+C*       3=Lam-Sig-pion       7=Sig-Nuc-kaon      11=Sig-Sig-eta8
+C*       4=Cas-Cas-pion       8=Sig-Cas-kaon      12=Cas-Cas-eta8
+C*    1: 1=Nuc-Nuc-eta1  2=Lam-Lam-eta1  3=Sig-Sig-eta1  4=Cas-Cas-eta1
+C **********************************************************************
+      implicit real*8 (a-h,o-z)
+      character*4 yesmes(4)
+      dimension a(12),a0(4),b(12),b0(4),copset(27)
+      data sr2/1.41421356237309505d0/,sr3/1.7320508075688772935d0/
+
+C*    Set certain exchanges to zero:
+      do 1 i=1,3
+        if(yesmes(i).eq.'no') then
+          do 2 j=1,4
+            a(4*(i-1)+j)=0d0
+            b(4*(i-1)+j)=0d0
+    2     continue
+        endif
+    1 continue
+      if(yesmes(4).eq.'no') then
+        do 3 j=1,4
+          a0(j)=0d0
+          b0(j)=0d0
+    3   continue
+      endif
+C*    Total isospin = 0:
+      copset( 1) = 0.5d0*a(10)*b(10)   ! LL -> LL (eta)
+      copset( 2) = 0.5d0*a0(2)*b0(2)   ! LL -> LL (eta')
+      copset( 3) = a(6)*b(5)           ! LL -> XN (K)
+      copset( 4) =-0.5d0*sr3*a(3)*b(3) ! LL -> SS (pi)
+      copset( 5) = a(12)*b(9)          ! XN -> XN (eta)
+      copset( 6) = a0(4)*b0(1)         ! XN -> XN (eta')
+      copset( 7) =-3d0*a(4)*b(1)       ! XN -> XN (pi)
+      copset( 8) = sr3*a(8)*b(7)       ! XN -> SS (K)
+      copset( 9) = 0.5d0*a(11)*b(11)   ! SS -> SS (eta)
+      copset(10) = 0.5d0*a0(3)*b0(3)   ! SS -> SS (eta')
+      copset(11) =-a(2)*b(2)           ! SS -> SS (pi)
+C*    Total isospin = 1:
+      copset(12) = a(12)*b(9)          ! XN -> XN (eta)
+      copset(13) = a0(4)*b0(1)         ! XN -> XN (eta')
+      copset(14) = a(4)*b(1)           ! XN -> XN (pi)
+      copset(15) = sr2*a(8)*b(5)       ! XN -> SL (K)
+      copset(16) = sr2*a(6)*b(7)       ! XN -> LS (K)
+      copset(17) = sr2*a(8)*b(7)       ! XN -> SS (K)
+      copset(18) = a(11)*b(10)         ! SL -> SL (eta)
+      copset(19) = a0(3)*b0(2)         ! SL -> SL (eta')
+      copset(20) =-a(3)*b(3)           ! SL -> SL (pi)
+      copset(21) = a(2)*b(3)           ! SL -> SS (pi)
+      copset(22) = 0.5d0*a(11)*b(11)   ! SS -> SS (eta)
+      copset(23) = 0.5d0*a0(3)*b0(3)   ! SS -> SS (eta')
+      copset(24) =-0.5d0*a(2)*b(2)     ! SS -> SS (pi)
+C*    Total isospin = 2:
+      copset(25) = 0.5d0*a(11)*b(11)   ! SS -> SS (eta)
+      copset(26) = 0.5d0*a0(3)*b0(3)   ! SS -> SS (eta')
+      copset(27) = 0.5d0*a(2)*b(2)     ! SS -> SS (pi)
+
+      return
+      end
+C **********************************************************************
+      subroutine copstr3(a,a0,b,b0,yesmes,copset)
+C*    Calculates all possible coupling constant products for the
+C*    baryon-baryon one-meson exchanges in the strangeness S=-3 channel.
+C*    Reaction:                 B3  |     |  B4
+C*                  coupling      a |-----| b
+C*                              B1  |     |  B2
+C*    a(12): BB-octet couplings       a0(4): BB-singlet couplings
+C*
+C*    We include Lambda-Sigma(0) mixing,
+C*    so pi,rho,del,a2 can couple to Lambda-Lambda (forbidden by SU(3))
+C*    Symmetry factor under baryon interchange regulated with ppfac
+C*
+C*    Example for pseudoscalar:
+C*    I=3/2: XS->XS    XS->SX
+C*           et/x0/pi  kaon
+C*    I=1/2: XL->XL    XL->LX;  XL->XS  XL->SX;   XS->XS    XS->SX
+C*           et/x0/pi  kaon     pi      kaon      et/x0/pi  kaon
+C*
+C*    Coupling constant labeling:
+C*    8: 1=Nuc-Nuc-pion       5=Lam-Nuc-kaon       9=Nuc-Nuc-eta8
+C*       2=Sig-Sig-pion       6=Lam-Cas-kaon      10=Lam-Lam-eta8
+C*       3=Lam-Sig-pion       7=Sig-Nuc-kaon      11=Sig-Sig-eta8
+C*       4=Cas-Cas-pion       8=Sig-Cas-kaon      12=Cas-Cas-eta8
+C*    1: 1=Nuc-Nuc-eta1  2=Lam-Lam-eta1  3=Sig-Sig-eta1  4=Cas-Cas-eta1
+C **********************************************************************
+      implicit real*8 (a-h,o-z)
+      dimension a(12),a0(4),b(12),b0(4),copset(14)
+      character*4 yesmes(4)
+      common/lamsig/s0lmix
+      data sr2/1.41421356237309505d0/,sr3/1.7320508075688772935d0/
+
+C*    Set certain exchanges to zero:
+      do 1 i=1,3
+        if(yesmes(i).eq.'no') then
+          do 2 j=1,4
+            a(4*(i-1)+j)=0d0
+            b(4*(i-1)+j)=0d0
+    2     continue
+        endif
+    1 continue
+      if(yesmes(4).eq.'no') then
+        do 3 j=1,4
+          a0(j)=0d0
+          b0(j)=0d0
+    3   continue
+      endif
+C*    Total isospin = 3/2:
+      copset( 1) = a(12)*b(11)       ! XS -> XS (eta)
+      copset( 2) = a0(4)*b0(3)       ! XS -> XS (eta')
+      copset( 3) = a(4)*b(2)         ! XS -> XS (pi)
+      copset( 4) = 2d0*a(8)*b(8)     ! XS -> SX (K)
+C*    Total isospin = 1/2:
+      copset( 5) = a(12)*b(10)       ! XL -> XL (eta)
+      copset( 6) = a0(4)*b0(2)       ! XL -> XL (eta')
+      copset( 7) =-s0lmix*a(4)*b(3)  ! XL -> XL (pi) [charge symmetry]
+      copset( 8) = a(6)*b(6)         ! XL -> LX (K)
+      copset( 9) = sr3*a(4)*b(3)     ! XL -> XS (pi)
+      copset(10) = sr3*a(8)*b(6)     ! XL -> SX (K)
+      copset(11) = a(12)*b(11)       ! XS -> XS (eta)
+      copset(12) = a0(4)*b0(3)       ! XS -> XS (eta')
+      copset(13) =-2d0*a(4)*b(2)     ! XS -> XS (pi)
+      copset(14) =-a(8)*b(8)         ! XS -> SX (K)
+
+      return
+      end
+C **********************************************************************
+      subroutine copstr4(a,a0,b,b0,yesmes,copset)
+C*    Calculates all possible coupling constant products for the
+C*    baryon-baryon one-meson exchanges in the strangeness S=-4 channel.
+C*    Reaction:                 B3  |     |  B4
+C*                  coupling      a |-----| b
+C*                              B1  |     |  B2
+C*    a(12): BB-octet couplings       a0(4): BB-singlet couplings
+C*
+C*    Symmetry factor under baryon interchange regulated with ppfac
+C*
+C*    Example for pseudoscalar:
+C*    I=0 or 1: XX->XX  et/x0/pi
+C*
+C*    Coupling constant labeling:
+C*    8: 1=Nuc-Nuc-pion       5=Lam-Nuc-kaon       9=Nuc-Nuc-eta8
+C*       2=Sig-Sig-pion       6=Lam-Cas-kaon      10=Lam-Lam-eta8
+C*       3=Lam-Sig-pion       7=Sig-Nuc-kaon      11=Sig-Sig-eta8
+C*       4=Cas-Cas-pion       8=Sig-Cas-kaon      12=Cas-Cas-eta8
+C*    1: 1=Nuc-Nuc-eta1  2=Lam-Lam-eta1  3=Sig-Sig-eta1  4=Cas-Cas-eta1
+C **********************************************************************
+      implicit real*8 (a-h,o-z)
+      dimension a(12),a0(4),b(12),b0(4),copset(6)
+      character*4 yesmes(4)
+      data sr2/1.41421356237309505d0/,sr3/1.7320508075688772935d0/
+
+C*    Set certain exchanges to zero:
+      do 1 i=1,3
+        if(yesmes(i).eq.'no') then
+          do 2 j=1,4
+            a(4*(i-1)+j)=0d0
+            b(4*(i-1)+j)=0d0
+    2     continue
+        endif
+    1 continue
+      if(yesmes(4).eq.'no') then
+        do 3 j=1,4
+          a0(j)=0d0
+          b0(j)=0d0
+    3   continue
+      endif
+C*    Total isospin = 0:
+      copset( 1) = 0.5d0*a(12)*b(12)  ! XX -> XX (eta)
+      copset( 2) = 0.5d0*a0(4)*b0(4)  ! XX -> XX (eta')
+      copset( 3) =-1.5d0*a(4)*b(4)    ! XX -> XX (pi)
+C*    Total isospin = 1:
+      copset( 4) = 0.5d0*a(12)*b(12)  ! XX -> XX (eta)
+      copset( 5) = 0.5d0*a0(4)*b0(4)  ! XX -> XX (eta')
+      copset( 6) = 0.5d0*a(4)*b(4)    ! XX -> XX (pi)
+
+      return
+      end
+C **********************************************************************
+      subroutine psfunp(md,mx,fp,xmes,u,r,nloc,w)
+C **********************************************************************
+C*    Returns spin-spin and tensor pseudoscalar potentials.
+C*       md,mx     : 0,+/-1 depending on symmetry under interchange
+C*       fp        : coupling constant
+C*       xmes      : meson-dependent factor (qi^2+qf^2+m^2)/2qiqf
+C*       u,r(-2:2) : partial-wave projection integrals
+C*       w(1--8)   : singlet and triplet potentials
+C*    Returned potentials add all exchanges cumulatively, so they should
+C*    be initialized to 0 in main program for each new value of qi,qf
+C-----------------------------------------------------------------------
+      implicit real*8 (a-h,o-z)
+      dimension u(-2:2),r(-1:1),w(8)
+      dimension ws(-1:1),wt(-2:2)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      common/jfacx/jmmm,jmm,jm,j,jp,jpp,jppp,j1,tjmm,tjm,tj,tjp,tjpp,tjj
+      common/symfac/pp(8)
+      common/special/icop
+      data pim/138.041d0/
+      sym(k)=md+mx*pp(k)
+
+      if(iabs(md).gt.1.or.iabs(mx).gt.1) stop
+     .   '*** PSFUNP: md,mx has to be 0 or +/-1'
+
+**    spin-spin potential
+      xpsig =-facm*fp*qi2f2/(3d0*pim**2)
+      ypsig = facm*fp*2d0*qiqf/(3d0*pim**2)
+      do 2 i=-1,1
+        ws(i) = (xpsig+xmes*ypsig)*u(i) - ypsig*r(i)
+    2 continue
+
+**    tensor potential
+      xpten =-facm*fp/pim**2
+      do 3 i=-2,2
+        wt(i) = xpten*u(i)
+    3 continue
+
+**    icop=1: only w(2), icop=2: w(1,3-6), icop=0: w(1-8)
+      if(icop.eq.0 .or. icop.eq.2) then
+        w(1) = w(1) - sym(1)*3d0*ws(0)
+        w(5) = w(5) + sym(5)*(ws(1) + 2d0/3d0*qi2f2*jpp/tj*
+     .         (-wt(1)+0.5d0*s2psi*(tjpp*wt(0)+tj*wt(2))/tjp))
+      endif
+      if(j.eq.0) return
+      if(icop.eq.0 .or. icop.eq.1) then
+        w(2) = w(2) + sym(2)*(ws(0) + 2d0/3d0*qi2f2*
+     .                (wt(0)-0.5d0*s2psi*(tjp*wt(-1)+tjm*wt(1))/tj))
+      endif
+      if(icop.eq.0 .or. icop.eq.2) then
+        w(3) = w(3) + sym(3)*(ws(-1) + 2d0/3d0*qi2f2*jm/tj*
+     .         (-wt(-1)+0.5d0*s2psi*(tjmm*wt(0)+tj*wt(-2))/tjm))
+        w(4) = w(4) - sym(4)*2d0*qi2f2*tjj/tj*
+     .         (-s2psi*wt(0)+cpsi2*wt(-1)+spsi2*wt(1))
+        w(6) = w(6) - sym(6)*2d0*qi2f2*tjj/tj*
+     .         (-s2psi*wt(0)+spsi2*wt(-1)+cpsi2*wt(1))
+      endif
+
+      return
+      end
+C **********************************************************************
+      subroutine vcfunp(md,mx,gg,gf,fg,ff,xmes,u,r,s,g,y1,y2,nloc,w)
+C **********************************************************************
+C*    Returns central, spin-spin, tensor, spin-orbit, asym.spin-orbit,
+C*    quadratic spin-orbit vector potentials.
+C*       md,mx        : 0,+/-1 depending on symmetry under interchange
+C*       gg,gf,fg,ff  : coupling constants
+C*       xmes         : meson-dependent factor (qi^2+qf^2+m^2)/2qiqf
+C*       u,r,s,g(-3:3): partial-wave projection integrals
+C*       y1,y2        : mass factor
+C*       w(1--8)      : singlet and triplet potentials
+C*    Returned potentials add all exchanges cumulatively, so they should
+C*    be initialized to 0 in main program for each new value of qi,qf
+C-----------------------------------------------------------------------
+      implicit real*8 (a-h,o-z)
+      dimension u(-3:3),r(-2:2),s(-1:1),g(-2:2),w(8)
+      dimension wc(-1:1),ws(-1:1),wt(-2:2),wl(-2:2),wa(-2:2),
+     .          wq(-3:3),wqp(-2:2)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      common/jfacx/jmmm,jmm,jm,j,jp,jpp,jppp,j1,tjmm,tjm,tj,tjp,tjpp,tjj
+      common/cq12/e00,f00,g00,e11,f11,g11,emm,epp,gmm,gpp,fmm,fpm,fpp,
+     .            hpp,hmm,nq12
+      common/symfac/pp(8)
+      common/special/icop
+      data ifirst/0/
+      save s1,s2
+      sym(k)=md+mx*pp(k)
+
+      if(iabs(md).gt.1.or.iabs(mx).gt.1) stop
+     .   '*** VCFUNP: md,mx has to be 0 or +/-1'
+
+      if(ifirst.eq.0) then
+        ifirst=1
+        ampro=938.27231d0
+        s1=1d0/ampro
+        s2=s1*s1
+      endif
+
+      xm2=y1*y2
+
+**    central potential
+      xvcen = facm*(gg*(1d0-xm2/2d0*qi2f2)-(gf*y2+fg*y1)*s1/4d0*qi2f2
+     .              +ff*xm2/16d0*s2*qi2f22)
+      yvcen = facm*(gg*xm2*qiqf+(gf*y2+fg*y1)*s1/2d0*qiqf
+     .              -ff*xm2/4d0*s2*qiqf*qi2f2)
+      zvcen = facm*ff*xm2/4d0*s2*qi2*qf2
+      do 1 i=-1,1
+        wc(i) = (xvcen+xmes*(yvcen+xmes*zvcen))*u(i)
+     .        - (yvcen+xmes*zvcen)*r(i) - zvcen*s(i)
+    1 continue
+
+**    spin-spin potential
+      xvsig =-facm*((gg*xm2+(gf*y1+fg*y2)*s1+ff*s2)*qi2f2/6d0
+     .              -ff*xm2*s2/48d0*qi2f22)
+      yvsig = facm*((gg*xm2+(gf*y1+fg*y2)*s1+ff*s2)*qiqf/3d0
+     .              -ff*xm2*s2/12d0*qiqf*qi2f2)
+      zvsig = facm*ff*xm2*s2/12d0*qi2*qf2
+      do 2 i=-1,1
+        ws(i) = (xvsig+xmes*(yvsig+xmes*zvsig))*u(i)
+     .        - (yvsig+xmes*zvsig)*r(i) - zvsig*s(i)
+    2 continue
+
+**    tensor potential
+      xvten = facm*((gg*xm2+(gf*y1+fg*y2)*s1+ff*s2)/4d0
+     .              -ff*xm2*s2/32d0*qi2f2)
+      yvten = facm*ff*xm2*s2/16d0*qiqf
+      do 3 i=-2,2
+        wt(i) = (xvten+xmes*yvten)*u(i) - yvten*r(i)
+    3 continue
+
+**    spin-orbit potential
+      xvls =-facm*((1.5d0*gg*xm2+(gf*y1+fg*y2)*s1)
+     .             -ff*3d0/8d0*xm2*s2*qi2f2)
+      yvls =-facm*ff*3d0/4d0*xm2*s2*qiqf
+      do 4 i=-2,2
+        wl(i) = (xvls+xmes*yvls)*u(i) - yvls*r(i)
+    4 continue
+
+**    anti-symmetric spin-orbit potential
+      xvla =-facm*((gg+ff*s2/4d0*qi2f2)*(y1**2-y2**2)/4d0
+     .             +(fg-gf)*dsqrt(xm2)*s1)
+      yvla = facm*ff*s2/2d0*qiqf*(y1**2-y2**2)/4d0
+      do 5 i=-2,2
+        wa(i) = (xvla+xmes*yvla)*u(i) - yvla*r(i)
+    5 continue
+
+**    quadratic spin-orbit potential
+      xvq =-facm*(gg*xm2+4d0*(gf+fg)*dsqrt(xm2)*s1+8d0*ff*s2)*xm2/16d0
+      xvqp= xvq*qiqf
+      do 6 i=-3,3
+        wq(i) = xvq*u(i)
+        if(iabs(i).lt.3) wqp(i)= xvqp*g(i)
+    6 continue
+
+      if(nloc.ne.0) then
+**      non-local central potential
+        xvnl = facm*gg*0.75d0*xm2*qi2f2
+        do 11 i=-1,1
+          wc(i) = wc(i) + xvnl*u(i)
+   11   continue
+      endif
+
+**    icop=1: only w(2), icop=2: w(1,3-6), icop=0: w(1-8)
+      if(icop.eq.0 .or. icop.eq.2) then
+        w(1) = w(1) + sym(1)*(wc(0) - 3d0*ws(0) +
+     .                qi2*qf2*(e00*wq(-2)+f00*wq(0)+g00*wq(2)))
+        w(5) = w(5) + sym(5)*(wc(1) + ws(1) + 2d0/3d0*qi2f2*jpp/tj*
+     .                (-wt(1)+0.5d0*s2psi*(tjpp*wt(0)+tj*wt(2))/tjp) -
+     .                qiqf*jpp/tjp*(wl(0)-wl(2)) +
+     .                qi2*qf2*(epp*wq(-1)+fpp*wq(1)+gpp*wq(3)))
+      endif
+      if(j.eq.0) goto 99
+      if(icop.eq.0 .or. icop.eq.1) then
+        w(2) = w(2) + sym(2)*(wc(0) + ws(0) + 2d0/3d0*qi2f2*
+     .                (wt(0)-0.5d0*s2psi*(tjp*wt(-1)+tjm*wt(1))/tj) -
+     .                qiqf*(wl(-1)-wl(1))/tj +
+     .                qi2*qf2*(e11*wq(-2)+f11*wq(0)+g11*wq(2)))
+      endif
+      if(icop.eq.0 .or. icop.eq.2) then
+        w(3) = w(3) + sym(3)*(wc(-1) + ws(-1) + 2d0/3d0*qi2f2*jm/tj*
+     .                (-wt(-1)+0.5d0*s2psi*(tjmm*wt(0)+tj*wt(-2))/tjm) +
+     .                qiqf*jm/tjm*(wl(-2)-wl(0)) +
+     .                qi2*qf2*(emm*wq(-3)+fmm*wq(-1)+gmm*wq(1)))
+        w(4) = w(4) - sym(4)*(2d0*qi2f2*tjj/tj*
+     .                (-s2psi*wt(0)+cpsi2*wt(-1)+spsi2*wt(1)) +
+     .                qi2*qf2*fpm*(wq(1)-wq(-1)))
+        w(6) = w(6) - sym(6)*(2d0*qi2f2*tjj/tj*
+     .                (-s2psi*wt(0)+spsi2*wt(-1)+cpsi2*wt(1)) +
+     .                qi2*qf2*fpm*(wq(1)-wq(-1)))
+      endif
+      if(icop.eq.0) then
+        w(7) = w(7) + sym(7)*qiqf*(wa(-1)-wa(1))*tjj/tj
+        w(8) = w(8) + sym(8)*qiqf*(wa(-1)-wa(1))*tjj/tj
+      endif
+
+   99 if(nq12.eq.1) then
+C**     Extra contribution from inverse Fourier transform of Q12
+C**     so momentum space exactly equivalent to configuration space
+        if(icop.eq.0 .or. icop.eq.2) then
+          w(1) = w(1) - sym(1)*2d0*qiqf/tj*(j*wqp(-1)+jp*wqp(1))
+          w(5) = w(5) + sym(5)*qiqf*(hpp*wqp(0)+jpp*wqp(2))/tjp
+        endif
+        if(j.eq.0) return
+        if(icop.eq.0 .or. icop.eq.1) then
+          w(2) = w(2) + sym(2)*qiqf*(-wqp(-1)+wqp(1))/tj
+        endif
+        if(icop.eq.0 .or. icop.eq.2) then
+          w(3) = w(3) + sym(3)*qiqf*(jm*wqp(-2)+hmm*wqp(0))/tjm
+          w(4) = w(4) + sym(4)*2d0*qiqf*tjj/tj*wqp(0)
+          w(6) = w(6) + sym(6)*2d0*qiqf*tjj/tj*wqp(0)
+        endif
+      endif
+
+      return
+      end
+C **********************************************************************
+      subroutine vcfunp2(md,mx,gg,xmes,u,r,g,y1,y2,nloc,w)
+C **********************************************************************
+C*    Returns central, spin-orbit, asym.spin-orbit, quadratic spin-orbit
+C*    vector potentials from second part in vector propagator.
+C*       md,mx        : 0,+/-1 depending on symmetry under interchange
+C*       gg           : coupling constant
+C*       xmes         : meson-dependent factor (qi^2+qf^2+m^2)/2qiqf
+C*       u,r,g(-3:3)  : partial-wave projection integrals
+C*       y1,y2        : mass factor
+C*       w(1--8)      : singlet and triplet potentials
+C*    Returned potentials add all exchanges cumulatively, so they should
+C*    be initialized to 0 in main program for each new value of qi,qf
+C-----------------------------------------------------------------------
+      implicit real*8 (a-h,o-z)
+      dimension u(-3:3),r(-2:2),g(-2:2),w(8)
+      dimension wc(-1:1),wl(-2:2),wa(-2:2),wq(-3:3),wqp(-2:2)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      common/jfacx/jmmm,jmm,jm,j,jp,jpp,jppp,j1,tjmm,tjm,tj,tjp,tjpp,tjj
+      common/cq12/e00,f00,g00,e11,f11,g11,emm,epp,gmm,gpp,fmm,fpm,fpp,
+     .            hpp,hmm,nq12
+      common/symfac/pp(8)
+      common/special/icop
+      sym(k)=md+mx*pp(k)
+
+      if(iabs(md).gt.1.or.iabs(mx).gt.1) stop
+     .   '*** VCFUNP2: md,mx has to be 0 or +/-1'
+
+      xm2=y1*y2
+
+**    central potential
+      xv2cen =-facm*gg*(1d0+0.25d0*xm2*qi2f2)
+      yv2cen = facm*gg*0.5d0*xm2*qiqf
+      do 1 i=-1,1
+        wc(i) = (xv2cen+xmes*yv2cen)*u(i) - yv2cen*r(i)
+    1 continue
+
+**    spin-orbit potential
+      xv2ls =-facm*gg*xm2/2d0
+      do 4 i=-2,2
+        wl(i) = xv2ls*u(i)
+    4 continue
+
+**    anti-symmetric spin-orbit potential
+      xv2la =-facm*gg*(y1**2-y2**2)/4d0
+      do 5 i=-2,2
+        wa(i) = xv2la*u(i)
+    5 continue
+
+**    quadratic spin-orbit potential
+      xv2q = facm*gg*xm2*xm2/16d0
+      xv2qp= xv2q*qiqf
+      do 6 i=-3,3
+        wq(i) = xv2q*u(i)
+        if(iabs(i).lt.3) wqp(i)= xv2qp*g(i)
+    6 continue
+
+      if(nloc.ne.0) then
+**      non-local central potential
+        xv2nl = facm*gg*0.25d0*xm2*qi2f2
+        do 11 i=-1,1
+          wc(i) = wc(i) + xv2nl*u(i)
+   11   continue
+      endif
+
+**    icop=1: only w(2), icop=2: w(1,3-6), icop=0: w(1-8)
+      if(icop.eq.0 .or. icop.eq.2) then
+        w(1) = w(1) + sym(1)*(wc(0) +
+     .                qi2*qf2*(e00*wq(-2)+f00*wq(0)+g00*wq(2)))
+        w(5) = w(5) + sym(5)*(wc(1) - qiqf*jpp/tjp*(wl(0)-wl(2)) +
+     .                qi2*qf2*(epp*wq(-1)+fpp*wq(1)+gpp*wq(3)))
+      endif
+      if(j.eq.0) goto 99
+      if(icop.eq.0 .or. icop.eq.1) then
+        w(2) = w(2) + sym(2)*(wc(0) - qiqf*(wl(-1)-wl(1))/tj +
+     .                qi2*qf2*(e11*wq(-2)+f11*wq(0)+g11*wq(2)))
+      endif
+      if(icop.eq.0 .or. icop.eq.2) then
+        w(3) = w(3) + sym(3)*(wc(-1) + qiqf*jm/tjm*(wl(-2)-wl(0)) +
+     .                qi2*qf2*(emm*wq(-3)+fmm*wq(-1)+gmm*wq(1)))
+        w(4) = w(4) - sym(4)*qi2*qf2*fpm*(wq(1)-wq(-1))
+        w(6) = w(6) - sym(6)*qi2*qf2*fpm*(wq(1)-wq(-1))
+      endif
+      if(icop.eq.0) then
+        w(7) = w(7) + sym(7)*qiqf*(wa(-1)-wa(1))*tjj/tj
+        w(8) = w(8) + sym(8)*qiqf*(wa(-1)-wa(1))*tjj/tj
+      endif
+
+   99 if(nq12.eq.1) then
+C**     Extra contribution from inverse Fourier transform of Q12
+C**     so momentum space exactly equivalent to configuration space
+        if(icop.eq.0 .or. icop.eq.2) then
+          w(1) = w(1) - sym(1)*2d0*qiqf/tj*(j*wqp(-1)+jp*wqp(1))
+          w(5) = w(5) + sym(5)*qiqf*(hpp*wqp(0)+jpp*wqp(2))/tjp
+        endif
+        if(j.eq.0) return
+        if(icop.eq.0 .or. icop.eq.1) then
+          w(2) = w(2) + sym(2)*qiqf*(-wqp(-1)+wqp(1))/tj
+        endif
+        if(icop.eq.0 .or. icop.eq.2) then
+          w(3) = w(3) + sym(3)*qiqf*(jm*wqp(-2)+hmm*wqp(0))/tjm
+          w(4) = w(4) + sym(4)*2d0*qiqf*tjj/tj*wqp(0)
+          w(6) = w(6) + sym(6)*2d0*qiqf*tjj/tj*wqp(0)
+        endif
+      endif
+
+      return
+      end
+C **********************************************************************
+      subroutine scfunp(md,mx,gs,xmes,u,r,g,y1,y2,nloc,w)
+C **********************************************************************
+C*    Returns central, spin-orbit, asym.spin-orbit, quadratic spin-orbit
+C*    scalar potentials.
+C*       md,mx        : 0,+/-1 depending on symmetry under interchange
+C*       gs           : coupling constant
+C*       xmes         : meson-dependent factor (qi^2+qf^2+m^2)/2qiqf
+C*       u,r,g(-3:3)  : partial-wave projection integrals
+C*       y1,y2        : mass factor
+C*       w(1--8)      : singlet and triplet potentials
+C*    Returned potentials add all exchanges cumulatively, so they should
+C*    be initialized to 0 in main program for each new value of qi,qf
+C-----------------------------------------------------------------------
+      implicit real*8 (a-h,o-z)
+      dimension u(-3:3),r(-1:1),g(-2:2),w(8)
+      dimension wc(-1:1),wl(-2:2),wa(-2:2),wq(-3:3),wqp(-2:2)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      common/jfacx/jmmm,jmm,jm,j,jp,jpp,jppp,j1,tjmm,tjm,tj,tjp,tjpp,tjj
+      common/cq12/e00,f00,g00,e11,f11,g11,emm,epp,gmm,gpp,fmm,fpm,fpp,
+     .            hpp,hmm,nq12
+      common/symfac/pp(8)
+      common/special/icop
+      sym(k)=md+mx*pp(k)
+
+      if(iabs(md).gt.1.or.iabs(mx).gt.1) stop
+     .   '*** SCFUNP: md,mx has to be 0 or +/-1'
+
+      xm2=y1*y2
+
+**    central potential
+      xscen =-facm*gs*(1d0+0.25d0*xm2*qi2f2)
+      yscen = facm*gs*0.5d0*xm2*qiqf
+      do 1 i=-1,1
+        wc(i) = (xscen+xmes*yscen)*u(i) - yscen*r(i)
+    1 continue
+
+**    spin-orbit potential
+      xsls =-facm*gs*xm2/2d0
+      do 4 i=-2,2
+        wl(i) = xsls*u(i)
+    4 continue
+
+**    anti-symmetric spin-orbit potential
+      xsla =-facm*gs*(y1**2-y2**2)/4d0
+      do 5 i=-2,2
+        wa(i) = xsla*u(i)
+    5 continue
+
+**    quadratic spin-orbit potential
+      xsq = facm*gs*xm2*xm2/16d0
+      xsqp= xsq*qiqf
+      do 6 i=-3,3
+        wq(i) = xsq*u(i)
+        if(iabs(i).lt.3) wqp(i)= xsqp*g(i)
+    6 continue
+
+      if(nloc.ne.0) then
+**      non-local central potential
+        xsnl = facm*gs*0.25d0*xm2*qi2f2
+        do 11 i=-1,1
+          wc(i) = wc(i) + xsnl*u(i)
+   11   continue
+      endif
+
+**    icop=1: only w(2), icop=2: w(1,3-6), icop=0: w(1-8)
+      if(icop.eq.0 .or. icop.eq.2) then
+        w(1) = w(1) + sym(1)*(wc(0) +
+     .                qi2*qf2*(e00*wq(-2)+f00*wq(0)+g00*wq(2)))
+        w(5) = w(5) + sym(5)*(wc(1) - qiqf*jpp/tjp*(wl(0)-wl(2)) +
+     .                qi2*qf2*(epp*wq(-1)+fpp*wq(1)+gpp*wq(3)))
+      endif
+      if(j.eq.0) goto 99
+      if(icop.eq.0 .or. icop.eq.1) then
+        w(2) = w(2) + sym(2)*(wc(0) - qiqf*(wl(-1)-wl(1))/tj +
+     .                qi2*qf2*(e11*wq(-2)+f11*wq(0)+g11*wq(2)))
+      endif
+      if(icop.eq.0 .or. icop.eq.2) then
+        w(3) = w(3) + sym(3)*(wc(-1) + qiqf*jm/tjm*(wl(-2)-wl(0)) +
+     .                qi2*qf2*(emm*wq(-3)+fmm*wq(-1)+gmm*wq(1)))
+        w(4) = w(4) - sym(4)*qi2*qf2*fpm*(wq(1)-wq(-1))
+        w(6) = w(6) - sym(6)*qi2*qf2*fpm*(wq(1)-wq(-1))
+      endif
+      if(icop.eq.0) then
+        w(7) = w(7) + sym(7)*qiqf*(wa(-1)-wa(1))*tjj/tj
+        w(8) = w(8) + sym(8)*qiqf*(wa(-1)-wa(1))*tjj/tj
+      endif
+
+   99 if(nq12.eq.1) then
+C**     Extra contribution from inverse Fourier transform of Q12
+C**     so momentum space exactly equivalent to configuration space
+        if(icop.eq.0 .or. icop.eq.2) then
+          w(1) = w(1) - sym(1)*2d0*qiqf/tj*(j*wqp(-1)+jp*wqp(1))
+          w(5) = w(5) + sym(5)*qiqf*(hpp*wqp(0)+jpp*wqp(2))/tjp
+        endif
+        if(j.eq.0) return
+        if(icop.eq.0 .or. icop.eq.1) then
+          w(2) = w(2) + sym(2)*qiqf*(-wqp(-1)+wqp(1))/tj
+        endif
+        if(icop.eq.0 .or. icop.eq.2) then
+          w(3) = w(3) + sym(3)*qiqf*(jm*wqp(-2)+hmm*wqp(0))/tjm
+          w(4) = w(4) + sym(4)*2d0*qiqf*tjj/tj*wqp(0)
+          w(6) = w(6) + sym(6)*2d0*qiqf*tjj/tj*wqp(0)
+        endif
+      endif
+
+      return
+      end
+C **********************************************************************
+      subroutine dffunp(md,mx,gd,r,s,g,y1,y2,nloc,w)
+C **********************************************************************
+C*    Returns central, spin-orbit, asym.spin-orbit, quadratic spin-orbit
+C*    diffractive potentials.
+C*       md,mx        : 0,+/-1 depending on symmetry under interchange
+C*       gd           : coupling constant
+C*       r,s,g(-3:3)  : partial-wave projection integrals
+C*       y1,y2        : mass factor
+C*       w(1--8)      : singlet and triplet potentials
+C*    Returned potentials add all exchanges cumulatively, so they should
+C*    be initialized to 0 in main program for each new value of qi,qf
+C-----------------------------------------------------------------------
+      implicit real*8 (a-h,o-z)
+      dimension r(-3:3),s(-1:1),g(-2:2),w(8)
+      dimension wc(-1:1),wl(-2:2),wa(-2:2),wq(-3:3),wqp(-2:2)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      common/jfacx/jmmm,jmm,jm,j,jp,jpp,jppp,j1,tjmm,tjm,tj,tjp,tjpp,tjj
+      common/cq12/e00,f00,g00,e11,f11,g11,emm,epp,gmm,gpp,fmm,fpm,fpp,
+     .            hpp,hmm,nq12
+      common/symfac/pp(8)
+      common/special/icop
+      sym(k)=md+mx*pp(k)
+
+      if(iabs(md).gt.1.or.iabs(mx).gt.1) stop
+     .   '*** DFFUNP: md,mx has to be 0 or +/-1'
+
+      xm2=y1*y2
+
+**    central potential
+      xdcen = facdf*gd*(1d0+0.25d0*xm2*qi2f2)
+      ydcen =-facdf*gd*0.5d0*xm2*qiqf
+      do 1 i=-1,1
+        wc(i) = xdcen*r(i)+ydcen*s(i)
+    1 continue
+
+**    spin-orbit potential
+      xdls = facdf*gd*xm2/2d0
+      do 4 i=-2,2
+        wl(i) = xdls*r(i)
+    4 continue
+
+**    anti-symmetric spin-orbit potential
+      xdla = facdf*gd*(y1**2-y2**2)/4d0
+      do 5 i=-2,2
+        wa(i) = xdla*r(i)
+    5 continue
+
+**    quadratic spin-orbit potential
+      xdq =-facdf*gd*xm2*xm2/16d0
+      xdqp= xdq*qiqf
+      do 6 i=-3,3
+        wq(i) = xdq*r(i)
+        if(iabs(i).lt.3) wqp(i)= xdqp*g(i)
+    6 continue
+
+      if(nloc.ne.0) then
+**      non-local central potential
+        xdnl =-facdf*gd*0.25d0*xm2*qi2f2
+        do 11 i=-1,1
+          wc(i) = wc(i) + xdnl*r(i)
+   11   continue
+      endif
+
+**    icop=1: only w(2), icop=2: w(1,3-6), icop=0: w(1-8)
+      if(icop.eq.0 .or. icop.eq.2) then
+        w(1) = w(1) + sym(1)*(wc(0) +
+     .                qi2*qf2*(e00*wq(-2)+f00*wq(0)+g00*wq(2)))
+        w(5) = w(5) + sym(5)*(wc(1) - qiqf*jpp/tjp*(wl(0)-wl(2)) +
+     .                qi2*qf2*(epp*wq(-1)+fpp*wq(1)+gpp*wq(3)))
+      endif
+      if(j.eq.0) goto 99
+      if(icop.eq.0 .or. icop.eq.1) then
+        w(2) = w(2) + sym(2)*(wc(0) - qiqf*(wl(-1)-wl(1))/tj +
+     .                qi2*qf2*(e11*wq(-2)+f11*wq(0)+g11*wq(2)))
+      endif
+      if(icop.eq.0 .or. icop.eq.2) then
+        w(3) = w(3) + sym(3)*(wc(-1) + qiqf*jm/tjm*(wl(-2)-wl(0)) +
+     .                qi2*qf2*(emm*wq(-3)+fmm*wq(-1)+gmm*wq(1)))
+        w(4) = w(4) - sym(4)*qi2*qf2*fpm*(wq(1)-wq(-1))
+        w(6) = w(6) - sym(6)*qi2*qf2*fpm*(wq(1)-wq(-1))
+      endif
+      if(icop.eq.0) then
+        w(7) = w(7) + sym(7)*qiqf*(wa(-1)-wa(1))*tjj/tj
+        w(8) = w(8) + sym(8)*qiqf*(wa(-1)-wa(1))*tjj/tj
+      endif
+
+   99 if(nq12.eq.1) then
+C**     Extra contribution from inverse Fourier transform of Q12
+C**     so momentum space exactly equivalent to configuration space
+        if(icop.eq.0 .or. icop.eq.2) then
+          w(1) = w(1) - sym(1)*2d0*qiqf/tj*(j*wqp(-1)+jp*wqp(1))
+          w(5) = w(5) + sym(5)*qiqf*(hpp*wqp(0)+jpp*wqp(2))/tjp
+        endif
+        if(j.eq.0) return
+        if(icop.eq.0 .or. icop.eq.1) then
+          w(2) = w(2) + sym(2)*qiqf*(-wqp(-1)+wqp(1))/tj
+        endif
+        if(icop.eq.0 .or. icop.eq.2) then
+          w(3) = w(3) + sym(3)*qiqf*(jm*wqp(-2)+hmm*wqp(0))/tjm
+          w(4) = w(4) + sym(4)*2d0*qiqf*tjj/tj*wqp(0)
+          w(6) = w(6) + sym(6)*2d0*qiqf*tjj/tj*wqp(0)
+        endif
+      endif
+
+      return
+      end
+C **********************************************************************
+      function fdexpx(x)
+C **********************************************************************
+      implicit real*8(a-z)
+      if(x.le.-100d0) then
+        fdexpx=0d0
+      else
+        fdexpx=dexp(x)
+      endif
+      return
+      end
+C **********************************************************************
+      subroutine plexp(x,y,ames,j,kom,eln,ern)
+C-----------------------------------------------------------------------
+C     PLEXP calculates :   0.5*DEXP(AMES**2)*
+C                    INTEGRAL(-1,+1) (PN(Z)/(X-Z)*F(X,Y)) DZ for LN
+C                                    (PN(Z)*F(X,Y))       DZ for RN
+C                    PN Legendre function
+C                    F(X,Y)=DEXP(Y*(Z-X))
+C     1<|X|, via Pade approximant for X*LOG(X) [function BOUNDARY]
+C     METHOD:
+C            Expand PN(Z) ( N=0,12 max) in powers of Z and calculate :
+C
+C            INTEGRAL(-1,+1)(DEXP(Y(Z-X)*Z**N) DZ       for TN
+C            INTEGRAL(-1,+1)(DEXP(Y(Z-X)*Z**N/(X-Z)) DZ for UN
+C
+C            INPUT:    X : (P**2+Q**2+M**2)/(2*P*Q)
+C                      Y : 2*P*Q/(CUTOFF**2)
+C                      J : (total angular momentum +3)+1 for V,S,D meson
+C                    KOM : 1 calculate ELN and ERN
+C                          2 calculate only ERN (for "DIFRAC" routine)
+C-----------------------------------------------------------------------
+      implicit real*8 (a-h,o-z)
+      dimension eln(15),ern(15),aln(49),bln(7)
+      dimension un(13),tn(34)
+      data xyhh,xh,xmin,xmed,eps,eps2,yh/
+     .     1d20,1d20,-160d0,5d0,1d-13,1d-6,1d20/
+      data aln/1d0, 1d0, 3d0,-1d0, 5d0,-3d0,
+     .         35d0,-30d0,3d0, 63d0,-70d0,15d0,
+     .         231d0,-315d0,105d0,-5d0, 429d0,-693d0,315d0,-35d0,
+     .         6435d0,-12012d0,6930d0,-1260d0,35d0,
+     .         12155d0,-25740d0,18018d0,-4620d0,315d0,
+     .         46189d0,-109395d0,90090d0,-30030d0,3465d0,-63d0,
+     .         88179d0,-230945d0,218790d0,-90090d0,15015d0,-693d0,
+     .         676039d0,-1939938d0,2078505d0,-1021020d0,225225d0,
+     .                  -18018d0,231d0/
+      data bln/1d0,2d0,8d0,16d0,128d0,256d0,1024d0/
+C-NOTE *** dimension UN=J+1, TN=J+2+20
+
+      if(j.gt.12) stop
+     .   ' *** PLEXP: J exceeds allowable maximum of JMAX=7 (+3+2)'
+
+      do 500 i=1,15
+        eln(i)=0d0
+        ern(i)=0d0
+  500 continue
+C**   Calculate basic quantities
+      ym=y-y*x
+      yp=y+y*x
+      yx=y*x
+      if((ym-ames*ames).lt.xmin) return
+      enu=fdexpx(ames*ames)
+      ep=0d0
+      if(ym.gt.xmin) ep=fdexpx(ym)*enu/2d0
+      em=0d0
+      if(-yp.gt.xmin) em=fdexpx(-yp)*enu/2d0
+
+C**   If same momenta but different mesonmass: calculate only UN again
+      xyh=yx-ames*ames
+      if(dabs(xyh-xyhh).lt.1d-10*xyh .and. y.eq.yh) goto 50
+    9 xyhh=xyh
+      yh=y
+      sh=(ep-em)/y
+      ch=(ep+em)/y
+      max=j+2
+      if(x.gt.xmed) max=max+20
+      amax=max
+      check=0.434*(-amax+(y+amax+0.5)*dlog(1+(amax+1)/y))
+      if(check.gt.7d0) goto 10
+
+C**   If CHECK > 1D7 use recurrence relation backward
+
+C**   Calculate TN with recurrence relation forward
+      tn(1)=sh
+      do 1 i=2,max
+        tn(i)=ch-(i-1)*tn(i-1)/y
+        dum=ch
+        ch=sh
+        sh=dum
+    1 continue
+      goto 51
+
+C**   Calculate TN with recurrence relation backward
+C*    Calculation starting point
+   10 if(y.lt.1d-04) mmax=amax+4
+      if(y.lt.1d-04) goto 13
+      bound1=9.197/y
+      bound2=amax*dlog((amax+1)/2.718/y)/2.718/y+8.829/y
+      bound1=boundary(bound1)*2.718*y
+      bound2=boundary(bound2)*2.718*y
+      k1=bound1+1
+      k2=bound2+1
+      mmax=max0(k1,k2)
+C**   CHECK: on loss of more than 7 significant digits
+      check=0.434*(y*dlog(y)+y+1-(y+0.5)*dlog(y+1))
+c-v   if(check.gt.7d0) write(*,5003) check
+
+C*    Start backward recursion
+   13 t=0d0
+      if(mod(mmax,2).eq.0) mmax=mmax+1
+      sh=enu*dsinh(y)*fdexpx(-yx)
+      ch=enu*dcosh(y)*fdexpx(-yx)
+C     ch=ep+em
+      do 11 ii=2,mmax
+        i=mmax-ii+2
+        t=(sh-y*t)/(i-1)
+        if(i.le.(max+1)) tn(i-1)=t
+        dum=sh
+        sh=ch
+        ch=dum
+   11 continue
+      goto 51
+
+C**   Calculation UN functions
+   50 if(x.gt.xmed .and. xh.le.xmed) goto 9
+
+C**   If mesonmass differs, but X has passed critical value
+C**   more TN's have to be calculated
+
+   51 xh=x
+C**   For diffractive contribution calculation of RN is enough
+      if(kom.eq.2) goto 800
+
+      if(x.gt.xmed) goto 60
+
+C**   Calculation for X < XMED using forward recurrence relation
+      ce1p=ep*ce1x(-ym)
+      ce1m=em*ce1x(yp)
+C**   CHECK: on loss of more than 7 significant digits
+      if(ce1p.ne.0d0 .or. ce1m.ne.0d0) then
+c        if(dabs((ce1p-ce1m)/(ce1p+ce1m)).lt.eps2) write(*,5001)
+      endif
+      un(1)=ce1p-ce1m
+      max=j+1
+      do 52 i=2,max
+        un(i)=x*un(i-1)-tn(i-1)
+   52 continue
+      goto 600
+
+C**   Calculation for X > XMED using backward recurrence relation
+   60 max=j+1
+
+C**   First calculate UN(MAX) with expansion in TN
+      sum=tn(max)/x
+      if(sum.eq.0d0) goto 62
+      xi=1d0/x
+      dsum=0d0
+      do 61 i=1,20
+        sum=sum+dsum
+        xi=xi/x
+        dsum=tn(max+i)*xi
+        if(dabs(dsum/sum).lt.eps) goto 62
+   61 continue
+c      write(*,5002)
+   62 un(max)=sum
+      do 63 ii=2,max
+        i=max+2-ii
+        un(i-1)=(un(i)+tn(i-1))/x
+   63 continue
+      goto 600
+
+C**   Form linear combinations to obtain LN and RN
+  600 max=j+1
+      nb=1
+      do 31 l1=1,max
+        ii=l1+mod(l1,2)
+        do 41 n1=1,l1,2
+          eln(l1)=eln(l1)+aln(nb+(n1-1)/2)*un(l1+1-n1)/bln(ii/2)
+          ern(l1)=ern(l1)+aln(nb+(n1-1)/2)*tn(l1+1-n1)/bln(ii/2)
+   41   continue
+        nb=nb+ii/2
+   31 continue
+      return
+
+  800 max=j+1
+      nb=1
+      do 32 l1=1,max
+        ii=l1+mod(l1,2)
+        do 42 n1=1,l1,2
+          ern(l1)=ern(l1)+aln(nb+(n1-1)/2)*tn(l1+1-n1)/bln(ii/2)
+   42   continue
+        nb=nb+ii/2
+   32 continue
+      return
+
+ 5001 format(1x,'**** PLEXP **** Loss of significant digits UN(1) ')
+ 5002 format(1x,'**** PLEXP **** UN MAX not accurate  ')
+ 5003 format(1x,'**** PLEXP **** TN not accurate ; loss of :',d10.3,
+     .          ' decimal digits ')
+      end
+************************************************************************
+      function boundary(x)
+      implicit real*8 (a-h,o-z)
+      data a0,a1,a2,a3/-0.589654,-0.0595734,0.649227,0.1809910/
+
+      if(x.gt.1.2d6) then
+        boundary=x**0.847
+      elseif(x.gt.9d4) then
+        boundary=x**0.825
+      elseif(x.gt.6900d0) then
+        boundary=x**0.806
+      elseif(x.gt.460d0) then
+        boundary=x**0.781
+      elseif(x.gt.23d0) then
+        boundary=x**0.751
+      else
+        boundary=( x*a3-a1
+     .            +dsqrt((a1-x*a3)*(a1-x*a3)-4d0*a2*(a0-x)) )/2d0/a2
+      endif
+
+      return
+      end
+************************************************************************
+      function ce1x(x)
+C**     ce1x calculates the function : DEXP(X) * E1(X)
+      implicit real*8 (a-h,o-z)
+      data eps/10d-14/
+      data gam/0.577215664901532861d0/
+      data ap0,ap1,ap2,ap3,ap4,ap5,ap6 /
+     .     0.463996004278035d+01, 0.127788778637147d+03,
+     .     0.735910238555843d+03, 0.139583023127254d+04,
+     .     0.101614779141469d+04, 0.286647946600883d+03,
+     .     0.256489038620717d+02/
+      data aq1,aq2,aq3,aq4,aq5,aq6,aq7 /
+     .     0.512251050448444d+02, 0.503800829553457d+03,
+     .     0.165169408854742d+04, 0.220150290642078d+04,
+     .     0.127719811988873d+04, 0.312294439564262d+03,
+     .     0.256489625816454d+02/
+      data bp0,bp1,bp2,bp3,bp4,bp5     /
+     .     0.335956527252693d+01, 0.204955591333077d+02,
+     .     0.267757325223533d+02, 0.112883678215773d+02,
+     .     0.164680678114210d+01, 0.655193572680895d-01/
+      data bq1,bq2,bq3,bq4,bq5,bq6     /
+     .     0.143836492361913d+02, 0.400563387674630d+02,
+     .     0.366148021121537d+02, 0.128696120312766d+02,
+     .     0.171232738644327d+01, 0.655193403549186d-01/
+      data cp0,cp1,cp2,cp3,cp4         /
+     .     0.298014627030798d+01, 0.113803314436134d+02,
+     .     0.947288802836929d+01, 0.247747160891423d+01,
+     .     0.188516317695352d+00/
+      data cq1,cq2,cq3,cq4,cq5         /
+     .     0.988019055335016d+01, 0.189408176576544d+02,
+     .     0.117618585876339d+02, 0.266598761793551d+01,
+     .     0.188516320637495d+00/
+      data dp0,dp1,dp2,dp3   /
+     .     0.242331331460798d+01, 0.432777141801875d+01,
+     .     0.160959648287707d+01, 0.148720388893508d+00/
+      data dq1,dq2,dq3,dq4   /
+     .     0.558734308280980d+01, 0.578865453197840d+01,
+     .     0.175831677540018d+01, 0.148720389489176d+00/
+      data ep0,ep1,ep2,ep3   /
+     .     0.226526458912153d+01, 0.332000741007556d+01,
+     .     0.104761178441346d+01, 0.837423061701825d-01/
+      data eq1,eq2,eq3,eq4   /
+     .     0.478887726713541d+01, 0.428387700117901d+01,
+     .     0.113135408983342d+01, 0.837423061723804d-01/
+      data fp0,fp1,fp2,fp3   /
+     .     0.190053654321203d+01, 0.151285969203750d+01,
+     .     0.205314346964057d+00, 0.264152351883344d-03/
+      data fq1,fq2,fq3,fq4   /
+     .     0.320887608816311d+01, 0.171790987670629d+01,
+     .     0.205578499347658d+00, 0.264152351839874d-03/
+
+      pqx=1d0
+      if(x.lt.1d0) then
+        e1=-gam-dlog(x)+x
+        n=1
+        ix=1
+        term=x
+    1   n=n+1
+        ix=-ix
+        term=term*x/n
+        if(term.lt.eps) goto 10
+        e1=e1+ix*term/n
+        goto 1
+   10   ppx=fdexpx(x)*e1
+      elseif(x.lt.3d0) then
+        ppx=ap0+x*(ap1+x*(ap2+x*(ap3+x*(ap4+x*(ap5+x*ap6)))))
+        pqx=1d0+x*(aq1+x*(aq2+x*(aq3+x*(aq4+x*(aq5+x*(aq6+x*aq7))))))
+      elseif(x.lt.6d0) then
+        ppx=bp0+x*(bp1+x*(bp2+x*(bp3+x*(bp4+x*bp5))))
+        pqx=1d0+x*(bq1+x*(bq2+x*(bq3+x*(bq4+x*(bq5+x*bq6)))))
+      elseif(x.lt.14d0) then
+        ppx=cp0+x*(cp1+x*(cp2+x*(cp3+x*cp4)))
+        pqx=1d0+x*(cq1+x*(cq2+x*(cq3+x*(cq4+x*cq5))))
+      elseif(x.lt.25d0) then
+        ppx=dp0+x*(dp1+x*(dp2+x*dp3))
+        pqx=1d0+x*(dq1+x*(dq2+x*(dq3+x*dq4)))
+      elseif(x.lt.70d0) then
+        ppx=ep0+x*(ep1+x*(ep2+x*ep3))
+        pqx=1d0+x*(eq1+x*(eq2+x*(eq3+x*eq4)))
+      elseif(x.lt.165d0) then
+        ppx=fp0+x*(fp1+x*(fp2+x*fp3))
+        pqx=1d0+x*(fq1+x*(fq2+x*(fq3+x*fq4)))
+      elseif(x.ge.165d0) then
+        y=1d0/x
+        n=0
+        in=1
+        k=1
+        ce1x=y
+    2   n=n+1
+        in=-in
+        y=y/x
+        k=k*n
+        term=y*k
+        if(term/ce1x.lt.eps) goto 20
+        ce1x=ce1x+in*term
+        goto 2
+   20   ppx=ce1x
+      endif
+      ce1x=ppx/pqx
+
+      return
+      end
+C **********************************************************************
+      subroutine psprc40(j,ii1,ii2,nloc,icsb)
+C **********************************************************************
+C
+C     PSEUDO-SCALAR MESONS : CALCULATION POTENTIALS ON ISOSPIN BASIS
+C
+C     I=1/2: LN->LN    LN->NL;  LN->SN  LN->NS;   SN->SN    SN->NS
+C            et/x0/pi1 kaon2    pi2     kaon3     et/x0/pi1 kaon1
+C     I=3/2: SN->SN    SN->NS
+C            et/x0/pi1 kaon1
+C
+C     Symmetry factor regulated with md,mx in call psfunp(md,mx,...)
+C     Only calculates potential that is needed ==> loop from ii1 to ii2.
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      common/allps/ ame,amx,amk,bmk(3),pimm(3)
+      common/frmc40/alm1hu,alm3hu,alm1hc,alm3hc
+      common/special/icop
+      common/vmesyn/wyn1h(8,3),wyn3h(8)
+      common/copmyn/ps31e,ps31x,ps31p,ps31k, ps11e,ps11x,ps11p,
+     .              ps11k,ps12p,ps12k,ps13e,ps13x,ps13p,ps13k,
+     .              copdum(14,6)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      dimension amps(5),x(5), u(-3:12),r(-3:12),eln(15),ern(15)
+      dimension uet(-2:2),ux0(-2:2),uka(-2:2),up1(-2:2),up2(-2:2),
+     .          ret(-1:1),rx0(-1:1),rka(-1:1),rp1(-1:1),rp2(-1:1)
+      data u/16*0d0/,r/16*0d0/
+
+C*    Possible mesons being exchanged
+      amps(1)=ame
+      amps(2)=amx
+      amps(3)=bmk(1)
+      amps(4)=pimm(1)
+      if(ii1.eq.1) amps(5)=pimm(2)
+
+      kom=1
+      jmax=j+2
+      do 10 isoloop=ii1,ii2,2
+        do 15 iset=1,2
+C*        Potentials w(2) and w(1,3-6) have different cutoffs
+C*        and have to be calculated idependently: handled by ICOP
+C*        w(7,8) put to zero.
+          icop=iset
+          if(isoloop.eq.1) then
+            if(icop.eq.1) alm=alm1hu
+            if(icop.eq.2) alm=alm1hc
+          elseif(isoloop.eq.3) then
+            if(icop.eq.1) alm=alm3hu
+            if(icop.eq.2) alm=alm3hc
+          endif
+          nmes=5-(isoloop-1)/2
+          do 20 in=1,nmes
+            ames=amps(in)/alm
+            x(in)=xcom+0.5d0*amps(in)**2/qiqf
+            y=2d0*qiqf/alm**2
+            call plexp(x(in),y,ames,jmax,kom,eln,ern)
+            do 21 k=0,jmax
+              u(k)=eln(k+1)
+              r(k)=ern(k+1)
+   21       continue
+            do 25 nn=-2,2
+              if(in.eq.1) then
+                uet(nn)=u(j+nn)
+              elseif(in.eq.2) then
+                ux0(nn)=u(j+nn)
+              elseif(in.eq.3) then
+                uka(nn)=u(j+nn)
+              elseif(in.eq.4) then
+                up1(nn)=u(j+nn)
+              elseif(in.eq.5) then
+                up2(nn)=u(j+nn)
+              endif
+   25       continue
+            do 26 nn=-1,1
+              if(in.eq.1) then
+                ret(nn)=r(j+nn)
+              elseif(in.eq.2) then
+                rx0(nn)=r(j+nn)
+              elseif(in.eq.3) then
+                rka(nn)=r(j+nn)
+              elseif(in.eq.4) then
+                rp1(nn)=r(j+nn)
+              elseif(in.eq.5) then
+                rp2(nn)=r(j+nn)
+              endif
+   26       continue
+   20     continue
+          if(isoloop.eq.3) then
+            call psfunp(1,0,ps31e,x(1),uet,ret,nloc,wyn3h)
+            call psfunp(1,0,ps31x,x(2),ux0,rx0,nloc,wyn3h)
+            call psfunp(1,0,ps31p,x(4),up1,rp1,nloc,wyn3h)
+            call psfunp(0,1,ps31k,x(3),uka,rka,nloc,wyn3h)
+          elseif(isoloop.eq.1) then
+            call psfunp(1,0,ps11e,x(1),uet,ret,nloc,wyn1h(1,1))
+            call psfunp(1,0,ps11x,x(2),ux0,rx0,nloc,wyn1h(1,1))
+            call psfunp(1,0,icsb*ps11p,x(4),up1,rp1,nloc,wyn1h(1,1))
+            call psfunp(0,1,ps11k,x(3),uka,rka,nloc,wyn1h(1,1))
+            call psfunp(1,0,ps12p,x(5),up2,rp2,nloc,wyn1h(1,2))
+            call psfunp(0,1,ps12k,x(3),uka,rka,nloc,wyn1h(1,2))
+            call psfunp(1,0,ps13e,x(1),uet,ret,nloc,wyn1h(1,3))
+            call psfunp(1,0,ps13x,x(2),ux0,rx0,nloc,wyn1h(1,3))
+            call psfunp(1,0,ps13p,x(4),up1,rp1,nloc,wyn1h(1,3))
+            call psfunp(0,1,ps13k,x(3),uka,rka,nloc,wyn1h(1,3))
+          endif
+   15   continue
+   10 continue
+
+      return
+      end
+C **********************************************************************
+      subroutine vcprc40(j,ii1,ii2,nloc,icsb)
+C **********************************************************************
+C
+C     VECTOR MESONS : CALCULATION POTENTIALS ON ISOSPIN BASIS
+C
+C     I=1/2: LN->LN     LN->NL;  LN->SN  LN->NS;   SN->SN    SN->NS
+C            om/phi/rho K*(2)    rho     K*(3)     om/phi/rho K*(1)
+C     I=3/2: SN->SN     SN->NS
+C            om/phi/rho K*(1)
+C
+C     Symmetry factor regulated with md,mx in call vcfunp(md,mx,...)
+C     Only calculates potential that is needed ==> loop from ii1 to ii2.
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      common/allvc/ aro,bro,am1ro,am2ro,amom,amfi,amks,bmks(3)
+      common/massyn/xm1l(2,3),xm1r(2,3),xm3l(2),xm3r(2)
+      common/propyn/proll,prols,pross,pross3,prorho
+      common/frmc40/alm1hu,alm3hu,alm1hc,alm3hc
+      common/special/icop
+      common/vmesyn/wyn1h(8,3),wyn3h(8)
+      common/copmyn/copdum1(14),
+     .              gg31o,gg31f,gg31r,gg31k, gg11o,gg11f,gg11r,
+     .              gg11k,gg12r,gg12k,gg13o,gg13f,gg13r,gg13k,
+     .              gf31o,gf31f,gf31r,gf31k, gf11o,gf11f,gf11r,
+     .              gf11k,gf12r,gf12k,gf13o,gf13f,gf13r,gf13k,
+     .              fg31o,fg31f,fg31r,fg31k, fg11o,fg11f,fg11r,
+     .              fg11k,fg12r,fg12k,fg13o,fg13f,fg13r,fg13k,
+     .              ff31o,ff31f,ff31r,ff31k, ff11o,ff11f,ff11r,
+     .              ff11k,ff12r,ff12k,ff13o,ff13f,ff13r,ff13k,
+     .              copdum2(14,2)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      dimension amvc(5),x(5), eln(15),ern(15),
+     .          u(-3:12),r(-3:12),s(-3:12),g(-3:12)
+      dimension uom(-3:3),ufi(-3:3),ur1(-3:3),ur2(-3:3),uks(-3:3),
+     .          rom(-2:2),rfi(-2:2),rr1(-2:2),rr2(-2:2),rks(-2:2),
+     .          som(-1:1),sfi(-1:1),sr1(-1:1),sr2(-1:1),sks(-1:1),
+     .          gom(-2:2),gfi(-2:2),gr1(-2:2),gr2(-2:2),gks(-2:2)
+      data u/16*0d0/,r/16*0d0/,s/16*0d0/,g/16*0d0/
+
+C*    Possible mesons being exchanged
+      amvc(1)=amom
+      amvc(2)=amfi
+      amvc(3)=am1ro
+      amvc(4)=am2ro
+      amvc(5)=bmks(1)
+
+      kom=1
+      jmax=j+3
+      do 10 isoloop=ii1,ii2,2
+        do 15 iset=1,2
+C*        Potentials w(2) and w(1,3-6) have different cutoffs
+C*        and have to be calculated idependently: handled by ICOP
+C*        w(7,8) put to zero.
+          icop=iset
+          if(isoloop.eq.1) then
+            if(icop.eq.1) alm=alm1hu
+            if(icop.eq.2) alm=alm1hc
+          elseif(isoloop.eq.3) then
+            if(icop.eq.1) alm=alm3hu
+            if(icop.eq.2) alm=alm3hc
+          endif
+          do 20 in=1,5
+            alm2=alm*alm
+            ames=amvc(in)/alm
+            ams2=amvc(in)**2
+            x(in)=xcom+0.5d0*ams2/qiqf
+            y=2d0*qiqf/alm2
+            call plexp(x(in),y,ames,jmax,kom,eln,ern)
+            do 21 k=1,jmax
+              u(k)=eln(k+1)
+              r(k)=ern(k+1)
+              s(k)=(k*ern(k)+(k+1)*ern(k+2))/(2*k+1)
+              g(k)=(eln(k+2)-eln(k))/(2*k+1)
+   21       continue
+            u(0)=eln(1)
+            r(0)=ern(1)
+            s(0)=ern(2)
+            arg=(qipf2+ams2)/alm2
+            g(0)=(eln(2)-eln(1))-fdexpx(-qipf2/alm2)*ce1x(arg)
+            do 25 nn=-3,3
+              if(in.eq.1) then
+                uom(nn)=u(j+nn)
+              elseif(in.eq.2) then
+                ufi(nn)=u(j+nn)
+              elseif(in.eq.3) then
+                ur1(nn)=aro*u(j+nn)
+              elseif(in.eq.4) then
+                ur2(nn)=bro*u(j+nn)
+              elseif(in.eq.5) then
+                uks(nn)=u(j+nn)
+              endif
+   25       continue
+            do 26 nn=-2,2
+              if(in.eq.1) then
+                rom(nn)=r(j+nn)
+                gom(nn)=g(j+nn)
+              elseif(in.eq.2) then
+                rfi(nn)=r(j+nn)
+                gfi(nn)=g(j+nn)
+              elseif(in.eq.3) then
+                rr1(nn)=aro*r(j+nn)
+                gr1(nn)=aro*g(j+nn)
+              elseif(in.eq.4) then
+                rr2(nn)=bro*r(j+nn)
+                gr2(nn)=bro*g(j+nn)
+              elseif(in.eq.5) then
+                rks(nn)=r(j+nn)
+                gks(nn)=g(j+nn)
+              endif
+   26       continue
+            do 27 nn=-1,1
+              if(in.eq.1) then
+                som(nn)=s(j+nn)
+              elseif(in.eq.2) then
+                sfi(nn)=s(j+nn)
+              elseif(in.eq.3) then
+                sr1(nn)=aro*s(j+nn)
+              elseif(in.eq.4) then
+                sr2(nn)=bro*s(j+nn)
+              elseif(in.eq.5) then
+                sks(nn)=s(j+nn)
+              endif
+   27       continue
+   20     continue
+          if(isoloop.eq.3) then
+            y1=xm3l(1)
+            y2=xm3r(1)
+            call vcfunp(1,0,gg31o,gf31o,fg31o,ff31o,x(1),
+     .                  uom,rom,som,gom,y1,y2,nloc,wyn3h)
+            call vcfunp(1,0,gg31f,gf31f,fg31f,ff31f,x(2),
+     .                  ufi,rfi,sfi,gfi,y1,y2,nloc,wyn3h)
+            call vcfunp(1,0,gg31r,gf31r,fg31r,ff31r,x(3),
+     .                  ur1,rr1,sr1,gr1,y1,y2,nloc,wyn3h)
+            call vcfunp(1,0,gg31r,gf31r,fg31r,ff31r,x(4),
+     .                  ur2,rr2,sr2,gr2,y1,y2,nloc,wyn3h)
+            y1=xm3l(2)
+            y2=xm3r(2)
+            call vcfunp(0,1,gg31k,gf31k,fg31k,ff31k,x(5),
+     .                  uks,rks,sks,gks,y1,y2,nloc,wyn3h)
+          elseif(isoloop.eq.1) then
+            y1=xm1l(1,1)
+            y2=xm1r(1,1)
+            call vcfunp(1,0,gg11o,gf11o,fg11o,ff11o,x(1),
+     .                  uom,rom,som,gom,y1,y2,nloc,wyn1h(1,1))
+            call vcfunp(1,0,gg11f,gf11f,fg11f,ff11f,x(2),
+     .                  ufi,rfi,sfi,gfi,y1,y2,nloc,wyn1h(1,1))
+            call vcfunp(1,0,icsb*gg11r,icsb*gf11r,icsb*fg11r,icsb*ff11r,
+     .                  x(3),ur1,rr1,sr1,gr1,y1,y2,nloc,wyn1h(1,1))
+            call vcfunp(1,0,icsb*gg11r,icsb*gf11r,icsb*fg11r,icsb*ff11r,
+     .                  x(4),ur2,rr2,sr2,gr2,y1,y2,nloc,wyn1h(1,1))
+            y1=xm1l(2,1)
+            y2=xm1r(2,1)
+            call vcfunp(0,1,gg11k,gf11k,fg11k,ff11k,x(5),
+     .                  uks,rks,sks,gks,y1,y2,nloc,wyn1h(1,1))
+            y1=xm1l(1,2)
+            y2=xm1r(1,2)
+            call vcfunp(1,0,gg12r,gf12r,fg12r,ff12r,x(3),
+     .                  ur1,rr1,sr1,gr1,y1,y2,nloc,wyn1h(1,2))
+            call vcfunp(1,0,gg12r,gf12r,fg12r,ff12r,x(4),
+     .                  ur2,rr2,sr2,gr2,y1,y2,nloc,wyn1h(1,2))
+            y1=xm1l(2,2)
+            y2=xm1r(2,2)
+            call vcfunp(0,1,gg12k,gf12k,fg12k,ff12k,x(5),
+     .                  uks,rks,sks,gks,y1,y2,nloc,wyn1h(1,2))
+            y1=xm1l(1,3)
+            y2=xm1r(1,3)
+            call vcfunp(1,0,gg13o,gf13o,fg13o,ff13o,x(1),
+     .                  uom,rom,som,gom,y1,y2,nloc,wyn1h(1,3))
+            call vcfunp(1,0,gg13f,gf13f,fg13f,ff13f,x(2),
+     .                  ufi,rfi,sfi,gfi,y1,y2,nloc,wyn1h(1,3))
+            call vcfunp(1,0,gg13r,gf13r,fg13r,ff13r,x(3),
+     .                  ur1,rr1,sr1,gr1,y1,y2,nloc,wyn1h(1,3))
+            call vcfunp(1,0,gg13r,gf13r,fg13r,ff13r,x(4),
+     .                  ur2,rr2,sr2,gr2,y1,y2,nloc,wyn1h(1,3))
+            y1=xm1l(2,3)
+            y2=xm1r(2,3)
+            call vcfunp(0,1,gg13k,gf13k,fg13k,ff13k,x(5),
+     .                  uks,rks,sks,gks,y1,y2,nloc,wyn1h(1,3))
+          endif
+
+C*        Contribution from second part in vector propagator.
+C*        Coupling constant =  -(B3-B1)*(B4-B2)/mes**2
+          if(isoloop.eq.3) then
+            gg=gg31k*pross3
+            call vcfunp2(0,1,gg,x(5),uks,rks,gks,
+     .                   xm3l(2),xm3r(2),nloc,wyn3h)
+          elseif(isoloop.eq.1) then
+            gg=gg11k*proll
+            call vcfunp2(0,1,gg,x(5),uks,rks,gks,
+     .                   xm1l(2,1),xm1r(2,1),nloc,wyn1h(1,1))
+c           gg=gg12r*prorho/am1ro**2
+c           call vcfunp2(1,0,gg,x(3),ur1,rr1,gr1,
+c    .                   xm1l(1,2),xm1r(1,2),nloc,wyn1h(1,2))
+c           gg=gg12r*prorho/am2ro**2
+c           call vcfunp2(1,0,gg,x(4),ur2,rr2,gr2,
+c    .                   xm1l(1,2),xm1r(1,2),nloc,wyn1h(1,2))
+            gg=gg12k*prols
+            call vcfunp2(0,1,gg,x(5),uks,rks,gks,
+     .                   xm1l(2,2),xm1r(2,2),nloc,wyn1h(1,2))
+            gg=gg13k*pross
+            call vcfunp2(0,1,gg,x(5),uks,rks,gks,
+     .                   xm1l(2,3),xm1r(2,3),nloc,wyn1h(1,3))
+          endif
+   15   continue
+   10 continue
+
+      return
+      end
+C **********************************************************************
+      subroutine scprc40(j,ii1,ii2,nloc,icsb)
+C **********************************************************************
+C
+C     SCALAR MESONS : CALCULATION POTENTIALS ON ISOSPIN BASIS
+C
+C     I=1/2: LN->LN     LN->NL;  LN->SN  LN->NS;   SN->SN     SN->NS
+C            eps/S*/del kappa    del     kappa     eps/S*/del kappa
+C     I=3/2: SN->SN     SN->NS
+C            eps/S*/del kappa
+C
+C     Symmetry factor regulated with md,mx in call scfunp(md,mx,...)
+C     Only calculates potential that is needed ==> loop from ii1 to ii2.
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      common/allsc/ asi,bsi,am1si,am2si,asst,bsst,amsst,am2st,amd,amsck
+      common/massyn/xm1l(2,3),xm1r(2,3),xm3l(2),xm3r(2)
+      common/frmc40/alm1hu,alm3hu,alm1hc,alm3hc
+      common/special/icop
+      common/vmesyn/wyn1h(8,3),wyn3h(8)
+      common/copmyn/copdum1(14,5),
+     .              gs31e,gs31s,gs31d,gs31k, gs11e,gs11s,gs11d,
+     .              gs11k,gs12d,gs12k,gs13e,gs13s,gs13d,gs13k,
+     .              copdum2(14)
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      dimension amsc(5),x(5), eln(15),ern(15),
+     .          u(-3:12),r(-3:12),g(-3:12)
+      dimension ue1(-3:3),ue2(-3:3),uss(-3:3),ude(-3:3),ukp(-3:3),
+     .          re1(-1:1),re2(-1:1),rss(-1:1),rde(-1:1),rkp(-1:1),
+     .          ge1(-2:2),ge2(-2:2),gss(-2:2),gde(-2:2),gkp(-2:2)
+      data u/16*0d0/,r/16*0d0/,g/16*0d0/
+
+C*    Possible mesons being exchanged
+      amsc(1)=am1si
+      amsc(2)=am2si
+      amsc(3)=amsst
+      amsc(4)=amd
+      amsc(5)=amsck
+
+      kom=1
+      jmax=j+3
+      do 10 isoloop=ii1,ii2,2
+        do 15 iset=1,2
+C*        Potentials w(2) and w(1,3-6) have different cutoffs
+C*        and have to be calculated idependently: handled by ICOP
+C*        w(7,8) put to zero.
+          icop=iset
+          if(isoloop.eq.1) then
+            if(icop.eq.1) alm=alm1hu
+            if(icop.eq.2) alm=alm1hc
+          elseif(isoloop.eq.3) then
+            if(icop.eq.1) alm=alm3hu
+            if(icop.eq.2) alm=alm3hc
+          endif
+          do 20 in=1,5
+            alm2=alm*alm
+            ames=amsc(in)/alm
+            ams2=amsc(in)**2
+            x(in)=xcom+0.5d0*ams2/qiqf
+            y=2d0*qiqf/alm2
+            call plexp(x(in),y,ames,jmax+1,kom,eln,ern)
+            do 21 k=1,jmax
+              u(k)=eln(k+1)
+              r(k)=ern(k+1)
+              g(k)=(eln(k+2)-eln(k))/(2*k+1)
+   21       continue
+            u(0)=eln(1)
+            r(0)=ern(1)
+            arg=(qipf2+ams2)/alm2
+            g(0)=(eln(2)-eln(1))-fdexpx(-qipf2/alm2)*ce1x(arg)
+            do 25 nn=-3,3
+              if(in.eq.1) then
+                ue1(nn)=asi*u(j+nn)
+              elseif(in.eq.2) then
+                ue2(nn)=bsi*u(j+nn)
+              elseif(in.eq.3) then
+                uss(nn)=u(j+nn)
+              elseif(in.eq.4) then
+                ude(nn)=u(j+nn)
+              elseif(in.eq.5) then
+                ukp(nn)=u(j+nn)
+              endif
+   25       continue
+            do 26 nn=-2,2
+              if(in.eq.1) then
+                ge1(nn)=asi*g(j+nn)
+              elseif(in.eq.2) then
+                ge2(nn)=bsi*g(j+nn)
+              elseif(in.eq.3) then
+                gss(nn)=g(j+nn)
+              elseif(in.eq.4) then
+                gde(nn)=g(j+nn)
+              elseif(in.eq.5) then
+                gkp(nn)=g(j+nn)
+              endif
+   26       continue
+            do 27 nn=-1,1
+              if(in.eq.1) then
+                re1(nn)=asi*r(j+nn)
+              elseif(in.eq.2) then
+                re2(nn)=bsi*r(j+nn)
+              elseif(in.eq.3) then
+                rss(nn)=r(j+nn)
+              elseif(in.eq.4) then
+                rde(nn)=r(j+nn)
+              elseif(in.eq.5) then
+                rkp(nn)=r(j+nn)
+              endif
+   27       continue
+   20     continue
+          if(isoloop.eq.3) then
+            y1=xm3l(1)
+            y2=xm3r(1)
+            call scfunp(1,0,gs31e,x(1),ue1,re1,ge1,y1,y2,nloc,wyn3h)
+            call scfunp(1,0,gs31e,x(2),ue2,re2,ge2,y1,y2,nloc,wyn3h)
+            call scfunp(1,0,gs31s,x(3),uss,rss,gss,y1,y2,nloc,wyn3h)
+            call scfunp(1,0,gs31d,x(4),ude,rde,gde,y1,y2,nloc,wyn3h)
+            y1=xm3l(2)
+            y2=xm3r(2)
+            call scfunp(0,1,gs31k,x(5),ukp,rkp,gkp,y1,y2,nloc,wyn3h)
+          elseif(isoloop.eq.1) then
+            y1=xm1l(1,1)
+            y2=xm1r(1,1)
+            call scfunp(1,0,gs11e,x(1),ue1,re1,ge1,
+     .                  y1,y2,nloc,wyn1h(1,1))
+            call scfunp(1,0,gs11e,x(2),ue2,re2,ge2,
+     .                  y1,y2,nloc,wyn1h(1,1))
+            call scfunp(1,0,gs11s,x(3),uss,rss,gss,
+     .                  y1,y2,nloc,wyn1h(1,1))
+            call scfunp(1,0,icsb*gs11d,x(4),ude,rde,gde,
+     .                  y1,y2,nloc,wyn1h(1,1))
+            y1=xm1l(2,1)
+            y2=xm1r(2,1)
+            call scfunp(0,1,gs11k,x(5),ukp,rkp,gkp,
+     .                  y1,y2,nloc,wyn1h(1,1))
+            y1=xm1l(1,2)
+            y2=xm1r(1,2)
+            call scfunp(1,0,gs12d,x(4),ude,rde,gde,
+     .                  y1,y2,nloc,wyn1h(1,2))
+            y1=xm1l(2,2)
+            y2=xm1r(2,2)
+            call scfunp(0,1,gs12k,x(5),ukp,rkp,gkp,
+     .                  y1,y2,nloc,wyn1h(1,2))
+            y1=xm1l(1,3)
+            y2=xm1r(1,3)
+            call scfunp(1,0,gs13e,x(1),ue1,re1,ge1,
+     .                  y1,y2,nloc,wyn1h(1,3))
+            call scfunp(1,0,gs13e,x(2),ue2,re2,ge2,
+     .                  y1,y2,nloc,wyn1h(1,3))
+            call scfunp(1,0,gs13s,x(3),uss,rss,gss,
+     .                  y1,y2,nloc,wyn1h(1,3))
+            call scfunp(1,0,gs13d,x(4),ude,rde,gde,
+     .                  y1,y2,nloc,wyn1h(1,3))
+            y1=xm1l(2,3)
+            y2=xm1r(2,3)
+            call scfunp(0,1,gs13k,x(5),ukp,rkp,gkp,
+     .                  y1,y2,nloc,wyn1h(1,3))
+          endif
+   15   continue
+   10 continue
+
+      return
+      end
+C **********************************************************************
+      subroutine dfprc40(j,ii1,ii2,nloc,icsb)
+C **********************************************************************
+C
+C     DIFFRACTIVE MESONS : CALCULATION POTENTIALS ON ISOSPIN BASIS
+C
+C     I=1/2: LN->LN     LN->NL;  LN->SN  LN->NS;   SN->SN     SN->NS
+C            pom/f2/a2  K**      a2      K**       pom/f2/a2  K**
+C     I=3/2: SN->SN     SN->NS
+C            pom/f2/a2  K**
+C
+C     Symmetry factor regulated with md,mx in call dffunp(md,mx,...)
+C     Only calculates potential that is needed ==> loop from ii1 to ii2.
+C **********************************************************************
+      implicit real*8(a-h,o-z)
+      common/alldf/ ampom,amf2,ama2,amkss
+      common/massyn/xm1l(2,3),xm1r(2,3),xm3l(2),xm3r(2)
+      common/special/icop
+      common/vmesyn/wyn1h(8,3),wyn3h(8)
+      common/copmyn/copdum(14,6),
+     .              gd31p,gd31f,gd31a,gd31k, gd11p,gd11f,gd11a,
+     .              gd11k,gd12a,gd12k,gd13p,gd13f,gd13a,gd13k
+      common/qfacx/qi2,qf2,qiqf,qi2f2,qi2f22,qipf2,s2psi,spsi2,cpsi2,
+     .            xcom,facm,facdf
+      dimension amdf(4), eln(15),ern(15),
+     .          r(-3:12),s(-3:12),g(-3:12)
+      dimension rpo(-3:3),rf2(-3:3),ra2(-3:3),rkd(-3:3),
+     .          spo(-1:1),sf2(-1:1),sa2(-1:1),skd(-1:1),
+     .          gpo(-2:2),gf2(-2:2),ga2(-2:2),gkd(-2:2)
+      data r/16*0d0/,s/16*0d0/,g/16*0d0/
+
+C*    Possible mesons being exchanged
+      amdf(1)=ampom
+      amdf(2)=amf2
+      amdf(3)=ama2
+      amdf(4)=amkss
+
+      icop=0
+      kom=2
+      jmax=j+3
+      do 10 in=1,4
+        ams2=amdf(in)**2
+        y=0.5d0*qiqf/ams2
+        call plexp(xcom,y,0d0,jmax+1,kom,eln,ern)
+        do 11 k=1,jmax
+          r(k)=ern(k+1)
+          s(k)=(k*ern(k)+(k+1)*ern(k+2))/(2*k+1)
+          g(k)=(ern(k+2)-ern(k))/(2*k+1)
+   11   continue
+        r(0)=ern(1)
+        s(0)=ern(2)
+        g(0)=(ern(2)-ern(1))-2d0*fdexpx(-qipf2/4d0/ams2)*ams2/qiqf
+        do 15 nn=-3,3
+          if(in.eq.1) then
+            rpo(nn)=r(j+nn)
+          elseif(in.eq.2) then
+            rf2(nn)=r(j+nn)
+          elseif(in.eq.3) then
+            ra2(nn)=r(j+nn)
+          elseif(in.eq.4) then
+            rkd(nn)=r(j+nn)
+          endif
+   15   continue
+        do 16 nn=-2,2
+          if(in.eq.1) then
+            gpo(nn)=g(j+nn)
+          elseif(in.eq.2) then
+            gf2(nn)=g(j+nn)
+          elseif(in.eq.3) then
+            ga2(nn)=g(j+nn)
+          elseif(in.eq.4) then
+            gkd(nn)=g(j+nn)
+          endif
+   16   continue
+        do 17 nn=-1,1
+          if(in.eq.1) then
+            spo(nn)=s(j+nn)
+          elseif(in.eq.2) then
+            sf2(nn)=s(j+nn)
+          elseif(in.eq.3) then
+            sa2(nn)=s(j+nn)
+          elseif(in.eq.4) then
+            skd(nn)=s(j+nn)
+          endif
+   17   continue
+   10 continue
+
+      do 20 isoloop=ii1,ii2,2
+        if(isoloop.eq.3) then
+          y1=xm3l(1)
+          y2=xm3r(1)
+          call dffunp(1,0,gd31p,rpo,spo,gpo,y1,y2,nloc,wyn3h)
+          call dffunp(1,0,gd31f,rf2,sf2,gf2,y1,y2,nloc,wyn3h)
+          call dffunp(1,0,gd31a,ra2,sa2,ga2,y1,y2,nloc,wyn3h)
+          y1=xm3l(2)
+          y2=xm3r(2)
+          call dffunp(0,1,gd31k,rkd,skd,gkd,y1,y2,nloc,wyn3h)
+C*        ICOP=0 also calculates w(7,8); should be 0 for PRC40 model
+          wyn3h(7)=0d0
+          wyn3h(8)=0d0
+        elseif(isoloop.eq.1) then
+          y1=xm1l(1,1)
+          y2=xm1r(1,1)
+          call dffunp(1,0,gd11p,rpo,spo,gpo,y1,y2,nloc,wyn1h(1,1))
+          call dffunp(1,0,gd11f,rf2,sf2,gf2,y1,y2,nloc,wyn1h(1,1))
+          call dffunp(1,0,icsb*gd11a,ra2,sa2,ga2,y1,y2,nloc,wyn1h(1,1))
+          y1=xm1l(2,1)
+          y2=xm1r(2,1)
+          call dffunp(0,1,gd11k,rkd,skd,gkd,y1,y2,nloc,wyn1h(1,1))
+          y1=xm1l(1,2)
+          y2=xm1r(1,2)
+          call dffunp(1,0,gd12a,ra2,sa2,ga2,y1,y2,nloc,wyn1h(1,2))
+          y1=xm1l(2,2)
+          y2=xm1r(2,2)
+          call dffunp(0,1,gd12k,rkd,skd,gkd,y1,y2,nloc,wyn1h(1,2))
+          y1=xm1l(1,3)
+          y2=xm1r(1,3)
+          call dffunp(1,0,gd13p,rpo,spo,gpo,y1,y2,nloc,wyn1h(1,3))
+          call dffunp(1,0,gd13f,rf2,sf2,gf2,y1,y2,nloc,wyn1h(1,3))
+          call dffunp(1,0,gd13a,ra2,sa2,ga2,y1,y2,nloc,wyn1h(1,3))
+          y1=xm1l(2,3)
+          y2=xm1r(2,3)
+          call dffunp(0,1,gd13k,rkd,skd,gkd,y1,y2,nloc,wyn1h(1,3))
+C*        ICOP=0 also calculates w(7,8); should be 0 for PRC40 model
+          wyn1h(7,1)=0d0
+          wyn1h(8,1)=0d0
+          wyn1h(7,2)=0d0
+          wyn1h(8,2)=0d0
+          wyn1h(7,3)=0d0
+          wyn1h(8,3)=0d0
+        endif
+   20 continue
+
+      return
+      end

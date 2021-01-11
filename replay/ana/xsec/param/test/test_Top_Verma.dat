@@ -1,6 +1,7 @@
 ### FSI tabel with Verma Potential (2-Gauss potential) calculated by T-operator (on-shell approximation) #####
 # krel [MeV] # Influence Factor(S) # Influence Factor(T)
-3 3.12986 1.70978
-9 3.26443 1.79771
-18 3.36192 1.84309
+5 3.39431 1.81214
+15 3.36368 1.83599
 30 3.3816 1.89921
+50 3.23036 1.93671
+75 2.95302 1.91786

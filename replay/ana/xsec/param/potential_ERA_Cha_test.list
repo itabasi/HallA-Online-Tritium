@@ -1,0 +1,6 @@
+### This is Cha's Influence factor (ERA)
+### I= |sin(kr*hbarc+delta)/sin(kr*hbarc)|
+### Julich A : p>100 same as Verma
+./param/Vparam_ERA_Cha_test_Verma.dat
+./param/Vparam_ERA_Cha_test_JulichA.dat
+./param/Vparam_ERA_Cha_test_JulichB.dat

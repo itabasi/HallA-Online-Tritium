@@ -1,0 +1,6 @@
+############# Influence Factor files ####################
+##### calculated by T-operator with on shell approximaition
+##########################################################
+./param/Vparam_Ton_Verma.dat
+./param/Vparam_Ton_JulichA.dat
+./param/Vparam_Ton_JulichB.dat

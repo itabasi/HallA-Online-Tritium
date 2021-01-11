@@ -27,7 +27,8 @@ public:
   TLorentzVector CalcPn_deu(TLorentzVector P2n);
   TLorentzVector CalcPn_test(TLorentzVector P2n);
   double PhaseShift(double q, int LL, int potential);
-  
+  double CalcIfac(int LL, int potential,double Prel);
+  double CalcIfac_new(int LL, int potential,double Prel);  
   double CalcQ(TLorentzVector Pn, TLorentzVector Pp, TLorentzVector Pv, TLorentzVector PK);
   double CalcQ2(TLorentzVector Pn, TLorentzVector Pp, TLorentzVector Pv, TLorentzVector PK);
   complex<double> vlkkp(double skp,double skpp,int lcall);
@@ -36,6 +37,7 @@ public:
   void InfluenceFactor(string pname, int l);
   void InfluenceFactorVscale(string pname, int l);
   double InfluenceFactor2(double kreol, int potential);
+  void GetIfac(int LL, int potential,string pname);
   TRandom random;
   //------- NewRoot    -------//
   TFile * ofr;
@@ -98,6 +100,19 @@ public:
   TGraphErrors* gI[100];
   TGraphErrors* gIs[100];
   TGraphErrors* gIt[100];
+  TGraphErrors* gITs[100];
+  TGraphErrors* gITt[100];
+  TGraphErrors* gIT[100];
+
+  TGraphErrors* gT1;
+  TGraphErrors* gT1s;
+  TGraphErrors* gT1t;
+  TGraphErrors* gT2;
+  TGraphErrors* gT2s;
+  TGraphErrors* gT2t;
+  TGraphErrors* gT3;
+  TGraphErrors* gT3s;
+  TGraphErrors* gT3t;  
   
   TGraphErrors* gI00;
   TGraphErrors* gI01;
@@ -287,6 +302,8 @@ public:
   complex<double> xi, vq,v2,vv,delta,det,ron,ron0,fborn,fborn0,fthed;
   double va,b_a,vr,b_r,b_r2,b_a2,vqa,vqr,ronr,tonre,tonim,tbornre,tbornim,perre,perim,delrad,delrad0,deldeg,deldega,tcross,cross[180],tcross1,tcross0,tcrossl;
   complex<double> expL[20];
+  complex<double> Ts[nmax2+1][nmax2+1],To[nmax2+1][nmax2+1][60];
+  double Ifac[nmax2+1][60];
   double I0,I1,Il[20],Il0[20],IJ,IERA,Iton,Itoff;
   double f2[180];
   TF1* fI0;

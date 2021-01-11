@@ -113,6 +113,7 @@ void QFsim::SetHist(){
   hmm_fsi3  =(TH1F*)fT_sim->Get("hmm_fsi3");
   hmm_fsi3->SetName("hmm_fsi3");
 
+
   hmm_s       = (TH1F*)hmm      -> Clone();
   hmm_s       ->SetName("hmm_s");
   hmm_fsi1_s  = (TH1F*)hmm_fsi1 -> Clone();
@@ -258,9 +259,7 @@ void QFsim::FitQFnnL(){
   hH_nnLsim_s->Scale(ratio);
   hexp_c->Add(hH_nnLsim_s,-1.0);
   
-  // hexp_c->Add(hexp_L,-1);
-  
-  
+  // hexp_c->Add(hexp_L,-1);  
   //  hexp_c->Add(hT_Lsim_s,-1);
 
 
@@ -322,8 +321,9 @@ void QFsim::FitQFnnL(){
   double scale_fsi3 = hnnL_sim_s ->GetBinContent(hnnL_sim_s->GetMaximumBin())/hmm_fsi3->GetBinContent(hmm_fsi3->GetMaximumBin());
   hmm_fsi3_s->Scale(scale_fsi3);
 
-  hexp_c->Add(hH_nnLsim_s, 1.0);
+
   
+  hexp_c->Add(hH_nnLsim_s, 1.0);  
   hmm_s->Add(hH_nnLsim_s,1.0);
   hmm_fsi1_s->Add(hH_nnLsim_s,1.0);
   hmm_fsi2_s->Add(hH_nnLsim_s,1.0);
@@ -389,6 +389,7 @@ void QFsim::FitQFnnL_new(){
   scale[3] = ENum_exp/ENum[3];
 
   hnnL_sim_s->Scale(scale[0]);
+  hmm_s     ->Scale(scale[0]);
   hmm_fsi1_s->Scale(scale[1]);
   hmm_fsi2_s->Scale(scale[2]);
   hmm_fsi3_s->Scale(scale[3]);
@@ -408,8 +409,8 @@ void QFsim::FitQFnnL_new(){
   //  for(int ibin = 0;ibin<nbins;ibin++){
   for(int ibin = 0;ibin<nbins;ibin++){
 
-      yexp[ibin]  =  hexp_c     -> GetBinContent(ibin);    
-      yfsi[ibin][0]  =  hnnL_sim_s     -> GetBinContent(ibin);
+      yexp[ibin]     =  hexp_c     -> GetBinContent(ibin);    
+      yfsi[ibin][0]  =  hnnL_sim_s -> GetBinContent(ibin);
       yfsi[ibin][1]  =  hmm_fsi1_s -> GetBinContent(ibin);
       yfsi[ibin][2]  =  hmm_fsi2_s -> GetBinContent(ibin);
       yfsi[ibin][3]  =  hmm_fsi3_s -> GetBinContent(ibin);
@@ -425,15 +426,19 @@ void QFsim::FitQFnnL_new(){
   for(int i=0;i<nvp;i++)chi2_min[i]=1e20;
   
   int bin_st  = hexp_c->GetXaxis()->FindBin(0.0);
-  int bin_end = hexp_c->GetXaxis()->FindBin(160.0); 
-
+  int bin_end = hexp_c->GetXaxis()->FindBin(160.0);
+  // w/o FSI hist Fit not enhance reigon MX>40 MeV
+  int bin_st_wofsi = hexp_c->GetXaxis()->FindBin(40.0);
+  int bin_end_wofsi = hexp_c->GetXaxis()->FindBin(160.0);
+  
   for(int i=0;i<nvp;i++){ // V-potential
     for(int wi=0; wi<wmax;wi++){ // Set weight Factor
       chi2=0.0;
       w = (1.0 +(double)(-wmax/2. + wi)*(double)width);
-
-      
       for(int ibin = bin_st;ibin<bin_end;ibin++){
+
+	if(i==0 && (ibin<bin_st_wofsi || bin_end_wofsi<ibin)
+	   && yfsi[ibin][i]!=0)chi2 +=  pow((yexp[ibin] -w*yfsi[ibin][i])/sqrt(fabs(yexp[ibin])),2.0)/double(bin_end_wofsi - bin_st_wofsi +1);
 	
 	if(yfsi[ibin][i]!=0)chi2 +=  pow((yexp[ibin] -w*yfsi[ibin][i])/sqrt(fabs(yexp[ibin])),2.0)/double(bin_end - bin_st +1);
       }
@@ -463,15 +468,6 @@ void QFsim::FitQFnnL_new(){
   //  hmm_fsi2_s->Scale(wmin[2]);
   //  hmm_fsi3_s->Scale(wmin[3]);  
 
-
-  hexp_c->Add(hH_nnLsim_s, 1.0);
-  
-  hmm_s->Add(hH_nnLsim_s,1.0);
-  hmm_fsi1_s->Add(hH_nnLsim_s,1.0);
-  hmm_fsi2_s->Add(hH_nnLsim_s,1.0);
-  hmm_fsi3_s->Add(hH_nnLsim_s,1.0);
-
-
   hmm_c  = (TH1F*)hmm_s -> Clone();
   hmm_c       ->SetName("hmm_c");
   hmm_fsi1_c  = (TH1F*)hmm_fsi1_s -> Clone();
@@ -480,6 +476,15 @@ void QFsim::FitQFnnL_new(){
   hmm_fsi2_c ->SetName("hmm_fsi2_c");
   hmm_fsi3_c  = (TH1F*)hmm_fsi3_s-> Clone();
   hmm_fsi3_c ->SetName("hmm_fsi3_c");
+
+
+  hexp_c->Add(hH_nnLsim_s, 1.0);
+  hmm_c ->Add(hH_nnLsim_s, 1.0);
+  hmm_fsi1_c->Add(hH_nnLsim_s,1.0);
+  hmm_fsi2_c->Add(hH_nnLsim_s,1.0);
+  hmm_fsi3_c->Add(hH_nnLsim_s,1.0);
+
+
   
   hexp_c     ->Add(hexp_acc,1.0);
   hmm_c      ->Add(hexp_acc,1.0);

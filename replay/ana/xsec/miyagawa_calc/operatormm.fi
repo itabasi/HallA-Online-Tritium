@@ -1,0 +1,1185 @@
+C* *********************************************************************
+C*    PROGRAM  KAON_OPERATOR
+C*      MODIFIED BY H.YAMAMURA [ SEE ! C*HY> - C*HY< ] ( 1999.4.14 )
+C*
+C*      PRODUCT FACTOR ' DSQRT(m_Y/E_Y)*DSQRT(m_N/E_N) '
+C*           -- SEE ! C*HY1 --
+C*      LAST UP DATE 2000  2.  18.  (TERRY)
+C--------cut here------cut here------cut here-------cut here------------
+C
+C*HY      SUBROUTINE AMPL(ICH,MOD,XXK,THKP,XXKP,P1,TH1,PH1
+C*HY     &                              ,LAMDC,MLAMC,NPOL,FLK)
+*km      SUBROUTINE AMPL(ICH,MOD,XXK,THKP,XXKP,P1,TH1,PH1,PYX,PYY,PYZ,
+*km     &                INPOL,FLKA)
+*km Jun,July 2000
+      SUBROUTINE AMPLM(ICH,MOD,XXK,THKP,XXKP,PNX0,PNY0,PNZ0,PYX,PYY,PYZ,
+     &                INPOL,FLKA)
+C     ------------------------------------------------------------------
+C     Given the isospin channel (ICH), the elementary model (MOD), the
+C     photon momentum (XXK), the kaon momentum (XXKP), the kaon angle
+C     relative to the direction of photon (THKP), the nucleon momentum
+C     (P1) and angles (TH1,PH1), and the photon polarization component
+C     (NPOL), this subroutine calculates the spin non-flip amplitude L
+C     or the spin flip one K which is stored in FLK. All angles are in
+C     radian, all momenta are in fm^-1. NPOL is in general 1,2,3, but
+C     only 1,2 for photoproduction. See Mart's thesis p.146, reg. C1,
+C     C2, and C3. The photon vector determines the z-axis.
+C     LAMDC and MLAMC specify the type of FLK.
+C     ------------------------------------------------------------------
+C                LAMDC        MLAMC           FLK
+C                  0            0             L
+C                  2            0             K_(0)
+C                  2            2             K_(+1)
+C                  2           -2             K_(-1)
+C     ------------------------------------------------------------------
+C*HY>
+C     INPOL is in spherical base. INPOL = -1, 1 for Photoproduction.
+C     ------------------------------------------------------------------
+C                LAMDC        MLAMC           FLKA(LAMDC,MLAMC)
+C                  0            0             L
+C                  1            0             K_(0)
+C                  1            1             K_(+1)
+C                  1           -1             K_(-1)
+C     ------------------------------------------------------------------
+C*HY<
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C*HY      COMPLEX*16 F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13,F14,F15,
+C*HY     .           F16,F17,F18,F19,F20,FLK,VE,VK,VQ,VP,T1,T2,T3,T4
+      COMPLEX*16 F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13,F14,F15,
+     .           F16,F17,F18,F19,F20,FLK,VE,VK,VQ,VP,VY,T1,T2,T3,T4,
+     .           QIKIEI,PIKIEI,QIPIEI,QIPIKI,QIDEI,QIDKI,QDK,PIDEI,
+     .           PIDKI,QIDPI,EIDKI,EP1,EP2,XNORM,
+     .           C1,C2,C3,ZI,FLKA,PIPYIKI,PYIEI,PIPYIEI,PYIKIEI,PYIKI,
+     .           PIPYI
+C    ----------------------------------
+C     PIPYIKI : P_N*(P_Y X P_G)
+C     PYIEI   : P_Y * EPSILON
+C     PIPYIEI : P_N * (P_Y X EPSILON)
+C     PYIKIEI : P_Y * (P_G X EPSILON)
+C     PYIKI   : P_Y * P_G
+C     PIPYI   : P_N * P_Y
+C    ----------------------------------
+      DIMENSION FLKA(0:1,-1:1)
+C*HY
+      COMMON /F/ F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13,F14,F15,
+     .           F16,F17,F18,F19,F20
+C*HY
+      ZI=DCMPLX(0.D0,1.D0)
+C*
+      HC=197.327053D0
+      CTH=DCOS(THKP)
+      STH=DSIN(THKP)
+**km      STQ=DSIN(TH1)
+**km      CTQ=DCOS(TH1)
+**km      SPQ=DSIN(PH1)
+**km      CPQ=DCOS(PH1)
+C     ------------------------------------------------------------------
+C                    SELECT THE APPROPRIATE MASSES
+C     ------------------------------------------------------------------
+      IF (ICH.LT.1 .OR. ICH.GT.6) STOP 'ISOSPIN CHANNEL INCORRECT'
+      GOTO (10,20,30,40,50,60), ICH
+   10 XMN=938.27231d0/HC
+      XMK=493.646d0/HC
+      XMY=1115.684d0/HC
+      GOTO 70
+   20 XMN=939.56563/HC
+      XMK=497.671/HC
+      XMY=1115.684/HC
+      GOTO 70
+   30 XMN=938.27231/HC
+      XMK=493.646/HC
+      XMY=1192.55/HC
+      GOTO 70
+   40 XMN=938.27231/HC
+      XMK=497.671/HC
+      XMY=1189.37/HC
+      GOTO 70
+   50 XMN=939.56563/HC
+      XMK=493.646/HC
+      XMY=1197.43/HC
+      GOTO 70
+   60 XMN=939.56563/HC
+      XMK=497.671/HC
+      XMY=1192.55/HC
+   70 CONTINUE
+C     ------------------------------------------------------------------
+C                      SELECT THE PHOTON POLARIZATION
+C     ------------------------------------------------------------------
+C*HY
+      IF(INPOL.NE.1 .AND. INPOL.NE.-1) STOP ' INCORRECT -- INPOL'
+C*
+      IF(INPOL.EQ.1) THEN
+      C1= -1.D0/DSQRT(2.D0)
+      C2= -ZI*1.D0/DSQRT(2.D0)
+      C3=  0.D0
+      ELSE
+      C1=  1.D0/DSQRT(2.D0)
+      C2= -ZI*1.D0/DSQRT(2.D0)
+      C3=  0.D0
+      ENDIF
+C*HY      C1=0.D0
+C      C2=0.D0
+C      C3=0.D0
+C      IF (NPOL-2) 110,120,130
+C  110 C1=1.D0
+C      GOTO 140
+C  120 C2=1.D0
+C      GOTO 140
+C  130 C3=1.D0
+C*HY  140 CONTINUE
+C     ------------------------------------------------------------------
+C         CALCULATE THE MOMENTA AND THEIR PRODUCTS WITH POL. VECTOR
+C     ------------------------------------------------------------------
+      PKX=0.D0
+      PKY=0.D0
+        PKZ=XXK
+        PQX=XXKP*STH
+        PQY=0.D0
+        PQZ=XXKP*CTH
+**km      PNX=P1*STQ*CPQ
+**km      PNY=P1*STQ*SPQ
+**km      PNZ=P1*CTQ
+          pnx=pnx0
+          pny=pny0
+          pnz=pnz0
+          p1=dsqrt(pnx*pnx+pny*pny+pnz*pnz)
+          CTQ=PNZ/p1
+          STQ=dsqrt(1.d0-ctq*ctq)
+          CPQ=PNX/p1/stq
+          SPQ=PNY/p1/stq
+**km
+      XXK0=XXK
+      EKA=DSQRT(XMK*XMK+XXKP*XXKP)
+      QIKIEI=-C2*XXK*XXKP*STH
+      PIKIEI=XXK*P1*STQ*(C1*SPQ-C2*CPQ)
+      QIPIEI=XXKP*P1*(-C1*CTH*STQ*SPQ-C2*STH*CTQ+C2*CTH*STQ*CPQ+C3*
+     .       STH*STQ*SPQ)
+      QIPIKI=P1*XXK*XXKP*STH*STQ*SPQ
+      QIDEI=XXKP*(C1*STH+C3*CTH)
+      QIDKI=XXK*XXKP*CTH
+      QDK=XXK0*EKA-QIDKI
+      PIDEI=P1*(C1*STQ*CPQ+C2*STQ*SPQ+C3*CTQ)
+      PIDKI=P1*XXK*CTQ
+      QIDPI=P1*XXKP*(STH*STQ*CPQ+CTH*CTQ)
+      EIDKI=XXK*C3
+C     ----NEW------
+        PYIKIEI=XXK*(C1*PYY-C2*PYX)
+        PIPYIEI=P1*STQ*CPQ*(C3*PYY-C2*PYZ)+P1*STQ*SPQ*(C1*PYZ-C3*PYX)
+     &       +P1*CTQ*(C2*PYX-C1*PYY)
+        PYIEI=PYX*C1+PYY*C2+PYZ*C3
+        PIPYIKI=XXK*(P1*STQ*CPQ*PYY-P1*STQ*SPQ*PYX)
+        PYIKI=XXK*PYZ
+        PIPYI=P1*STQ*CPQ*PYX+P1*STQ*SPQ*PYY+P1*CTQ*PYZ
+C     -------------
+      EP1=DSQRT(P1*P1+XMN**2)
+      EP2=DSQRT(XMY**2+PYX*PYX+PYY*PYY+PYZ*PYZ)
+C      EP2=CDSQRT(XMY**2+P1*P1+XXK*XXK+XXKP*XXKP+2*(PIDKI-QIDKI-QIDPI))
+C*HY
+C      IF(QIKIEI.NE.0.D0 .OR. EIDKI.NE.0.D0
+C     &     .OR. QIDEI.NE.0.D0 .OR. QIPIKI.NE.0.D0 ) STOP
+C     &   ' INCORRECT -- PROCUCTS'
+C*HY
+C     ---------------------------------------------------------------
+      CALL KGAMMA(ICH,MOD,PKX,PKY,PKZ,PNX,PNY,PNZ,PQX,PQY,PQZ,
+     &            PYX,PYY,PYZ)
+C*HY>
+C      XNORM=DSQRT((EP1+XMN)/2.D0/XMN)*DSQRT((EP2+XMY)/2.D0/XMY)
+C*HY1
+C      XNORM=CDSQRT((EP1+XMN)/2.D0/XMN)*CDSQRT((EP2+XMY)/2.D0/XMY)
+      XNORM=CDSQRT((EP1+XMN)/2.D0/XMN)*CDSQRT((EP2+XMY)/2.D0/XMY)
+     &       *CDSQRT(XMY/EP2)*CDSQRT(XMN/EP1)
+C*HY<
+C     -----------------------------------------------------
+C*HY      IF (LAMDC .EQ. 2) GOTO 150
+C      FLK=XNORM*(-(F14+F15-F16)*PIKIEI+F15*QIKIEI+F16*QIPIEI+((F18+
+C     .    F20)*EIDKI+(F19+F20)*PIDEI-F20*QIDEI)*QIPIKI)
+      FLK=XNORM*(-F14*PIKIEI-F15*PYIKIEI+F16*PIPYIEI+
+     .    (F19*PIDEI+F20*PYIEI)*PIPYIKI)
+      FLKA(0,0)=FLK
+C*
+      FLK=0.D0
+C*HY      RETURN
+C*HY  150 CONTINUE
+      T1=F1+F14*PIDKI-F15*PYIKI-F16*PIPYI
+      T2=(F4-F14-F19*PIPYI)*PIDEI+(F5+F15-F20*PIPYI)*PYIEI
+      T3=(F8+F19*PYIKI)*PIDEI+(F9+F16+F20*PYIKI)*PYIEI
+      T4=(F12+F16+F19*PIDKI)*PIDEI+(F13+F20*PIPYI)*PYIEI
+C     ------------------------------------------------------------------
+      DO 300 ILAMC=-2,2,2
+C*HY      LAM = MLAMC/2
+      LAM = ILAMC/2
+      IF (LAM) 170,160,170
+  160 VE=C3
+      VK=XXK
+C      VQ=XXKP*CTH
+        VY=PYZ
+      VP=P1*CTQ
+      GOTO 180
+  170 VE=-LAM/DSQRT(2.D0)*(C1+LAM*ZI*C2)
+      VK=0.D0
+        VY=-LAM/DSQRT(2.D0)*DCMPLX(PYX,LAM*PYY)
+C      VQ=-LAM/DSQRT(2.D0)*XXKP*STH
+      VP=-LAM/DSQRT(2.D0)*P1*STQ*DCMPLX(CPQ,LAM*SPQ)
+  180 CONTINUE
+C*HY
+C      IF(INPOL.NE.-LAM .AND. VE.NE.0.D0) STOP ' INCORRECT -- VE'
+C      IF(LAM.NE.0 .AND. VK.NE.0.D0) STOP ' INCORRECT -- VK'
+C      IF(LAM.NE.0 .AND. VQ.NE.0.D0) STOP ' INCORRECT -- VQ'
+C*HY
+      FLK=-XNORM*(T1*VE+T2*VK+T3*VP+T4*VY)
+C      FLK=-XNORM*(T1*VE+T2*VK+T3*VP+T4*VQ)
+      FLKA(1,LAM)=FLK
+  300 CONTINUE
+      RETURN
+      END
+C
+      SUBROUTINE KGAMMA(ICH,MOD,PKX,PKY,PKZ,PNX,PNY,PNZ,PQX,PQY,PQZ,
+     &                  PYX,PYY,PYZ)
+C     --------------------------------------------------------------
+C               NON RELATIVISTIC OPERATOR FOR ELECTRO-
+C               AND PHOTOPRODUCTION OF KAON ON NUCLEON
+C     ---------------------------------------------------------------
+C      Given the isospin channel (ICH) and the elementary amplitude
+C      model (MOD) as well as  the  three-momentum  of  the  photon
+C      (PKX,PKY,PKZ),  of the nuleon (PNX,PNY,PNZ)  and of the kaon
+C      (PQX,PQY,PQZ),  this subroutine calculates F1-F20 and stores
+C      them in the common block /F/. The unit of PKX...PQZ is fm^-1,
+C      the unit of F1 is fm, F2 is fm^2, etc. No certain frame is
+C      specified in this subroutine.
+C     ---------------------------------------------------------------
+C      ICH=1  GAM + P -> K+ + LAMB       ICH=4  GAM + P -> K0 + SIG+
+C      ICH=2  GAM + N -> K0 + LAMB       ICH=5  GAM + N -> K+ + SIG-
+C      ICH=3  GAM + P -> K+ + SIG0       ICH=6  GAM + N -> K0 + SIG0
+C     ---------------------------------------------------------------
+C     Elementary Amplitude for different models are selected by MOD :
+C     KLambda: (1)AW, (2)COTANCH, (3)AS, (4) OVERALL, (5) NEW OVERALL
+C              (6)OUR BEST
+C     KSigma : (1)COTANCH, (2) OVERALL, (3) NEW OVERALL, (4) OUR BEST
+C     ---------------------------------------------------------------
+C     The suggested combination of channel and model is
+C             channels         model         note
+C               1,2              6         OUR BEST MODEL
+C               1,2              4         our old model
+C               1,2              2         cotanch
+C                1               7         Model with D_13 Mis.Res.!!
+C             3,4,5,6            4         OUR BEST MODEL
+C             3,4,5,6            2       our old model
+C     Until now it is not clear whether or not D_13(1895) contributes
+C     to KSigma channels. It needs further investigation.
+C     ---------------------------------------------------------------
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      COMPLEX*16 ZERO,A,A1,A2,A3,A4,A5,A6,F1,F2,F3,F4,F5,F6,F7,F8,F9,
+     .           F10,F11,F12,F13,F14,F15,F16,F17,F18,F19,F20
+      COMMON /F/ F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13,F14,F15,
+     .           F16,F17,F18,F19,F20
+      COMMON /OPTION/ MODEL,ICHAN,IHA
+      COMMON /MASS/ XMN,XMK,XMY,XMPI,XMETA,XMZETA,XML
+      COMMON /ETC/ HC
+C     ---------------------------------------------------------------
+      DATA XKP,XKNN,XKL,XKS0,XKSP,XKSM,AF/1.79284739D0,-1.9130428D0,
+     .     -0.7289D0,1.2157D0,2.068D0,-0.48D0,137.0359895D0/,
+     .     S11STATE,P11STATE,P13STATE,D13STATE/0.0,1.0,1.0,2.0/,
+     .     S11PIN,S11ZN,S11EN,S11KL/0.73d0,0.22d0,0.0d0,0.05d0/,
+     .     P11PIN,P11ZN,P11EN,P11KL/0.0d0,0.51d0,0.32d0,0.17d0/,
+     .     P13PIN,P13ZN,P13EN,P13KL/0.21d0,0.75d0,0.04d0,0.01d0/,
+     .     D13PIN,D13ZN,D13EN,D13KL/0.10,0.75,0.14,0.01/
+      HC=197.327053D0
+      XBM=1000.D0/HC
+C     ----------------- MASS & WIDTH DATA ---------------------------
+      XMP  =  938.27231d0/HC
+      XMNN =  939.56563d0/HC
+      XML  = 1115.684d0/HC
+      XMS0 = 1192.55d0/HC
+      XMSP = 1189.37d0/HC
+      XMSM = 1197.43d0/HC
+      XMK0 =  497.671d0/HC
+      XMKP =  493.646d0/HC
+      XMKSP=  891.59d0/HC
+      XMKS0=  896.10d0/HC
+      XMQ1 = 1270.d0/HC
+      XMN1 = 1440.d0/HC
+      XMN2 = 1520.d0/HC
+      XMN3 = 1535.d0/HC
+      XMN4 = 1650.d0/HC
+      XMN5 = 1700.d0/HC
+      XMN6 = 1710.d0/HC
+      XMN7 = 1720.d0/HC
+      XMY1 = 1405.d0/HC
+      XMY2 = 1600.d0/HC
+      XMY3 = 1670.d0/HC
+      XMY4 = 1800.d0/HC
+      XMY5 = 1810.d0/HC
+      XMY6 = 1660.d0/HC
+      XMY7 = 1750.d0/HC
+      XMD1 = 1232.d0/HC
+      XMD2 = 1700.d0/HC
+      XMD3 = 1920.d0/HC
+      XMDH1= 1620.d0/HC
+      XMDH2= 1900.d0/HC
+      XMDH3= 1910.d0/HC
+      WKS  =  49.8d0/HC
+      WKS0 =  50.5d0/HC
+      WQ1  =   90.d0/HC
+      WN1  =  200.d0/HC
+      WN2  =  120.d0/HC
+      WN3  =  150.d0/HC
+      WN4  =  150.d0/HC
+      WN5  =  100.d0/HC
+      WN6  =  100.d0/HC
+      WN7  =  150.d0/HC
+      WY1  =   50.d0/HC
+      WY2  =  150.d0/HC
+      WY3  =   35.d0/HC
+      WY4  =  300.d0/HC
+      WY5  =  150.d0/HC
+      WY6  =  100.d0/HC
+      WY7  =   90.d0/HC
+      WD1  =  120.d0/HC
+      WD2  =  300.d0/HC
+      WD3  =  200.d0/HC
+      WDH1 =  150.d0/HC
+      WDH2 =  200.d0/HC
+      WDH3 =  250.d0/HC
+      XMPI =  139.57d0/HC
+      XMETA=  547.3d0/HC
+      XMZETA= 276.d0/HC
+C     ---------------------------------------------------------------
+      ZERO=DCMPLX(0.D0,0.D0)
+C      AI=DCMPLX(0.D0,1.D0)
+      PI=3.141592653589793D0
+      PI4=4.D0*PI
+C     ------ XE has been multiplied by 4*PI to get the real CC ----
+      XE=PI4/DSQRT(AF)
+C     ---------------------------------------------------------------
+C                    RESET THE COUPLING CONSTANTS
+C     ---------------------------------------------------------------
+      GL=0.D0
+      GS=0.D0
+      GV=0.D0
+      GT=0.D0
+      GQV=0.D0
+      GQT=0.D0
+      GN1=0.D0
+      GN2=0.D0
+      GN3=0.D0
+      GN4=0.D0
+      GN4I=0.D0
+      GN51=0.D0
+      GN51I=0.D0
+      GN52=0.D0
+      GN52I=0.D0
+      GN6=0.D0
+      GN6I=0.D0
+      GN71=0.D0
+      GN71I=0.D0
+      GN72=0.D0
+      GN72I=0.D0
+      GY1=0.D0
+      GY2=0.D0
+      GY3=0.D0
+      GY4=0.D0
+      GY5=0.D0
+      GY6=0.D0
+      GY7=0.D0
+      GD1P1=0.D0
+      GD1P2=0.D0
+      GD2M1=0.D0
+      GD2M2=0.D0
+      GD3P1=0.D0
+      GD3P2=0.D0
+      GDH1=0.D0
+      GDH2=0.D0
+      GDH2I=0.D0
+      GDH3=0.D0
+      GDH3I=0.D0
+      GDH4=0.D0
+      THG=0.D0
+      PHG=0.D0
+      IGAM=0
+      IRECIPES=0
+      PALA=1.D0
+      PARE=1.D0
+      MISSING=0
+C     ---------------------------------------------------------------
+C                 DEFINE AND STORE THE CHANNEL AND MODEL
+C     ---------------------------------------------------------------
+      MODEL=MOD
+      ICHAN=ICH
+C     ---------------------------------------------------------------
+C                                       LAMBDA PRODUCTION
+C     ---------------------------------------------------------------
+      IF (ICHAN.GT.2) GOTO 50
+      GOTO (22,24,26,28,30,32,34), MODEL
+C     -------------------ADELSECK & WRIGHT IV '88--------------------
+ 22   GL=3.15d0
+      GS=3.28d0
+      GV=0.0279d0
+      GT=-0.188d0
+      GN1=-1.11d0
+      GN4=0.101d0
+      GQV=0.132d0
+      GQT=0.063d0
+      GY3=0.698d0
+      IHA=0
+      GOTO 200
+C    -------------------------COTANCH 92 ----------------------------
+ 24   GL=-2.377d0
+      GS=0.225d0*1.956d0
+      GV=-0.162d0
+      GT=0.078d0
+      GN4=-0.059d0
+      GN6=-0.090d0
+      GQV=0.019d0
+      GQT=0.173d0
+      GY1=-0.101d0
+      IHA=0
+      GOTO 200
+C    --------------------ADELSECK AND SAGHAI 90----------------------
+ 26   GL=4.17d0
+      GS=-2.309d0
+      GV=0.43d0
+      GT=-0.20d0
+      GN1=1.7865d0
+      GQV=0.10d0
+      GQT=1.21d0
+      GY3=4.706d0
+      IHA=0
+      GOTO 200
+C     --------------- OLD OVERALL FORM FACTOR -------------------
+ 28   GL= -3.0918d0
+      GS=1.2242d0*1.956D0
+      GV=-0.1885d0
+      GT=-0.1227d0
+      GN4=-0.0638d0
+      GN6=-0.0652d0
+      IHA=1
+      PAT=0.85259d0
+      IRECIPES=0
+      GOTO 200
+C     --------------- NEW OVERALL FORM FACTOR -------------------
+ 30   GL=-3.80d0
+      GS=1.20d0*1.956D0
+      GV=-0.6851d0
+      GT=-0.9936d0
+      GN4=-0.841d0
+      GN51=0.0d0
+      GN52=0.0d0
+      GN6=-0.2226d0
+      GQV=-0.1573d0
+      GQT=0.3702d0
+      GN71=-0.1970d0
+      GN72=0.8939d0
+      GY1=0.0d0
+      GRK1=-0.8507d0
+      IHA=1
+      IGAM=0
+      IRECIPES=0
+      PAT=0.5698d0
+      GOTO 200
+C     ---------------- OUR NEW & LATEST MODEL -------------------
+ 32   GL=-3.80d0
+      GS=1.20d0*1.956D0
+      GV=-0.5057d0
+      GT=0.6716d0
+      GN4=-0.1297d0
+      GN51=0.0d0
+      GN52=0.0d0
+      GN6=-0.0938d0
+      GQV=0.0631d0
+      GQT=0.3720d0
+      GN71=0.0600d0
+      GN72=0.9435d0
+      GY1=0.0d0
+      GRK1=0.2612d0
+      IHA=3
+      IGAM=1
+      IRECIPES=1
+      PALA=0.7984d0
+      PARE=1.8828d0
+      THG=108.12d0
+      PHG=90.00d0
+      PAKS=PALA
+      PASI=PALA
+      GOTO 200
+C     -------------- NEW MODEL with D_13 missing resonance --------------
+C     Note that this model is only for gamma + p --> K^+ + Lambda channel
+C     -------------------------------------------------------------------
+ 34   GL=-3.80d0
+      GS=1.20d0*1.956D0
+      GV=-0.7868d0
+      GT=-2.6279d0
+      GN4=-0.1332d0
+      GN51=1.1013d0
+      GN52=0.6346d0
+      GN6=-0.2575d0
+      GQV=3.8104d0
+      GQT=-2.4078d0
+      GN71=0.0463d0
+      GN72=0.6140d0
+      GY1=0.0d0
+      GRK1=0.0000d0
+      IHA=3
+      IGAM=1
+      IRECIPES=1
+      PALA=0.6366d0
+      PARE=1.0340d0
+      THG=90.00d0
+      PHG=180.0d0
+      PAKS=PALA
+      PASI=PALA
+      MISSING=1
+      XMISS=1.8953
+      WMISS=0.37228
+      GOTO 200
+C     ---------------------------------------------------------------
+C                           SIGMA PRODUCTION
+C     ---------------------------------------------------------------
+ 50   GOTO (52,54,56,58), MODEL
+C     -----------------WILLIAMS, JI, & COTANCH-----------------------
+ 52   GS=0.225d0
+      GL=-2.38d0*1.956d0
+      GV=0.11d0
+      GT=-0.14d0
+      GQV=-0.13d0
+      GQT=0.07d0
+      GN4=0.124d0
+      GN6=0.663d0
+      GDH1=-0.041d0
+      GDH2=-0.091d0
+      GDH3=-0.774d0
+      GY1=0.637d0
+      IHA=0
+      GOTO 200
+C     --------------- OVERALL FORM FACTOR -----------------------
+ 54   GS=1.2242d0
+      GL=-3.0918d0*1.956D0
+      GV=-0.0801d0
+      GT=-0.0798d0
+      GN4=-0.0068d0
+      GN6=2.1015d0
+      GDH2=0.2340d0
+      GDH3=-0.9898d0
+      IHA=1
+      PAT=0.85259d0
+      IRECIPES=0
+      GOTO 200
+C     --------------- NEW OVERALL FORM FACTOR -------------------
+ 56   GS=1.20d0
+      GL=-3.80d0*1.956D0
+      GV=-0.5136d0
+      GT=0.1519d0
+      GN4=0.4962d0
+      GN51=0.0d0
+      GN52=0.0d0
+      GN6=4.7435d0
+      GDH2=0.8078d0
+      GDH3=-6.5185d0
+      GQV=-0.9638d0
+      GQT=3.8644d0
+      GN71=0.0d0
+      GN72=0.0d0
+      GRK1=-0.8507d0
+      IHA=1
+      IGAM=0
+      IRECIPES=0
+      PAT=0.5698d0
+      GOTO 200
+C     ---------------- OUR NEW & LATEST MODEL -------------------
+ 58   GS=1.20d0
+      GL=-3.80d0*1.956D0
+      GV=-0.3061d0
+      GT=-0.6032d0
+      GN4=-0.0408d0
+      GN51=0.0d0
+      GN52=0.0d0
+      GN6=0.0836d0
+      GDH2=0.1036d0
+      GDH3=0.3632d0
+      GQV=-0.3969d0
+      GQT=-1.7106d0
+      GN71=0.0d0
+      GN72=0.0d0
+      GRK1=0.26121d0
+      GY1=0.0d0
+      IHA=3
+      IGAM=1
+      IRECIPES=1
+      PALA=0.7984d0
+      PARE=1.8828d0
+      THG=108.12d0
+      PHG=90.00d0
+      PAKS=PALA
+      PASI=PALA
+C     ---------------------------------------------------------------
+C                       PARAMETERS FOR EACH PROCESS
+C     ---------------------------------------------------------------
+ 200  CONTINUE
+      CIS=1.D0
+      GOTO (210,220,230,240,250,260), ICHAN
+C     ---------------------------------------------------------------
+C                     GAMMA + PROTON --> K+ + LAMBDA
+C     ---------------------------------------------------------------
+ 210  GY=GL
+      GYP=GS
+      XKN=XKP
+      XKY=XKL
+      XMN=XMP
+      XMY=XML
+      XMK=XMKP
+      XMKS=XMKSP
+      XMYP=XMS0
+      CDEL=0.D0
+      CIS=1.D0
+      GOTO 270
+C     ---------------------------------------------------------------
+C                    GAMMA + NEUTRON --> K0 + LAMBDA
+C     ---------------------------------------------------------------
+ 220  GY=GL
+      GYP=-GS
+      XKN=XKNN
+      XKY=XKL
+      XMN=XMNN
+      XMK=XMK0
+      XMKS=XMKS0
+      XMY=XML
+      XMYP=XMS0
+      CDEL=0.D0
+      CIS=1.D0
+      GOTO 270
+C     ---------------------------------------------------------------
+C                    GAMMA + PROTON --> K+ + SIGMA0
+C     ---------------------------------------------------------------
+ 230  GY=GS
+      GYP=GL
+      XKN=XKP
+      XKY=XKS0
+      XMN=XMP
+      XMY=XMS0
+      XMYP=XML
+      XMK=XMKP
+      XMKS=XMKSP
+      CDEL=1.D0
+      CIS=1.D0
+      GOTO 270
+C     ---------------------------------------------------------------
+C                    GAMMA + PROTON --> K0 + SIGMA+
+C     ---------------------------------------------------------------
+ 240  GY=DSQRT(2.D0)*GS
+      GYP=0.D0
+      XKN=XKP
+      XKY=XKSP
+      XMN=XMP
+      XMY=XMSP
+      XMK=XMK0
+      XMKS=XMKS0
+      CDEL=-1.D0/DSQRT(2.D0)
+      CIS=DSQRT(2.D0)
+      GOTO 270
+C     ---------------------------------------------------------------
+C                    GAMMA + NEUTRON --> K+ + SIGMA-
+C     ---------------------------------------------------------------
+ 250  GY=DSQRT(2.D0)*GS
+      GYP=0.D0
+      XKN=XKNN
+      XKY=XKSM
+      XMN=XMNN
+      XMK=XMKP
+      XMKS=XMKSP
+      XMY=XMSM
+      CDEL=1.D0/DSQRT(2.D0)
+      CIS=DSQRT(2.D0)
+      GOTO 270
+C     ---------------------------------------------------------------
+C                    GAMMA + NEUTRON --> K0 + SIGMA0
+C     ---------------------------------------------------------------
+ 260  GY=-GS
+      GYP=GL
+      XKN=XKNN
+      XKY=XKS0
+      XMN=XMNN
+      XMY=XMS0
+      XMK=XMK0
+      XMKS=XMKS0
+      XMYP=XML
+      CDEL=1.D0
+      CIS=-1.D0
+ 270  CONTINUE
+C     ---------------------------------------------------------------
+C                                KINEMATICS
+C     ---------------------------------------------------------------
+C     This is photoproduction
+      XK2=0.D0
+C     ---------------------------------------------------------------
+      XXK=DSQRT(PKX*PKX+PKY*PKY+PKZ*PKZ)
+      XXK0=DSQRT(XK2+XXK*XXK)
+c      PYX=PKX+PNX-PQX
+c      PYY=PKY+PNY-PQY
+c      PYZ=PKZ+PNZ-PQZ
+      XXPQ2=PQX*PQX+PQY*PQY+PQZ*PQZ
+      XXPY2=PYX*PYX+PYY*PYY+PYZ*PYZ
+      XXPN2=PNX*PNX+PNY*PNY+PNZ*PNZ
+      EP1=DSQRT(XMN*XMN+XXPN2)
+      EP2=DSQRT(XMY*XMY+XXPY2)
+      EPQ=DSQRT(XMK*XMK+XXPQ2)
+      QDK=EPQ*XXK0-(PQX*PKX+PQY*PKY+PQZ*PKZ)
+      CPDK=0.5D0*((EP1+EP2)*XXK0-((PNX+PYX)*PKX+(PNY+PYY)*PKY+
+     .     (PNZ+PYZ)*PKZ))
+      S=(EP1+XXK0)**2-((PNX+PKX)**2+(PNY+PKY)**2+(PNZ+PKZ)**2)
+      T=(XXK0-EPQ)**2-((PKX-PQX)**2+(PKY-PQY)**2+(PKZ-PQZ)**2)
+      U=(XXK0-EP2)**2-((PKX-PYX)**2+(PKY-PYY)**2+(PKZ-PYZ)**2)
+c      write(*,*) s,t,u
+      SMN2=S-XMN*XMN
+      TMK2=T-XMK*XMK
+      UMY2=U-XMY*XMY
+C     ---------------------------------------------------------------
+C             FORM FACTORS ARE SET FOR PHOTOPRODUCTION
+C     ---------------------------------------------------------------
+      IF(ICHAN.EQ.2.OR.ICHAN.EQ.5.OR.ICHAN.EQ.6) GOTO 310
+      FFN1=1.D0
+      FFN2=1.D0
+      GOTO 320
+ 310  CONTINUE
+      FFN1=0.D0
+      FFN2=1.D0
+ 320  CONTINUE
+      IF(ICHAN.EQ.4.OR.ICHAN.EQ.5) GOTO 330
+      FFY1=0.D0
+      FFY2=1.D0
+      GOTO 340
+ 330  CONTINUE
+C     -----FORM FACTORS FOR CHARGED SIGMAS --> PROTON -----------------
+      FFY1=1.D0
+      FFY2=1.D0
+ 340  CONTINUE
+      FFC=1.D0
+      FFNS2=1.D0
+      FFYS=1.D0
+      FFK=1.D0
+      FFKS=1.D0
+      FDEL=1.D0
+C     ----------------------------------------------------------------
+C                    Initialization of A1 - A6
+C     ----------------------------------------------------------------
+      A1=ZERO
+      A2=ZERO
+      A3=ZERO
+      A4=ZERO
+      A5=ZERO
+      A6=ZERO
+C     ----------------------------------------------------------------
+C                  Helmut Haberzettl's Constants
+C     ----------------------------------------------------------------
+      THGWU=PI*THG/180.D0
+      PHGWU=PI*PHG/180.D0
+      AX1=(DSIN(THGWU)*DCOS(PHGWU))**2
+      AX2=(DSIN(THGWU)*DSIN(PHGWU))**2
+      AX3=(DCOS(THGWU))**2
+C     ---------------------------------------------------------------
+C                                BORN TERMS
+C     ---------------------------------------------------------------
+      QN=1.D0
+      QY=0.D0
+      QK=1.D0
+      IF(ICHAN.EQ.2.OR.ICHAN.EQ.5.OR.ICHAN.EQ.6) QN=0.D0
+      IF(ICHAN.EQ.2.OR.ICHAN.EQ.4.OR.ICHAN.EQ.6) QK=0.D0
+      IF(ICHAN.EQ.4) QY=1.D0
+      IF(ICHAN.EQ.5) QY=-1.D0
+      A1 = -XE*HFF(PALA,XMN,S)*GY*(QN*FFN1+XKN*FFN2*(XMN-XMY)/
+     .     2.D0/XMN)/SMN2-XE*HFF(PALA,XMY,U)*GY*(QY*FFY1+XKY*
+     .     FFY2*(XMY-XMN)/2.D0/XMY)/UMY2-(1.D0-DABS(QY))*XE*
+     .     HFF(PASI,XMYP,U)*GYP/(U-XMYP*XMYP)*(XMYP-XMN)/
+     .     (XMYP+XMY)*FFY2
+      IF(IRECIPES.EQ.0 .OR. IHA.EQ.0 .OR. IHA.EQ.1) THEN
+         A2=XE*GY*2.D0*QN*FFN1/SMN2/TMK2+XE*GY*2.D0*QY*FFY1/UMY2/TMK2
+      ELSE
+C     ----------------------------------------------------------------
+C           Ohta Method does not use the following two lines
+C     ----------------------------------------------------------------
+         A2=(XE*GY*2.D0*QN*FFN1/SMN2/TMK2+XE*GY*2.D0*QY*FFY1/UMY2/
+     .      TMK2)*(AX1*HFF(PALA,XMN,S)+AX2*HFF(PALA,XMYP,U)
+     .      +AX3*HFF(PALA,XMK,T))
+C     ----------------------------------------------------------------
+      ENDIF
+      A3 = XE*HFF(PALA,XMN,S)*GY*XKN*FFN2/SMN2/2.D0/XMN-XE*GY*
+     .     HFF(PALA,XMY,U)*XKY*FFY2/UMY2/2.D0/XMY-
+     .     (1.D0-DABS(QY))*XE*HFF(PASI,XMYP,U)*GYP*FFY2/
+     .     (U-XMYP*XMYP)/(XMYP+XMY)
+      A4 = XE*HFF(PALA,XMN,S)*GY*XKN*FFN2/SMN2/2.D0/XMN+XE*
+     .     HFF(PALA,XMY,U)*GY*XKY*FFY2/UMY2/2.D0/XMY+
+     .     (1.D0-DABS(QY))*XE*HFF(PASI,XMYP,U)*GYP*
+     .     FFY2/(U-XMYP*XMYP)/(XMYP+XMY)
+      IF(XK2.EQ.0.D0) GOTO 400
+      A5 = XE*HFF(PALA,XMN,S)*GY*(-2.D0*SMN2+XK2)*QN*FFN1/SMN2/
+     .     TMK2/XK2-XE*HFF(PALA,XMY,U)*GY*(-2.D0*
+     .     UMY2+XK2)*QY*FFY1/UMY2/TMK2/XK2+XE*HFF(PAKS,XMK,T)*
+     .     GY*2.D0*QK*FFK/TMK2/XK2
+ 400  CONTINUE
+C     ---------------------------------------------------------------
+C      FIRST PARTS ARE RESONANCES WITH PARITY(+) EXCEPT FOR MESONS
+C     ---------------------------------------------------------------
+C                        NUCLEON RESONANCES-SPIN 1/2
+C     values of CNS6 and CNS4 were 0.45 and -0.40
+C     ---------------------------------------------------------------
+      CNS4=1.D0
+      CNS6=1.D0
+      A = XE*HFF(PARE,XMN1,S)*CIS*GN1*FFNS2/DCMPLX(S-XMN1*XMN1,
+     .    XMN1*WN1)
+      A1 = A1-A*DCMPLX(XMN1-XMY,-WN1/2.D0)/(XMN1+XMN)
+      A3 = A3+A/(XMN1+XMN)
+      A4 = A4+A/(XMN1+XMN)
+      IF(IGAM.EQ.1) WN6=WIDTH(P11STATE,XMN6,P11PIN,P11ZN,P11EN,P11KL,
+     .                  S,100.D0)
+      IF(ICHAN.EQ.2.OR.ICHAN.EQ.5.OR.ICHAN.EQ.6) CNS6=-0.22D0
+      A = XE*HFF(PARE,XMN6,S)*CIS*CNS6*GN6*FFNS2/DCMPLX(S-XMN6*
+     .    XMN6,XMN6*WN6)
+      A1 = A1-A*DCMPLX(XMN6-XMY,-WN6/2.D0)/(XMN6+XMN)
+      A3 = A3+A/(XMN6+XMN)
+      A4 = A4+A/(XMN6+XMN)
+C
+      A = XE*HFF(PARE,XMN3,S)*CIS*GN3*FFNS2/DCMPLX(S-XMN3*XMN3,
+     .    XMN3*WN3)
+      A1 = A1-A*DCMPLX(XMN3+XMY,-WN3/2.D0)/(XMN3+XMN)
+      A3 = A3-A/(XMN3+XMN)
+      A4 = A4-A/(XMN3+XMN)
+      IF(IGAM.EQ.1) WN4=WIDTH(S11STATE,XMN4,S11PIN,S11ZN,S11EN,S11KL,
+     .                  S,150.D0)
+      IF(ICHAN.EQ.2.OR.ICHAN.EQ.5.OR.ICHAN.EQ.6) CNS4=-0.28D0
+      A = XE*HFF(PARE,XMN4,S)*CIS*CNS4*GN4*FFNS2/DCMPLX(S-XMN4*
+     .    XMN4,XMN4*WN4)
+      A1 = A1-A*DCMPLX(XMN4+XMY,-WN4/2.D0)/(XMN4+XMN)
+      A3 = A3-A/(XMN4+XMN)
+      A4 = A4-A/(XMN4+XMN)
+C     ---------------------------------------------------------------
+C                      PARITY MIN MESON RESONANCE
+C       GV and GT are multiplied by 4*pi to get the real coupling
+C     ---------------------------------------------------------------
+      CKS1=1.D0
+      IF(ICHAN.EQ.2.OR.ICHAN.EQ.4.OR.ICHAN.EQ.6) CKS1=-1.53D0
+      A = CKS1*HFF(PAKS,XMKS,T)*CIS*FFKS/(XBM*DCMPLX(T-XMKS*XMKS,
+     .     XMKS*WKS)*(XMN+XMY))
+      A1 = A1-A*GT*PI4*T
+      A2 = A2+A*GT*PI4*(1.D0+XK2/TMK2)
+      A3 = A3+A*GT*PI4*(XMN-XMY)
+      A4 = A4+A*GV*PI4*(XMN+XMY)
+      A5 = A5+A*GT*PI4*(UMY2-SMN2)/2.D0/TMK2
+      A6 = A6+A*GT*PI4*(XMN-XMY)
+C     ---------------------------------------------------------------
+C                      PARITY PLUS MESON RESONANCE
+C     ---------------------------------------------------------------
+      CKS2=1.D0
+      IF(ICHAN.EQ.2.OR.ICHAN.EQ.4.OR.ICHAN.EQ.6) CKS2=GRK1
+      A = CKS2*CIS*HFF(PAKS,XMQ1,T)*FFKS/(XBM*DCMPLX(T-XMQ1*XMQ1,
+     .     XMQ1*WQ1)*(XMN+XMY))
+      A2 = A2-A*GQT*PI4*(1.D0+XK2/TMK2)
+      A3 = A3+A*(GQV*PI4*(XMY+XMN)+GQT*PI4*(XMY-XMN))
+      A5 = A5-A*GQT*PI4*(UMY2-SMN2)/2.D0/TMK2
+      A6 = A6+A*(GQV*PI4*(XMY+XMN)+GQT*PI4*(XMY-XMN))
+C     ---------------------------------------------------------------
+C                          HYPERON RESONANCES
+C     ---------------------------------------------------------------
+      CYY=1.D0
+      A = CIS*HFF(PARE,XMY2,U)*CYY*GY2*XE*FFYS/DCMPLX(U-XMY2*XMY2,
+     .     XMY2*WY2)
+      A1 = A1+A*DCMPLX((XMN-XMY2)/(XMY+XMY2),WY2/2.D0/(XMY+XMY2))
+      A3 = A3-A/(XMY+XMY2)
+      A4 = A4+A/(XMY+XMY2)
+      A = CIS*HFF(PARE,XMY5,U)*CYY*GY5*XE*FFYS/DCMPLX(U-XMY5*XMY5,
+     .     XMY5*WY5)
+      A1 = A1+A*DCMPLX((XMN-XMY5)/(XMY+XMY5),WY5/2.D0/(XMY+XMY5))
+      A3 = A3-A/(XMY+XMY5)
+      A4 = A4+A/(XMY+XMY5)
+      A = CIS*HFF(PARE,XMY6,U)*CYY*GY6*XE*FFYS/DCMPLX(U-XMY6*XMY6,
+     .     XMY6*WY6)
+      A1 = A1+A*DCMPLX((XMN-XMY6)/(XMY+XMY6),WY6/2.D0/(XMY+XMY6))
+      A3 = A3-A/(XMY+XMY6)
+      A4 = A4+A/(XMY+XMY6)
+C
+      A = CIS*HFF(PARE,XMY1,U)*CYY*GY1*XE*FFYS/DCMPLX(U-XMY1*XMY1,
+     .     XMY1*WY1)
+      A1 = A1+A*DCMPLX(-(XMN+XMY1)/(XMY+XMY1),WY1/2.D0/(XMY+XMY1))
+      A3 = A3+A/(XMY+XMY1)
+      A4 = A4-A/(XMY+XMY1)
+      A = CIS*HFF(PARE,XMY3,U)*CYY*GY3*XE*FFYS/DCMPLX(U-XMY3*XMY3,
+     .     XMY3*WY3)
+      A1 = A1+A*DCMPLX(-(XMN+XMY3)/(XMY+XMY3),WY3/2.D0/(XMY+XMY3))
+      A3 = A3+A/(XMY+XMY3)
+      A4 = A4-A/(XMY+XMY3)
+      A = CIS*HFF(PARE,XMY4,U)*CYY*GY4*XE*FFYS/DCMPLX(U-XMY4*XMY4,
+     .     XMY4*WY4)
+      A1 = A1+A*DCMPLX(-(XMN+XMY4)/(XMY+XMY4),WY4/2.D0/(XMY+XMY4))
+      A3 = A3+A/(XMY+XMY4)
+      A4 = A4-A/(XMY+XMY4)
+      A = CIS*HFF(PARE,XMY7,U)*CYY*GY7*XE*FFYS/DCMPLX(U-XMY7*XMY7,
+     .     XMY7*WY7)
+      A1 = A1+A*DCMPLX(-(XMN+XMY7)/(XMY+XMY7),WY7/2.D0/(XMY+XMY7))
+      A3 = A3+A/(XMY+XMY7)
+      A4 = A4-A/(XMY+XMY7)
+C     ---------------------------------------------------------------
+C                        SPIN 1/2 DELTA RESONANCES
+C     ---------------------------------------------------------------
+      A = CDEL*XE*HFF(PARE,XMDH3,S)*DCMPLX(GDH3,GDH3I)*FDEL/
+     .     DCMPLX(S-XMDH3*XMDH3,XMDH3*WDH3)
+      A1 = A1-A*DCMPLX(XMDH3-XMY,-WDH3/2.D0)/(XMDH3+XMN)
+      A3 = A3+A/(XMDH3+XMN)
+      A4 = A4+A/(XMDH3+XMN)
+C
+      A = CDEL*XE*HFF(PARE,XMDH1,S)*GDH1*FDEL/DCMPLX(S-XMDH1*
+     .     XMDH1,XMDH1*WDH1)
+      A1 = A1-A*DCMPLX(XMDH1+XMY,-WDH1/2.D0)/(XMDH1+XMN)
+      A3 = A3-A/(XMDH1+XMN)
+      A4 = A4-A/(XMDH1+XMN)
+      A = CDEL*XE*HFF(PARE,XMDH2,S)*DCMPLX(GDH2,GDH2I)*FDEL/
+     .     DCMPLX(S-XMDH2*XMDH2,XMDH2*WDH2)
+      A1 = A1-A*DCMPLX(XMDH2+XMY,-WDH2/2.D0)/(XMDH2+XMN)
+      A3 = A3-A/(XMDH2+XMN)
+      A4 = A4-A/(XMDH2+XMN)
+C     ---------------------------------------------------------------
+C                   SPIN 3/2 NUCLEON RESONANCES
+C     ---------------------------------------------------------------
+C     P_13(1720) resonance
+C     --------------------
+      SQS=DSQRT(S)
+      SQSP=SQS+XMN
+      SQSN=SQS-XMN
+      IF(IGAM.EQ.1) WN7=WIDTH(P13STATE,XMN7,P13PIN,P13ZN,P13EN,P13KL,
+     .                  S,150.D0)
+      IF(ICHAN.EQ.2.OR.ICHAN.EQ.5.OR.ICHAN.EQ.6) THEN
+        CNS71=-2.24d0
+        CNS72=0.42d0
+      ELSE
+        CNS71=1.D0
+        CNS72=1.D0
+      ENDIF
+      A = PI4*CIS*HFF(PARE,XMN7,S)*FFNS2/(3.D0*XMN7*DCMPLX(S-
+     .    XMN7*XMN7,XMN7*WN7)*SQSP)
+      A1 = A1+A*(GN71*CNS71/2.D0*(3.D0*T-XK2-XMK*XMK-2.D0*XMN*
+     .     XMN-2.D0*XMY*XMY+(XMK*XMK-XMY*XMY)/S*((SMN2+XK2)+(XMN+XMY)*
+     .     SQSP)+(XMN+XMY)*(2.D0*SQSP+3.D0*XMY+(S+XMN*XMY-XMK*XMK+XMY*
+     .     XMY)/SQS)-4.D0*XMY*SQSP+(XMY*(SMN2+XK2)-2.D0*XMN*(S-XMK*XMK+
+     .     XMY*XMY))/SQS)+GN72*CNS72/SQSP*((XMN+XMY)/2.D0*
+     .     ((3.D0*T-S+3.D0*XK2-XMY*XMY-2.D0*XMK*XMK)/2.D0-XMY*SQSN+XMY*
+     .     XK2/SQS)+(S-XMK*XMK+XMY*XMY)/4.D0/SQS*((XMN+XMY)*(XMN-2.D0*
+     .     XK2/SQS)+(SMN2-XK2))+XMY/2.D0*(SMN2-XK2)))
+      A2 = A2+A*(GN71*CNS71*(-3.D0+XK2/TMK2*(1.D0-(XMK*XMK-XMY*
+     .     XMY+XMY*SQS)/S))+GN72*CNS72/SQSP*(XK2/2.D0/TMK2*
+     .     (3.D0*SQSN-2.D0/SQS*((S-XMK*XMK+XMY*XMY)*(1.5D0-XMN/SQS)+
+     .     XMN*XMY))+1.5D0*SQSN))
+      A3 = A3+A*SQSP*(GN71*CNS71*(-2.D0+0.5D0/SQSP*(3.D0*XMY+
+     .     (S+XMN*XMY-XMK*XMK+XMY*XMY)/SQS)+(XMK*XMK-XMY*XMY)/2.D0/S)+
+     .     GN72*CNS72/SQSP/SQSP*(0.25D0*(5.D0*S+3.D0*T-6.D0*
+     .     XMN*XMN-2.D0*XMK*XMK-XMY*XMY-3.D0*XK2)-0.5D0*XMY*SQSN+(S-
+     .     XMK*XMK+XMY*XMY)*(XMN/4.D0/SQS-XK2/2.D0/S)+XMY/2.D0/SQS*XK2))
+      A4 = A4+A*SQSP*(GN71*CNS71*(1.D0+0.5D0/SQSP*(3.D0*XMY+
+     .     (S+XMN*XMY-XMK*XMK+XMY*XMY)/SQS)+(XMK*XMK-XMY*XMY)/2.D0/S)+
+     .     GN72*CNS72/SQSP/SQSP*(-0.25D0*(S-3.D0*T+2.D0*XMK*
+     .     XMK+XMY*XMY-3.D0*XK2)-0.5D0*XMY*SQSN+(S-XMK*XMK+XMY*XMY)*
+     .     (XMN/4.D0/SQS-XK2/2.D0/S)+XMY/2.D0/SQS*XK2))
+      A5 = A5+A*(GN71*CNS71/2.D0*(1.D0+(XK2-2.D0*SMN2)/TMK2*
+     .     (1+(XMY*XMY-XMK*XMK-XMY*SQS)/S))+GN72*CNS72/SQSP*
+     .     ((2.D0*SMN2-XK2)/TMK2*(-0.75D0*SQSN+((S-XMK*XMK+XMY*XMY)*
+     .     (0.75D0-XMN/2.D0/SQS)+XMN*XMY/2.D0)/SQS)-0.75D0*SQSN))
+      A6 = A6+A*SQSP*(GN71*CNS71/2.D0*(-(XMK*XMK-XMY*XMY)/S+
+     .     (3.D0*XMY-2.D0*SQSP*(1.D0+XMY/SQS)+(S+XMN*XMY-XMK*XMK+XMY*
+     .     XMY)/SQS)/SQSP)+GN72*CNS72/SQSP/SQSP*(0.75D0*(S+T-
+     .     2.D0*XMN*XMN-XMY*XMY-XK2)+XMY*XMN/2.D0*(1.D0-XMN/SQS)+(S-
+     .     XMK*XMK+XMY*XMY)*(XMN/4.D0/SQS+XK2/2.D0/S)))
+C     ---------------------------------------------------------------------
+C                        D_13(1895) missing resonance
+C     ---------------------------------------------------------------------
+C     This is only photoproduction!!!!
+      FFND31=1.D0
+      FFND32=1.D0
+C     This is only for KLambda channel !!!
+      IF(ICHAN.EQ.1 .OR. ICHAN.EQ.2) THEN
+      IF(MISSING.EQ.1) THEN
+         XMNX=XMISS*1.D3/HC
+         WN5TP=WMISS*1.D3/HC
+      ELSE
+         XMNX=XMN5
+         WN5TP=WN5
+      ENDIF
+      IF(IGAM.EQ.1) THEN
+         WN5X=WIDTH(D13STATE,XMNX,D13PIN,D13ZN,D13EN,D13KL,S,WN5TP*HC)
+      ELSE
+         WN5X=WN5TP
+      ENDIF
+      IF(ICHAN.EQ.2.OR.ICHAN.EQ.5.OR.ICHAN.EQ.6) THEN
+        CNS51=-0.103
+        CNS52=-0.055
+      ELSE
+        CNS51=1.D0
+        CNS52=1.D0
+      ENDIF
+      A = PI4*HFF(PARE,XMNX,S)/(3.D0*XMNX*DCMPLX(S-XMNX*XMNX,
+     .    XMNX*WN5X)*SQSN)
+      A1 = A1+A*(GN51*FFND31*CNS51/2.D0*(3.D0*T-XK2-XMK*XMK-2.D0*XMN*
+     .     XMN-2.D0*XMY*XMY+(XMK*XMK-XMY*XMY)/S*((SMN2+XK2)-(XMN+XMY)*
+     .     SQSN)-(XMN+XMY)*(2.D0*SQSN-3.D0*XMY+(S+XMN*XMY-XMK*XMK+
+     .     XMY*XMY)/SQS)+4.D0*XMY*SQSN-(XMY*(SMN2+XK2)-2.D0*XMN*
+     .     (S-XMK*XMK+XMY*XMY))/SQS)+GN52*FFND32*CNS52/SQSN*(-(XMN+XMY)/
+     .     2.D0*((3.D0*T-S+3.D0*XK2-XMY*XMY-2.D0*XMK*XMK)/2.D0+XMY*
+     .     SQSP-XMY*XK2/SQS)+(S-XMK*XMK+XMY*XMY)/4.D0/SQS*((XMN+XMY)*
+     .     (XMN+2.D0*XK2/SQS)+(SMN2-XK2))-XMY*(SMN2-XK2)/2.D0))
+      A2 = A2+A*(GN51*FFND31*CNS51*(-3.D0+XK2/TMK2*(1.D0-(XMK*XMK-
+     .     XMY*XMY-XMY*SQS)/S))+GN52*FFND32*CNS52/SQSN*(XK2/2.D0/TMK2*
+     .     (3.D0*SQSP-2.D0/SQS*((S-XMK*XMK+XMY*XMY)*(1.5D0+XMN/SQS)+
+     .     XMN*XMY))+1.5D0*SQSP))
+      A3 = A3+A*SQSN*(GN51*FFND31*CNS51*(2.D0+0.5D0/SQSN*(3.D0*XMY-
+     .     (S+XMN*XMY-XMK*XMK+XMY*XMY)/SQS)-(XMK*XMK-XMY*XMY)/2.D0/S)+
+     .     GN52*FFND32*CNS52/SQSN/SQSN*(-0.25D0*(5.D0*S+3.D0*T-6.D0*
+     .     XMN*XMN-2.D0*XMK*XMK-XMY*XMY-3.D0*XK2)-0.5D0*XMY*SQSP+
+     .     (S-XMK*XMK+XMY*XMY)*(XMN/4.D0/SQS+XK2/2.D0/S)+XMY/2.D0/
+     .     SQS*XK2))
+      A4 = A4+A*SQSN*(GN51*FFND31*CNS51*(-1.D0+0.5D0/SQSN*(3.D0*XMY-
+     .     (S+XMN*XMY-XMK*XMK+XMY*XMY)/SQS)-(XMK*XMK-XMY*XMY)/2.D0/S)+
+     .     GN52*FFND32*CNS52/SQSN/SQSN*(0.25D0*(S-3.D0*T+2.D0*XMK*XMK+
+     .     XMY*XMY-3.D0*XK2)-0.5D0*XMY*SQSP+(S-XMK*XMK+XMY*XMY)*
+     .     (XMN/4.D0/SQS+XK2/2.D0/S)+XMY/2.D0/SQS*XK2))
+      A5 = A5+A*(GN51*FFND31*CNS51/2.D0*(1.D0+(XK2-2.D0*SMN2)/TMK2*(1+
+     .     (XMY*XMY-XMK*XMK+XMY*SQS)/S))+GN52*FFND32*CNS52/SQSN*((2.D0*
+     .     SMN2-XK2)/TMK2*(-0.75D0*SQSP+((S-XMK*XMK+XMY*XMY)*(0.75D0+
+     .     XMN/2.D0/SQS)+XMN*XMY/2.D0)/SQS)-0.75D0*SQSP))
+      A6 = A6+A*SQSN*(GN51*FFND31*CNS51/2.D0*((XMK*XMK-XMY*XMY)/S+
+     .     (3.D0*XMY+2.D0*SQSN*(1.D0-XMY/SQS)-(S+XMN*XMY-XMK*XMK+
+     .     XMY*XMY)/SQS)/SQSN)+GN52*FFND32*CNS52/SQSN/SQSN*(-0.75D0*
+     .     (S+T-2.D0*XMN*XMN-XMY*XMY-XK2)+XMY*XMN/2.D0*(-1.D0-XMN/SQS)+
+     .     (S-XMK*XMK+XMY*XMY)*(XMN/4.D0/SQS-XK2/2.D0/S)))
+      ENDIF
+C
+      IF(XK2.NE.0.D0) GOTO 500
+      A5=ZERO
+      A6=ZERO
+ 500  CONTINUE
+      IF(IHA.NE.1) GOTO 505
+      FFHA=(PAT*PAT*1.D6/HC/HC-XMK*XMK)/(PAT*PAT*1.D6/HC/HC-T)
+      A1=A1*FFHA
+      A2=A2*FFHA
+      A3=A3*FFHA
+      A4=A4*FFHA
+      A5=A5*FFHA
+      A6=A6*FFHA
+ 505  CONTINUE
+C     ----------------------------------------------------------------
+C                       Adelseck et al. Amplitudes
+C     ----------------------------------------------------------------
+C      write(*,*) a1,a2,a3,a4,a5,a6
+C      a1t=(xmy+xmn)*a4-a1
+C      a3t=a3+a4
+C      a4t=a4-a3
+C      WRITE(*,*) A1t,A2,A3t,A4t
+C     ----------------------------------------------------------------
+C                       Initialization of F1 - F20
+C     ----------------------------------------------------------------
+      F1=ZERO
+      F2=ZERO
+      F3=ZERO
+      F4=ZERO
+      F5=ZERO
+      F6=ZERO
+      F7=ZERO
+      F8=ZERO
+      F9=ZERO
+      F10=ZERO
+      F11=ZERO
+      F12=ZERO
+      F13=ZERO
+      F14=ZERO
+      F15=ZERO
+      F16=ZERO
+      F17=ZERO
+      F18=ZERO
+      F19=ZERO
+      F20=ZERO
+C     ----------------------------------------------------------------
+      F1=XXK0*A1+QDK*A3+(2.D0*CPDK-XXK0*(XMN+XMY))*A4-XK2*A6
+      F2=-A1-EPQ*A3-(EP1+EP2-XMN-XMY)*A4+XXK0*A6
+      F3=A3-A6
+      F4=A3+A4
+      F5=-A3+A4
+      F6=1.D0/(EP1+XMN)*((2.D0*CPDK*(EP1-EP2)+(XK2/2.D0-QDK)*(EP1+EP2)
+     .   +CPDK*XXK0)*A2+(XXK0*EPQ-QDK)*A3+(XXK0*(EP1+EP2)-2.D0*CPDK)*A4+
+     .   (EPQ*XK2-XXK0*QDK)*A5+(XK2-XXK0*XXK0)*A6)
+      F7=1.D0/(EP1+XMN)*(A1-CPDK*A2-XXK0*A3-(XMN+XMY)*A4-(XK2-QDK)*A5+
+     .   XXK0*A6)
+      F8=1.D0/(EP1+XMN)*(-(2.D0*CPDK+XK2/2.D0-QDK)*A2-XXK0*(A3+A4)-
+     .   XK2*A5)
+      F9=1.D0/(EP1+XMN)*((2.D0*CPDK-XK2/2.D0+QDK)*A2+XXK0*(A3-A4)+XK2*
+     .   A5)
+      F10=1.D0/(EP2+XMY)*(-(2.D0*CPDK*(EP1-EP2)+(XK2/2.D0-QDK)*(EP1+
+     .    EP2)+CPDK*XXK0)*A2+(XXK0*EPQ-QDK)*A3+(XXK0*(EP1+EP2)-
+     .    2.D0*CPDK)*A4-(EPQ*XK2-XXK0*QDK)*A5+(XK2-XXK0*XXK0)*A6)
+      F11=1.D0/(EP2+XMY)*(-A1+CPDK*A2-XXK0*A3+(XMN+XMY)*A4+(XK2-QDK)*
+     .    A5+XXK0*A6)
+      F12=1.D0/(EP2+XMY)*((2.D0*CPDK+XK2/2.D0-QDK)*A2-XXK0*(A3+A4)+
+     .    XK2*A5)
+      F13=1.D0/(EP2+XMY)*(-(2.D0*CPDK-XK2/2.D0+QDK)*A2+XXK0*(A3-A4)-
+     .    XK2*A5)
+      F14=1.D0/(EP1+XMN)*(-A1+(XMN+XMY)*A4)
+      F15=1.D0/(EP2+XMY)*(A1-(XMN+XMY)*A4)
+      F16=1.D0/(EP1+XMN)/(EP2+XMY)*(-XXK0*A1+QDK*A3+(2.D0*CPDK+XXK0*
+     .    (XMN+XMY))*A4-XK2*A6)
+      F17=1.D0/(EP1+XMN)/(EP2+XMY)*(A1-EPQ*A3-(EP1+EP2+XMN+XMY)*A4+
+     .    XXK0*A6)
+      F18=1.D0/(EP1+XMN)/(EP2+XMY)*(A3-A6)
+      F19=1.D0/(EP1+XMN)/(EP2+XMY)*(A3+A4)
+      F20=1.D0/(EP1+XMN)/(EP2+XMY)*(-A3+A4)
+      RETURN
+      END
+C
+C     ---------------------------------------------------------------
+C                       HADRONIC FORM FACTORS
+C     ---------------------------------------------------------------
+      FUNCTION HFF(PAR,XMASS,STU)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      COMMON /OPTION/ MODEL,ICHAN,IHA
+      COMMON /MASS/ XMN,XMY,XMK,XMPI,XMETA,XMZETA,XML
+      COMMON /ETC/ HC
+      IF(IHA.EQ.0) GOTO 100
+      GOTO (10,20,30,40,50), IHA
+ 10   HFF=1.D0
+      RETURN
+ 20   HFF=(PAR*PAR*1D6/HC/HC-XMASS*XMASS)/(PAR*PAR*1D6/HC/HC-STU)
+      RETURN
+ 30   HFF=(PAR*1D3/HC)**4/((PAR*1D3/HC)**4+(STU-XMASS*XMASS)**2)
+      RETURN
+ 40   XTO=2.D0*(XMN*XMN+XMK*XMK+XMY*XMY)
+       XNN=4.D0*(PAR*1D3/HC)**4+(XMN*XMN+XMY*XMY-XMK*XMK)**2-
+     .    4.D0*XMY*XMY*XMN*XMN
+      HFF=XNN/(XNN+(STU-XMASS**2)*(STU+3.D0*XMASS**2-XTO))
+      RETURN
+ 50   HFF=DEXP(-(STU-XMASS*XMASS)**2/(PAR*1D3/HC)**4)
+      RETURN
+ 100  HFF=1.D0
+      RETURN
+      END
+C     ---------------------------------------------------------------
+C                RESONANCE WIDTHS ARE NOT CONSTANT
+C     ---------------------------------------------------------------
+      FUNCTION WIDTH(STATE,XMRES,FRACPIN,FRACZN,FRACEN,FRACKL,SS,RWIDTH)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      COMMON /MASS/ XMN,XMK,XMY,XMPI,XMETA,XMZETA,XML
+      COMMON /ETC/ HC
+
+      WIDTH=RWIDTH*DSQRT(SS)/XMRES*(FRACPIN*RATE(STATE,SS,XMRES,
+     .       XMN,XMPI)+FRACZN*RATE(STATE,SS,XMRES,XMN,XMZETA)+
+     .       FRACEN*RATE(STATE,SS,XMRES,XMN,XMETA)+FRACKL*RATE(STATE,
+     .       SS,XMRES,XML,XMK))/HC
+      RETURN
+      END
+C     ---------------------------------------------------------------
+      FUNCTION RATE(STATE,SS,XMRE,XMNU,XMME)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      COMMON /ETC/ HC
+*new
+      if(dsqrt(ss).LE.(XMNU+XMME)) then
+            rate=0.d0
+            return
+      endif
+*new
+      ALPHO=410.D0/HC
+      ABSQIR=DSQRT((XMRE**2-XMNU**2+XMME**2)**2/(4.D0*XMRE**2)-XMME**2)
+      ABSQI=DSQRT((SS-XMNU**2+XMME**2)**2/(4.D0*SS)-XMME**2)
+      RATE=(ABSQI/ABSQIR)**(2.D0*STATE+1.D0)*DEXP(-ABSQI**2/(3.D0
+     .     *ALPHO**2))/DEXP(-ABSQIR**2/(3.D0*ALPHO**2))
+      RETURN
+      END

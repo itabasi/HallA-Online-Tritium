@@ -1,2 +1,7 @@
 ### FSI tabel with Julich A Potential (2-Gauss potential)  calculated by T-operator (on-shell approximation)#####
 # krel [MeV] # Influence Factor(S) # Influence Factor(T)
+5 3.80166 1.68095
+15 3.90196 1.71166
+30 3.97949 1.76907
+50 3.93555 1.80836
+75 3.74939 1.80273
