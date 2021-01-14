@@ -147,11 +147,16 @@ void cherenkov_mom_vs_NPE_cal(){
     gpi->GetXaxis()->SetTitle("Momentum  [MeV/c]");
     gpi->GetYaxis()->SetTitle("NPE [ /cm]");
     
-    gp->SetLineColor(3);
-    gpi->SetLineColor(2);
-    gk->SetLineColor(4);
-    gpi->SetLineWidth(3);
+    gp->SetLineColor(8);
+    gp->SetLineStyle(10);
     gp->SetLineWidth(3);
+    
+    gpi->SetLineColor(2);
+    gpi->SetLineStyle(2);
+    gpi->SetLineWidth(3);
+    
+    gk->SetLineColor(4);
+    gk->SetLineStyle(1);
     gk->SetLineWidth(3);
          gpi->Draw();
 	 gp->Draw("same");

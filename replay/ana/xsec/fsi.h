@@ -316,6 +316,8 @@ public:
   int nrp1,lmax,lmax1;
   double tol =0.01;
   bool nr_mode = true;
+  //  bool nr_mode = false; // test
+  
 
 };
 

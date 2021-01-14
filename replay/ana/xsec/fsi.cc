@@ -61,6 +61,7 @@ bool single  = true;
 bool Vscale  = false;
 //bool Cha_mode =true;
 bool Cha_mode =false;
+bool Ton_mode =false;
 /////////////////////////////////////////////////////////////////////////
 
 void fsi::NewRoot(string ofname){
@@ -2594,6 +2595,9 @@ double fsi::PhaseShift(double qq, int LL, int potential){
       Il[l]  = real(fthel[l]* conj(fthel[l])) + 1.0;
       Il0[l] = imag(fthel[l])/skz+ 1.0;
     }
+
+
+    //    cout<<"qq "<<qq<<" skz "<<skz<<" skz*hbarc "<<skz*hbarc<<endl;
     
     if( I0 >100.  ) I0 = 0.0;
     if( I1 >100.  ) I1 = 0.0;
@@ -3373,9 +3377,9 @@ int main(int argc, char** argv){
   if(param_mode) FSI -> SetParam(pname);
   FSI -> SetHist();
   FSI -> SetFermiMom(fermi_mom);
-  if(write_mode)  FSI ->GetIfac(0,1, ofPname); // T-operator calc.
-  //  if(write_mode && !Vscale) FSI -> InfluenceFactor(ofPname,l);
-  //  if(write_mode &&  Vscale) FSI -> InfluenceFactorVscale(ofPname,l);
+  if(write_mode && Ton_mode)  FSI ->GetIfac(0,1, ofPname); // T-operator calc.
+  if(write_mode && !Vscale) FSI -> InfluenceFactor(ofPname,l);
+  if(write_mode &&  Vscale) FSI -> InfluenceFactorVscale(ofPname,l);
   if(param_mode) FSI -> SetMom();
 
   cout<<endl;
