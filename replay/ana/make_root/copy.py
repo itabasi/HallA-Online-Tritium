@@ -25,7 +25,8 @@ end=111840
 root_dir="/data4/root"
 file_init="tritium_"
 #small_dir="/data3/root_ole/small2"
-small_dir="/data4/small"
+#small_dir="/data4/small"
+small_dir="/data4/small_new"
 #####################################
 
 def sub_root(RUNNUM):

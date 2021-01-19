@@ -74,28 +74,6 @@ int main(int argc, char** argv){
   UInt_t Nev;
   int Nrun;
 
-
-  
-
-  /*
-  typedef struct {
-    ULong64_t EvtTime;
-    UInt_t EvtNum;
-    Int_t EvtType;
-    Int_t EvtLen;
-    Int_t Helicity;
-    Int_t TargetPol;
-    Int_t Run;
-  } fEvtHdr;
-  fEvtHdr test;
-  */
-
-  //  oldtree->SetBranchStatus("*"        ,0);  
-  //  oldtree->SetBranchStatus("fEvtHdr.fEvtNum"        ,1);
-
-
-
-    //  EvtHdr* test = new EvtHdr();
   
   oldtree->SetBranchStatus("*",0);
   oldtree->SetBranchStatus("fEvtHdr.fEvtNum"        ,1);  
@@ -115,6 +93,10 @@ int main(int argc, char** argv){
   oldtree->SetBranchStatus("Lrb.Raster2.rawcur.y" ,1);
   //  oldtree->SetBranchStatus("FbusLrb.Raster2.rawcur.x" ,1);
   //  oldtree->SetBranchStatus("FbusLrb.Raster2.rawcur.y" ,1);
+  oldtree->SetBranchStatus("HacL_D1_NMR_SIG" ,1);
+  oldtree->SetBranchStatus("HacR_D1_NMR_SIG" ,1);
+  oldtree->SetBranchStatus("HacL_D1_P0rb" ,1);
+  oldtree->SetBranchStatus("HacR_D1_P0rb" ,1);
   oldtree->SetBranchStatus("rbax"   ,1);
   oldtree->SetBranchStatus("rbay"   ,1);
   oldtree->SetBranchStatus("rbbx"   ,1);

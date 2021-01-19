@@ -93,6 +93,7 @@ void ana::matrix(string mtparam){
   ploss = true;  // Energy Loss
   //================================================//
 
+  
   //  MT_p[10] = true; // RHRS path length correction  
   //  MT_p[11] = true; // LHRS path length correction
   MT_p[11] = false; // LHRS path length correction
@@ -2104,13 +2105,22 @@ void ana::Loop_c(){
 
     tr.trig=0;
     tr.nev =0;
-  
+    tr.R_nmr  = 0.0;
+    tr.L_nmr  = 0.0;
+    tr.R_P0rb = 0.0;
+    tr.L_P0rb = 0.0;
+
+    
     //===== Get Entry ==========//
 
     tree->GetEntry(n);
     tr.trig=R_evtype;
     tr.nrun=(int)runnum;
     tr.nev=nevent;
+    tr.R_nmr = R_nmr;
+    tr.L_nmr = L_nmr;
+    tr.R_P0rb = R_P0rb;
+    tr.L_P0rb = L_P0rb;
     
     if(runnum>Run){
       Run=runnum;
@@ -2125,15 +2135,30 @@ void ana::Loop_c(){
   bool Kaon = false; // Kaon cut
   bool zcut = false; // z-vertex cut
 
+  
+  
   /////////////////////
   //// Coincidence ////
   /////////////////////
 
+	  // Momentum //
+
+
+
+	  
+
+  
   for(int rt=0;rt<MAX;rt++){
+    tr.Rp[rt] = -1000.;
+    tr.Rp_c[rt] = -1000.;
     for(int lt=0;lt<MAX;lt++){
-      tr.cointime[rt][lt]=-1000.;
+    tr.Lp[lt] = -1000.;
+    tr.Lp_c[lt] = -1000.;
+    tr.cointime[rt][lt]=-1000.;
+      
     }
   }
+
 
   
   if(LHRS && RHRS && R_evtype==5){
@@ -2141,6 +2166,7 @@ void ana::Loop_c(){
     int NRtr = (int)R_tr_n;  if(NRtr>MAX) NRtr = MAX;
     tr.ntrack_r=NRtr;
     tr.ntrack_l=NLtr;
+
     
     for(int lt=0;lt<NLtr;lt++){	
       L_Tr = L_FP = false;
@@ -2148,7 +2174,7 @@ void ana::Loop_c(){
       if( L_tr_th[lt]<0.17*L_tr_x[lt]+0.025
 	  && L_tr_th[lt]>0.17*L_tr_x[lt]-0.035
 	  && L_tr_th[lt]<0.40*L_tr_x[lt]+0.130 ) L_FP = true;
-
+      
       for(int rt=0;rt<NRtr;rt++){
 	
           R_Tr = R_FP = false;
@@ -2171,8 +2197,8 @@ void ana::Loop_c(){
 	  if(R_s2pad == R_s2tpad && L_s2pad == L_s2tpad) track_flag =true;
 	  if(rpathl_cutmin< Rpathl && Rpathl < rpathl_cutmax) Rpathl_flag =true;
 	  if(lpathl_cutmin< Lpathl && Lpathl < lpathl_cutmax) Lpathl_flag =true;
-	  
 	  if(Rpathl_flag && Lpathl_flag)pathl_flag =true;
+		  
 	  //	  pathl_flag =true; // as a test 
 	  //	  track_flag =true; // as a test
 	  for(int pad=0;pad<16;pad++){
@@ -2212,9 +2238,9 @@ void ana::Loop_c(){
 	  
 	  //===== Initialization =====//
 	  
-	  
     
 	  // ---- Tree Branch RHRS -------//
+
 	  
 	  
 	  tr.Rs0ra_p=-1000.;
@@ -2250,9 +2276,7 @@ void ana::Loop_c(){
 	  tr.dpe     = -100.;
 	  tr.dpk = -100.;
 	  tr.dpe_= -100.;
-	  tr.Lp[lt] = -100.;
-	  tr.Rp[rt] = -100.;
-	  tr.Bp     = -100.;
+	  tr.Bp     = -100.;	  
 	  tr.dpe  = -1000.;
 	  tr.dpe_ = -1000.;
 	  tr.dpk  = -1000.;
@@ -2261,8 +2285,6 @@ void ana::Loop_c(){
 	  tr.pid_cut = 0;
 	  tr.ct_cut  = 0;
 	  tr.z_cut   = 0;
-	  tr.Lp_c[lt] = -100.;
-	  tr.Rp_c[rt] = -100.;
 	  tr.Bp_c     = -100.;
 	  tr.missing_mass=-100000.;
 	  tr.coin_time=-1000000.;
@@ -2329,7 +2351,7 @@ void ana::Loop_c(){
 	  tr.RXt=R_tr_vx[rt];
 	  tr.RYt=R_tr_vy[rt];
 	  
-
+      
 	    //-------- Tree Branch LHRS ------------//
 	  tr.Ls2_pad[lt] =(int)L_s2_trpad[lt];
 	  tr.Ls2_paddle  = tr.Ls2_pad[lt];
@@ -2342,7 +2364,10 @@ void ana::Loop_c(){
 	  tr.LXt=L_tr_vx[lt];
 	  tr.LYt=L_tr_vy[lt];
 	    
-	    
+	  //---- Set Momentum -------//
+
+	  tr.Lp[lt] = L_tr_p[lt];
+	  tr.Rp[rt] = R_tr_p[rt];
 	    
 	    //==== AC ADC convert ch to npe =======//
 	  //	  tr.AC1_npe_sum=R_a1_asum_p/400.;
@@ -2363,16 +2388,17 @@ void ana::Loop_c(){
            && R_tr_th[rt]>0.17*R_tr_x[rt]-0.035
            && R_tr_th[rt]<0.40*R_tr_x[rt]+0.130 ) R_FP = true;
 	  if( tr.AC1_npe_sum < a1_th && tr.AC2_npe_sum > a2_th_min && L_cer_asum_c>2000.) Kaon = true;
-
-
 	  if(fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1)zcut=true;
 
 
 
 	  //	  cout<<" track "<<track_flag<<" pathL "<<pathl_flag<<endl;
-	  
 	  //	  if( L_Tr && L_FP && R_Tr && R_FP && track_flag && pathl_flag){
+
+
+	  
 	  if( L_Tr && L_FP && R_Tr && R_FP){
+	    
 	  //	  if( L_Tr && L_FP && R_Tr && R_FP && padcut){
 
 
@@ -3114,25 +3140,30 @@ void ana::MakeHist(){
   //  if(calib_mode)
     tree_out = tree->CloneTree(0);
 
-
-  tree_out ->Branch("pid_cut"        ,&tr.pid_cut      ,"pid_cut/I"     );
-  tree_out ->Branch("ct_cut"        ,&tr.ct_cut      ,"ct_cut/I"     );
-  tree_out ->Branch("acc_cut"        ,&tr.acc_cut      ,"acc_cut/I"     );
-  tree_out ->Branch("z_cut"        ,&tr.z_cut      ,"z_cut/I"     );
-  tree_out ->Branch("nrun"        ,&tr.nrun      ,"nrun/I"     );
-  tree_out ->Branch("nev"        ,&tr.nev      ,"nev/I"     );
-  tree_out ->Branch("ntr_r",&tr.ntrack_r ,"ntr_r/I");
-  tree_out ->Branch("ntr_l",&tr.ntrack_l ,"ntr_l/I");
-  tree_out ->Branch("mm",&tr.missing_mass ,"missing_mass/D");
-  tree_out ->Branch("mm_b",&tr.missing_mass_b ,"missing_mass_b/D");
-  tree_out ->Branch("mm_L",&tr.missing_mass_L ,"missing_mass_L/D");
-  tree_out ->Branch("mm_mix",tr.mm_mixed ,"mm_mix[10]/D");
-  tree_out ->Branch("mm_mix_all",tr.mm_mixed_all ,"mm_mix_all[10]/D");
-  tree_out ->Branch("mm_nnL",&tr.missing_mass_nnL ,"missing_mass_nnL/D");
-  tree_out ->Branch("mm_H3L",&tr.missing_mass_H3L ,"missing_mass_H3L/D");
-  tree_out ->Branch("mm_cut",&tr.missing_mass_cut ,"missing_mass_cut/D");
-  tree_out ->Branch("mm_MgL",&tr.missing_mass_MgL ,"missing_mass_MgL/D");
-  tree_out ->Branch("mm_MgL_acc",&tr.missing_mass_MgL_acc ,"missing_mass_MgL_acc/D");
+    
+    tree_out ->Branch("R_nmr"        ,&tr.R_nmr      ,"R_nmr/D"     );
+    tree_out ->Branch("L_nmr"        ,&tr.L_nmr      ,"L_nmr/D"     );
+    tree_out ->Branch("R_P0rb"        ,&tr.R_P0rb      ,"R_P0rb/D"     );
+    tree_out ->Branch("L_P0rb"        ,&tr.L_P0rb      ,"L_P0rb/D"     );
+    
+    tree_out ->Branch("pid_cut"        ,&tr.pid_cut      ,"pid_cut/I"     );
+    tree_out ->Branch("ct_cut"        ,&tr.ct_cut      ,"ct_cut/I"     );
+    tree_out ->Branch("acc_cut"        ,&tr.acc_cut      ,"acc_cut/I"     );
+    tree_out ->Branch("z_cut"        ,&tr.z_cut      ,"z_cut/I"     );
+    tree_out ->Branch("nrun"        ,&tr.nrun      ,"nrun/I"     );
+    tree_out ->Branch("nev"        ,&tr.nev      ,"nev/I"     );
+    tree_out ->Branch("ntr_r",&tr.ntrack_r ,"ntr_r/I");
+    tree_out ->Branch("ntr_l",&tr.ntrack_l ,"ntr_l/I");
+    tree_out ->Branch("mm",&tr.missing_mass ,"missing_mass/D");
+    tree_out ->Branch("mm_b",&tr.missing_mass_b ,"missing_mass_b/D");
+    tree_out ->Branch("mm_L",&tr.missing_mass_L ,"missing_mass_L/D");
+    tree_out ->Branch("mm_mix",tr.mm_mixed ,"mm_mix[10]/D");
+    tree_out ->Branch("mm_mix_all",tr.mm_mixed_all ,"mm_mix_all[10]/D");
+    tree_out ->Branch("mm_nnL",&tr.missing_mass_nnL ,"missing_mass_nnL/D");
+    tree_out ->Branch("mm_H3L",&tr.missing_mass_H3L ,"missing_mass_H3L/D");
+    tree_out ->Branch("mm_cut",&tr.missing_mass_cut ,"missing_mass_cut/D");
+    tree_out ->Branch("mm_MgL",&tr.missing_mass_MgL ,"missing_mass_MgL/D");
+    tree_out ->Branch("mm_MgL_acc",&tr.missing_mass_MgL_acc ,"missing_mass_MgL_acc/D");
   tree_out ->Branch("mm_acc",&tr.missing_mass_acc ,"missing_mass_acc/D");
   tree_out ->Branch("mm_acc_all",&tr.missing_mass_acc_all ,"missing_mass_acc_all/D");
   tree_out ->Branch("mm_L_all",&tr.missing_mass_Lam_all ,"missing_mass_Lam_all/D");
@@ -3217,8 +3248,8 @@ void ana::MakeHist(){
   tree_out ->Branch("Ls2ra_p"     ,tr.Ls2ra_p   ,"Ls2ra_p[16]/D"  );
   tree_out ->Branch("Ls2la_p"     ,tr.Ls2la_p   ,"Ls2la_p[16]/D"  );  
   tree_out->Branch("Bp"     ,&tr.Bp   ,"Bp/D"  );
-  //  tree_out->Branch("Lp"     ,tr.Lp   ,"Lp[100]/D"  );
-  //  tree_out->Branch("Rp"     ,tr.Rp   ,"Rp[100]/D"  );
+  tree_out->Branch("Lp_b"     ,tr.Lp   ,"Lp[100]/D"  );
+  tree_out->Branch("Rp_b"     ,tr.Rp   ,"Rp[100]/D"  );
   tree_out->Branch("Bp_c"     ,&tr.Bp_c   ,"Bp_c/D"  );
   tree_out->Branch("Lp_c"     ,tr.Lp_c   ,"Lp_c[100]/D"  );
   tree_out->Branch("Rp_c"     ,tr.Rp_c   ,"Rp_c[100]/D"  );

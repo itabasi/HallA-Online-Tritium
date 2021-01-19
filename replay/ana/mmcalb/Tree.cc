@@ -22,6 +22,15 @@ void Tree::pack_tree()
  
   ENum = tree->GetEntries();  
   tree->SetBranchStatus("*" ,0);
+  
+  tree->SetBranchStatus( "HacR_D1_NMR_SIG",1);
+  tree->SetBranchAddress("HacR_D1_NMR_SIG",&R_nmr);
+  tree->SetBranchStatus( "HacL_D1_NMR_SIG",1);
+  tree->SetBranchAddress("HacL_D1_NMR_SIG",&L_nmr);
+  tree->SetBranchStatus( "HacR_D1_P0rb",1);
+  tree->SetBranchAddress("HacR_D1_P0rb",&R_P0rb);
+  tree->SetBranchStatus( "HacL_D1_P0rb",1);
+  tree->SetBranchAddress("HacL_D1_P0rb",&L_P0rb);
   //tree->SetBranchStatus("fEvtHdr.fRun"               ,1);  tree->SetBranchAddress("fEvtHdr.fRun", &runnum    );
   //  tree->SetBranchStatus("fEvtHdr.fEvtNu"               ,1);   tree->SetBranchAddress("fEvtHdr.fEvtNum", &evid    );
   tree->SetBranchStatus("runnum"               ,1);  tree->SetBranchAddress("runnum", &runnum );

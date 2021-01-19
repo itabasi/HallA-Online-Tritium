@@ -18,24 +18,24 @@ CXXLIBS = $(ROOTLIBS)
 
 TARGET1= momcalib
 OBJS1=   momcalib.o Setting.o tree.o
-TARGET2= momcalib_goga
-OBJS2=   momcalib_goga.o Setting.o tree.o
-TARGET3= momcalib_test
-OBJS3=   momcalib_test.o Setting.o tree.o
+#TARGET2= momcalib_goga
+#OBJS2=   momcalib_goga.o Setting.o tree.o
+#TARGET3= momcalib_test
+#OBJS3=   momcalib_test.o Setting.o tree.o
 
 .PHONY: all
-all: $(TARGET1)\
-     $(TARGET2)\
-     $(TARGET3)	
+all: $(TARGET1)
+#     $(TARGET2)
+#     $(TARGET3)	
 $(LIBDIR)/%.o : %.cc
 	$(CXX) $(CFLAGS) -c -o $@ $< -MMD $(CXXFLAGS)
 
 $(TARGET1): $(patsubst %,$(LIBDIR)/%,$(OBJS1))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
-$(TARGET2): $(patsubst %,$(LIBDIR)/%,$(OBJS2))
-	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
-$(TARGET3): $(patsubst %,$(LIBDIR)/%,$(OBJS3))
-	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
+#$(TARGET2): $(patsubst %,$(LIBDIR)/%,$(OBJS2))
+#	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
+#$(TARGET3): $(patsubst %,$(LIBDIR)/%,$(OBJS3))
+#	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 
 .PHONY: clean
 clean:

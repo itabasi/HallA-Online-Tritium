@@ -52,7 +52,18 @@ void tree::SetBranch(){
  T->SetBranchAddress("runnum",&runnum);
  T->SetBranchStatus("nev",1);
  T->SetBranchAddress("nev",&nev);
-					  
+
+ T->SetBranchStatus( "HacR_D1_NMR_SIG",1);
+ T->SetBranchAddress("HacR_D1_NMR_SIG",&R_nmr);
+ T->SetBranchStatus( "HacL_D1_NMR_SIG",1);
+ T->SetBranchAddress("HacL_D1_NMR_SIG",&L_nmr); 
+
+ T->SetBranchStatus( "HacR_D1_P0rb",1);
+ T->SetBranchAddress("HacR_D1_P0rb",&R_P0rb);
+ T->SetBranchStatus( "HacL_D1_P0rb",1);
+ T->SetBranchAddress("HacL_D1_P0rb",&L_P0rb);
+ 
+ 
  T->SetBranchStatus("HALLA_p",1);
  T->SetBranchAddress("HALLA_p",&hallap); 
  //------------------------------// 

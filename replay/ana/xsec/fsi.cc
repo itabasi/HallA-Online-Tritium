@@ -49,6 +49,7 @@ extern void LEQ3(complex<double>* A, complex<double>* B, complex<double>* R, int
 extern double Jl0(double p0,double a0, double r0);
 extern double fJ(double* x, double* par);
 extern double fJ2(double* x, double* par);
+extern double rad_ERA(double*x, double* par);
 bool SIMC    = true;
 bool TClone  = false;
 //bool E09     = false;
@@ -306,7 +307,7 @@ void fsi::InfluenceFactor(string pname, int ll){
   if(test){
 
     qmax =250;
-    imax = 125;
+    imax = 25;
   }
   
   for(int i=1; i<imax;i++){
@@ -549,6 +550,12 @@ void fsi::InfluenceFactor(string pname, int ll){
   }
 
 
+  grad_Cha_1s->Write();
+  grad_Cha_2s->Write();
+  grad_Cha_3s->Write();
+  frad_ERA_1s->Write();
+  frad_ERA_2s->Write();
+  frad_ERA_3s->Write();
   
   gf0->Write();
   gf1->Write();
@@ -560,12 +567,12 @@ void fsi::InfluenceFactor(string pname, int ll){
   gf1_all->Write();
   gf2_all->Write();
   gf3_all->Write();    
-  gxf1->Write();
-  gxf2->Write();
-  gxf3->Write();
-  gx1->Write();
-  gx2->Write();
-  gx3->Write();
+  //  gxf1->Write();
+  //  gxf2->Write();
+  //  gxf3->Write();
+  //  gx1->Write();
+  //  gx2->Write();
+  //  gx3->Write();
   gI0->Write();
   gI1->Write();
   gI2->Write();
@@ -615,6 +622,7 @@ void fsi::InfluenceFactor(string pname, int ll){
   gIera3s->Write();
   gIera3t->Write();
   gIera3 ->Write();
+
 
   
   ofp0->close();
@@ -942,6 +950,45 @@ void fsi::SetHist(){
   grad03->SetMarkerColor(4);    
 
 
+  double prel[12]={10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,100.0,120.0,140.0};
+  double del_cha_1s[12]={0.11656,022035,0.31112,0.38399,0.43910,0.47819,0.50366,0.51790,0.52093,0.50058,0.46577};
+  double del_cha_2s[12]={0.8084,0.15907,0.23309,0.30124,0.36257,0.41669,0.46362,0.50368,0.56531,0.60631,0.63124};
+  double del_cha_3s[12]={0.2951,0.5728,0.8598,0.10854,0.12950,0.14601,0.16874,0,17445,0.16700,0.14875};
+  
+  grad_Cha_1s = new TGraphErrors();
+  grad_Cha_1s->SetName("grad_Cha_1s");
+  grad_Cha_1s->SetTitle("Vema Potential w FSI Phase Shift (Singlet) ; P_{#Lambda-n} [MeV] ; phase shift [rad] ");
+  grad_Cha_1s->SetMarkerStyle(8);
+  grad_Cha_1s->SetMarkerColor(1);
+
+  grad_Cha_2s = new TGraphErrors();
+  grad_Cha_2s->SetName("grad_Cha_2s");
+  grad_Cha_2s->SetTitle("Julich A Potential w FSI Phase Shift (Singlet) ; P_{#Lambda-n} [MeV] ; phase shift [rad] ");
+  grad_Cha_2s->SetMarkerStyle(8);
+  grad_Cha_2s->SetMarkerColor(2);  
+
+  grad_Cha_3s = new TGraphErrors();
+  grad_Cha_3s->SetName("grad_Cha_3s");
+  grad_Cha_3s->SetTitle("Julich B Potential w FSI Phase Shift (Singlet) ; P_{#Lambda-n} [MeV] ; phase shift [rad] ");
+  grad_Cha_3s->SetMarkerStyle(8);
+  grad_Cha_3s->SetMarkerColor(4);  
+
+  frad_ERA_1s =new TF1("frad_ERA_1s",rad_ERA,0,250,2);
+  frad_ERA_1s->SetParameters(-2.29,3.15);
+  frad_ERA_2s =new TF1("frad_ERA_2s",rad_ERA,0,250,2);
+  frad_ERA_2s->SetParameters(-1.60,1.33);  
+  frad_ERA_3s =new TF1("frad_ERA_3s",rad_ERA,0,250,2);
+  frad_ERA_3s->SetParameters(-0.57,7.65);  
+
+  
+  
+  for(int i=0;i<12;i++){
+    grad_Cha_1s->SetPoint(i,prel[i],del_cha_1s[i]);
+    grad_Cha_2s->SetPoint(i,prel[i],del_cha_2s[i]);
+    grad_Cha_3s->SetPoint(i,prel[i],del_cha_3s[i]);
+  }
+  
+  
 
   gradI1 = new TGraphErrors();
   gradI1->SetName("gradI1");
@@ -1272,8 +1319,15 @@ void fsi::SetHist(){
   
   
   
+
+
   
   }
+
+
+
+
+
 
   
   
@@ -2313,7 +2367,6 @@ double fsi::PhaseShift(double qq, int LL, int potential){
 
 	 
   // Kinematics
- 
     if(nr_mode){
       skz = skz/hbarc; // [1/fm]
       skz2 = skz*skz;  
@@ -2577,8 +2630,9 @@ double fsi::PhaseShift(double qq, int LL, int potential){
 
     
     
-    IERA = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0); // ERA
-
+    //    IERA = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0); // ERA
+    IERA = pow( sin(skz*R0 + deltal[LL])/sin(skz*R0) ,2.0); // ERA test
+    
     // T-operator matrix : I = <k'|T
     // if( k'==k) Iton (on-shell)
     // Iton  : <k|T|k> on-shell
@@ -3798,4 +3852,19 @@ double fJ2(double *x ,double *par){
   //  cout<<"test "<<endl;
   return I;  
 
+};
+
+
+double rad_ERA(double *x ,double *par){
+
+  double krel = x[0]/197.3269718;
+  double a0   = par[0]; // scattering length
+  double r0   = par[1]; // effective range
+
+
+  // ERA :  k/cos(delta) = 1/a +r0k^2/2
+
+  double delta = atan(krel/(-1./a0 +r0*krel*krel/2.));
+   return delta;
+  
 };

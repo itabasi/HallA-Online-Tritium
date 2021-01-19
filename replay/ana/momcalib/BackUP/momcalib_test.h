@@ -1,5 +1,5 @@
-#ifndef momalib_h
-#define momcalib_h 1
+#ifndef momalib_test_h
+#define momcalib_test_h 1
 #include <iostream>
 #include <fstream>
 #include "Param.h"
@@ -27,7 +27,8 @@ int MODE=5;
 double weight=0.0;
 double weightT=0.0;
 double weightAl=0.0;
-double weightAl_def=0.0; 
+double weightAl_def=0.0;
+double weight_def =0.0;
 double weightnnL=0.0;
 bool Goga=false;
 
@@ -254,7 +255,9 @@ class momcalib : public tree
   double chi_L=0.0;
   double chi_S=0.0;
   double chi2_init=0.0;
-  //--- Event Selection mass cut ---// 
+  //--- Event Selection mass cut ---//
+  ///  double mmL_range = 0.005; // [GeV/c^2]
+  //  double mmS_range = 0.005; // [GeV/c^2]
   double mmL_range = 0.003; // [GeV/c^2]
   double mmS_range = 0.003; // [GeV/c^2]
   //uble mmL_range = 0.002; // [GeV/c^2]
@@ -1067,7 +1070,7 @@ void momcalib::MTParam(string mtparam){
   MT[9] = true; // LHRS momentum correction  
 
   //================================================//
-  /*
+
   MT_f[0] = true;  // RHRS z correction
   MT_f[1] = true;  // RHRS raster correction
   MT_f[2] = true;  // RHRS theta correction
@@ -1077,7 +1080,6 @@ void momcalib::MTParam(string mtparam){
   MT_f[5] = true;  // LHRS raster correction
   MT_f[6] = true;  // LHRS theta correction
   MT_f[7] = true;  // LHRS phi correction
-  */
 
   MT[8] = false; // RHRS momentum correction  
   MT[9] = false; // LHRS momentum correction  
@@ -1092,13 +1094,13 @@ void momcalib::MTParam(string mtparam){
   
     MT[8] = true; // RHRS momentum correction  
     MT[9] = true; // LHRS momentum correction  
-  ploss = true;  // Energy Loss 
+    ploss = true;  // Energy Loss 
  
-  //-------- momentum calibration ---------//
-  MT_f[8] = true; // RHRS momentum correction  
-  MT_f[9] = true; // LHRS momentum correction  
-  ploss_f = true;  // Energy Loss
-
+    //-------- momentum calibration ---------//
+    MT_f[8] = true; // RHRS momentum correction  
+    MT_f[9] = true; // LHRS momentum correction  
+    ploss_f = true;  // Energy Loss
+    
   }
   //================================================//
 
@@ -1585,24 +1587,21 @@ void momcalib::momCorr(bool rarm, bool larm){
     if(runnum<=111220 || (111480<=runnum && 111542>=runnum))Lp[0]=Lp[0];
     else if(larm)Lp[0]=2.21807/2.1*Lp[0];
 
-
     plossCorr(ploss);
+    
+    
+    //==== Right Hand Coorinate ====//
+
+    Lp_z = Lp[0]/sqrt(1.0*1.0 + Lth[0]*Lth[0] + Lph[0]*Lph[0]);
+    Rp_z = Rp[0]/sqrt(1.0*1.0 + Rth[0]*Rth[0] + Rph[0]*Rph[0]);
+
+    Lp_x = Lp_z*     Lth[0] ;
+    Lp_y = Lp_z*     Lph[0] ;
+    Rp_x = Rp_z*     Rth[0] ;
+    Rp_y = Rp_z*     Rph[0] ; 
 
 
-      //==== Right Hand Coorinate ====//
-
-    Lp_z = Lp[0]/sqrt(1.0*1.0 + tan(Lth[0])*tan(Lth[0]) + tan(Lph[0])*tan(Lph[0]));
-    Rp_z = Rp[0]/sqrt(1.0*1.0 + tan(Rth[0])*tan(Rth[0]) + tan(Rph[0])*tan(Rph[0]));
-
-
-   
-
-    Lp_x = Lp_z*    tan( Lth[0] );
-    Lp_y = Lp_z*    tan( Lph[0] );
-    Rp_x = Rp_z*    tan( Rth[0] );
-    Rp_y = Rp_z*    tan( Rph[0] ); 
-
-
+    
     
 }
 
@@ -1619,18 +1618,22 @@ void momcalib::momCalc(){
 
   //==== Right Hand Coorinate ====//
 
-    LP_z = LP/sqrt(1.0*1.0 + tan(Lth[0])*tan(Lth[0]) + tan(Lph[0])*tan(Lph[0]));
-    RP_z = RP/sqrt(1.0*1.0 + tan(Rth[0])*tan(Rth[0]) + tan(Rph[0])*tan(Rph[0]));
+    LP_z = LP/sqrt(1.0*1.0 + Lth[0] * Lth[0] + Lph[0] * Lph[0] );
+    RP_z = RP/sqrt(1.0*1.0 + Rth[0] * Rth[0] + Rph[0] * Rph[0] );
 
 
    
+    /*
+    LP_x = LP_z*    Lth[0] ;
+    LP_y = LP_z*    Lph[0] ;
+    RP_x = RP_z*    Rth[0] ;
+    RP_y = RP_z*    Rph[0] ; 
+    */
 
-    LP_x = LP_z*    tan( Lth[0] );
-    LP_y = LP_z*    tan( Lph[0] );
-    RP_x = RP_z*    tan( Rth[0] );
-    RP_y = RP_z*    tan( Rph[0] ); 
-
-
+    LP_x = LP_z*   -Lth[0] ;
+    LP_y = LP_z*   -Lph[0] ;
+    RP_x = RP_z*   -Rth[0] ;
+    RP_y = RP_z*   -Rph[0] ;     
     
 }
 
@@ -1998,6 +2001,7 @@ void momcalib::EventSelection(double ww){
     R_v.RotateX(   13.2/180.*3.14);
     L_v.RotateX( - 13.2/180.*3.14);
 
+        
 
     mm = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
 	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
@@ -2008,10 +2012,7 @@ void momcalib::EventSelection(double ww){
     mm_nnL = sqrt( (Ee + MTr - Ee_ - Ek)*(Ee + MTr - Ee_ - Ek)
 	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
 
-    //    mm_nnL =(mm_nnL-MnnL)*1000.;
-    //    cout<<"mm "<<mm<<endl;
-    
-    
+
 
    //--- Set Coincidence time ---------// 
 
@@ -2459,6 +2460,7 @@ void momcalib::EventSelection(double ww){
   if(nnnL==0)   weightnnL= 1.0;
   weightAl=weightAl*ww;
   weightAl_def=weightAl;
+  weight_def = weight;
 
 
   // chi square //
@@ -2545,7 +2547,9 @@ void momcalib::MomTuning(string ofname){
     cout<<"---------pk & pe tuning ------"<<endl;
     chi_sq[i]=0.0;
     weightAl=weightAl_def*(i+1);
+    //    weight=weight_def*(i+1);
     cout<<"weightAl "<<weightAl<<endl;
+    cout<<"weight "<<weight<<endl;
     chi_sq[i] = tune(Opt_par,i,0);
 
     }
@@ -2669,12 +2673,17 @@ double momcalib::Eloss(double yp, double z,char* arm){
   
   //  if(arm=="R")        x = - hrs_ang - yp; //yp : phi [rad] RHRS
   //  else if(arm=="L")   x = - hrs_ang + yp; //yp : phi [rad] LHRS
-  
+  //  if(arm=="R")        x = - hrs_ang - yp; //yp : phi [rad] RHRS
+  //  else if(arm=="L")   x = - hrs_ang + yp; //yp : phi [rad] LHRS
+  //  elase x=0.0;
+
+
+  // Gogami Model //
   if(arm=="R")        x = - hrs_ang + yp; //yp : phi [rad] RHRS
   else if(arm=="L")   x = - hrs_ang - yp; //yp : phi [rad] LHRS
   else x=0.0;
 
-
+  
   double ph[3],pl[2];
   double dEloss;
   bool high;
@@ -2943,7 +2952,8 @@ void momcalib::Fill(){
     TVector3 R_vb(RP_x, RP_y, RP_z);
     TVector3 L_vb(LP_x, LP_y, LP_z);
     R_vb.RotateX(   13.2/180.*3.14);
-    L_vb.RotateX( - 13.2/180.*3.14);    
+    L_vb.RotateX( - 13.2/180.*3.14);
+
 
    MM_Al_b = sqrt( (Ee + MAl - Ee_2 - Ek2)*(Ee + MAl - Ee_2 - Ek2)
 		 - (B_vb - L_vb - R_vb)*(B_vb - L_vb - R_vb) );
@@ -3483,9 +3493,9 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     Lp        = Lp   *PLr + PLm;
     
     //=============================//
+   
 
-
-    if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1; 
+   if(scale[i] && MT_f[9])Lp = Lp *2.21807/2.1*(1.0 + param[2*nParamTp]);
 
 
     //==== E loss Calib =====//
@@ -3511,14 +3521,15 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
     lbeta=Lp/Ee_; 
 
     //==== Right Hand coordinate =====//
-    rp_z = Rp/sqrt(1.0*1.0 + pow( tan(rth[i]) ,2.0) + pow( tan( rph[i] ),2.0) );
-    lp_z = Lp/sqrt(1.0*1.0 + pow( tan(lth[i]) ,2.0) + pow( tan( lph[i] ),2.0) );
+    //    rp_z = Rp/sqrt(1.0*1.0 + pow( rth[i]) ,2.0) + pow(  rph[i] ),2.0) );
+    //    lp_z = Lp/sqrt(1.0*1.0 + pow( lth[i]) ,2.0) + pow(  lph[i] ),2.0) );
+    rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i]);
+    lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
 
-
-    lp_x = lp_z *   tan( lth[i] );
-    lp_y = lp_z *   tan( lph[i] ); 
-    rp_x = rp_z *   tan( rth[i] );
-    rp_y = rp_z *   tan( rph[i] );
+    lp_x = lp_z *    lth[i] ;
+    lp_y = lp_z *    lph[i] ; 
+    rp_x = rp_z *    rth[i] ;
+    rp_y = rp_z *    rph[i] ;
 
 
     B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
@@ -3528,6 +3539,7 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
     R_v.RotateX(  13.2/180.*3.14);
     L_v.RotateX( -13.2/180.*3.14);
+
 
 
     mass = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
@@ -3549,10 +3561,10 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 
 
     if(mass_flag[i]==0 && scale[i]==0)      residual = (mass - mass_ref[i]); // Lambda H kinematics
-    else if(mass_flag[i]==1)                residual = (mass - mass_ref[i])*weight;  // weigth Sigma0:
-    else if(scale[i] && mass_flag[i]==0)    residual = (mass - mass_ref[i])*weightT;  // weigth Lambda T kinematics  
+    else if(mass_flag[i]==1)                residual = (mass - mass_ref[i])*weight;  // weight Sigma0:
+    else if(scale[i] && mass_flag[i]==0)    residual = (mass - mass_ref[i])*weightT;  // weight Lambda T kinematics  
 
-    else if(mass_flag[i]==3 )               residual = (mass_nnL - mass_ref[i])*weightnnL;  // weigth nnL
+    else if(mass_flag[i]==3 )               residual = (mass_nnL - mass_ref[i])*weightnnL;  // weight nnL
 
     else if(mass_flag[i]==2 )               residual = (mass_MgL - mass_ref[i])*weightAl;  // MgL events
 
@@ -3767,15 +3779,20 @@ void fcn_new(int &nPar, double* /*grad*/, double &fval, double* param, int /*ifl
     lbeta=Lp/Ee_; 
 
     //==== Right Hand coordinate =====//
-    rp_z = Rp/sqrt(1.0*1.0 + pow( tan(rth[i]) ,2.0) + pow( tan( rph[i] ),2.0) );
-    lp_z = Lp/sqrt(1.0*1.0 + pow( tan(lth[i]) ,2.0) + pow( tan( lph[i] ),2.0) );
-
-
-    lp_x = lp_z *   tan( lth[i] );
-    lp_y = lp_z *   tan( lph[i] ); 
-    rp_x = rp_z *   tan( rth[i] );
-    rp_y = rp_z *   tan( rph[i] );
-
+    /*
+    rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i] );
+    lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
+    lp_x = lp_z *   lth[i] ;
+    lp_y = lp_z *   lph[i] ; 
+    rp_x = rp_z *   rth[i] ;
+    rp_y = rp_z *   rph[i] ;
+    */
+    rp_z = Rp/sqrt(1.0*1.0 + rth[i]*rth[i] + rph[i]*rph[i] );
+    lp_z = Lp/sqrt(1.0*1.0 + lth[i]*lth[i] + lph[i]*lph[i] );
+    lp_x = lp_z *  -lth[i] ;
+    lp_y = lp_z *  -lph[i] ; 
+    rp_x = rp_z *  -rth[i] ;
+    rp_y = rp_z *  -rph[i] ;    
 
     B_v.SetXYZ(0.0,0.0,sqrt(Ee*Ee-Me*Me));
     R_v.SetXYZ(rp_x, rp_y, rp_z);
@@ -3784,7 +3801,7 @@ void fcn_new(int &nPar, double* /*grad*/, double &fval, double* param, int /*ifl
 
     R_v.RotateX(  13.2/180.*3.14);
     L_v.RotateX( -13.2/180.*3.14);
-
+    
 
     mass = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
 		 - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
@@ -3862,8 +3879,10 @@ double momcalib::tune(double* pa, int j, int MODE)
   int arm=1;
 
   if(MODE==0){
-    allparam=nParamTp*2;
-    arm=2;  }
+    allparam=nParamTp*2+1;
+    arm=2;
+    
+  }
 
 
 
@@ -3988,8 +4007,11 @@ double momcalib::tune(double* pa, int j, int MODE)
     if(MODE==0){
       minuit -> GetParameter(i,Opt_par[i],er);
       if(i<nParamTp){minuit -> GetParameter(i,Opt_par_R[i],er);}// RHRS momentum parameter
-      else if(nParamTp<=i){minuit -> GetParameter(i,Opt_par_L[i-nParamTp],er);}// RHRS momentum parameters
-      
+      else if(nParamTp<=i && i<2*nParamTp){minuit -> GetParameter(i,Opt_par_L[i-nParamTp],er);}// RHRS momentum parameters
+      else if(i==2*nParamTp){
+	minuit -> GetParameter(i,Opt_scale,er);
+	cout<<"scale Param is "<<Opt_scale<<endl;
+      }
       
     }else if(MODE==-1){minuit -> GetParameter(i,Opt_par_R[i],er);// RHRS momentum parameters
     }else if(MODE==1){minuit -> GetParameter(i,Opt_par_L[i],er);// LHRS momentum parameters
@@ -4112,7 +4134,6 @@ double calcf2t_zt(double* P, double xf, double xpf,
                  double yf, double ypf){
 // ###############################################
 
-  int nnz=3;  
 
   const int nMatT=nnz; 
   const int nXf=nnz;

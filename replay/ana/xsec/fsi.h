@@ -143,7 +143,18 @@ public:
   TGraphErrors* gradI1;
   TGraphErrors* gradI2; 
   TGraphErrors* gradI3;
+
   
+  TGraphErrors* grad_Cha_1s;
+  TGraphErrors* grad_Cha_1t;
+  TGraphErrors* grad_Cha_2s;
+  TGraphErrors* grad_Cha_2t;
+  TGraphErrors* grad_Cha_3s;
+  TGraphErrors* grad_Cha_3t;
+  
+  TF1* frad_ERA_1s;
+  TF1* frad_ERA_2s;
+  TF1* frad_ERA_3s;
   
   TGraphErrors* gradl1[20];
   TGraphErrors* gradl2[20];
@@ -220,6 +231,7 @@ public:
   TF1* fJl[100];
   TF1* fJls[100];
   TF1* fJlt[100];
+  
   TH1F* hmm1;
   TH1F* hmm_fsi1;
   TH1F* hmm_fsi2;

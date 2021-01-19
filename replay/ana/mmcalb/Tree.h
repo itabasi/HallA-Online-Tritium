@@ -47,8 +47,8 @@ public:
   double rbx, rby;  // from raster
   double bpmaws, bpmbws;  // Sum of BPM raw cur
   double HALLA_p; //beam momentum  
-
-
+  double R_nmr,L_nmr,R_P0rb,L_P0rb;
+  
 ///////////////////
 // HRS Right Arm //
   

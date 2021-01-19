@@ -32,6 +32,8 @@ struct TreeBranch{
   double missing_mass_nnL_all;
   double missing_mass_MgL_all;
   double missing_mass_H3L_all;
+  double R_nmr, L_nmr;
+  double R_P0rb,L_P0rb;
   double mm_tuned;
   double momR, momL;
   double momRz, momLz;
