@@ -1,7 +1,6 @@
 
 //bool rhrs=true;
 bool rhrs = true;
-//bool rhrs = false;
 bool coll = false;
 void calcAcc(){
 
@@ -15,38 +14,28 @@ void calcAcc(){
   //    int Ntot = 14422;
   //    Ntot = 1442207;
   int Ntot=0;
-  string ofpname; // output file  
+  
   if(rhrs){
     ifname ="../rootfiles/simc/acceptance/single_RHRS_new.root";
-    ofpname="./param/accept/RHRS_accept.param"; // output file
     //    Ntot = 1790339;
     Ntot = 2550000;
-    
     if(coll){
       ifname ="../rootfiles/simc/acceptance/single_RHRS_coll.root";
-      ofpname="./param/accept/RHRS_accept_wcoll.param"; // output file
       Ntot = 3005116;
     }    
   }else{ 
     ifname ="../rootfiles/simc/acceptance/single_LHRS.root";
-    ofpname="./param/accept/LHRS_accept.param"; // output file
     //    Ntot = 1816284;
     Ntot = 2580001;
 
     if(coll){
       ifname ="../rootfiles/simc/acceptance/single_LHRS_coll.root";
-      ofpname="./param/accept/LHRS_accept_wcoll.param"; // output file
       Ntot = 3066520;
     }
   }
 
   string  ifname_gen ="../rootfiles/simc/acceptance/single_gen.root";
 
-  
-  ofpname="./param/test.param"; // output file test mode
-
-
- 
   TChain* T =new TChain("SNT");
   T->Add(Form("%s",ifname.c_str()));
   TChain* Tg =new TChain("SNT");
@@ -54,16 +43,9 @@ void calcAcc(){
 
 
   // parameter file //
-  //  string ofpname="./param/accept/RHRS_accept.param"; // output file
-
-  ofstream ofp(ofpname.c_str());
-
-  ofp <<"######## Acceptance parameters ##########################"<<endl;
-  ofp <<"## Auther K. Itabashi "<<endl;
-  ofp <<"## Acceptance(mom) =Sum_theta dOmega(mom,theta) "<<endl;
-  ofp<<"## mom [GeV]  # theta [rad]  # dOmega(mom,theta) "<<endl;
-  //
-  //
+  string ifpname="./param/test.param"; // output file
+  ofstream ofp(ifpname.c_str());
+	  
 
   int RevID,LevID;
   float Rp_gen,Rth_gen,Rph_gen,Rx_gen,Ry_gen,Rz_gen;
@@ -253,13 +235,8 @@ void calcAcc(){
     double x_gen,y_gen,z_gen;
     double sum=0.0;
     double width_y =theta_gen_accep/(double)nbin;
-    double accept =0.0;
-    
-    // x : momentum
-    // y : theta
     
     for(int xbin=0;xbin<nbin;xbin++){
-      accept =0.0;
       for(int ybin=0;ybin<nbin;ybin++){
 	if(rhrs){
 	  x = hRp_th_acc->GetXaxis()->GetBinCenter(xbin);
@@ -278,17 +255,10 @@ void calcAcc(){
 	}
 	
 
-	//	if(z_gen>0 && z>0 && z_gen>z)z = z/z_gen*2.0*acos(-1.0);
-	//       	else if( z > z_gen && z_gen>0 && z>0)z=  2.0*acos(-1.0);
-	//	else z =0.0;
+	if(z_gen>0 && z>0 && z_gen>z)z = z/z_gen*2.0*acos(-1.0);
+       	else if( z > z_gen && z_gen>0 && z>0)z=  2.0*acos(-1.0);
+	else z =0.0;
 
-
-	if(z_gen>0 && z>0 && z_gen>z)z = z/z_gen*2.0*acos(-1.0)*width_y*sin(y);
-	else if( z > z_gen && z_gen>0 && z>0)z =  2.0*acos(-1.0)*width_y*sin(y);
-	else z =0.0;	
-
-	accept +=z;
-	
 	if(rhrs){
 	  hRp_th_acc->Fill(x,y,z);
 	}else{
@@ -297,18 +267,15 @@ void calcAcc(){
 
 
 	if(z>1.)cout<<"x "<<x<<" y "<<y<<" z "<<z<<" z_gen "<<z_gen<<endl;
-
-	ofp << x <<" " << y <<" "<< z <<endl;	
+	ofp << x <<" " << y <<" "<< z/2.0/acos(-1.0)/theta_gen_accep <<endl;
+	
 	if(xbin==nbin/2){
 	  hth2->Fill(y,z);
 	  sum +=z*sin(y)*width_y;
 	}
 
       }
-      
     }
-
-    
     cout<<" integral theta "<<sum<<endl;
     double th1,th2,th0,xx;
     for(int th=0;th<nbin;th++){
@@ -323,6 +290,7 @@ void calcAcc(){
       if(th2>0 && th1>0)th0=th2/th1;
       else th0=0.0;
       hth_acc->Fill(xx,th0*2.0*acos(-1.0));
+      //      cout<<"xx "<<xx<<" th "<<th0<<endl;
     }
 
 

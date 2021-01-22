@@ -3,11 +3,23 @@
 #include <TLorentzVector.h>
 #include "define.h"
 #include "Param.h"
+#include "Tree.h"
 #include <complex.h>
 const int nmax =200;
 const int nmax2 =200;
-class xsec{
 
+
+
+//---------- New Root ----------//
+struct TreeBranch{
+
+  double mm,xsec,xsec_cm,dOmega_RHRS;
+  
+};
+static TreeBranch tr;
+
+
+class xsec : public Tree{
 
   
 public:
@@ -17,9 +29,14 @@ public:
   //  bool SetVal(string line,string name, string val);
   string SetVal(string line,string name);
   void Calc_XS();
+  void SetBranch(string ifrname);
+  void NewRoot(string ofrname);
+  void Loop();
   void SetLAccept(string ifpname);
   void SetLAccept_new(string ifpname);
   void SetRAccept(string ifpname);
+  double GetAccept_R(double Rp, double Rth);
+  double Efficiency(string mode);
   double PhaseShift();
   double Lab_to_CM(TLorentzVector R_v, TLorentzVector VF_v);
   complex<double> vlkkp(double skp,double skpp,int lcall);
@@ -33,18 +50,42 @@ public:
   double dOmega_R(double Ek  , double theta);
   double NTarget(string mode);
   double NKaon(double Ek);
+  double GetXS(TLorentzVector B_v, TLorentzVector L_v, TLorentzVector R_v);
+
+
+
+
+  //---------- Tree ------------//
+  TChain* T;
+  int ENum;
+  double R_E,L_E;
+  TFile* ofr;
+  TTree* Tnew;
+
+  TH1D* hmm_xsec;
+  TH1D* hmm_xsec_cm;
+  TH1D* hmm;
+  TH1D* hRp;
+  TH1D* hRth;
+  TH2D* hRp_Rth;
+  double Bp_c,Rp_c,Lp_c;
+  double Rth_c,Rph_c,Lth_c,Lph_c;
+  
   //---------- SetParam ----------//
   string RHRS_accept_file;
   string LHRS_accept_file;
   string mode;
-  double Nhyp,Nhyp2;  
+  double Nhyp,Nhyp2,Nt;  
   double Bp_mean,Lp_mean,Rp_mean;
   double Lpx,Lpy,Lpz,Bp,Ee,Ee_,Lp,Rp,Rpx,Rpy,Rpz,Ek;
   double theta_L_max,theta_R_max;
   double hrs_angle = 13.2*PI/180.;
   double gen_theta_accept =  6.7272080607340551e-2;
-  double Qc;
-  double kaon_survival_ratio,kaon_eff;
+  double kaon_survival_ratio,kaon_eff,eff_ac,eff_vz,eff_chi,eff_coin,eff_track,eff_det,eff_daq;
+  double dOmega_RHRS;
+  double Qc, Ngamma; 
+  double Mtar, Mhyp;
+  
   // ----- SetXS ----//
   int nEe_=0; int nEk=0;
   int nth   = 100;

@@ -8,7 +8,7 @@ Beam momentum: 4.318 GeV/c
 RHRS momentum: 1.823 GeV/c
 LHRS momentum: 2.100 GeV/c
 Beam Charge: 4.7 C
-RHRS Acceptance file: ./param/param/RHRS_accept.param
-LHRS Acceptance file: ./param/param/LHRS_accept.param
+RHRS Acceptance file: ./param/accept/RHRS_accept.param
+LHRS Acceptance file: ./param/accept/LHRS_accept.param
 Number of Hypernuclei: 1500
 Number of Hypernuclei2: 260

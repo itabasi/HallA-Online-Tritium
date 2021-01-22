@@ -16,7 +16,7 @@ CXXLIBS = $(ROOTLIBS)
 
 
 TARGET1= xsec
-OBJS1=   xsec.o Setting.o 
+OBJS1=   xsec.o Setting.o Tree.o ParamMan.o
 TARGET2= fsi
 OBJS2=   fsi.o Setting.o 
 TARGET3= QFsim

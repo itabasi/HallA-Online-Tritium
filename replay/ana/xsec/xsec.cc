@@ -83,9 +83,25 @@ void xsec::SetParam(string ifpname){
   Ee  = sqrt(Bp*Bp + Me*Me);
   Ee_ = sqrt(Lp*Lp + Me*Me);
   Ek  = sqrt(Rp*Rp + MK*MK);
+  
   SetRAccept(RHRS_accept_file);
   SetLAccept(LHRS_accept_file);
 
+
+  cout<<"Charge : "<<Qc<<" [C] "<<endl;
+  Ngamma = NGamma(Qc);
+  cout<<"Ngamma : "<<Ngamma<<endl;
+  Nt = NTarget(mode);
+  cout<<"Nt : "<<Nt<<endl;
+  cout<<"Nhyp "<<Nhyp<<endl;
+
+  Mtar,Mhyp;
+  if(mode=="H"){Mtar = Mp; Mhyp = ML;}
+  else if(mode=="T"){Mtar = MT; Mhyp = MnnL;}
+  else if(mode=="he"){Mtar = MHe3; Mhyp = MH3L;}
+
+  
+  
 }
 
 //////////////////////////////////////////////////////////////////
@@ -176,8 +192,8 @@ double xsec::NHyp(double Nhyp){
 
 
   //======== Uniform Nhyp(Ek) ==========//
-  Nhyp = Nhyp / double(nEk);
-  
+  //  Nhyp = Nhyp / double(nEk);
+  /*  
   for(int iEk=0;iEk<nEk;iEk++){
     accept = 0.0;
     for(int ith=0;ith<nth_R;ith++){
@@ -187,15 +203,58 @@ double xsec::NHyp(double Nhyp){
 	accept += (dOmega_R(RE[iEk],theta)* sin(theta)*width_theta*width_phi);	
       }
     }
-    
-    if(accept>0)NHYP += Nhyp/accept;
+  */
 
-  } // End Ek
+  accept = 0.0;
+  for(int iEk=0;iEk<nEk;iEk++){
+    for(int ith=0;ith<nth_R;ith++)
+      accept += dOmega_R(RE[iEk],theta);	
+    if(accept>0)NHYP += Nhyp/accept;
+		   
+		   } // End Ek
   cout<<"width_phi "<<width_phi<<endl;
   cout<<"Nhyp "<<Nhyp<<" NHYP "<<NHYP<<endl;
   return NHYP;
   
 }
+
+
+double xsec::GetAccept_R(double Rp, double Rth){
+
+  double accept =0.0;
+  double srad,rad;
+  double theta,phi;
+  double width_Ek =(REMax -REMin)/double(nEk);
+  double width_theta =theta_R_max/(double)nth_R;
+  double width_phi =2.0*PI/(double)nph_R;
+  int iEk, ith;
+  double accept_total=0.0;
+  for(int i=0;i<nEk;i++)
+    if(Rp<RE[i] || i ==nEk-1){ iEk =i; break;}
+  for(int i=0;i<nth_R;i++)
+    accept_total += ROmega[iEk][i];
+
+  
+    //    if(Rth	< RTheta[i] || i==nth_R-1){
+    //	  ith = i; width_theta = RTheta[i+1]- RTheta[i]; break;}
+    //  accept = ROmega[iEk][ith];
+
+  
+
+
+  
+
+  return accept_total;
+  
+
+  //  if(accept_total <=0.0) return 0.0;
+  //  return accept/accept_total;  // [sr]
+
+
+
+  
+}
+
 
 /////////////////////////////////////////////////////////////////////
 
@@ -266,25 +325,22 @@ double xsec::NGamma(double Qc){
   for(int iEe_=0; iEe_<nEe_;iEe_++){
     for(int ith=0;ith<nth;ith++){
       theta = theta_L_max*(double)ith/(double)nth;
-      //      theta = gen_theta_accept*(double)ith/(double)nth;
-      for(int iph=0;iph<nph;iph++){
-	phi   = 2.0*PI*double(iph)/double(nph);
-	Lp = sqrt(LE[iEe_]*LE[iEe_] - Me*Me);
-	Lpx = Lp*sin(theta)*cos(phi);
-	Lpy = Lp*sin(theta)*sin(phi);
-	Lpz = Lp*cos(theta);
-	LP_v.SetXYZ(Lpx,Lpy,Lpz);
-	LP_v = HallACoordinate(LP_v,false);
-       	L_v.SetPxPyPzE(LP_v.X(),LP_v.Y(),LP_v.Z(),LE[iEe_]);
-	VPF += VP_Flux(B_v,L_v)*dOmega_L(LE[iEe_],theta)*sin(theta)*width_Ee_*width_theta*width_phi;
-      }
+      Lp = sqrt(LE[iEe_]*LE[iEe_] - Me*Me);
+      Lpx = Lp*sin(theta)*cos(phi);
+      Lpy = Lp*sin(theta)*sin(phi);
+      Lpz = Lp*cos(theta);
+      LP_v.SetXYZ(Lpx,Lpy,Lpz);
+      LP_v = HallACoordinate(LP_v,false);
+      L_v.SetPxPyPzE(LP_v.X(),LP_v.Y(),LP_v.Z(),LE[iEe_]);
+      VPF += VP_Flux(B_v,L_v)*dOmega_L(LE[iEe_],theta)*width_Ee_;
+
     }
   }
-
+  
 
   Ngamma =VPF*(Qc/e);    
-  cout<<"Virtual Photon Flux ; "<<VP_Flux(B_v,L_v) <<" [/GeV/sr]"<<endl;
-  cout<<"Integral VP Flux : "<<VPF<<endl;
+  //  cout<<"Virtual Photon Flux ; "<<VP_Flux(B_v,L_v) <<" [/GeV/sr]"<<endl;
+  //  cout<<"Integral VP Flux : "<<VPF<<endl;
 
     
   return Ngamma;
@@ -332,9 +388,11 @@ double xsec::dOmega_R(double Ek, double theta){
   double iEk,ith;
   double dOmega=0.0;
 
+
+  
   for(int i=0; i<nEk;i++){    
     iEk = RE[i];
-    if(iEk >= Ek){
+    if(iEk >= Ek || i==nEk-1){
       if(theta > theta_R_max){
        	dOmega = ROmega[i][nth-1];
 	return dOmega;
@@ -347,16 +405,15 @@ double xsec::dOmega_R(double Ek, double theta){
 	  else if(i == 0)dOmega = ROmega[i][j];
 	  else if(ROmega[i][j] >0 && ROmega[i-1][j]>0)dOmega = (ROmega[i][j] + ROmega[i-1][j])/2.0;
 	  else if(ROmega[i][j] >0)dOmega = ROmega[i][j];
-
-	  //	  cout<<" Ek "<<RE[i]<<" theta "<<theta<<" dOmega "<<dOmega<<endl;
 	  return dOmega;
 	}
       }
     }
   }
 
+
   
-  return 0.0;
+  return -1.0;
   
 }
 
@@ -493,17 +550,31 @@ void xsec::SetRAccept(string ifpname){
 
 ////////////////////////////////////////////////////////////////////////
 
+double xsec::Efficiency(string mode){
+
+  double eff_total=1.0;
+  kaon_survival_ratio = 0.171; eff_total *=kaon_survival_ratio;
+  //  kaon_eff = 0.9;
+  eff_ac    = 0.59;  eff_total *= eff_ac;
+  eff_vz    = 0.83;  eff_total *= eff_vz;
+  eff_coin  = 0.97;  eff_total *= eff_coin;
+  eff_track = 0.98;  eff_total *= eff_track;
+  eff_chi   = 1.0;   eff_total *= eff_chi;
+  eff_daq   = 0.95;  eff_total *= eff_daq;
+
+  
+  return eff_total;
+
+}
+
+///////////////////////////////////////////////////////////////////////
 
 void xsec::Calc_XS(){
-  cout<<"Charge : "<<Qc<<" [C] "<<endl;
-  double Ngamma = NGamma(Qc);
-  cout<<"Ngamma : "<<Ngamma<<endl;
-  double Nt = NTarget(mode);
-  cout<<"Nt : "<<Nt<<endl;
-  cout<<"Nhyp "<<Nhyp<<endl;
-  double  XS,XS2;
+  double XS,XS2;
   double XS_CM;
-  XS = NHyp(Nhyp)/Nt/Ngamma/kaon_survival_ratio/kaon_eff*cm_to_barn*1.0e9;
+  double eff_total = Efficiency("H");
+  cout<<" Efficency : "<<eff_total<<endl;
+  XS = NHyp(Nhyp)/Nt/Ngamma/eff_total*cm_to_barn*1.0e9;
   
 
   // XS calc CM coordinate
@@ -516,10 +587,9 @@ void xsec::Calc_XS(){
   VF_v = Bv - Lv;
   XS_CM = XS*Lab_to_CM(Rv,VF_v);
 
-
-  if(mode=="H")  XS2  = NHyp(Nhyp2)/Nt/Ngamma/kaon_survival_ratio *cm_to_barn*1.0e9;
+  if(mode=="H")  XS2  = NHyp(Nhyp2)/Nt/Ngamma/eff_total *cm_to_barn*1.0e9;
   cout<<"Cross Section : "<<XS<<" [nb/sr]"<<endl;
-  if(mode=="H")  cout<<" Cross Section2 : "<<XS2<<" [nb/sr]"<<endl;
+  if(mode=="H")  cout<<"Cross Section(Sigma) : "<<XS2<<" [nb/sr]"<<endl;
 
   cout<<"Cross Section (CM): "<<XS_CM<<" [nb/sr]"<<endl;
 
@@ -527,6 +597,194 @@ void xsec::Calc_XS(){
 }
 
 /////////////////////////////////////////////////////////////////////////
+
+double xsec::GetXS(TLorentzVector B_v, TLorentzVector L_v, TLorentzVector R_v){
+
+
+  double XS;
+  double XS_CM;
+  double accept_R = 2.0*PI*(1.0 - cos(theta_R_max));
+  // B_v : 4-vector in Beam 
+  // L_v : 4-vector in LHRS LHRS coordinate
+  // R_v : 4-vector in RHRS RHRS coordinate
+  //  double Nt = NTarget(mode);
+  //  double Ngamma = NGamma(Qc);
+  double effifiency = Efficiency(mode);
+  double Bp,Bpx,Bpy,Bpz;
+  double Rp,Rpx,Rpy,Rpz, Rth,Rph,Rz;
+  double Lp,Lpx,Lpy,Lpz,Lth,Lph,Lz;
+  double ER,EL,EB;
+  Rp = R_v.P(); Rpx = R_v.Px(); Rpy = R_v.Py(); Rpz = R_v.Pz();
+  Lp = L_v.P(); Lpx = L_v.Px(); Lpy = L_v.Py(); Lpz = L_v.Pz();
+  Bp = B_v.P(); Bpx = B_v.Px(); Bpy = B_v.Py(); Bpz = B_v.Pz();
+  ER = R_v.E(); EL = L_v.E();   EB = B_v.E();
+  //  Rth = Rpz/Rpx; Rph = Rpz/Rpy;
+  //  Lth = Lpz/Lpx; Lph = Lpz/Lpy;
+  Rth = R_v.Theta(); Rph = R_v.Phi();  // [rad]
+  Lth = L_v.Theta(); Lph = L_v.Phi();  // [rad]
+
+  accept_R = GetAccept_R(Rp, Rth);
+  if(accept_R<=0) return 0.0;
+  double eff_total = Efficiency(mode);
+  XS    = 1./Nt/Ngamma/accept_R/eff_total*cm_to_barn;
+
+
+  return XS; // [b/sr]
+  
+  
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////
+
+
+void xsec::SetBranch(string ifrname){
+
+  add_tree(ifrname);
+  pack_tree();
+  readtreeHRSR();
+  readtreeHRSL();
+
+  tree->SetBranchStatus("Bp_c"     ,1  );
+  tree->SetBranchStatus("Rp"     ,1  );
+  tree->SetBranchStatus("Lp"     ,1  );
+  tree->SetBranchStatus("Rth"      ,1  );
+  tree->SetBranchStatus("Rph"      ,1  );
+  tree->SetBranchStatus("Lth"      ,1  );
+  tree->SetBranchStatus("Lph"      ,1  );
+  
+  tree->SetBranchAddress("Bp_c"          ,&Bp_c );
+  tree->SetBranchAddress("Lp"          ,&Lp_c );
+  tree->SetBranchAddress("Rp"          ,&Rp_c );
+  tree ->SetBranchAddress("Rth"          ,&Rth_c);
+  tree ->SetBranchAddress("Lth"          ,&Lth_c);
+  tree ->SetBranchAddress("Rph"          ,&Rph_c);
+  tree ->SetBranchAddress("Lph"          ,&Lph_c);
+
+
+  
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+void xsec::NewRoot(string ofrname){
+
+  ofr  = new TFile(ofrname.c_str(),"recreate");
+  Tnew = new TTree("T","T");
+  Tnew = tree->CloneTree(0);
+  Tnew ->Branch("mm",&tr.mm,"mm/D");
+  Tnew ->Branch("xsec",&tr.xsec,"xsec/D");
+  Tnew ->Branch("xsec_cm",&tr.xsec_cm,"xsec_cm/D");
+  Tnew ->Branch("dOmage_R",&tr.dOmega_RHRS,"dOmega_R/D");
+
+
+  //======= Make Hist ==========//
+  int bin_mm;
+  double min_mm,max_mm;
+  min_mm =-100.;
+  max_mm = 200;
+  bin_mm=(int)(max_mm - min_mm); // 1 MeV Bin
+  hmm =new TH1D("hmm","Missing Mass ; -B_{#Lambda} [MeV] ; Counts/2MeV",bin_mm,min_mm,max_mm);
+  hmm_xsec =new TH1D("hmm_xsec","Missing Mass ; -B_{#Lambda} [MeV] ; d#sigma/d#Omega_{K} [(nb/sr) / 1MeV]",bin_mm,min_mm,max_mm);
+  hmm_xsec_cm =new TH1D("hmm_xsec_cm","Missing Mass ; -B_{#Lambda} [MeV] ; d#sigma/d#Omega_{K}^{C.M.} [(nb/sr) / 1MeV]",bin_mm,min_mm,max_mm);
+
+
+
+  /*
+  bin_Rp =(int)(REMax -REMin)*1000; // Bin size MeV
+  bin_Rth =(int)(theta_R_max -0.0)*1000; // bin size mrad
+
+  hRp  = new TH1D("hRp","",bin_Rp,REMin,REMax);
+  hRth = new TH1D("hRth","",bin_Rth,0.0,theta_R_max);
+  hRp_Rth = new TH2D("hRp_Rth",bin_Rp,REMin,REMax,bin_Rth,0.0,theta_R_max);
+  
+  */
+  
+  
+}
+
+
+
+////////////////////////////////////////////////////////////////////////
+
+void xsec::Loop(){
+
+  cout<<"===================================="<<endl;
+  cout<<"=============< Loop >==============="<<endl;
+  cout<<"===================================="<<endl;
+
+
+
+  
+  int ENum = tree->GetEntries();
+  
+  for(int iev=0;iev<ENum;iev++){
+
+   
+    tree->GetEntry(iev);
+
+
+	//===== Initialization =========//
+	tr.mm   =-1000.;
+	tr.xsec =-1000.;
+	//==============================//
+	Ee   = sqrt(Bp_c*Bp_c + Me*Me);
+	L_E  = sqrt(Lp_c*Lp_c + Me*Me);
+	R_E  = sqrt(Rp_c*Rp_c + MK*MK);
+	
+	//===== Right Hand Coordinate ====//
+	double R_pz = Rp_c/sqrt(1.0*1.0 + Rth_c* Rth_c + Rph_c* Rph_c );
+	double R_px = R_pz * Rth_c ;
+	double R_py = R_pz * Rph_c ;
+	double L_pz = Lp_c/sqrt(1.0*1.0 +  Lth_c* Lth_c +  Lph_c* Lph_c);
+	double L_px = L_pz * Lth_c ;
+	double L_py = L_pz * Lph_c ;
+	
+    
+	TVector3 L_v3,R_v3,B_v3;
+	B_v3.SetXYZ(0.0,0.0,Bp_c);
+	L_v3.SetXYZ(L_px,L_py,L_pz);
+	R_v3.SetXYZ(R_px,R_py,R_pz);
+	
+	TLorentzVector L_v,R_v,B_v, T_v,MM_v;
+	B_v.SetPxPyPzE(0.0,0.0,Bp,Ee);
+	T_v.SetPxPyPzE(0.0,0.0,0.0,Mtar);
+	L_v.SetPxPyPzE(L_px,L_py,L_pz,L_E);
+	R_v.SetPxPyPzE(R_px,R_py,R_pz,R_E);
+	
+  
+	// === Get XS =======//
+	// HRS coordinate //
+	tr.xsec = GetXS(B_v,L_v,R_v);
+	tr.xsec *=1.0e9; // [b/sr] -> [nb/sr]
+	tr.dOmega_RHRS = dOmega_RHRS;
+	//===== Calc MM ======//
+	// Rotate X HRS to Hall A coordinate
+	R_v.RotateX( 13.2/180.*PI);
+	L_v.RotateX(-13.2/180.*PI);
+	MM_v = B_v + T_v - L_v -R_v;
+	tr.mm = (MM_v.Mag() - Mhyp)*1000.; // -BL [MeV]
+	tr.xsec_cm = Lab_to_CM(R_v, B_v - L_v); // CS in CM 
+	hmm->Fill(tr.mm);
+	hmm_xsec->Fill(tr.mm,tr.xsec);
+       	hmm_xsec_cm->Fill(tr.mm, tr.xsec * tr.xsec_cm);
+	Tnew->Fill();
+
+    
+    if(iev%(ENum/10)==0) cout<<"Filled "<<iev<<" / "<<ENum<<endl;
+  } // END LOOP
+
+
+  //======= Write =======//
+
+  Tnew        -> Write();
+  hmm         -> Write();
+  hmm_xsec    -> Write();
+  hmm_xsec_cm -> Write();
+  
+}
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -540,34 +798,31 @@ int main(int argc, char** argv){
   string ifname = "../rootfiles/momcalib/test.root";
   string ofname = "../rootfiles/momcalib/test.root";
   string ofMTPname ="";
-  string pname ="./param/Lam_data.in";
+  string pname ="./input/accept/Lam_data.in";
   extern char *optarg;
 
-  while((ch=getopt(argc,argv,"h:s:w:f:s:bcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:r:w:f:s:bcop"))!=-1){
     switch(ch){
       
       
     case 'f':
       pname = optarg;
-      cout<<"input filename : "<<ifname<<endl;
+      cout<<"input filename : "<<pname<<endl;
       break;
 
     case 's':
-
       ifname = optarg;
-      cout<<"output root filename : "<<ofname<<endl;      
+      cout<<"input root filename : "<<ifname<<endl;      
       break;      
       
     case 'r':
-
       ofname = optarg;
       cout<<"output root filename : "<<ofname<<endl;      
       break;
-
       
     case 'w':
       ofMTPname  = optarg;
-      cout<<"output new parameter filename : "<<ofMTPname<<endl;      
+      cout<<"output new parameter filename : "<<ofMTPname<<endl;
       break;
 
       
@@ -575,7 +830,6 @@ int main(int argc, char** argv){
       cout<<"BACH MODE!"<<endl;
       break;
       
-
     case 'h':
       cout<<"-f : input root  filename"<<endl;
       cout<<"-m : input matrix filename"<<endl;      
@@ -598,8 +852,8 @@ int main(int argc, char** argv){
 
 
 
-  string name_LAcc ="./param/LHRS_accept.param";
-  string name_RAcc ="./param/test.param";
+  string name_LAcc ="./param/accept/LHRS_accept.param";
+  string name_RAcc ="./param/accept/RHRS_accept.param";
   
   TApplication *theApp =new TApplication("App",&argc,argv);
   gSystem->Load("libMinuit");
@@ -611,6 +865,9 @@ int main(int argc, char** argv){
   //  XS->SetRAccept(name_RAcc);
   XS->Calc_XS();
   // double test=  XS->PhaseShift();
+  XS -> SetBranch(ifname);
+  XS -> NewRoot(ofname);
+  XS -> Loop();
   gSystem->Exit(1);
   theApp->Run();
 

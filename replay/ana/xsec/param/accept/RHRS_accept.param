@@ -1,7 +1,7 @@
 ######## Acceptance parameters ##########################
 ## Auther K. Itabashi 
-## Acceptance(mom) =Sum_theta dOmega(mom,theta) 
-## mom [GeV]  # theta [rad]  # dOmega(mom,theta) 
+## Acceptance(mom) =Sum_theta dOmega(mom,theta)
+# mom [GeV]  # theta [rad] # dOmega(mom,theta) 
 1.73728 -0.00033636 0
 1.73728 0.00033636 0
 1.73728 0.00100908 0

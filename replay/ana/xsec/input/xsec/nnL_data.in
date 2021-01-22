@@ -3,12 +3,12 @@
 ## H(e,e'K+)L/S XSection Parameters #####
 #########################################
 # mode H: H(e,e'K+), T: 3H(e,e'K+) 3He: 3He(e,e'K+), Al: 27Al(e,e'K+)  
-mode: H
+mode: T
 Beam momentum: 4.318 GeV/c
 RHRS momentum: 1.823 GeV/c
-LHRS momentum: 2.100 GeV/c
-Beam Charge: 4.7 C
-RHRS Acceptance file: ./param/param/RHRS_accept.param
-LHRS Acceptance file: ./param/param/LHRS_accept.param
-Number of Hypernuclei: 1500
-Number of Hypernuclei2: 260
+LHRS momentum: 2.218 GeV/c
+Beam Charge: 16.6 C
+RHRS Acceptance file: ./param/accept/RHRS_accept.param
+LHRS Acceptance file: ./param/accept/LHRS_accept.param
+Number of Hypernuclei: 3000
+

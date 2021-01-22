@@ -4,7 +4,7 @@
 # theta_gen_acceptance = 6.7272080607340551e-2;
 # dtheta = theta_gen_acceptance/100.
 #####################################
-#1 mom #2 theta #3 weight Acceptance
+#1 mom [GeV] #2 theta [rad] #3 weight Acceptance
 2.00456 -0.00033636 0
 2.00456 0.00033636 0
 2.00456 0.00100908 0

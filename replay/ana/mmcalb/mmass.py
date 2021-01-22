@@ -63,7 +63,8 @@ root_dir="../rootfiles/mmass/ana_Lambda/"+str(dir_name)
 pdf_dir ="../pdf/mmass/ana_Lambda/"+str(dir_name)
 # runlist_dir ="../run_list/nnlambda/" 
 runlist_dir ="../run_list/nnlambda/mmass_nmr" # with NMR root files 2021/1/18
-singleroot_dir="../rootfiles/mmass/ana_Lambda/initial"
+#singleroot_dir="../rootfiles/mmass/ana_Lambda/initial"
+singleroot_dir="../rootfiles/mmass/ana_Lambda/initial_nmr"  #  with NMR root files 2021/1/20
 
 
 
