@@ -14,7 +14,7 @@ const int nmax2 =200;
 struct TreeBranch{
 
   double mm,xsec,xsec_cm,dOmega_RHRS;
-  
+  double RpathL;
 };
 static TreeBranch tr;
 
@@ -36,7 +36,7 @@ public:
   void SetLAccept_new(string ifpname);
   void SetRAccept(string ifpname);
   double GetAccept_R(double Rp, double Rth);
-  double Efficiency(string mode);
+  double Efficiency(string mode, TLorentzVector Rz, double RpathL);
   double PhaseShift();
   double Lab_to_CM(TLorentzVector R_v, TLorentzVector VF_v);
   complex<double> vlkkp(double skp,double skpp,int lcall);
@@ -70,7 +70,9 @@ public:
   TH2D* hRp_Rth;
   double Bp_c,Rp_c,Lp_c;
   double Rth_c,Rph_c,Lth_c,Lph_c;
-  
+  int ntr_r,ntr_l;
+  double mm_nnL, dpe,dpe_,dpk;
+  int pid_cut, z_cut,ct_cut;
   //---------- SetParam ----------//
   string RHRS_accept_file;
   string LHRS_accept_file;

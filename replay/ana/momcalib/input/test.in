@@ -1,0 +1,18 @@
+################################################
+### E12-17-003 Experiment                  #####
+## H(e,e'K+)L/S Momentum Tuning Parameters #####
+################################################
+## HRS arm C : RHRS-LHRS, L : LHRS , R : RHRS
+HRS arm: C
+Tuning mode: 0
+Target: H
+F1TDC mode: 1
+Al Tuning: 0
+Initial mode: 0
+tuning order: 3
+iteration: 1
+#Input Run List: 
+Input Root: ../rootfiles/momcalib/momcalib_init/Lambda_small_OleH_all.root
+Input matrix: matrix/momcalib_matrix_3rd.list
+Output matrix: matrix/test/test
+Output Root: ../rootfiles/momcalib/test.root

@@ -84,13 +84,13 @@ void ana::matrix(string mtparam){
   MT_p[3] = true;  // RHRS phi correction
   //--------- LHRS -----------------------//
   MT_p[4] = true;  // LHRS z correction
-  MT_p[5] = true;  // LHRS raster correction
+  //  MT_p[5] = true;  // LHRS raster correction
   MT_p[6] = true;  // LHRS theta correction
   MT_p[7] = true;  // LHRS phi correction
   //-------- momentum calibration ---------//
-  MT_p[8] = true; // RHRS momentum correction  
-  MT_p[9] = true; // LHRS momentum correction  
-  ploss = true;  // Energy Loss
+  //  MT_p[8] = true; // RHRS momentum correction  
+  //  MT_p[9] = true; // LHRS momentum correction  
+  //  ploss = true;  // Energy Loss
   //================================================//
 
   
@@ -384,12 +384,16 @@ void ana::MTParam_G(){
 void ana::Calib(int rt, int lt ){
 
 
-  //  if(runnum==111157 && tr.nev==208237)cout<<" Rz "<<R_tr_vz[rt]<<" Lz "<<L_tr_vz[lt]<<endl;
+  //  if(runnum==111157 && tr.nev==208237)
+  //  cout<<"nev "<<tr.nev<<" Rz "<<R_tr_vz[rt]<<" Lz "<<L_tr_vz[lt]<<endl;
   
   // ==== Initialization ======//
   R_p = 0.0;
   L_p = 0.0;
   B_p = HALLA_p/1000.0;
+
+
+ 
   
   //======= Nomalization ==================//
   R_tr_x[rt]    = (R_tr_x[rt]-XFPm)/XFPr;
@@ -471,6 +475,7 @@ void ana::Calib(int rt, int lt ){
     L_p             = L_p * PLr + PLm; // scaled    
     
 
+    //    cout<<" Rz_c "<<R_tr_vz[rt]<<" Lz_c "<<L_tr_vz[lt]<<endl;
     
     //=========== Energy Loss ===================//
     /*    if(runnum==111157 && tr.nev==240177)cout<<"Rp "<<R_p<<" Lp "<<L_p<<endl;
@@ -740,6 +745,7 @@ double ana::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
   //  double Rpathl=R_tr_pathl[rhit]+R_s2_trpath[rhit];
   //  double Lpathl=L_tr_pathl[lhit]+L_s2_trpath[lhit];
 
+  
   double Beta_R=R_p/sqrt(R_p*R_p+MK*MK);
   double Beta_L=L_p/sqrt(L_p*L_p+Me*Me);
   double tof_r=RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
@@ -2181,18 +2187,21 @@ void ana::Loop_c(){
 	  Kaon = false;
 	  zcut = false; // z-vertex cut
 	  fill_flag =false;
+	  
 	  bool padcut = false; // LS2 paddle cut < 111369 
 	  bool Rpathl_flag = false;
 	  bool Lpathl_flag = false;
 	  bool track_flag  = false;
 	  bool pathl_flag  = false;
+
+	  tr.Rpathl   = 0.0;
+	  tr.Lpathl   = 0.0;
 	  int L_s2pad = (int)L_s2_trpad[lt];
 	  int R_s2pad = (int)R_s2_trpad[rt];
 	  int L_s2tpad = (int) L_s2_t_pads[lt];
 	  int R_s2tpad = (int) R_s2_t_pads[rt];
 	  double Lpathl = L_tr_pathl[lt] + L_s2_trpath[lt];
 	  double Rpathl = R_tr_pathl[rt] + R_s2_trpath[rt]; 
-
 	  if(L_s2pad <= 10 || runnum>111369) padcut = true; 
 	  if(R_s2pad == R_s2tpad && L_s2pad == L_s2tpad) track_flag =true;
 	  if(rpathl_cutmin< Rpathl && Rpathl < rpathl_cutmax) Rpathl_flag =true;
@@ -2342,6 +2351,7 @@ void ana::Loop_c(){
 	  tr.Rs2_paddle   = tr.Rs2_pad[rt];
 	  tr.Rs2ra_p[tr.Rs2_pad[rt]] = R_s2_ra_p[tr.Rs2_pad[rt]];
 	  tr.Rs2la_p[tr.Rs2_pad[rt]] = R_s2_la_p[tr.Rs2_pad[rt]];
+	  tr.Rpathl   = Rpathl;
 	  tr.Rs0ra_p=R_s0_ra_p[rt];
 	  tr.Rs0la_p=R_s0_la_p[rt];
 	  tr.RXFP=R_tr_x[rt];
@@ -2355,6 +2365,7 @@ void ana::Loop_c(){
 	    //-------- Tree Branch LHRS ------------//
 	  tr.Ls2_pad[lt] =(int)L_s2_trpad[lt];
 	  tr.Ls2_paddle  = tr.Ls2_pad[lt];
+	  tr.Lpathl   = Lpathl;
 	  tr.Ls2ra_p[tr.Ls2_pad[lt]] = L_s2_ra_p[tr.Ls2_pad[lt]];
 	  tr.Ls2la_p[tr.Ls2_pad[lt]] = L_s2_la_p[tr.Ls2_pad[lt]];
 	  tr.LXFP=L_tr_x[lt];
@@ -2363,7 +2374,9 @@ void ana::Loop_c(){
 	  tr.LYpFP=L_tr_ph[lt];
 	  tr.LXt=L_tr_vx[lt];
 	  tr.LYt=L_tr_vy[lt];
-	    
+
+
+
 	  //---- Set Momentum -------//
 
 	  tr.Lp[lt] = L_tr_p[lt];
@@ -2383,15 +2396,18 @@ void ana::Loop_c(){
 	  }    
 
 
+      	  
           if( R_tr_chi2[rt]<0.01 ) R_Tr = true;
           if( R_tr_th[rt]<0.17*R_tr_x[rt]+0.025
            && R_tr_th[rt]>0.17*R_tr_x[rt]-0.035
            && R_tr_th[rt]<0.40*R_tr_x[rt]+0.130 ) R_FP = true;
 	  if( tr.AC1_npe_sum < a1_th && tr.AC2_npe_sum > a2_th_min && L_cer_asum_c>2000.) Kaon = true;
-	  if(fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1)zcut=true;
 
 
 
+
+
+	  
 	  //	  cout<<" track "<<track_flag<<" pathL "<<pathl_flag<<endl;
 	  //	  if( L_Tr && L_FP && R_Tr && R_FP && track_flag && pathl_flag){
 
@@ -2420,12 +2436,6 @@ void ana::Loop_c(){
 
 
 	    
-
-	    
-	    if(Kaon)tr.pid_cut=1;
-	    if(fabs(ct)<1.0)tr.ct_cut=1;
-	    if((-35<ct && ct<-15.0) || (15.0<ct && ct<35))tr.acc_cut=1;
-	    if(zcut)tr.z_cut=1;
 
             h_ct   ->Fill( ct );
 	    
@@ -2486,9 +2496,10 @@ void ana::Loop_c(){
 	    //============================//
 	    //=====  calibration =========//
 	    //===========================//
-	    
-	    Calib(rt, lt);
 
+	    //	    cout<<" Rz "<<R_tr_vz[rt]<<" Lz "<<L_tr_vz[lt]<<endl;
+	    Calib(rt, lt);
+	    //	    cout<<" Rz_c "<<R_tr_vz[rt]<<" Lz_c "<<L_tr_vz[lt]<<endl;
 	    // Lp = 2.2 GeV mode //
 	    if(Lp_scale)L_p=2.21807/2.1*L_p;
 	    // Energy Loss Correction //
@@ -2499,8 +2510,18 @@ void ana::Loop_c(){
 
 	    
 
+	    // ======== w/ Calibraiton =============//
+	    // ======== Cut conditon   =============//
+	    
 	    if(((-0.15<(L_tr_vz[lt]) && (L_tr_vz[lt])<-0.1) || ( 0.1<(L_tr_vz[lt]) && (L_tr_vz[lt])<0.15) &&  fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025) 
 	       && ((-0.15<(R_tr_vz[rt]) && (R_tr_vz[rt])<-0.1) ||( 0.1<(R_tr_vz[rt]) && (R_tr_vz[rt])<0.15)  && fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025))tr.Al_cut=true;		    
+	    if(fabs(R_tr_vz[rt]-L_tr_vz[lt])<0.025 && fabs(R_tr_vz[rt] + L_tr_vz[lt])/2.0<0.1)zcut=true;	    
+	    if(Kaon)tr.pid_cut=1;
+	    if(fabs(ct)<1.0)tr.ct_cut=1;
+	    if((-35<ct && ct<-15.0) || (15.0<ct && ct<35))tr.acc_cut=1;
+	    if(zcut)tr.z_cut=1;
+
+
 	    
 	    //--- Set Tree Branch w/ Matrix Tuning ----//
 	    
@@ -3257,7 +3278,8 @@ void ana::MakeHist(){
   tree_out->Branch("dpe"     ,&tr.dpe   ,"dpe/D"  );
   tree_out->Branch("dpe_"     ,&tr.dpe_   ,"dpe_/D"  );
   tree_out->Branch("dpk"     ,&tr.dpk   ,"dpk/D"  );
-  
+  tree_out->Branch("Rpathl"     ,&tr.Rpathl   ,"Rpathl/D"  );
+  tree_out->Branch("Lpathl"     ,&tr.Lpathl   ,"Lpathl/D"  );
 // Hist name is defined by "h + LorR + variable" for TH1.
 //                         "h + LorR + variableY + variableX" for TH2.
 /////////////
@@ -3665,8 +3687,8 @@ void ana::Swich(bool nnL, bool scale){
     max_mm=200.;
     //    bin_mm=(int)( (max_mm-min_mm)*2. ); // 0.5MeV/bin;
     //    bin_mm=(int)( (max_mm-min_mm)*1. ); // 1 MeV/bin;
-    //    bin_mm=(int)( (max_mm-min_mm)*0.5 ); // 2 MeV/bin;
-    bin_mm=(int)( (max_mm-min_mm)*0.2 ); // 5 MeV/bin;
+    bin_mm=(int)( (max_mm-min_mm)*0.5 ); // 2 MeV/bin;
+    //    bin_mm=(int)( (max_mm-min_mm)*0.2 ); // 5 MeV/bin;
     //==================================//
 
 

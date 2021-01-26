@@ -155,6 +155,8 @@ public:
   TF1* frad_ERA_1s;
   TF1* frad_ERA_2s;
   TF1* frad_ERA_3s;
+
+
   
   TGraphErrors* gradl1[20];
   TGraphErrors* gradl2[20];
@@ -213,6 +215,16 @@ public:
 
 
   // ERA calc.
+
+  TF1* fIera_1s;
+  TF1* fIera_2s;
+  TF1* fIera_3s;  
+  TF1* fIera_1t;
+  TF1* fIera_2t;
+  TF1* fIera_3t;  
+  TF1* fIera_1;
+  TF1* fIera_2;
+  TF1* fIera_3;  
   
   TGraphErrors* gIera1;
   TGraphErrors* gIera2;
@@ -231,6 +243,9 @@ public:
   TF1* fJl[100];
   TF1* fJls[100];
   TF1* fJlt[100];
+  TF1* fERA[100];
+  TF1* fERAs[100];
+  TF1* fERAt[100];
   
   TH1F* hmm1;
   TH1F* hmm_fsi1;

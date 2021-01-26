@@ -9,4 +9,4 @@
 0 ../rootfiles/mmass/ana_Lambda/best/nnL_small_Ole_all.root
 1 ../rootfiles/fsi/mmass/Lam_2MeVBin.root
 2 ../rootfiles/fsi/mmass/nnL_2MeVBin.root
-3 ../rootfiles/fsi/mmass/test.root
+3 ../rootfiles/fsi/QFsim/test.root

@@ -94,35 +94,45 @@ void QFsim::SetHist(){
   hexp_peak ->SetName("hexp_peak");  
   hexp        = (TH1D*)fexp -> Get("h_peak_nnL");
   hexp ->SetName("hexp");
+  hexp->SetTitle("Exp data w/o Accidental B.G.; Missing mass [GeV]; Counts/2MeV");
   hexp_c        = (TH1D*)hexp -> Clone();
   hexp_c ->SetName("hexp_c");
+  hexp_c->SetTitle("Exp data w/ Accidental B.G.; Missing mass [GeV]; Counts/2MeV");
   hexp_acc        = (TH1D*)fexp -> Get("h_acc_nnL");
   hexp_acc ->SetName("hexp_acc");
+  hexp_acc->SetTitle("Exp data Accidental B.G.; Missing mass [GeV]; Counts/2MeV");  
   hexp_nnL   = (TH1D*)fexp -> Get("h_mm_nnL");
   hexp_nnL ->SetName("hexp_nnL");
+  hexp_nnL->SetTitle("Exp data w/ Accidental B.G.(total); Missing mass [GeV]; Counts/2MeV");  
   hexp_L     = (TH1D*)fexp -> Get("h_peak_L");
   hexp_L ->SetName("hexp_L");
-  
+  //  hexp->SetTitle("Exp data (Hydrogen data) w/o Accidental B.G.; Missing mass [GeV]; Counts/2MeV");
 
   hmm       =(TH1F*)fT_sim->Get("hmm");
   hmm       ->SetName("hmm");
+  hmm->SetTitle("Simulation w/o B.G.; Missing mass [GeV]; Counts/2MeV");
   hmm_fsi1  =(TH1F*)fT_sim->Get("hmm_fsi1");
   hmm_fsi1->SetName("hmm_fsi1");
+  hmm_fsi1->SetTitle("Simulation w/o B.G. with model 1 FSI; Missing mass [GeV]; Counts/2MeV");  
   hmm_fsi2  =(TH1F*)fT_sim->Get("hmm_fsi2");
   hmm_fsi2->SetName("hmm_fsi2");
+  hmm_fsi2->SetTitle("Simulation w/o B.G. with model 2 FSI; Missing mass [GeV]; Counts/2MeV");  
   hmm_fsi3  =(TH1F*)fT_sim->Get("hmm_fsi3");
   hmm_fsi3->SetName("hmm_fsi3");
-
+  hmm_fsi3->SetTitle("Simulation w/o B.G. with model 3 FSI; Missing mass [GeV]; Counts/2MeV");  
 
   hmm_s       = (TH1F*)hmm      -> Clone();
   hmm_s       ->SetName("hmm_s");
+  hmm_s->SetTitle("Simulation w/o B.G. with scaling ; Missing mass [GeV]; Counts/2MeV");    
   hmm_fsi1_s  = (TH1F*)hmm_fsi1 -> Clone();
   hmm_fsi1_s ->SetName("hmm_fsi1_s");
+  hmm_fsi1_s->SetTitle("Simulation w/o B.G. with scaling (model 1 FSI); Missing mass [GeV]; Counts/2MeV");    
   hmm_fsi2_s  = (TH1F*)hmm_fsi2 -> Clone();
   hmm_fsi2_s ->SetName("hmm_fsi2_s");
+  hmm_fsi2_s->SetTitle("Simulation w/o B.G. with scaling (model 2 FSI); Missing mass [GeV]; Counts/2MeV");      
   hmm_fsi3_s  = (TH1F*)hmm_fsi3-> Clone();
   hmm_fsi3_s ->SetName("hmm_fsi3_s");
-
+  hmm_fsi3_s->SetTitle("Simulation w/o B.G. with scaling (model 3 FSI); Missing mass [GeV]; Counts/2MeV");    
 
 
   
@@ -244,6 +254,7 @@ void QFsim::FitQFL(){
 }
 
 ////////////////////////////////////////////////////////////////////////////
+/*
 void QFsim::FitQFnnL(){
 
 
@@ -278,8 +289,8 @@ void QFsim::FitQFnnL(){
   bool max= true;
   for(int ibin = 0;ibin<nbins;ibin++){
     x0 = hnnL_sim -> GetXaxis()->GetBinCenter(ibin);
-    if( x0 < 0.0 )bin_x0 = ibin;
-    if( x0 < 100)bin_x1 = ibin;
+    if( x0 < 40.0 )bin_x0  = ibin; // Start Chi calc
+    if( x0 < 120. )bin_x1  = ibin; // end   Chi calc
     y0[ibin]  =  hexp_c     -> GetBinContent(ibin);
     y1[ibin]  =  hnnL_sim   -> GetBinContent(ibin);
     
@@ -332,12 +343,16 @@ void QFsim::FitQFnnL(){
 
   hmm_c  = (TH1F*)hmm_s -> Clone();
   hmm_c       ->SetName("hmm_c");
+  hmm_c->SetTitle("Simulation w/ B.G. with scaling ; Missing mass [GeV]; Counts/2MeV");    
   hmm_fsi1_c  = (TH1F*)hmm_fsi1_s -> Clone();
   hmm_fsi1_c ->SetName("hmm_fsi1_c");
+  hmm_fsi1_c->SetTitle("Simulation w/ B.G. with scaling (model 1 FSI); Missing mass [GeV]; Counts/2MeV");    
   hmm_fsi2_c  = (TH1F*)hmm_fsi2_s -> Clone();
   hmm_fsi2_c ->SetName("hmm_fsi2_c");
+  hmm_fsi2_c->SetTitle("Simulation w/ B.G. with scaling (model 2 FSI); Missing mass [GeV]; Counts/2MeV");    
   hmm_fsi3_c  = (TH1F*)hmm_fsi3_s-> Clone();
   hmm_fsi3_c ->SetName("hmm_fsi3_c");
+  hmm_fsi3_c->SetTitle("Simulation w/ B.G. with scaling (model 3 FSI); Missing mass [GeV]; Counts/2MeV");
   
   hexp_c     ->Add(hexp_acc,1.0);
   hmm_c      ->Add(hexp_acc,1.0);
@@ -347,6 +362,8 @@ void QFsim::FitQFnnL(){
 
   
 }
+
+*/
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -365,8 +382,6 @@ void QFsim::FitQFnnL_new(){
   double ratio = NL_bg/(double)hH_nnLsim->GetEntries();
   hH_nnLsim_s->Scale(ratio);
   hexp_c->Add(hH_nnLsim_s,-1.0);
-
-
   
 
   // Scale FSI MM simulation
@@ -398,9 +413,9 @@ void QFsim::FitQFnnL_new(){
   
 
   
-  double ymax0 = hexp_c -> GetBinContent(hexp_c->GetMaximumBin());
+  double ymax0 = hexp_c    -> GetBinContent(hexp_c->GetMaximumBin());
   double ymax1 = hnnL_sim  -> GetBinContent(hnnL_sim->GetMaximumBin());
-
+  //  double ymax1 = hnnL_sim_s  -> GetBinContent(hnnL_sim->GetMaximumBin());
 
 
 
@@ -425,11 +440,13 @@ void QFsim::FitQFnnL_new(){
   double diff[nbins][nvp];
   for(int i=0;i<nvp;i++)chi2_min[i]=1e20;
   
-  int bin_st  = hexp_c->GetXaxis()->FindBin(0.0);
-  int bin_end = hexp_c->GetXaxis()->FindBin(160.0);
+  int bin_st  = hexp_c->GetXaxis()->FindBin(0.0);  // Start Chi calc
+  int bin_end = hexp_c->GetXaxis()->FindBin(40.0); // End   Chi calc
+
+  
   // w/o FSI hist Fit not enhance reigon MX>40 MeV
-  int bin_st_wofsi = hexp_c->GetXaxis()->FindBin(40.0);
-  int bin_end_wofsi = hexp_c->GetXaxis()->FindBin(160.0);
+  int bin_st_wofsi = hexp_c->GetXaxis()->FindBin(  40.0); // Start Chi calc
+  int bin_end_wofsi = hexp_c->GetXaxis()->FindBin(160.0); // End   Chi calc
   
   for(int i=0;i<nvp;i++){ // V-potential
     for(int wi=0; wi<wmax;wi++){ // Set weight Factor
@@ -457,8 +474,8 @@ void QFsim::FitQFnnL_new(){
 
     for(int ibin=0;ibin<nbins;ibin++){ 
       gdiff_fsi[1] ->SetPoint(ibin,hmm_fsi1->GetBinCenter(ibin), diff[ibin][1]);
-      gdiff_fsi[2] ->SetPoint(ibin,hmm_fsi1->GetBinCenter(ibin), diff[ibin][2]);
-      gdiff_fsi[3] ->SetPoint(ibin,hmm_fsi1->GetBinCenter(ibin), diff[ibin][3]);
+      gdiff_fsi[2] ->SetPoint(ibin,hmm_fsi2->GetBinCenter(ibin), diff[ibin][2]);
+      gdiff_fsi[3] ->SetPoint(ibin,hmm_fsi3->GetBinCenter(ibin), diff[ibin][3]);
     }
   
   hnnL_sim_s->Scale(wmin[0]);

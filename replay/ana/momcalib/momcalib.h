@@ -30,6 +30,8 @@ class momcalib : public tree
   void SetRoot(string ifname);
   void SingleRoot(string ifname);
   void MakeHist();
+  void SetInput(string infile);
+  string SetVal(string line, string name);
   void NewRoot(string ofname);
   void MTParam(string mtparam);
   void MTParam_R();
@@ -312,7 +314,7 @@ class momcalib : public tree
   double Rp_z,Rp_x,Rp_y;
   double LP_z,LP_x,LP_y;
   double RP_z,RP_x,RP_y;  
-  
+  bool cut, pid_cut,ct_cut,z_cut;
   
     //---- MomTuning ----//
     double chi_sq[1000],chi_sq1[100],chi_sq2[100];

@@ -89,6 +89,7 @@ extern double Get_expgaus_sigma(double * par, double mean);
 
 void momcalib::nmatrix(int n){
 
+
   if(n==2){nnp=2; nParamTp=21;
   }else if(n==3){nnp=3; nParamTp=56;
   }else if(n==4){nnp=4; nParamTp=126;
@@ -99,6 +100,104 @@ void momcalib::nmatrix(int n){
   //  if(scale_calib) nParamTp +=1;
 
 };
+
+
+
+void momcalib::SetInput(string infile){
+
+
+  ifstream ifp(infile.c_str());
+  if(ifp.fail()){cout<<"Could not find file : "<<infile<<endl;exit(1);}
+
+
+  string line;
+  string name;
+  string param;
+  string target;
+  int norder=0;
+  string arm;
+  string runlist;
+  string input_root;
+  string output_root;  
+  string input_matrix;
+  string output_matrix;  
+  int i=0;
+  int f1tdc;
+  bool Tuning_mode = true;
+  
+  while(1){
+    getline(ifp,line);
+    if(line[0]=='#')continue;
+    if(ifp.eof())break;
+    
+    name = "HRS arm:"; // Set Tuning Mode
+    param =SetVal(line,name); if(param!="false"){ arm        = param; }
+    name = "Tuning mode:"; // Set Tuning Mode
+    param =SetVal(line,name); if(param!="false"){
+      if(param=="1") Tuning_mode =true;
+      else Tuning_mode =false;                       }   
+    name = "Target:"; // Set Target Mode
+    param =SetVal(line,name); if(param!="false"){ target      = param; }
+    name = "F1TDC mode:"; // Set Tuning Mode
+    param =SetVal(line,name); if(param!="false"){ f1tdc        =atoi( param.c_str()); }    
+    name = "Al Tuning:";  // Set Al Tuning Mode
+    param =SetVal(line,name); if(param!="false"){
+      if(param=="1") Al_mode =true;
+      else Al_mode =false;                       }
+    name = "Initial mode:";  // Set Initial Mode
+    param =SetVal(line,name); if(param!="false"){
+      if(param=="1") Initial=true;
+      else Initial=false;                         }
+    name = "tuning order:";  // Set Tuning Order
+    param =SetVal(line,name); if(param!="false"){ norder      = atoi(param.c_str()); }
+    name = "iteration:";  // Set Num. of Iteration
+    param =SetVal(line,name); if(param!="false"){ nite        = atoi(param.c_str()); }
+    name = "Input Run List:";
+    param =SetVal(line,name); if(param!="false"){ runlist     = param; }
+    name = "Input Root:";
+    param =SetVal(line,name); if(param!="false"){ input_root     = param;  single =true;}
+    name = "Input matrix:";
+    param =SetVal(line,name); if(param!="false"){ input_matrix     = param; }
+    name = "Output Root:";
+    param =SetVal(line,name); if(param!="false"){ output_root      = param; }
+    name = "Output matrix:";
+    param =SetVal(line,name); if(param!="false"){ output_matrix    = param; }
+
+    //    cout<<"line "<<line<<" name "<<name<<" param "<<param<<endl;
+  }
+
+
+
+
+  nmatrix(norder);
+  MODE = mode(arm,"H",f1tdc);
+  MTParam(input_matrix);
+  if(single       )SingleRoot(input_root);
+  else             SetRun(runlist);
+  NewRoot(output_root);
+  MakeHist();
+  EventSelection(0.0);
+  if(Tuning_mode) MomTuning(output_matrix);
+  Fill();
+  Close();
+
+}
+
+/////////////////////////////////////////////////////////////
+
+string momcalib::SetVal(string line, string name){
+
+  string val;
+  if (line.compare(0,name.size(),name) !=0) return "false";
+
+  string p = line.substr(name.size());
+  string unit;
+  stringstream sbuf(p);
+  sbuf >> val >>unit;
+  cout<<name<<" "<<val<<" "<<unit<<endl;
+  return val;
+
+}
 
 
 
@@ -246,6 +345,11 @@ void momcalib::NewRoot(string ofname){
   tnew->Branch("dpe",&Dpe,"dpe/D");
   tnew->Branch("dpe_",&Dpe_,"dpe_/D");
   tnew->Branch("dpk",&Dpk,"dpk/D");
+  tnew->Branch("cut",&cut,"cut/B");
+  tnew->Branch("z_cut",&z_cut,"z_cut/B");
+  tnew->Branch("pid_cut",&pid_cut,"pid_cut/B");
+  tnew->Branch("ct_cut",&ct_cut,"ct_cut/B");
+
 };
 
 //=====================================================================//
@@ -788,64 +892,65 @@ void momcalib::MTParam(string mtparam){
   if(MODE==0 || MODE==1) {MTParam_L();cout<<" Input LHRS Matrix parameter "<<endl;}
   MTP_mom();
 
-  for(int i=0;i<10;i++){MT[i]=false; MT_f[i]=false;}
 
+  cout<<"Initail MODE "<<Initial<<endl;
+  for(int i=0;i<10;i++){MT[i]=false; MT_f[i]=false;}
   
   //======= Tuning selection flag =====================//
   //--------- RHRS ------------------------//
 
   if(Initial){
-  MT[0] = true;  // RHRS z correction
-  MT[1] = true;  // RHRS raster correction
-  MT[2] = true;  // RHRS theta correction
-  MT[3] = true;  // RHRS phi correction
-  //--------- LHRS -----------------------//
-  MT[4] = true;  // LHRS z correction
-  MT[5] = true;  // LHRS raster correction
-  MT[6] = true;  // LHRS theta correction
-  MT[7] = true;  // LHRS phi correction
-  //-------- momentum calibration ---------//
-  MT[8] = true; // RHRS momentum correction  
-  MT[9] = true; // LHRS momentum correction  
-
-  //================================================//
-
-  MT_f[0] = true;  // RHRS z correction
-  MT_f[1] = true;  // RHRS raster correction
-  MT_f[2] = true;  // RHRS theta correction
-  MT_f[3] = true;  // RHRS phi correction
-  //--------- LHRS -----------------------//
-  MT_f[4] = true;  // LHRS z correction
-  MT_f[5] = true;  // LHRS raster correction
-  MT_f[6] = true;  // LHRS theta correction
-  MT_f[7] = true;  // LHRS phi correction
-
-  MT[8] = false; // RHRS momentum correction  
-  MT[9] = false; // LHRS momentum correction  
-  ploss = false;  // Energy Loss 
- 
-  //-------- momentum calibration ---------//
-  MT_f[8] = false; // RHRS momentum correction  
-  MT_f[9] = false; // LHRS momentum correction  
-  ploss_f = false;  // Energy Loss
-
+    MT[0] = true;  // RHRS z correction
+    MT[1] = true;  // RHRS raster correction
+    MT[2] = true;  // RHRS theta correction
+    MT[3] = true;  // RHRS phi correction
+    //--------- LHRS -----------------------//
+    MT[4] = true;  // LHRS z correction
+    MT[5] = true;  // LHRS raster correction
+    MT[6] = true;  // LHRS theta correction
+    MT[7] = true;  // LHRS phi correction
+    //-------- momentum calibration ---------//
+    MT[8] = true; // RHRS momentum correction  
+    MT[9] = true; // LHRS momentum correction  
+    
+    //================================================//
+    
+    MT_f[0] = true;  // RHRS z correction
+    MT_f[1] = true;  // RHRS raster correction
+    MT_f[2] = true;  // RHRS theta correction
+    MT_f[3] = true;  // RHRS phi correction
+    //--------- LHRS -----------------------//
+    MT_f[4] = true;  // LHRS z correction
+    MT_f[5] = true;  // LHRS raster correction
+    MT_f[6] = true;  // LHRS theta correction
+    MT_f[7] = true;  // LHRS phi correction
+    
+    MT[8] = false; // RHRS momentum correction  
+    MT[9] = false; // LHRS momentum correction  
+    ploss = false;  // Energy Loss 
+    
+    //-------- momentum calibration ---------//
+    MT_f[8] = false; // RHRS momentum correction  
+    MT_f[9] = false; // LHRS momentum correction  
+    ploss_f = false;  // Energy Loss
+    
   }else{
-  
+    
     MT[8] = true; // RHRS momentum correction  
     MT[9] = true; // LHRS momentum correction  
     ploss = true;  // Energy Loss 
     
     //-------- momentum calibration ---------//
-
-  MT_f[0] = true;  // RHRS z correction
-  MT_f[1] = true;  // RHRS raster correction
-  MT_f[2] = true;  // RHRS theta correction
-  MT_f[3] = true;  // RHRS phi correction
-  //--------- LHRS -----------------------//
-  MT_f[4] = true;  // LHRS z correction
-  MT_f[5] = true;  // LHRS raster correction
-  MT_f[6] = true;  // LHRS theta correction
-  MT_f[7] = true;  // LHRS phi correction
+    
+    MT_f[0] = true;  // RHRS z correction
+    MT_f[1] = true;  // RHRS raster correction
+    MT_f[2] = true;  // RHRS theta correction
+    MT_f[3] = true;  // RHRS phi correction
+    //--------- LHRS -----------------------//
+    MT_f[4] = true;  // LHRS z correction
+    MT_f[5] = true;  // LHRS raster correction
+    MT_f[6] = true;  // LHRS theta correction
+    MT_f[7] = true;  // LHRS phi correction
     
     MT_f[8] = true; // RHRS momentum correction  
     MT_f[9] = true; // LHRS momentum correction  
@@ -854,7 +959,7 @@ void momcalib::MTParam(string mtparam){
   }
   //================================================//
 
-   
+
   
   cout<<endl;
   cout<<"======== Correction Parameters ========="<<endl;
@@ -1751,7 +1856,6 @@ void momcalib::EventSelection(double ww){
     R_v.RotateX(   13.2/180.*3.14);
     L_v.RotateX( - 13.2/180.*3.14);
 
-        
 
     mm = sqrt( (Ee + Mp - Ee_ - Ek)*(Ee + Mp - Ee_ - Ek)
 	       - (B_v - L_v - R_v)*(B_v - L_v - R_v) );
@@ -1806,7 +1910,8 @@ void momcalib::EventSelection(double ww){
   
   if(ac1_flag && ac2_flag && gs_flag) RPID_flag=true;
   if(Lcersum>2000.)LPID_flag=true;  
-  if(Rs2_flag && Rs0_flag && Ls2_flag && Ls0_flag)  Scinti_flag=true;
+  //  if(Rs2_flag && Rs0_flag && Ls2_flag && Ls0_flag)  Scinti_flag=true;
+  if(Rs2_flag && Ls2_flag )  Scinti_flag=true; // lose cut changed cut 2021/1/26
   //  Scinti_flag=true;
   
   if((runnum>111220 && runnum<111480) || (runnum>111576 && runnum<111698) 
@@ -1834,7 +1939,7 @@ void momcalib::EventSelection(double ww){
 
   
   if(trig_flag && Scinti_flag && track_flag && Rpathl_flag && Lpathl_flag){
-
+    //if(trig_flag){
 
     if(RPID_flag && LPID_flag && z_flag){
 	hLz_cut->Fill(Lz[0]);
@@ -2628,12 +2733,23 @@ void momcalib::Fill(){
     tflag=-1;
     tev=-1;
     fill_flag=false;
+    cut =false;
+    pid_cut=false;
+    ct_cut =false;
+    z_cut=false;
+
+
+
 
     T->GetEntry(i);
 
+
+
+
+    
     RP=Rp[0];
     LP=Lp[0];
-    if(Ltrn!=1 || Rtrn!=1)continue;
+    //    if(Ltrn!=1 || Rtrn!=1)continue;
     
     
     if(tevent[t]==i){
@@ -2780,7 +2896,6 @@ void momcalib::Fill(){
    mm_X = (mm_X - 100.)*1000.;   
  
 
-
     if(runnum<=111368){
       tdc_time=0.056; 
       tdc_mode=1;
@@ -2802,7 +2917,6 @@ void momcalib::Fill(){
 
  // coin_time=coin_t;
   if(single) coin_t=coin_time;
-
  
  //---- Event Selection ----------//
   if(coin_t<1.0 && -1.0<coin_t)coin_flag=true; //changed by itabashi 2020/06/22
@@ -2828,22 +2942,29 @@ void momcalib::Fill(){
   gs_flag=true;
   ps_flag=true;
   sh_flag=true;
-
-
+  
 
   if(ac1_flag && ac2_flag && gs_flag) RPID_flag=true;
   if(Lcersum>2000.)LPID_flag=true;  
-  if(Rs2_flag && Rs0_flag && Ls2_flag && Ls0_flag) Scinti_flag=true;
+  //  if(Rs2_flag && Rs0_flag && Ls2_flag && Ls0_flag) Scinti_flag=true;
+  if(Rs2_flag && Ls2_flag) Scinti_flag=true; // test
 
+
+  if(coin_flag)ct_cut =true;
+  if(z_flag)z_cut=true;
+  if(RPID_flag && LPID_flag) pid_cut=true;
   
-   if(trig_flag && Scinti_flag && track_flag && Rpathl_flag && Lpathl_flag){
+  if(trig_flag && Scinti_flag && track_flag && Rpathl_flag && Lpathl_flag){
 
-     // if(trig_flag ){
+
+
      if(trig_flag && RPID_flag && LPID_flag && z_flag){
        hct2->Fill(coin_t);}
      if(fabs(Rz[0]-Lz[0])<0.025 && Rz[0]>-100 && Lz[0]>-100 && fabs(Rz[0]+Lz[0])/2.0 > 0.1) Al_flag=true;
      if((runnum>111220 && runnum<111480) || (runnum>111576 && runnum<111698) 
 	|| (runnum>111738 && runnum<111830) ) nnL_run=true;
+
+
 
 
      
@@ -2886,11 +3007,14 @@ void momcalib::Fill(){
 	fill_flag=true;
       }
 
+
    
    
-      if(coin_flag && RPID_flag && LPID_flag && z_flag && track_flag && Rpathl_flag && Lpathl_flag && Scinti_flag){
-      
+      if(coin_flag && RPID_flag && LPID_flag && z_flag){
+   
 	fill_flag=true;
+	cut =true;
+
 	if(nnL_run){hmm_nnL_cut->Fill(MM_nnL);
 	  mm_nnL = MM_nnL_b;
 	  mm_nnL_c = MM_nnL;
@@ -2944,7 +3068,8 @@ void momcalib::Fill(){
    
 
    
-   if(fill_flag)   tnew->Fill();
+   //if(fill_flag)   tnew->Fill();
+   tnew->Fill();
    if(i % (d.quot * 1000) == 0)cout<<i<<" / "<<ENum<<endl;
   }
 
@@ -4600,8 +4725,10 @@ int main(int argc, char** argv){
   bool RHRS_flag=false; 
   bool tuning_flag=false;
   string pngname;
+  bool input_mode =false;
   extern char *optarg;
   char* Target="H";
+  //  string Target="H";
   string F1tdc="1";
   int f1tdc=1;
   bool Al1=false;
@@ -4618,6 +4745,7 @@ int main(int argc, char** argv){
   double mean_Al;
   string width_Al_s;
   double width_Al;
+  int norder;
   string weight_Al_s;
   double weight_Al;
   double weight_Alminum=1.0;
@@ -4658,20 +4786,13 @@ int main(int argc, char** argv){
     case 'm':
 
       matrix_name =optarg;
-
-      /*
-      mode  = optarg;
-      if(mode=="C")cout<<"Both arm momentum tuning "<<endl;
-      if(Target=="L")cout<<"LHRS momentum tuning "<<endl;
-      if(Target=="R")cout<<"RHRS momentum tuning "<<endl;
-      if(mode=="CA")cout<<"Both arm momentum & RHRS angle tuning "<<endl;
-      if(mode=="A")cout<<"RHRS angle tuning"<<endl;
-      if(mode=="I"){
-	cout<<"Both arm momentum tuning && Initial matrix"<<endl;
-	Initial=true;
-      }
-      */
-
+      break;
+      
+    case 'p':
+      ifname = optarg;
+      input_mode =true;
+      cout<<"input filename : "<<ifname<<endl;
+      
 
       break;
 
@@ -4681,9 +4802,9 @@ int main(int argc, char** argv){
 	break;
 	
     case 'n':
-      nmatrix= atoi(optarg);
+      norder= atoi(optarg);
       nmatrix_flag=true;
-
+      //      cout<<" Matrix Order "<<nmatrix<<endl;
       break;
 
     case 'O':
@@ -4788,8 +4909,15 @@ int main(int argc, char** argv){
   gSystem->Load("libMinuit");
 
   momcalib* Mom=new momcalib();
-  if(nmatrix_flag)  Mom->nmatrix(nmatrix);
-  //  Mom->GetACParam();
+
+  if(input_mode){
+    // Input File Mode (Not tuning Al)
+    Mom->SetInput(ifname);
+
+    
+  }else{
+    
+  if(nmatrix_flag)  Mom->nmatrix(norder);
   Mom->SetAlEvents(weight_Al,mean_Al,width_Al);
   Mom->mode(mode,Target,f1tdc);
   Mom->MTParam(matrix_name);
@@ -4802,7 +4930,7 @@ int main(int argc, char** argv){
   if(tuning_flag && nite>0)Mom->MomTuning(ofMTPname);
   if(root_flag && ( (tuning_flag && nite>0) || tuning_flag==0)) Mom->Fill();  
   if(root_flag) Mom->Close();  
-
+  }
 
   cout<<endl;
   cout<<"============== Input files ==============="<<endl;

@@ -50,6 +50,8 @@ extern double Jl0(double p0,double a0, double r0);
 extern double fJ(double* x, double* par);
 extern double fJ2(double* x, double* par);
 extern double rad_ERA(double*x, double* par);
+extern double Ifac_ERA(double*x, double* par);
+extern double Ifac_ERA2(double*x, double* par);
 bool SIMC    = true;
 bool TClone  = false;
 //bool E09     = false;
@@ -529,6 +531,9 @@ void fsi::InfluenceFactor(string pname, int ll){
     fJl[i]->Write();
     fJls[i]->Write();
     fJlt[i]->Write();
+    fERA[i]->Write();
+    fERAs[i]->Write();
+    fERAt[i]->Write();    
   }
   
   for(int l=0;l<=ll;l++){
@@ -1432,6 +1437,29 @@ void fsi::SetHist(){
     fJl[i]->SetParameter(2,a_t[i]);
     fJl[i]->SetParameter(3,r_t[i]);        
     fJl[i]->SetNpx(2000);
+
+
+    fERAs[i] = new TF1(Form("fERAs_%d",i),Ifac_ERA,0.1,2000,2);
+    fERAs[i]->SetTitle(Form("%s_s ; P_{rel} [MeV] ;Influence Factor (^{1}S_{0}) in ERA calculation",vname[i].c_str()));
+    fERAs[i]->SetParameter(0,a_s[i]);
+    fERAs[i]->SetParameter(1,r_s[i]);
+    fERAs[i]->SetNpx(2000);
+
+    fERAt[i] = new TF1(Form("fERAt_%d",i),Ifac_ERA,0.1,2000,2);
+    fERAt[i]->SetTitle(Form("%s_t ; P_{rel} [MeV] ;Influence Factor  ERA calculation (^{3}S_{1})",vname[i].c_str()));
+    fERAt[i]->SetParameter(0,a_t[i]);
+    fERAt[i]->SetParameter(1,r_t[i]);    
+    fERAt[i]->SetNpx(2000);
+    fERA[i] = new TF1(Form("fERA_%d",i),Ifac_ERA2,0.1,2000,4);
+    fERA[i]->SetTitle(Form("%s ; P_{rel} [MeV] ;Influence Factor ERA calculation(0.25 ^{1}S_{0} + 0.75 ^{3}S_{1}) ",vname[i].c_str()));
+    fERA[i]->SetParameter(0,a_s[i]);
+    fERA[i]->SetParameter(1,r_s[i]);        
+    fERA[i]->SetParameter(2,a_t[i]);
+    fERA[i]->SetParameter(3,r_t[i]);        
+    fERA[i]->SetNpx(2000);
+
+
+    
     //    cout<<"test "<<i<<endl;
     
     hmm_Jl[i]= new TH1F(Form("hmm_Jl_%d",i),Form("w/ FSI (Jost Function ) %s Potential (0.25 ^{1}S_{0} + 0.75 ^{3}S_{1})",vname[i].c_str()),bin_mm,min_mm,max_mm);
@@ -1452,7 +1480,31 @@ void fsi::SetHist(){
     fJl[i]->SetLineColor(i+1);
     fJls[i]->SetLineColor(i+1);
     fJlt[i]->SetLineColor(i+1);
+    fERA[i]->SetLineColor(i+1);
+    fERAs[i]->SetLineColor(i+1);
+    fERAt[i]->SetLineColor(i+1);
+
+    hmm_Jl[i]->SetLineStyle(1);
+    hmm_Jls[i]->SetLineStyle(4);
+    hmm_Jlt[i]->SetLineStyle(9);
+    fJl[i]->SetLineStyle(1);
+    fJls[i]->SetLineStyle(4);
+    fJlt[i]->SetLineStyle(9);
+    fERA[i]->SetLineStyle(1);
+    fERAs[i]->SetLineStyle(4);
+    fERAt[i]->SetLineStyle(9);
+    
     if(i==9){
+    hmm_Jl[i]->SetLineStyle(1);
+    hmm_Jls[i]->SetLineStyle(4);
+    hmm_Jlt[i]->SetLineStyle(9);
+    fJl[i]->SetLineStyle(1);
+    fJls[i]->SetLineStyle(4);
+    fJlt[i]->SetLineStyle(9);
+    fERA[i]->SetLineStyle(1);
+    fERAs[i]->SetLineStyle(4);
+    fERAt[i]->SetLineStyle(9);
+    
     hmm_Jl[i]->SetLineColor(i+2);
     hmm_Jls[i]->SetLineColor(i+2);
     hmm_Jlt[i]->SetLineColor(i+2);
@@ -1462,7 +1514,10 @@ void fsi::SetHist(){
     fJl[i]->SetLineColor(i+2);
     fJls[i]->SetLineColor(i+2);
     fJlt[i]->SetLineColor(i+2);
-
+    fERA[i]->SetLineColor(i+2);
+    fERAs[i]->SetLineColor(i+2);
+    fERAt[i]->SetLineColor(i+2);
+    
     }
   }
 
@@ -2361,8 +2416,6 @@ double fsi::PhaseShift(double qq, int LL, int potential){
 	 }
 
 	 double R0 = 3.15; //test
-	 //test
-	 if(Cha_mode)r0 =3.15;
 
 
 	 
@@ -2626,12 +2679,10 @@ double fsi::PhaseShift(double qq, int LL, int potential){
 
 
 
-
-
     
+    IERA = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0); // ERA
+    //IERA = pow( sin(skz*R0 + deltal[LL])/sin(skz*R0) ,2.0); // ERA test
     
-    //    IERA = pow( sin(skz*r0 + deltal[LL])/sin(skz*r0) ,2.0); // ERA
-    IERA = pow( sin(skz*R0 + deltal[LL])/sin(skz*R0) ,2.0); // ERA test
     
     // T-operator matrix : I = <k'|T
     // if( k'==k) Iton (on-shell)
@@ -3867,4 +3918,49 @@ double rad_ERA(double *x ,double *par){
   double delta = atan(krel/(-1./a0 +r0*krel*krel/2.));
    return delta;
   
+};
+
+
+double Ifac_ERA(double *x, double *par){
+
+  double krel = x[0]/197.3269718;
+  double a0   = par[0]; // scattering length
+  double r0   = par[1]; // effective range
+
+  // ERA :  k/cos(delta) = 1/a +r0k^2/2
+
+  double delta = atan(krel/(-1./a0 +r0*krel*krel/2.));
+  double Ifac = pow(sin(krel*r0+delta)/sin(krel*r0)      ,2.0);
+
+  
+  if(fabs(Ifac)>1.0e2)return 0.0; // remove Divergence value
+  return Ifac;
+
+};
+
+double Ifac_ERA2(double *x, double *par){
+
+  //calc Influence factor Singlet +Tliplet
+  
+  double krel = x[0]/197.3269718;
+  double as   = par[0]; // scattering length singlet 
+  double rs   = par[1]; // effective range   singlet
+  double at   = par[2]; // scattering length triplet
+  double rt   = par[3]; // effective range   triplet
+  
+  // ERA :  k/cos(delta) = 1/a +r0k^2/2
+
+  double delta_s = atan(krel/(-1./at +rs*krel*krel/2.));
+  double delta_t = atan(krel/(-1./at +rt*krel*krel/2.));
+  
+  double Ifac_s = pow(sin(krel*rs+delta_s)/sin(krel*rs)      ,2.0);
+  double Ifac_t = pow(sin(krel*rt+delta_t)/sin(krel*rt)      ,2.0);
+  double Ifac   = (Ifac_s + 3.0*Ifac_t)/4.;
+
+ 
+  if(fabs(Ifac)>1.0e2) return 0.0;
+
+  
+  return Ifac;
+
 };

@@ -1,8 +1,10 @@
 
-//bool rhrs=true;
-bool rhrs = true;
-//bool rhrs = false;
+bool Tkine =true;
+//bool Tkine =false;
+//bool rhrs = true;
+bool rhrs = false;
 bool coll = false;
+bool test =false;
 void calcAcc(){
 
 
@@ -40,10 +42,18 @@ void calcAcc(){
     }
   }
 
+
+  if(Tkine && !rhrs){
+    ifname ="../rootfiles/simc/acceptance/single_LHRS_Tkine.root";
+    ofpname="./param/accept/LHRS_Tkine_accept.param"; // output file
+    Ntot = 2616929;
+  }
+
+  
   string  ifname_gen ="../rootfiles/simc/acceptance/single_gen.root";
 
   
-  ofpname="./param/test.param"; // output file test mode
+  if(test)  ofpname="./param/test.param"; // output file test mode
 
 
  
@@ -114,6 +124,7 @@ void calcAcc(){
     double min_lp,max_lp;
     double Rp_mean = 1.82;
     double Lp_mean = 2.1;
+    if(Tkine) Lp_mean = 2.21807;
     double Rp_acc  = 0.045;
     double Lp_acc  = 0.045;
     min_rp = Rp_mean*(1.0-Rp_acc); max_rp =Rp_mean*(1.0 + Rp_acc);

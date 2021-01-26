@@ -13,5 +13,5 @@ How to use
 (example)
 inputfile : ../rootfiles/momcalib/momcalib_init/Lambda_small_OleH_all.root
 outrootfile : ../rootfiles/momcalib/test.root
-matrixfile : matrix/matrix_momcalib.list (parameter list file)
+matrixfile : matrix/momcalib_matrix.list (parameter list file)
 outmatrixfile : matrix/5th/momcalib_test

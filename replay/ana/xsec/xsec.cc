@@ -39,7 +39,7 @@ using namespace std;
 #include <eigen3/Eigen/Dense>
 using Eigen::MatrixXd;
 using namespace Eigen;
-
+extern double calc_kaon_survival_ratio(TLorentzVector R_v, double pathL);
 ///////////////////////////////////////////////////////////////////////
 
 void xsec::SetParam(string ifpname){
@@ -52,6 +52,7 @@ void xsec::SetParam(string ifpname){
   kaon_survival_ratio = 0.171;
   kaon_eff = 0.94;
   Qc =4.7; //[C]
+
 
   ifstream ifp(ifpname.c_str());
   if(ifp.fail()){cout<<"Could not find file : "<<ifpname<<endl;exit(1);}
@@ -177,6 +178,7 @@ double xsec::NKaon(double Ek){
   
 
 }
+
 
 /////////////////////////////////////////////////////////////////////
 
@@ -453,6 +455,7 @@ void xsec::SetLAccept(string ifpname){
   LEMin=1000.;
   double theta,mom,acc;
 
+
   //  initilization
     for(int i=0;i<nmax;i++){
       LE[i]=0.0;
@@ -468,7 +471,6 @@ void xsec::SetLAccept(string ifpname){
     stringstream sbuf(buf);
     //    sbuf >> LE[nEe_] >> LTheta[nEe_] >> LOmega[nEe_][nth];
     sbuf >> mom >> theta >> acc;
-    
     if(nEe_ ==0 && LE[nEe_]==0){
       LE[nEe_] = mom;
       nth=0;
@@ -479,6 +481,8 @@ void xsec::SetLAccept(string ifpname){
     }
     
 
+
+    
     LTheta[nth]= theta;
     LOmega[nEe_][nth]  = acc;
     if(LEMax<LE[nEe_])LEMax=LE[nEe_];
@@ -550,10 +554,13 @@ void xsec::SetRAccept(string ifpname){
 
 ////////////////////////////////////////////////////////////////////////
 
-double xsec::Efficiency(string mode){
+double xsec::Efficiency(string mode, TLorentzVector Rv, double RpathL){
 
   double eff_total=1.0;
-  kaon_survival_ratio = 0.171; eff_total *=kaon_survival_ratio;
+  //  kaon_survival_ratio = 0.171;
+  kaon_survival_ratio = calc_kaon_survival_ratio(Rv, RpathL);
+  //  cout<<" survival ratio "<< kaon_survival_ratio<<endl;
+  eff_total *=kaon_survival_ratio;
   //  kaon_eff = 0.9;
   eff_ac    = 0.59;  eff_total *= eff_ac;
   eff_vz    = 0.83;  eff_total *= eff_vz;
@@ -572,7 +579,10 @@ double xsec::Efficiency(string mode){
 void xsec::Calc_XS(){
   double XS,XS2;
   double XS_CM;
-  double eff_total = Efficiency("H");
+  TLorentzVector R_v;
+  R_v.SetPxPyPzE(0.0,0.0,Rp,sqrt(Rp*Rp+MK*MK));
+  double RpathL=23.;
+  double eff_total = Efficiency("H",R_v,23.);
   cout<<" Efficency : "<<eff_total<<endl;
   XS = NHyp(Nhyp)/Nt/Ngamma/eff_total*cm_to_barn*1.0e9;
   
@@ -609,7 +619,6 @@ double xsec::GetXS(TLorentzVector B_v, TLorentzVector L_v, TLorentzVector R_v){
   // R_v : 4-vector in RHRS RHRS coordinate
   //  double Nt = NTarget(mode);
   //  double Ngamma = NGamma(Qc);
-  double effifiency = Efficiency(mode);
   double Bp,Bpx,Bpy,Bpz;
   double Rp,Rpx,Rpy,Rpz, Rth,Rph,Rz;
   double Lp,Lpx,Lpy,Lpz,Lth,Lph,Lz;
@@ -622,12 +631,13 @@ double xsec::GetXS(TLorentzVector B_v, TLorentzVector L_v, TLorentzVector R_v){
   //  Lth = Lpz/Lpx; Lph = Lpz/Lpy;
   Rth = R_v.Theta(); Rph = R_v.Phi();  // [rad]
   Lth = L_v.Theta(); Lph = L_v.Phi();  // [rad]
-
+  
   accept_R = GetAccept_R(Rp, Rth);
   if(accept_R<=0) return 0.0;
-  double eff_total = Efficiency(mode);
+  double eff_total = Efficiency(mode, R_v,tr.RpathL);
   XS    = 1./Nt/Ngamma/accept_R/eff_total*cm_to_barn;
 
+  //  cout<<"XS "<<XS<<" eff "<<eff_total<<" accept "<<accept_R<<" Ngamma "<<Ngamma<<endl;
 
   return XS; // [b/sr]
   
@@ -653,6 +663,15 @@ void xsec::SetBranch(string ifrname){
   tree->SetBranchStatus("Rph"      ,1  );
   tree->SetBranchStatus("Lth"      ,1  );
   tree->SetBranchStatus("Lph"      ,1  );
+  tree ->SetBranchStatus("ntr_r",  1);
+  tree ->SetBranchStatus("ntr_l",  1);
+  tree ->SetBranchStatus("mm_nnL", 1);
+  tree ->SetBranchStatus("pid_cut", 1);
+  tree ->SetBranchStatus("z_cut",   1);
+  tree ->SetBranchStatus("ct_cut",  1);
+  tree ->SetBranchStatus("dpe",   1);
+  tree ->SetBranchStatus("dpe_",  1);
+  tree ->SetBranchStatus("dpk",   1);
   
   tree->SetBranchAddress("Bp_c"          ,&Bp_c );
   tree->SetBranchAddress("Lp"          ,&Lp_c );
@@ -661,8 +680,16 @@ void xsec::SetBranch(string ifrname){
   tree ->SetBranchAddress("Lth"          ,&Lth_c);
   tree ->SetBranchAddress("Rph"          ,&Rph_c);
   tree ->SetBranchAddress("Lph"          ,&Lph_c);
-
-
+  tree ->SetBranchAddress("ntr_r",&ntr_r);
+  tree ->SetBranchAddress("ntr_l",&ntr_l);
+  tree ->SetBranchAddress("mm_nnL",&mm_nnL);
+  tree ->SetBranchAddress("pid_cut", &pid_cut);
+  tree ->SetBranchAddress("z_cut",   &z_cut);
+  tree ->SetBranchAddress("ct_cut",  &ct_cut);
+  tree ->SetBranchAddress("dpe",     &dpe);
+  tree ->SetBranchAddress("dpe_",    &dpe_);
+  tree ->SetBranchAddress("dpk",     &dpk);
+  
   
 }
 
@@ -729,10 +756,19 @@ void xsec::Loop(){
 	//===== Initialization =========//
 	tr.mm   =-1000.;
 	tr.xsec =-1000.;
+	tr.RpathL =0.0;
+		
 	//==============================//
 	Ee   = sqrt(Bp_c*Bp_c + Me*Me);
 	L_E  = sqrt(Lp_c*Lp_c + Me*Me);
 	R_E  = sqrt(Rp_c*Rp_c + MK*MK);
+
+	
+	if(ntr_r==1)
+	  tr.RpathL = R_tr_pathl[0]+R_s2_trpath[0];
+	else tr.RpathL =29.0;
+
+	
 	
 	//===== Right Hand Coordinate ====//
 	double R_pz = Rp_c/sqrt(1.0*1.0 + Rth_c* Rth_c + Rph_c* Rph_c );
@@ -742,7 +778,6 @@ void xsec::Loop(){
 	double L_px = L_pz * Lth_c ;
 	double L_py = L_pz * Lph_c ;
 	
-    
 	TVector3 L_v3,R_v3,B_v3;
 	B_v3.SetXYZ(0.0,0.0,Bp_c);
 	L_v3.SetXYZ(L_px,L_py,L_pz);
@@ -766,14 +801,18 @@ void xsec::Loop(){
 	L_v.RotateX(-13.2/180.*PI);
 	MM_v = B_v + T_v - L_v -R_v;
 	tr.mm = (MM_v.Mag() - Mhyp)*1000.; // -BL [MeV]
-	tr.xsec_cm = Lab_to_CM(R_v, B_v - L_v); // CS in CM 
+	tr.xsec_cm = Lab_to_CM(R_v, B_v - L_v); // CS in CM
+
+	
+	if(z_cut>0 && ct_cut>0 && pid_cut){
 	hmm->Fill(tr.mm);
 	hmm_xsec->Fill(tr.mm,tr.xsec);
        	hmm_xsec_cm->Fill(tr.mm, tr.xsec * tr.xsec_cm);
-	Tnew->Fill();
+	}
 
-    
-    if(iev%(ENum/10)==0) cout<<"Filled "<<iev<<" / "<<ENum<<endl;
+	
+       	Tnew->Fill();
+	if(iev%(ENum/10)==0) cout<<"Filled "<<iev<<" / "<<ENum<<endl;
   } // END LOOP
 
 
@@ -883,3 +922,18 @@ int main(int argc, char** argv){
 ///////////////////////////////////////////////////////////////////
 
 
+
+double calc_kaon_survival_ratio(TLorentzVector R_v, double pathL){
+
+  // calculation of kon survial ratio
+
+  
+  double kaon_lifetime = 1.238e-8; // [sec]
+  double c             = 2.99792458e8;  // [sec] speed of light
+  double ctau          = kaon_lifetime*c; // [m]
+  double gamma_K = R_v.Gamma();  
+  double survival_ratio = exp(-pathL/ctau/gamma_K) ;
+
+  return survival_ratio ; 
+  
+};
