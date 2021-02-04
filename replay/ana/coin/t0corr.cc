@@ -660,7 +660,7 @@ int main(int argc, char** argv){
       draw_flag = false;
       single=true;
       ifname = optarg;
-      cout<<"output root filename : "<<ofname<<endl;      
+      cout<<"input filename : "<<ifname<<endl;
       break;      
 
       

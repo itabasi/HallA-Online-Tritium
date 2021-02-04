@@ -4,6 +4,7 @@
 #include "define.h"
 #include "Param.h"
 #include "Tree.h"
+#include "Setting.h"
 #include <complex.h>
 const int nmax =200;
 const int nmax2 =200;
@@ -11,12 +12,38 @@ const int nmax2 =200;
 
 
 //---------- New Root ----------//
+struct TreeBranch_NEW{
+  double mm,xsec,xsec_cm,dOmega_RHRS;
+  double RpathL, LpathL;
+  double xsec_mixed[10],xsec_cm_mixed[10];
+};
+static TreeBranch_NEW tr;
+
+//---------- SIMC Value ----------//
+struct TreeBranch_SIMC{
+
+  float Rp,Rth,Rph,Lp,Lth,Lph,Bp;
+  float Rpathl,Lpathl;
+  float mm,normfac,weight;
+  
+};
+static TreeBranch_SIMC snt;
+
+//---------- ROOT Value ----------//
 struct TreeBranch{
 
-  double mm,xsec,xsec_cm,dOmega_RHRS;
-  double RpathL;
+  double Bp_c,Rp_c,Lp_c;
+  double Rth_c,Rph_c,Lth_c,Lph_c;
+  int ntr_r,ntr_l;
+  double mm_nnL, dpe,dpe_,dpk;
+  int pid_cut, z_cut,ct_cut;
+  double R_pathl, L_pathl;
+  double mm_mixed[10];
+  
 };
-static TreeBranch tr;
+static TreeBranch t;
+
+
 
 
 class xsec : public Tree{
@@ -30,12 +57,14 @@ public:
   string SetVal(string line,string name);
   void Calc_XS();
   void SetBranch(string ifrname);
+  void SetBranch_SIMC(string ifrname);
   void NewRoot(string ofrname);
   void Loop();
   void SetLAccept(string ifpname);
   void SetLAccept_new(string ifpname);
   void SetRAccept(string ifpname);
   double GetAccept_R(double Rp, double Rth);
+  double GetAccept_L(double Lp, double Lth);
   double Efficiency(string mode, TLorentzVector Rz, double RpathL);
   double PhaseShift();
   double Lab_to_CM(TLorentzVector R_v, TLorentzVector VF_v);
@@ -54,32 +83,41 @@ public:
 
 
 
+  Setting *set;
 
   //---------- Tree ------------//
   TChain* T;
+  TChain* SNT;
   int ENum;
   double R_E,L_E;
   TFile* ofr;
   TTree* Tnew;
 
+  TH1D* hmm;
   TH1D* hmm_xsec;
   TH1D* hmm_xsec_cm;
-  TH1D* hmm;
+  TH1D* hmixed;
+  TH1D* hmixed_xsec;
+  TH1D* hmixed_xsec_cm;  
+
   TH1D* hRp;
   TH1D* hRth;
   TH2D* hRp_Rth;
-  double Bp_c,Rp_c,Lp_c;
-  double Rth_c,Rph_c,Lth_c,Lph_c;
-  int ntr_r,ntr_l;
-  double mm_nnL, dpe,dpe_,dpk;
-  int pid_cut, z_cut,ct_cut;
+
+
+  // -------- loop --------------//
+  //  bool simc_mode;
+  double Bp,Rp,Lp;
+  double Rth,Rph,Lth,Lph;
+  double Lpx,Lpy,Lpz,Ee,Ee_,Rpx,Rpy,Rpz,Ek;
+  double mm_mixed[10];
   //---------- SetParam ----------//
   string RHRS_accept_file;
   string LHRS_accept_file;
   string mode;
   double Nhyp,Nhyp2,Nt;  
   double Bp_mean,Lp_mean,Rp_mean;
-  double Lpx,Lpy,Lpz,Bp,Ee,Ee_,Lp,Rp,Rpx,Rpy,Rpz,Ek;
+
   double theta_L_max,theta_R_max;
   double hrs_angle = 13.2*PI/180.;
   double gen_theta_accept =  6.7272080607340551e-2;
@@ -94,6 +132,8 @@ public:
   int nph   = 100;
   int nth_R = 100;
   int nph_R = 100;
+  int nth_L = 100;
+  int nph_L = 100;  
   double LE[nmax],LOmega[nmax][nmax],LTheta[nmax],LEMax,LEMin;
   double RE[nmax],ROmega[nmax][nmax],RTheta[nmax],REMax,REMin;
   // ------ NGamma ------//
@@ -127,7 +167,12 @@ public:
   //  bool nr_mode=false;
 };
 
-xsec::xsec(){};
+xsec::xsec(){
+
+  set = new Setting();
+  set->Initialize();
+  
+};
 xsec::~xsec(){};
 
 #endif

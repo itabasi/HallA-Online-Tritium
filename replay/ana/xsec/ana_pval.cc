@@ -117,15 +117,23 @@ int main(int argc, char** argv){
   TGraph *g_s   = new TGraph(Nbin,MM,S);
   g_s->SetName("g_s");
   TGraph *g_n   = new TGraph(Nbin,MM,N);
-  g_s->SetName("g_n");
+  g_n->SetName("g_n");
   TGraph *g_val = new TGraph(Nbin,MM,Pval);
-  g_s->SetName("g_val");
+  g_val->SetName("g_val");
   TGraph *g_ps  = new TGraph(Nbin,MM,PS);
-  g_s->SetName("g_ps");
+  g_ps->SetName("g_ps");
+  /*  
   set->SetGr(g_s  ,"g_s","#DeltaB_{#Lambda} (MeV/c^{2})^{2}","");
   set->SetGr(g_n  ,"g_n","#DeltaB_{#Lambda} (MeV/c^{2})^{2}","",2);
   set->SetGr(g_val,"g_val","#DeltaB_{#Lambda} (MeV/c^{2})^{2}","p-value");
   set->SetGr(g_ps ,"g_ps","#DeltaB_{#Lambda} (MeV/c^{2})^{2}","peak significance");
+  */
+
+  set->SetGr(g_s  ,"g_s","#DeltaB_{#Lambda} (MeV/c^{2})^{2}","");
+  set->SetGr(g_n  ,"g_n","#DeltaB_{#Lambda} (MeV/c^{2})^{2}","",2);
+  set->SetGr(g_val,"g_val","#DeltaB_{#Lambda} (MeV/c^{2})^{2}","p-value");
+  set->SetGr(g_ps ,"g_ps","#DeltaB_{#Lambda} (MeV/c^{2})^{2}","peak significance");
+  
   g_val->SetMinimum(1E-10);
   g_val->GetXaxis()->SetRangeUser(-100,150);
   g_ps ->GetXaxis()->SetRangeUser(-100,150);

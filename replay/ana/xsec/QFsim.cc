@@ -39,6 +39,8 @@ using namespace Eigen;
 #include "QFsim.h"
 #include "define.h"
 #include "Param.h"
+#include "Math/ProbFunc.h"
+#include "Math/DistFunc.h"
 
 ////////////////////////////////////////////////////////////////////
 
@@ -76,9 +78,15 @@ void QFsim::SetRootList(string ifrname){
   fexp   = new TFile(rname[0].c_str()); // Exp. Root File
   fH_sim = new TFile(rname[1].c_str()); // SIMC Lambda Root File
   fT_sim = new TFile(rname[2].c_str()); // SIMC nnL    Root File
-  ofr    = new TFile(rname[3].c_str(),"recreate"); // OutPut Root File
+  
+  fH_sim_10keV = new TFile(rname[3].c_str()); // SIMC Lam(10 keV) Root File  
+  fT_sim_10keV = new TFile(rname[4].c_str()); // SIMC nnL(10 keV) Root File
+  fexp_10keV = new TFile(rname[5].c_str()); // Exp. Root File (10 keV)
+  
+  ofr    = new TFile(rname[6].c_str(),"recreate"); // OutPut Root File
+  
   Tnew = new TTree("T","QF Fitting ");
-  cout<<"Out Put Root File "<<rname[3]<<endl;
+  cout<<"Out Put Root File "<<rname[6]<<endl;
 }
 
 
@@ -108,55 +116,114 @@ void QFsim::SetHist(){
   hexp_L ->SetName("hexp_L");
   //  hexp->SetTitle("Exp data (Hydrogen data) w/o Accidental B.G.; Missing mass [GeV]; Counts/2MeV");
 
-  hmm       =(TH1F*)fT_sim->Get("hmm");
+  hmm       =(TH1D*)fT_sim->Get("hmm");
   hmm       ->SetName("hmm");
   hmm->SetTitle("Simulation w/o B.G.; Missing mass [GeV]; Counts/2MeV");
-  hmm_fsi1  =(TH1F*)fT_sim->Get("hmm_fsi1");
+  hmm_fsi1  =(TH1D*)fT_sim->Get("hmm_fsi1");
   hmm_fsi1->SetName("hmm_fsi1");
   hmm_fsi1->SetTitle("Simulation w/o B.G. with model 1 FSI; Missing mass [GeV]; Counts/2MeV");  
-  hmm_fsi2  =(TH1F*)fT_sim->Get("hmm_fsi2");
+  hmm_fsi2  =(TH1D*)fT_sim->Get("hmm_fsi2");
   hmm_fsi2->SetName("hmm_fsi2");
   hmm_fsi2->SetTitle("Simulation w/o B.G. with model 2 FSI; Missing mass [GeV]; Counts/2MeV");  
-  hmm_fsi3  =(TH1F*)fT_sim->Get("hmm_fsi3");
+  hmm_fsi3  =(TH1D*)fT_sim->Get("hmm_fsi3");
   hmm_fsi3->SetName("hmm_fsi3");
   hmm_fsi3->SetTitle("Simulation w/o B.G. with model 3 FSI; Missing mass [GeV]; Counts/2MeV");  
 
-  hmm_s       = (TH1F*)hmm      -> Clone();
+  hmm_s       = (TH1D*)hmm      -> Clone();
   hmm_s       ->SetName("hmm_s");
   hmm_s->SetTitle("Simulation w/o B.G. with scaling ; Missing mass [GeV]; Counts/2MeV");    
-  hmm_fsi1_s  = (TH1F*)hmm_fsi1 -> Clone();
+  hmm_fsi1_s  = (TH1D*)hmm_fsi1 -> Clone();
   hmm_fsi1_s ->SetName("hmm_fsi1_s");
   hmm_fsi1_s->SetTitle("Simulation w/o B.G. with scaling (model 1 FSI); Missing mass [GeV]; Counts/2MeV");    
-  hmm_fsi2_s  = (TH1F*)hmm_fsi2 -> Clone();
+  hmm_fsi2_s  = (TH1D*)hmm_fsi2 -> Clone();
   hmm_fsi2_s ->SetName("hmm_fsi2_s");
   hmm_fsi2_s->SetTitle("Simulation w/o B.G. with scaling (model 2 FSI); Missing mass [GeV]; Counts/2MeV");      
-  hmm_fsi3_s  = (TH1F*)hmm_fsi3-> Clone();
+  hmm_fsi3_s  = (TH1D*)hmm_fsi3-> Clone();
   hmm_fsi3_s ->SetName("hmm_fsi3_s");
   hmm_fsi3_s->SetTitle("Simulation w/o B.G. with scaling (model 3 FSI); Missing mass [GeV]; Counts/2MeV");    
 
 
+
+  //  hexp_10keV =(TH1D*)fexp_10keV->Get("hmm");
+
+
   
-  hH_Lsim   = (TH1F*)fH_sim ->Get("hmm_L");
+  hexp_10keV =(TH1D*)fexp_10keV->Get("hmm_peak");  // w/o ACC. B.G.
+  hexp_10keV -> SetName("hexp_10keV");
+  hexp_10keV_s =(TH1D*)hexp_10keV->Clone();  // w/o ACC. B.G.
+  hexp_10keV_s -> SetName("hexp_10keV_s");
+  hexp_10keV_c =(TH1D*)hexp_10keV->Clone();  // w/o ACC. B.G.
+  hexp_10keV_c -> SetName("hexp_10keV_c");  
+  
+  hexp_acc_10keV =(TH1D*)fexp_10keV->Get("hmm_acc");
+  hexp_acc_10keV -> SetName("hexp_acc_10keV");
+
+  
+  hmm_10keV =(TH1D*)fT_sim_10keV->Get("hmm");
+  hmm_10keV -> SetName("hmm_10keV");
+  hmm_10keV_s =(TH1D*)hmm_10keV->Clone();
+  hmm_10keV_s -> SetName("hmm_10keV_s");  
+  hmm_10keV_c =(TH1D*)hmm_10keV->Clone();
+  hmm_10keV_c -> SetName("hmm_10keV_c");
+  
+  hH_nnLsim_10keV  = (TH1D*)fH_sim_10keV->Get("hmm_nnL");
+  hH_nnLsim_10keV -> SetName("hH_nnLsim_10keV");
+  hH_nnLsim_10keV_s =(TH1D*)hH_nnLsim_10keV->Clone();
+  hH_nnLsim_10keV_s -> SetName("hH_nnLsim_10keV_s");  
+  
+  hmm_fsi1_10keV =(TH1D*)fT_sim_10keV->Get("hmm_fsi1");
+  hmm_fsi1_10keV -> SetName("hmm_fsi1_10keV");
+  hmm_fsi2_10keV =(TH1D*)fT_sim_10keV->Get("hmm_fsi2");
+  hmm_fsi2_10keV -> SetName("hmm_fsi2_10keV");
+  hmm_fsi3_10keV =(TH1D*)fT_sim_10keV->Get("hmm_fsi3");
+  hmm_fsi3_10keV -> SetName("hmm_fsi3_10keV");
+
+
+  
+  hexp_10keV_s =(TH1D*)hexp_10keV->Clone();
+  hexp_10keV_s -> SetName("hexp_10keV_s");
+  hmm_10keV_s =(TH1D*)hmm_10keV->Clone();
+  hmm_10keV_s -> SetName("hmm_10keV_s");
+  hmm_fsi1_10keV_s =(TH1D*)hmm_fsi1_10keV->Clone();
+  hmm_fsi1_10keV_s -> SetName("hmm_fsi1_10keV_s");
+  hmm_fsi2_10keV_s =(TH1D*)hmm_fsi2_10keV->Clone();
+  hmm_fsi2_10keV_s -> SetName("hmm_fsi2_10keV_s");
+  hmm_fsi3_10keV_s =(TH1D*)hmm_fsi3_10keV->Clone();
+  hmm_fsi3_10keV_s -> SetName("hmm_fsi3_10keV_s");
+  
+  hexp_10keV_c =(TH1D*)hexp_10keV->Clone();
+  hexp_10keV_c -> SetName("hexp_10keV_c");
+  hmm_10keV_c =(TH1D*)hmm_10keV->Clone();
+  hmm_10keV_c -> SetName("hmm_10keV_c");
+  hmm_fsi1_10keV_c =(TH1D*)hmm_fsi1_10keV->Clone();
+  hmm_fsi1_10keV_c -> SetName("hmm_fsi1_10keV_c");
+  hmm_fsi2_10keV_c =(TH1D*)hmm_fsi2_10keV->Clone();
+  hmm_fsi2_10keV_c -> SetName("hmm_fsi2_10keV_c");
+  hmm_fsi3_10keV_c =(TH1D*)hmm_fsi3_10keV->Clone();
+  hmm_fsi3_10keV_c -> SetName("hmm_fsi3_10keV_c");
+  
+
+  hH_Lsim   = (TH1D*)fH_sim ->Get("hmm_L");
   hH_Lsim -> SetName("hH_Lsim");
-  hH_Lsim_s  =(TH1F*)hH_Lsim->Clone();
+  hH_Lsim_s  =(TH1D*)hH_Lsim->Clone();
   hH_Lsim_s -> SetName("hH_Lsim_s");
-  hH_nnLsim   = (TH1F*)fH_sim ->Get("hmm_nnL");
+  hH_nnLsim   = (TH1D*)fH_sim ->Get("hmm_nnL");
   hH_nnLsim  -> SetName("hH_nnLsim");
-  hH_nnLsim_s =(TH1F*)hH_nnLsim->Clone();
+  hH_nnLsim_s =(TH1D*)hH_nnLsim->Clone();
   hH_nnLsim_s -> SetName("hH_nnLsim_s"); 
   
-  hT_Lsim   = (TH1F*)fT_sim ->Get("hmm_L");
+  hT_Lsim   = (TH1D*)fT_sim ->Get("hmm_L");
   hT_Lsim -> SetName("hT_Lsim");
-  hT_Lsim_s =(TH1F*)hT_Lsim->Clone();
+  hT_Lsim_s =(TH1D*)hT_Lsim->Clone();
   hT_Lsim_s -> SetName("hT_Lsim_s");
-  hT_nnLsim   = (TH1F*)fT_sim ->Get("hmm_nnL");
+  hT_nnLsim   = (TH1D*)fT_sim ->Get("hmm_nnL");
   hT_nnLsim  -> SetName("hT_nnLsim");
-  hT_nnLsim_s =(TH1F*)hT_nnLsim->Clone();
+  hT_nnLsim_s =(TH1D*)hT_nnLsim->Clone();
   hT_nnLsim_s -> SetName("hT_nnLsim_s"); 
 
-  hnnL_sim   =(TH1F*)fT_sim->Get("hmm");
+  hnnL_sim   =(TH1D*)fT_sim->Get("hmm");
   hnnL_sim ->SetName("hnnL_sim");
-  hnnL_sim_s =(TH1F*)hnnL_sim->Clone();
+  hnnL_sim_s =(TH1D*)hnnL_sim->Clone();
   hnnL_sim_s ->SetName("hnnL_sim_s");
   
   gchi_L = new TGraphErrors();
@@ -175,8 +242,54 @@ void QFsim::SetHist(){
   gchi_fsi[i] = new TGraphErrors();
   gchi_fsi[i]->SetName(Form("gchi_fsi_%d",i));
   gdiff_fsi[i] = new TGraphErrors();
-  gdiff_fsi[i]->SetName(Form("gdiff_fsi_%d",i));    
+  gdiff_fsi[i]->SetName(Form("gdiff_fsi_%d",i));
+
+
+  g_s[i] = new TGraph();
+  g_s[i]->SetName(Form("g_s_%d",i));
+  g_n[i] = new TGraph();
+  g_n[i]->SetName(Form("g_n_%d",i));
+  g_val[i] = new TGraph();
+  g_val[i]->SetName(Form("g_val_%d",i));
+  g_ps[i] = new TGraph();
+  g_ps[i]->SetName(Form("g_ps_%d",i));
+
+  g_ps_sig[i] = new TGraph();
+  g_ps_sig[i]->SetName(Form("g_ps_sig_%d",i));  
+  g_val_sig[i] = new TGraph();
+  g_val_sig[i]->SetName(Form("g_val_sig_%d",i));
+  g_mm_sig[i] = new TGraph();
+  g_mm_sig[i]->SetName(Form("g_mm_sig_%d",i));
+  
+  g_ps[i]->SetMarkerStyle(7);
+  g_ps[i]->SetMarkerColor(i+1);
+  g_val[i]->SetMarkerStyle(7);
+  g_val[i]->SetMarkerColor(i+1);
+
+  g_ps_sig[i]->SetMarkerStyle(7);
+  g_ps_sig[i]->SetMarkerColor(i+1);
+  g_val_sig[i]->SetMarkerStyle(7);
+  g_val_sig[i]->SetMarkerColor(i+1);  
+  g_mm_sig[i]->SetMarkerStyle(7);
+  g_mm_sig[i]->SetMarkerColor(i+1);  
+  
+  
   }
+
+
+
+  //=== CalcPS =====//
+  for(int i=0;i<nvp;i++){
+
+  g_val[i]->SetMinimum(1E-10);
+  g_val[i]->GetXaxis()->SetRangeUser(-100,150);
+  g_ps[i] ->GetXaxis()->SetRangeUser(-100,150);
+  g_s[i]  ->GetXaxis()->SetRangeUser(-100,150);
+  g_n[i]  ->GetXaxis()->SetRangeUser(-100,150);
+
+  }
+
+  
 }
 
 
@@ -341,16 +454,16 @@ void QFsim::FitQFnnL(){
   hmm_fsi3_s->Add(hH_nnLsim_s,1.0);
 
 
-  hmm_c  = (TH1F*)hmm_s -> Clone();
+  hmm_c  = (TH1D*)hmm_s -> Clone();
   hmm_c       ->SetName("hmm_c");
   hmm_c->SetTitle("Simulation w/ B.G. with scaling ; Missing mass [GeV]; Counts/2MeV");    
-  hmm_fsi1_c  = (TH1F*)hmm_fsi1_s -> Clone();
+  hmm_fsi1_c  = (TH1D*)hmm_fsi1_s -> Clone();
   hmm_fsi1_c ->SetName("hmm_fsi1_c");
   hmm_fsi1_c->SetTitle("Simulation w/ B.G. with scaling (model 1 FSI); Missing mass [GeV]; Counts/2MeV");    
-  hmm_fsi2_c  = (TH1F*)hmm_fsi2_s -> Clone();
+  hmm_fsi2_c  = (TH1D*)hmm_fsi2_s -> Clone();
   hmm_fsi2_c ->SetName("hmm_fsi2_c");
   hmm_fsi2_c->SetTitle("Simulation w/ B.G. with scaling (model 2 FSI); Missing mass [GeV]; Counts/2MeV");    
-  hmm_fsi3_c  = (TH1F*)hmm_fsi3_s-> Clone();
+  hmm_fsi3_c  = (TH1D*)hmm_fsi3_s-> Clone();
   hmm_fsi3_c ->SetName("hmm_fsi3_c");
   hmm_fsi3_c->SetTitle("Simulation w/ B.G. with scaling (model 3 FSI); Missing mass [GeV]; Counts/2MeV");
   
@@ -376,20 +489,42 @@ void QFsim::FitQFnnL_new(){
   int nbins = hnnL_sim->GetXaxis()->GetNbins();
   int nmin  = hnnL_sim->GetXaxis()->GetXmin();
   int nmax  = hnnL_sim->GetXaxis()->GetXmax();
+  int nevnt = hnnL_sim->GetEntries();
 
+  //------ 10 keV nnL (H run ) hist ------//
+
+  double nbins_Lam_10keV =(double) hH_nnLsim_10keV->GetXaxis()->GetNbins();
+  double nbins_Lam       =(double) hH_nnLsim      ->GetXaxis()->GetNbins();
+
+
+
+  
+  
   // Substract Lambda B.G.
 
   double ratio = NL_bg/(double)hH_nnLsim->GetEntries();
   hH_nnLsim_s->Scale(ratio);
   hexp_c->Add(hH_nnLsim_s,-1.0);
-  
 
+  // Lambda B.G in 10 keV hist
+  double ratio_10keV = NL_bg/(double)hH_nnLsim_10keV->GetEntries();
+  hH_nnLsim_10keV_s->Scale(ratio_10keV);
+  hexp_10keV_c->Add(hH_nnLsim_10keV_s,-1.0); // w/o Lam. B.G.
+  
+  
+  
   // Scale FSI MM simulation
   double ENum[nvp], scale[nvp],ENum_exp;
+  double ENum_10keV[nvp], scale_10keV[nvp],ENum_exp_10keV;
 
-  ENum_exp = hexp_c->Integral(hexp_c->GetXaxis()->FindBin(-1000.),hexp_c->GetXaxis()->FindBin(1000.));
+
+
   
-  ENum[0] =hnnL_sim_s->Integral(hnnL_sim_s->GetXaxis()->FindBin(-1000.),hnnL_sim_s->GetXaxis()->FindBin(1000.));
+  ENum_exp = hexp_c->Integral(hexp_c->GetXaxis()->FindBin(-1000.),hexp_c->GetXaxis()->FindBin(1000.));  // w/o Lambda B.G.
+  
+  //  ENum[0] =hnnL_sim_s->Integral(hnnL_sim_s->GetXaxis()->FindBin(-1000.),hnnL_sim_s->GetXaxis()->FindBin(1000.));
+  
+    ENum[0] =hmm->Integral(hmm->GetXaxis()->FindBin(-1000.),hmm->GetXaxis()->FindBin(1000.));
 
   ENum[1] = hmm_fsi1->Integral(hmm_fsi1->GetXaxis()->FindBin(-1000.),hmm_fsi1->GetXaxis()->FindBin(1000.));
 
@@ -398,6 +533,28 @@ void QFsim::FitQFnnL_new(){
   ENum[3] = hmm_fsi3->Integral(hmm_fsi3->GetXaxis()->FindBin(-1000.),hmm_fsi3->GetXaxis()->FindBin(1000.));  
   
 
+
+  
+  //   ENum_exp_10keV = hexp_10keV_s->Integral(hexp_10keV_s->GetXaxis()->FindBin(-1000.),hexp_10keV_s->GetXaxis()->FindBin(1000.));
+
+
+  
+  ENum_exp_10keV = (double)hexp_10keV_c->GetEntries(); // w/o Lambda B.G.
+
+  
+  ENum_10keV[0] =hmm_10keV->Integral(hmm_10keV->GetXaxis()->FindBin(-1000.),hmm_10keV->GetXaxis()->FindBin(1000.));
+
+  ENum_10keV[1] = hmm_fsi1_10keV->Integral(hmm_fsi1_10keV->GetXaxis()->FindBin(-1000.),hmm_fsi1_10keV->GetXaxis()->FindBin(1000.));
+
+  ENum_10keV[2] = hmm_fsi2_10keV->Integral(hmm_fsi2_10keV->GetXaxis()->FindBin(-1000.),hmm_fsi2_10keV->GetXaxis()->FindBin(1000.));
+
+  ENum_10keV[3] = hmm_fsi3_10keV->Integral(hmm_fsi3_10keV->GetXaxis()->FindBin(-1000.),hmm_fsi3_10keV->GetXaxis()->FindBin(1000.));  
+
+
+  //  cout<<"exp 10 keV "<<ENum_exp_10keV<<" exp "<<ENum_exp<<endl;
+
+
+  
   scale[0] = ENum_exp/ENum[0];
   scale[1] = ENum_exp/ENum[1];
   scale[2] = ENum_exp/ENum[2];
@@ -409,9 +566,27 @@ void QFsim::FitQFnnL_new(){
   hmm_fsi2_s->Scale(scale[2]);
   hmm_fsi3_s->Scale(scale[3]);
   
+  scale_10keV[0] = ENum_exp_10keV/ENum_10keV[0];
+  scale_10keV[1] = ENum_exp_10keV/ENum_10keV[1];
+  scale_10keV[2] = ENum_exp_10keV/ENum_10keV[2];
+  scale_10keV[3] = ENum_exp_10keV/ENum_10keV[3];
+
+
+  //  cout<<"scale "<<scale[0]<<" scale (10keV ) "<<scale_10keV[0]<<endl;
+  //  hnnL_sim_10keV_s->Scale(scale_10keV[0]);
+
   
+  hmm_10keV_s     ->Scale(scale_10keV[0]);
+  hmm_fsi1_10keV_s->Scale(scale_10keV[1]);
+  hmm_fsi2_10keV_s->Scale(scale_10keV[2]);
+  hmm_fsi3_10keV_s->Scale(scale_10keV[3]);
   
 
+  //  cout<<"scale 10 keV  "<<scale_10keV[0]<<endl;
+
+
+  // Get Counts each Hist 
+  
   
   double ymax0 = hexp_c    -> GetBinContent(hexp_c->GetMaximumBin());
   double ymax1 = hnnL_sim  -> GetBinContent(hnnL_sim->GetMaximumBin());
@@ -433,6 +608,10 @@ void QFsim::FitQFnnL_new(){
   }
 
 
+
+
+  //   Calculation of minimalization of chi2 (Fitting)
+  //   wmin : weighting factor
   
   double chi2,chi2_min[nvp],w,wmin[nvp];
   int wmax=100;
@@ -480,40 +659,237 @@ void QFsim::FitQFnnL_new(){
   
   hnnL_sim_s->Scale(wmin[0]);
   hmm_s->Scale(wmin[0]);
+  hmm_10keV_s ->Scale(wmin[0]);
 
-  //  hmm_fsi1_s->Scale(wmin[1]);
-  //  hmm_fsi2_s->Scale(wmin[2]);
-  //  hmm_fsi3_s->Scale(wmin[3]);  
+  
+  hmm_fsi1_s->Scale(wmin[1]);
+  hmm_fsi2_s->Scale(wmin[2]);
+  hmm_fsi3_s->Scale(wmin[3]);
 
-  hmm_c  = (TH1F*)hmm_s -> Clone();
+  hmm_fsi1_10keV_s->Scale(wmin[1]);
+  hmm_fsi2_10keV_s->Scale(wmin[2]);
+  hmm_fsi3_10keV_s->Scale(wmin[3]);    
+
+  
+  hmm_c  = (TH1D*)hmm_s -> Clone();
   hmm_c       ->SetName("hmm_c");
-  hmm_fsi1_c  = (TH1F*)hmm_fsi1_s -> Clone();
+  hmm_fsi1_c  = (TH1D*)hmm_fsi1_s -> Clone();
   hmm_fsi1_c ->SetName("hmm_fsi1_c");
-  hmm_fsi2_c  = (TH1F*)hmm_fsi2_s -> Clone();
+  hmm_fsi2_c  = (TH1D*)hmm_fsi2_s -> Clone();
   hmm_fsi2_c ->SetName("hmm_fsi2_c");
-  hmm_fsi3_c  = (TH1F*)hmm_fsi3_s-> Clone();
+  hmm_fsi3_c  = (TH1D*)hmm_fsi3_s-> Clone();
   hmm_fsi3_c ->SetName("hmm_fsi3_c");
 
+  
+  hmm_10keV_c  = (TH1D*)hmm_10keV_s -> Clone();
+  hmm_10keV_c       ->SetName("hmm_10keV_c");
+  hmm_fsi1_10keV_c  = (TH1D*)hmm_fsi1_10keV_s -> Clone();
+  hmm_fsi1_10keV_c ->SetName("hmm_fsi1_10keV_c");
+  hmm_fsi2_10keV_c  = (TH1D*)hmm_fsi2_10keV_s -> Clone();
+  hmm_fsi2_10keV_c ->SetName("hmm_fsi2_10keV_c");
+  hmm_fsi3_10keV_c  = (TH1D*)hmm_fsi3_10keV_s-> Clone();
+  hmm_fsi3_10keV_c ->SetName("hmm_fsi3_10keV_c");
+  
 
+  // Add Lambda B.G. 
   hexp_c->Add(hH_nnLsim_s, 1.0);
   hmm_c ->Add(hH_nnLsim_s, 1.0);
   hmm_fsi1_c->Add(hH_nnLsim_s,1.0);
   hmm_fsi2_c->Add(hH_nnLsim_s,1.0);
   hmm_fsi3_c->Add(hH_nnLsim_s,1.0);
 
-
-  
+  // Add Acc. B.G.
   hexp_c     ->Add(hexp_acc,1.0);
   hmm_c      ->Add(hexp_acc,1.0);
   hmm_fsi1_c ->Add(hexp_acc,1.0);
   hmm_fsi2_c ->Add(hexp_acc,1.0);
   hmm_fsi3_c ->Add(hexp_acc,1.0);
 
+
+  // Add Lambda B.G. 
+  hexp_10keV_c->Add(hH_nnLsim_10keV_s, 1.0);
+  hmm_10keV_c ->Add(hH_nnLsim_10keV_s, 1.0);
+  hmm_fsi1_10keV_c->Add(hH_nnLsim_10keV_s,1.0);
+  hmm_fsi2_10keV_c->Add(hH_nnLsim_10keV_s,1.0);
+  hmm_fsi3_10keV_c->Add(hH_nnLsim_10keV_s,1.0);
+
+  // Add Acc. B.G.
+  hexp_10keV_c     ->Add(hexp_acc_10keV,1.0);
+  hmm_10keV_c      ->Add(hexp_acc_10keV,1.0);
+  hmm_fsi1_10keV_c ->Add(hexp_acc_10keV,1.0);
+  hmm_fsi2_10keV_c ->Add(hexp_acc_10keV,1.0);
+  hmm_fsi3_10keV_c ->Add(hexp_acc_10keV,1.0);  
+
+
+  //===== Calc Peak Signifiance ==========//
+
+
+
+  double sim_obin = (hmm_c->GetBinCenter(2) - hmm_c->GetBinCenter(1));
+  double sim_10keV_obin =(hmm_10keV->GetBinCenter(2) - hmm_10keV->GetBinCenter(1));
+  
+  CalcPS_c(hexp_10keV_c,hmm_10keV_c, 0);  // w/o FSI 
+  CalcPS_c(hexp_10keV_c,hmm_fsi1_10keV_c, 1);  // w/ FSI Verma Potential 
+  CalcPS_c(hexp_10keV_c,hmm_fsi2_10keV_c, 2);  // w/ FSI Verma Potential
+  CalcPS_c(hexp_10keV_c,hmm_fsi3_10keV_c, 3);  // w/ FSI Verma Potential 
+
+ 
   
 }
 
 
 ////////////////////////////////////////////////////////////////////////////
+
+
+
+void QFsim::CalcPS(TH1D* hmm){
+
+
+  double min_mm = hmm->GetXaxis()->GetXmin();
+  double max_mm = hmm->GetXaxis()->GetXmax();
+  const int Nbin = (int)(max_mm - max_mm)*30;
+
+  double S[Nbin],N[Nbin],Pval[Nbin],PS[Nbin], MM[Nbin];
+  double bin_width = (hmm->GetBinCenter(2) - hmm->GetBinCenter(1));
+  
+  double width = 1.0;
+  double window = width/bin_width;
+  double bgr = 2.0; // BackGround Range with sigma
+  cout<<"Bin size "<<bin_width<<" MeV"<<endl;
+  cout<<"Peak Resolution: "<<window<<" MeV"<<endl;
+  
+  TF1* f = new TF1("f_pois","TMath::Poisson(x,[0])",0,1000);
+
+  
+  for(int i=0;i<Nbin;i++){
+
+    Pval[i] =  PS[i] = 0.0;
+    Pval[i] =  PS[i] = 0.0;
+    double bg1 = hmm->Integral(i-int((2+bgr)*window),i-int(2*window));
+    double bg2 = hmm->Integral(i+int(2*window),i+int((2+bgr)*window));
+    double bg = (bg1 + bg2) / (bgr);
+    double pk = hmm->Integral(i - int(window), i + int(window));
+    double mm = hmm->GetBinCenter(i);
+
+    
+    f ->SetParameter(0,bg);
+    double pval = f->Integral(pk,1000.,1.0e-12);
+    if( pval == 0. ){ pval = 1.; }
+    if( i-int(6*window) <= 0    ){ pval = 1.; }
+    if( i+int(6*window) >= Nbin ){ pval = 1.; }
+    double ps = ROOT::Math::gaussian_quantile_c(pval,1.);
+    if( pval>=1 || pval<=0 ){ ps = 0; }
+    if( ps < 0 ){ ps = 0; }
+
+    S[i]    = pk;
+    N[i]    = bg;
+    Pval[i] = pval;
+    PS[i]   = ps;
+    MM[i]   = mm;
+    f->Clear();
+
+    //    g_s   ->SetPoint(i,MM[i],S[i]);
+    //    g_n   ->SetPoint(i,MM[i],N[i]);
+    //    g_val ->SetPoint(i,MM[i],Pval[i]);
+    //    g_ps  ->SetPoint(i,MM[i],PS[i]);
+    
+  }
+    
+
+  
+} 
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+void QFsim::CalcPS_c(TH1D* hexp, TH1D* hsim, int model){
+
+
+  
+  double min_mm = hexp->GetXaxis()->GetXmin();
+  double max_mm = hexp->GetXaxis()->GetXmax();
+  //  const int Nbin = (int)(max_mm - min_mm)*30;
+  double bin_width = (hexp->GetBinCenter(2) - hexp->GetBinCenter(1));
+  const int Nbin = (int)( (max_mm - min_mm)/bin_width );
+  double S[Nbin],N[Nbin],Pval[Nbin],PS[Nbin], MM[Nbin];
+  TF1* f = new TF1("f_pois","TMath::Poisson(x,[0])",0,1000);
+
+  
+  //  double window = width/bin_width;
+
+  double max_ps,min_val,mean;
+  double peak_sigma = 1.0; //MeV
+  
+  int jmax =10;
+  
+  for(int j=0;j<jmax;j++){
+
+
+    //    double width = 2.0*peak_sigma; //MeV
+
+    min_val = 100.;
+    max_ps  = 0.0 ;
+    mean    = -100.;
+    
+    double width = ((double)j*0.1 +1.0) *peak_sigma; //MeV
+    double window = width/bin_width;
+
+
+    for(int i=0;i<Nbin;i++){
+      
+      Pval[i] =  PS[i] = 0.0;
+      Pval[i] =  PS[i] = 0.0;
+      
+      double bg = hsim -> Integral(i - int(window), i + int(window));
+      double pk = hexp -> Integral(i - int(window), i + int(window));
+      double mm = hexp -> GetBinCenter(i);
+
+      
+      f ->SetParameter(0,bg);
+      double pval = f->Integral(pk,1000.,1.0e-12);
+      if( pval == 0. ){ pval = 1.; }
+      if( i-int(6*window) <= 0    ){ pval = 1.; }
+      if( i+int(6*window) >= Nbin ){ pval = 1.; }
+      //    double ps = ROOT::Math::gaussian_quantile_c(pval,1.);
+      
+      double ps = ROOT::Math::gaussian_quantile_c(pval,1.0);
+      if( pval>=1 || pval<=0 ){ ps = 0; }
+      if( ps < 0 ){ ps = 0; }
+      
+      S[i]    = pk;
+      N[i]    = bg;
+      Pval[i] = pval;
+      PS[i]   = ps;
+      MM[i]   = mm;
+      f->Clear();
+
+      if(j==0 ){
+      g_s[model]   ->SetPoint(i,MM[i],S[i]);
+      g_n[model]   ->SetPoint(i,MM[i],N[i]);
+      g_val[model] ->SetPoint(i,MM[i],Pval[i]);
+      g_ps[model]  ->SetPoint(i,MM[i],PS[i]);
+
+      }
+      
+      if(fabs(MM[i])<2.0 && max_ps < PS[i]){
+	max_ps = PS[i];
+	min_val = Pval[i];
+	mean    = MM[i];
+      }
+    }// END ibin
+
+    g_ps_sig[model]-> SetPoint(j,width,max_ps);
+    g_val_sig[model]-> SetPoint(j,width,min_val); 
+    g_mm_sig[model]-> SetPoint(j,width,mean); 
+  }// END j sigma
+  
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+
 
 void QFsim::Write(){
 
@@ -550,6 +926,23 @@ void QFsim::Write(){
   hmm_fsi1_c->Write();
   hmm_fsi2_c->Write();
   hmm_fsi3_c->Write();  
+
+  // 10 keV 
+  hexp_10keV    ->Write();
+  hmm_10keV     ->Write();
+  hmm_fsi1_10keV->Write();
+  hmm_fsi2_10keV->Write();
+  hmm_fsi3_10keV->Write();
+  hexp_10keV_s    ->Write();
+  hmm_10keV_s     ->Write();  
+  hmm_fsi1_10keV_s->Write();
+  hmm_fsi2_10keV_s->Write();
+  hmm_fsi3_10keV_s->Write();
+  hexp_10keV_c    ->Write();
+  hmm_10keV_c     ->Write();
+  hmm_fsi1_10keV_c->Write();
+  hmm_fsi2_10keV_c->Write();
+  hmm_fsi3_10keV_c->Write();  
   
   // TGraph
   gchi_L->Write();
@@ -559,7 +952,15 @@ void QFsim::Write(){
   for(int i=0;i<nvp;i++){
     gchi_fsi[i]->Write();
     gdiff_fsi[i]->Write();
+    g_s[i]   ->Write();
+    g_n[i]   ->Write();
+    g_val[i] ->Write();
+    g_ps[i]  ->Write();
+    g_val_sig[i]->Write();
+    g_ps_sig[i]->Write();
+    g_mm_sig[i]->Write();
   }
+  
   ofr->Write();
   ofr->Close();
 }
@@ -570,8 +971,6 @@ void QFsim::Write(){
 ////////////////////////////////////////////////////////
 ///////////////////// Nain /////////////////////////////
 ////////////////////////////////////////////////////////
-
-
 
 
 
@@ -616,11 +1015,11 @@ int main(int argc, char** argv){
   QF -> SetRootList(ifname);
   QF -> SetHist();
   QF -> FitQFL();
-  //  QF -> FitQFnnL();
+  //QF -> FitQFnnL();
   QF -> FitQFnnL_new();
   QF -> Write();
   gSystem->Exit(1);
   theApp->Run(); 
   return 0;
-  
+
 }//end main

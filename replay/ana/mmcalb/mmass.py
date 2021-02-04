@@ -26,10 +26,10 @@ nworkers=8
 
 
 ########### MODE ###################
-calib_mode = True ## This is calbration mode (-C)
-#calib_mode = False
-single_root_mode = True # Input Root -> Single ROOT (not runlist)    
-#single_root_mode = False
+#calib_mode = True ## This is calbration mode (-C)
+calib_mode = False
+#single_root_mode = True # Input Root -> Single ROOT (not runlist)    
+single_root_mode = False
 
 
 if calib_mode :
@@ -64,8 +64,8 @@ pdf_dir ="../pdf/mmass/ana_Lambda/"+str(dir_name)
 # runlist_dir ="../run_list/nnlambda/" 
 runlist_dir ="../run_list/nnlambda/mmass_nmr" # with NMR root files 2021/1/18
 #singleroot_dir="../rootfiles/mmass/ana_Lambda/initial"
-singleroot_dir="../rootfiles/mmass/ana_Lambda/initial_nmr"  #  with NMR root files 2021/1/20
-
+#singleroot_dir="../rootfiles/mmass/ana_Lambda/initial_nmr"  #  with NMR root files 2021/1/20
+singleroot_dir="../rootfiles/mmass/ana_Lambda/initial_nmr_small"  #  with NMR root files 2021/1/20
 
 
 

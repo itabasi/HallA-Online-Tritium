@@ -69,7 +69,6 @@ struct TreeBranch{
   double Rtof[100],Ltof[100];
   int ntrack_r,ntrack_l;
   double Rpathl,Lpathl,Rpathl_c,Lpathl_c;
-  double Rs2pathl,Ls2pathl;
   double zR_b,RXpt_b,RYpt_b,momR_b,zL_b,LXpt_b,LYpt_b,momL_b;
   int nmixed=10;
   bool Al_cut;
@@ -269,7 +268,7 @@ private:
     TH1D*h_Lth_c;
     TH1D*h_Lph_c;
     TH1D*h_Lp_c;    
-    TH1D*h_mm_10keV;
+
     TF1* fAl_R;
 
  private:

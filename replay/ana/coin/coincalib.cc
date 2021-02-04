@@ -260,6 +260,14 @@ void coincalib::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
 //////////////////////////////////////////////////////////////////////////////
 
+void coincalib::CoinCalc_single(int RS2_seg, int LS2_seg, int rhit, int lhit){
+
+
+
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 void coincalib::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
 
   // ==== Initialization =====//
@@ -1330,13 +1338,12 @@ void fcn(int &nPar, double* /*grad*/, double &fval, double* param, int /*iflag*/
 };
 
 
+
 // #################################################
 double calcf_path(double* P, double xf, double xpf, 
 		double yf, double ypf, double zt){
 // ###############################################
-
-
-  
+ 
   double Y=0.;
   double x=1.; 
   int npar=0;
@@ -1367,4 +1374,7 @@ double calcf_path(double* P, double xf, double xpf,
     }
   }
   return Y;
-  }
+};
+
+
+

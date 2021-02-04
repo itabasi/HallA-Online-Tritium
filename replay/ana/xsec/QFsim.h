@@ -18,10 +18,15 @@ public:
   void FitQFnnL();
   void FitQFnnL_new();
   void Write();
+  void CalcPS(TH1D* hmm);
+  void CalcPS_c(TH1D* hexp, TH1D* hsim, int model);
   
   TFile* fH_sim;
   TFile* fT_sim;
   TFile* fexp;
+  TFile* fT_sim_10keV;
+  TFile* fH_sim_10keV;
+  TFile* fexp_10keV;
   TFile* ofr;
   TTree* Tnew;
   
@@ -34,6 +39,17 @@ public:
   TGraphErrors* gchi_fsi[100];
   TGraphErrors* gdiff_L;
   TGraphErrors* gdiff_fsi[100];
+  
+  //=== CalcPS =====//
+  TGraph* g_s[100];
+  TGraph* g_n[100];
+  TGraph* g_val[100];
+  TGraph* g_ps[100];  
+
+  TGraph* g_ps_sig[100];
+  TGraph* g_val_sig[100];
+  TGraph* g_mm_sig[100];
+  
   const int nvp=4;
   TH1D* hexp;
   TH1D* hexp_c;
@@ -42,30 +58,52 @@ public:
   TH1D* hexp_L;
   TH1D* hexp_peak;
   TH1D* hexp_acc;
-  
-  TH1F* hT_Lsim;
-  TH1F* hH_Lsim;
-  TH1F* hH_nnLsim;
-  TH1F* hH_nnLsim_s;
-  TH1F* hT_nnLsim;
-  TH1F* hT_nnLsim_s;  
-  TH1F* hT_Lsim_s;
-  TH1F* hH_Lsim_s;
-  TH1F* hnnL_sim;
-  TH1F* hnnL_sim_s;
+  TH1D* hexp_10keV;
+  TH1D* hexp_10keV_s;
+  TH1D* hexp_10keV_c;
+  TH1D* hexp_acc_10keV;
+  TH1D* hmm_10keV;
+  TH1D* hmm_10keV_s;
+  TH1D* hmm_10keV_c;
 
-  TH1F* hmm;
-  TH1F* hmm_fsi1;
-  TH1F* hmm_fsi2;
-  TH1F* hmm_fsi3;
-  TH1F* hmm_s;
-  TH1F* hmm_fsi1_s;
-  TH1F* hmm_fsi2_s;
-  TH1F* hmm_fsi3_s;
-  TH1F* hmm_fsi1_c;
-  TH1F* hmm_fsi2_c;
-  TH1F* hmm_fsi3_c;  
-  TH1F* hmm_c;
+  TH1D* hH_nnLsim_10keV;
+  TH1D* hH_nnLsim_10keV_s;  
+  TH1D* hmm_fsi1_10keV;
+  TH1D* hmm_fsi2_10keV;
+  TH1D* hmm_fsi3_10keV;
+  TH1D* hmm_fsi1_10keV_s;
+  TH1D* hmm_fsi2_10keV_s;
+  TH1D* hmm_fsi3_10keV_s;  
+  TH1D* hmm_fsi1_10keV_c;
+  TH1D* hmm_fsi2_10keV_c;
+  TH1D* hmm_fsi3_10keV_c;
+
+
+
+  
+  TH1D* hT_Lsim;
+  TH1D* hH_Lsim;
+  TH1D* hH_nnLsim;
+  TH1D* hH_nnLsim_s;
+  TH1D* hT_nnLsim;
+  TH1D* hT_nnLsim_s;  
+  TH1D* hT_Lsim_s;
+  TH1D* hH_Lsim_s;
+  TH1D* hnnL_sim;
+  TH1D* hnnL_sim_s;
+
+  TH1D* hmm;
+  TH1D* hmm_fsi1;
+  TH1D* hmm_fsi2;
+  TH1D* hmm_fsi3;
+  TH1D* hmm_s;
+  TH1D* hmm_fsi1_s;
+  TH1D* hmm_fsi2_s;
+  TH1D* hmm_fsi3_s;
+  TH1D* hmm_fsi1_c;
+  TH1D* hmm_fsi2_c;
+  TH1D* hmm_fsi3_c;  
+  TH1D* hmm_c;
   double  wmin_L;
   double  wmin_nnL;
 };

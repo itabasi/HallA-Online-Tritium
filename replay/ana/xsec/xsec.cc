@@ -37,6 +37,7 @@ using namespace std;
 #include <TVector3.h>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
+bool simc_mode;
 using Eigen::MatrixXd;
 using namespace Eigen;
 extern double calc_kaon_survival_ratio(TLorentzVector R_v, double pathL);
@@ -89,11 +90,11 @@ void xsec::SetParam(string ifpname){
   SetLAccept(LHRS_accept_file);
 
 
-  cout<<"Charge : "<<Qc<<" [C] "<<endl;
+  cout<<"Charge : "<<Qc<<" [C] "<<" : Ne "<<Qc/e<<endl;
   Ngamma = NGamma(Qc);
   cout<<"Ngamma : "<<Ngamma<<endl;
   Nt = NTarget(mode);
-  cout<<"Nt : "<<Nt<<endl;
+  cout<<"Nt : "<<Nt<<" counts ; "<<Nt/cm_to_barn<<" [1/b]"<<endl;
   cout<<"Nhyp "<<Nhyp<<endl;
 
   Mtar,Mhyp;
@@ -193,29 +194,15 @@ double xsec::NHyp(double Nhyp){
   double accept=0.0;
 
 
-  //======== Uniform Nhyp(Ek) ==========//
-  //  Nhyp = Nhyp / double(nEk);
-  /*  
-  for(int iEk=0;iEk<nEk;iEk++){
-    accept = 0.0;
-    for(int ith=0;ith<nth_R;ith++){
-      theta = theta_R_max*(double)ith/(double)nth_R;
-      for(int iph=0;iph<nph_R;iph++){
-	phi   = 2.0*PI*double(iph)/double(nph_R);
-	accept += (dOmega_R(RE[iEk],theta)* sin(theta)*width_theta*width_phi);	
-      }
-    }
-  */
-
   accept = 0.0;
-  for(int iEk=0;iEk<nEk;iEk++){
-    for(int ith=0;ith<nth_R;ith++)
-      accept += dOmega_R(RE[iEk],theta);	
-    if(accept>0)NHYP += Nhyp/accept;
+  theta  = 0.0;
+
+  for(int ith=0;ith<nth_R;ith++)
+      accept = GetAccept_R(Rp_mean, theta);
+  
+  if(accept>0)NHYP += Nhyp/accept;
 		   
-		   } // End Ek
-  cout<<"width_phi "<<width_phi<<endl;
-  cout<<"Nhyp "<<Nhyp<<" NHYP "<<NHYP<<endl;
+
   return NHYP;
   
 }
@@ -253,6 +240,29 @@ double xsec::GetAccept_R(double Rp, double Rth){
   //  return accept/accept_total;  // [sr]
 
 
+
+  
+}
+
+////////////////////////////////////////////////////////////////////
+
+double xsec::GetAccept_L(double Lp, double Lth){
+
+  double accept =0.0;
+  double srad,rad;
+  double theta,phi;
+  double width_Ee_ =(LEMax -LEMin)/double(nEe_);
+  double width_theta =theta_L_max/(double)nth_L;
+  double width_phi =2.0*PI/(double)nph_L;
+  int iEe_, ith;
+  double accept_total=0.0;
+  
+  for(int i=0;i<nEe_;i++)
+    if(Lp<LE[i] || i ==nEe_-1){ iEe_ =i; break;}
+  for(int i=0;i<nth_L;i++)
+    accept_total += LOmega[iEe_][i];
+  return accept_total;
+  
 
   
 }
@@ -311,22 +321,28 @@ double xsec::NGamma(double Qc){
   // calculation of number of vertual photon
   // Qc : Total beam charge [C]
   double theta,phi;
+  phi=0.0;
   B_v.SetPxPyPzE(0.0,0.0,Bp,Ee);
   double Ngamma = 0.0;
   double width_Ee_   = fabs(LEMax-LEMin)/(double)nEe_;
-  //  double width_theta = gen_theta_accept/(double)nth;
   double width_theta = theta_L_max/(double)nth;
   double width_phi = 2.0*PI/double(nph);
+
+  // L MOM CUT //
+  //---- Okuyama cut (Lambda cut) ----//
+  double Lp_minimum = 2.082;
+  double Lp_maximum = 2.16;
+  // ---------------------------------//
   
   double srad,rad;  double VP=0.0;
   double Theta;
   double dOmega;
   double VPF=0.0;
   TVector3 LP_v;
-  
+
   for(int iEe_=0; iEe_<nEe_;iEe_++){
     for(int ith=0;ith<nth;ith++){
-      theta = theta_L_max*(double)ith/(double)nth;
+      theta =  LTheta[ith];
       Lp = sqrt(LE[iEe_]*LE[iEe_] - Me*Me);
       Lpx = Lp*sin(theta)*cos(phi);
       Lpy = Lp*sin(theta)*sin(phi);
@@ -334,17 +350,22 @@ double xsec::NGamma(double Qc){
       LP_v.SetXYZ(Lpx,Lpy,Lpz);
       LP_v = HallACoordinate(LP_v,false);
       L_v.SetPxPyPzE(LP_v.X(),LP_v.Y(),LP_v.Z(),LE[iEe_]);
-      VPF += VP_Flux(B_v,L_v)*dOmega_L(LE[iEe_],theta)*width_Ee_;
-
+      // VPF += VP_Flux(B_v,L_v)*LOmega[iEe_][ith]*width_Ee_; // w/o Lp cut
+      // momentum cut //
+      if(Lp_minimum < LE[iEe_] && LE[iEe_] < Lp_maximum)
+	VPF += VP_Flux(B_v,L_v)*LOmega[iEe_][ith]*width_Ee_;
+      
     }
   }
-  
+
+
 
   Ngamma =VPF*(Qc/e);    
-  //  cout<<"Virtual Photon Flux ; "<<VP_Flux(B_v,L_v) <<" [/GeV/sr]"<<endl;
+  //    cout<<"Virtual Photon Flux ; "<<VP_Flux(B_v,L_v) <<" [/GeV/sr]"<<endl;
   //  cout<<"Integral VP Flux : "<<VPF<<endl;
 
-    
+  // test
+  //  Ngamma = 3.5e13;
   return Ngamma;
   
 }
@@ -581,11 +602,10 @@ void xsec::Calc_XS(){
   double XS_CM;
   TLorentzVector R_v;
   R_v.SetPxPyPzE(0.0,0.0,Rp,sqrt(Rp*Rp+MK*MK));
-  double RpathL=23.;
-  double eff_total = Efficiency("H",R_v,23.);
-  cout<<" Efficency : "<<eff_total<<endl;
+  double RpathL=26.;
+  double eff_total = Efficiency("H",R_v,RpathL);
+  cout<<"Efficency : "<<eff_total<<endl;
   XS = NHyp(Nhyp)/Nt/Ngamma/eff_total*cm_to_barn*1.0e9;
-  
 
   // XS calc CM coordinate
   TLorentzVector Rv, Lv, Bv, VF_v;
@@ -613,7 +633,7 @@ double xsec::GetXS(TLorentzVector B_v, TLorentzVector L_v, TLorentzVector R_v){
 
   double XS;
   double XS_CM;
-  double accept_R = 2.0*PI*(1.0 - cos(theta_R_max));
+  double accept_R;// = 2.0*PI*(1.0 - cos(theta_R_max));
   // B_v : 4-vector in Beam 
   // L_v : 4-vector in LHRS LHRS coordinate
   // R_v : 4-vector in RHRS RHRS coordinate
@@ -649,6 +669,34 @@ double xsec::GetXS(TLorentzVector B_v, TLorentzVector L_v, TLorentzVector R_v){
 /////////////////////////////////////////////////////////////////////////
 
 
+void xsec::SetBranch_SIMC(string ifrname){
+
+
+
+  
+    
+  SNT = new TChain("SNT");
+  SNT->Add(ifrname.c_str());
+  
+  SNT->SetBranchAddress("mmnuc",&snt.mm);
+  SNT->SetBranchAddress("Rp_rec",&snt.Rp);
+  SNT->SetBranchAddress("h_xptar",&snt.Rth);
+  SNT->SetBranchAddress("h_yptar",&snt.Rph);
+  SNT->SetBranchAddress("Lp_rec",&snt.Lp);
+  SNT->SetBranchAddress("e_xptar",&snt.Lth);
+  SNT->SetBranchAddress("e_yptar",&snt.Lph);
+  SNT->SetBranchAddress("Normfac",&snt.normfac);
+  SNT->SetBranchAddress("Weight",&snt.weight);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+
+
+/////////////////////////////////////////////////////////////////////////
+
 void xsec::SetBranch(string ifrname){
 
   add_tree(ifrname);
@@ -656,6 +704,7 @@ void xsec::SetBranch(string ifrname){
   readtreeHRSR();
   readtreeHRSL();
 
+  
   tree->SetBranchStatus("Bp_c"     ,1  );
   tree->SetBranchStatus("Rp"     ,1  );
   tree->SetBranchStatus("Lp"     ,1  );
@@ -672,24 +721,27 @@ void xsec::SetBranch(string ifrname){
   tree ->SetBranchStatus("dpe",   1);
   tree ->SetBranchStatus("dpe_",  1);
   tree ->SetBranchStatus("dpk",   1);
-  
-  tree->SetBranchAddress("Bp_c"          ,&Bp_c );
-  tree->SetBranchAddress("Lp"          ,&Lp_c );
-  tree->SetBranchAddress("Rp"          ,&Rp_c );
-  tree ->SetBranchAddress("Rth"          ,&Rth_c);
-  tree ->SetBranchAddress("Lth"          ,&Lth_c);
-  tree ->SetBranchAddress("Rph"          ,&Rph_c);
-  tree ->SetBranchAddress("Lph"          ,&Lph_c);
-  tree ->SetBranchAddress("ntr_r",&ntr_r);
-  tree ->SetBranchAddress("ntr_l",&ntr_l);
-  tree ->SetBranchAddress("mm_nnL",&mm_nnL);
-  tree ->SetBranchAddress("pid_cut", &pid_cut);
-  tree ->SetBranchAddress("z_cut",   &z_cut);
-  tree ->SetBranchAddress("ct_cut",  &ct_cut);
-  tree ->SetBranchAddress("dpe",     &dpe);
-  tree ->SetBranchAddress("dpe_",    &dpe_);
-  tree ->SetBranchAddress("dpk",     &dpk);
-  
+  tree ->SetBranchStatus("mm_mix",   1);
+  tree->SetBranchAddress("Bp_c"          ,&t.Bp_c );
+  tree->SetBranchAddress("Lp"          ,&t.Lp_c );
+  tree->SetBranchAddress("Rp"          ,&t.Rp_c );
+  tree ->SetBranchAddress("Rth"          ,&t.Rth_c);
+  tree ->SetBranchAddress("Lth"          ,&t.Lth_c);
+  tree ->SetBranchAddress("Rph"          ,&t.Rph_c);
+  tree ->SetBranchAddress("Lph"          ,&t.Lph_c);
+  tree ->SetBranchAddress("ntr_r",&t.ntr_r);
+  tree ->SetBranchAddress("ntr_l",&t.ntr_l);
+  tree ->SetBranchAddress("mm_nnL",&t.mm_nnL);
+  tree ->SetBranchAddress("pid_cut", &t.pid_cut);
+  tree ->SetBranchAddress("z_cut",   &t.z_cut);
+  tree ->SetBranchAddress("ct_cut",  &t.ct_cut);
+  tree ->SetBranchAddress("dpe",     &t.dpe);
+  tree ->SetBranchAddress("dpe_",    &t.dpe_);
+  tree ->SetBranchAddress("dpk",     &t.dpk);
+  tree ->SetBranchAddress("Rpathl", &t.R_pathl    );
+  tree ->SetBranchAddress("Lpathl", &t.L_pathl    );
+  tree ->SetBranchAddress("mm_mix",  t.mm_mixed    );
+
   
 }
 
@@ -700,7 +752,8 @@ void xsec::NewRoot(string ofrname){
 
   ofr  = new TFile(ofrname.c_str(),"recreate");
   Tnew = new TTree("T","T");
-  Tnew = tree->CloneTree(0);
+  if(simc_mode) Tnew = SNT->CloneTree(0);
+  else          Tnew = tree->CloneTree(0);
   Tnew ->Branch("mm",&tr.mm,"mm/D");
   Tnew ->Branch("xsec",&tr.xsec,"xsec/D");
   Tnew ->Branch("xsec_cm",&tr.xsec_cm,"xsec_cm/D");
@@ -717,7 +770,36 @@ void xsec::NewRoot(string ofrname){
   hmm_xsec =new TH1D("hmm_xsec","Missing Mass ; -B_{#Lambda} [MeV] ; d#sigma/d#Omega_{K} [(nb/sr) / 1MeV]",bin_mm,min_mm,max_mm);
   hmm_xsec_cm =new TH1D("hmm_xsec_cm","Missing Mass ; -B_{#Lambda} [MeV] ; d#sigma/d#Omega_{K}^{C.M.} [(nb/sr) / 1MeV]",bin_mm,min_mm,max_mm);
 
+  hmixed =new TH1D("hmixed","Missing Mass ; -B_{#Lambda} [MeV] ; Counts/2MeV",bin_mm,min_mm,max_mm);
+  hmixed_xsec =new TH1D("hmixed_xsec","Missing Mass ; -B_{#Lambda} [MeV] ; d#sigma/d#Omega_{K} [(nb/sr) / 1MeV]",bin_mm,min_mm,max_mm);
+  hmixed_xsec_cm =new TH1D("hmixed_xsec_cm","Missing Mass ; -B_{#Lambda} [MeV] ; d#sigma/d#Omega_{K}^{C.M.} [(nb/sr) / 1MeV]",bin_mm,min_mm,max_mm);  
 
+  hmm->SetLineColor(1);
+  hmm_xsec->SetLineColor(1);
+  hmm_xsec_cm->SetLineColor(1);
+  hmm->GetXaxis()->SetTitleSize(0.05);
+  hmm->GetYaxis()->SetTitleSize(0.05);
+  hmm_xsec->GetXaxis()->SetTitleSize(0.05);
+  hmm_xsec->GetYaxis()->SetTitleSize(0.05);
+  hmm_xsec_cm->GetXaxis()->SetTitleSize(0.05);
+  hmm_xsec_cm->GetYaxis()->SetTitleSize(0.05);
+
+
+  hmixed->SetLineColor(4);
+  hmixed->SetFillColor(4);
+  hmixed->SetFillStyle(3002);
+  hmixed_xsec->SetLineColor(4);
+  hmixed_xsec->SetFillColor(4);
+  hmixed_xsec->SetFillStyle(3002);
+  hmixed_xsec_cm->SetLineColor(4);
+  hmixed_xsec_cm->SetFillColor(4);
+  hmixed_xsec_cm->SetFillStyle(3002);  
+  hmixed->GetXaxis()->SetTitleSize(0.05);
+  hmixed->GetYaxis()->SetTitleSize(0.05);
+  hmixed_xsec->GetXaxis()->SetTitleSize(0.05);
+  hmixed_xsec->GetYaxis()->SetTitleSize(0.05);
+  hmixed_xsec_cm->GetXaxis()->SetTitleSize(0.05);
+  hmixed_xsec_cm->GetYaxis()->SetTitleSize(0.05);  
 
   /*
   bin_Rp =(int)(REMax -REMin)*1000; // Bin size MeV
@@ -746,73 +828,126 @@ void xsec::Loop(){
 
   
   int ENum = tree->GetEntries();
+  if(simc_mode)ENum = SNT->GetEntries();
+
+
+  cout<<" ENum : "<<ENum<<endl;
   
   for(int iev=0;iev<ENum;iev++){
+    
+    
+    
+    if(simc_mode)      SNT->GetEntry(iev);
+    else               tree->GetEntry(iev);
+    
+    //===== Initialization =========//
+    tr.mm   =-1000.;
+    tr.xsec =-1000.;
+    tr.RpathL =0.0;
+    tr.LpathL =0.0;
+    
 
-   
-    tree->GetEntry(iev);
+    // ===== Set ROOT Value =======//
 
 
-	//===== Initialization =========//
-	tr.mm   =-1000.;
-	tr.xsec =-1000.;
-	tr.RpathL =0.0;
-		
-	//==============================//
-	Ee   = sqrt(Bp_c*Bp_c + Me*Me);
-	L_E  = sqrt(Lp_c*Lp_c + Me*Me);
-	R_E  = sqrt(Rp_c*Rp_c + MK*MK);
+    if(!simc_mode){
+      
+      tr.RpathL = t.R_pathl;
+      tr.LpathL = t.L_pathl;
+      Rp        = t.Bp_c;
+      Rp        = t.Rp_c;
+      Rth       = t.Rth_c;
+      Rph       = t.Rph_c;
+      Lp        = t.Lp_c;
+      Lth       = t.Lth_c;
+      Lph       = t.Lph_c;
+      
+    }else{
 
-	
-	if(ntr_r==1)
-	  tr.RpathL = R_tr_pathl[0]+R_s2_trpath[0];
-	else tr.RpathL =29.0;
+      Bp = 4.318; // Beam Energy [GeV]
+      Rp        = snt.Rp/1000.;  // [GeV]
+      Rth       = snt.Rth;
+      Rph       = snt.Rph;
+      Lp        = snt.Lp/1000.;  // [GeV]
+      Lth       = snt.Lth;
+      Lph       = snt.Lph;
+      tr.RpathL = 29.0; // test
+      tr.LpathL = 29.0; // test
 
+      //       cout<<"Bp "<<Bp<<" Rp "<<Rp<<" Lp "<<Lp<<" Rth "<<Rth<<" Lth "<<Lth<<" Rph "<<Rph<<" Lph "<<Lph<<endl;
+    }
+    
+    //==============================//
+    Ee   = sqrt(Bp*Bp + Me*Me);
+    L_E  = sqrt(Lp*Lp + Me*Me);
+    R_E  = sqrt(Rp*Rp + MK*MK);
+
+    
+    //===== Right Hand Coordinate ====//
+    double R_pz = Rp/sqrt(1.0*1.0 + Rth* Rth + Rph* Rph );
+    double R_px = R_pz * Rth ;
+    double R_py = R_pz * Rph ;
+    double L_pz = Lp/sqrt(1.0*1.0 +  Lth* Lth +  Lph* Lph);
+    double L_px = L_pz * Lth ;
+    double L_py = L_pz * Lph ;
 	
+    TVector3 L_v3,R_v3,B_v3;
+    B_v3.SetXYZ(0.0,0.0,Bp);
+    L_v3.SetXYZ(L_px,L_py,L_pz);
+    R_v3.SetXYZ(R_px,R_py,R_pz);
 	
-	//===== Right Hand Coordinate ====//
-	double R_pz = Rp_c/sqrt(1.0*1.0 + Rth_c* Rth_c + Rph_c* Rph_c );
-	double R_px = R_pz * Rth_c ;
-	double R_py = R_pz * Rph_c ;
-	double L_pz = Lp_c/sqrt(1.0*1.0 +  Lth_c* Lth_c +  Lph_c* Lph_c);
-	double L_px = L_pz * Lth_c ;
-	double L_py = L_pz * Lph_c ;
-	
-	TVector3 L_v3,R_v3,B_v3;
-	B_v3.SetXYZ(0.0,0.0,Bp_c);
-	L_v3.SetXYZ(L_px,L_py,L_pz);
-	R_v3.SetXYZ(R_px,R_py,R_pz);
-	
-	TLorentzVector L_v,R_v,B_v, T_v,MM_v;
-	B_v.SetPxPyPzE(0.0,0.0,Bp,Ee);
-	T_v.SetPxPyPzE(0.0,0.0,0.0,Mtar);
-	L_v.SetPxPyPzE(L_px,L_py,L_pz,L_E);
-	R_v.SetPxPyPzE(R_px,R_py,R_pz,R_E);
+    TLorentzVector L_v,R_v,B_v, T_v,MM_v;
+    B_v.SetPxPyPzE(0.0,0.0,Bp,Ee);
+    T_v.SetPxPyPzE(0.0,0.0,0.0,Mtar);
+    L_v.SetPxPyPzE(L_px,L_py,L_pz,L_E);
+    R_v.SetPxPyPzE(R_px,R_py,R_pz,R_E);
 	
   
-	// === Get XS =======//
-	// HRS coordinate //
-	tr.xsec = GetXS(B_v,L_v,R_v);
-	tr.xsec *=1.0e9; // [b/sr] -> [nb/sr]
-	tr.dOmega_RHRS = dOmega_RHRS;
-	//===== Calc MM ======//
-	// Rotate X HRS to Hall A coordinate
-	R_v.RotateX( 13.2/180.*PI);
-	L_v.RotateX(-13.2/180.*PI);
-	MM_v = B_v + T_v - L_v -R_v;
-	tr.mm = (MM_v.Mag() - Mhyp)*1000.; // -BL [MeV]
-	tr.xsec_cm = Lab_to_CM(R_v, B_v - L_v); // CS in CM
+    // === Get XS =======//
+    // HRS coordinate //
+    if(!simc_mode){ tr.xsec = GetXS(B_v,L_v,R_v);
+    tr.xsec *=1.0e9; // [b/sr] -> [nb/sr]
+    tr.dOmega_RHRS = dOmega_RHRS;
+    }else{
+      tr.xsec = snt.weight*(Qc*1000.);
+    }
+
+    
+    //===== Calc MM ======//
+    // Rotate X HRS to Hall A coordinate
+    R_v.RotateX( 13.2/180.*PI);
+    L_v.RotateX(-13.2/180.*PI);
+    MM_v = B_v + T_v - L_v -R_v;
+    tr.mm = (MM_v.Mag() - Mhyp)*1000.; // -BL [MeV]
+    tr.xsec_cm = Lab_to_CM(R_v, B_v - L_v); // CS in CM
 
 	
-	if(z_cut>0 && ct_cut>0 && pid_cut){
-	hmm->Fill(tr.mm);
-	hmm_xsec->Fill(tr.mm,tr.xsec);
-       	hmm_xsec_cm->Fill(tr.mm, tr.xsec * tr.xsec_cm);
-	}
+    if(t.z_cut>0 && t.ct_cut>0 && t.pid_cut && !simc_mode){
+      hmm->Fill(tr.mm);
+      hmm_xsec->Fill(tr.mm,tr.xsec);
+      hmm_xsec_cm->Fill(tr.mm, tr.xsec * tr.xsec_cm);
+    }else if(simc_mode){
+      hmm->Fill(tr.mm);
+      hmm_xsec->Fill(tr.mm,tr.xsec);
+      hmm_xsec_cm->Fill(tr.mm, tr.xsec * tr.xsec_cm);
+    }
 
+    
+	    
+    // ==== Mixed Event ======//
+    if(t.z_cut>0 && t.pid_cut){
+      for(int i=0;i<10;i++){
 	
-       	Tnew->Fill();
-	if(iev%(ENum/10)==0) cout<<"Filled "<<iev<<" / "<<ENum<<endl;
+	double scale =1./10./20.; // mixed events 10; ct gate 20;
+	hmixed->Fill(tr.mm*scale);
+	hmixed_xsec ->Fill(t.mm_mixed[i],tr.xsec*scale);
+	hmixed_xsec_cm->Fill(t.mm_mixed[i], tr.xsec * tr.xsec_cm*scale);
+      }
+    }
+
+     
+    Tnew->Fill();
+    if(iev%(ENum/10)==0) cout<<"Filled "<<iev<<" / "<<ENum<<endl;
   } // END LOOP
 
 
@@ -820,10 +955,16 @@ void xsec::Loop(){
 
   Tnew        -> Write();
   hmm         -> Write();
-  hmm_xsec    -> Write();
+  hmm_xsec    -> Write();  
   hmm_xsec_cm -> Write();
+  hmixed_xsec    -> Write();  
+  hmixed_xsec_cm -> Write();  
   
 }
+
+/////////////////////////////////////////////////////////////////////////
+
+
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -840,15 +981,18 @@ int main(int argc, char** argv){
   string pname ="./input/accept/Lam_data.in";
   extern char *optarg;
 
-  while((ch=getopt(argc,argv,"h:r:w:f:s:bcop"))!=-1){
+  while((ch=getopt(argc,argv,"h:p:r:w:f:s:bcop"))!=-1){
     switch(ch){
-      
       
     case 'f':
       pname = optarg;
-      cout<<"input filename : "<<pname<<endl;
+      cout<<"input param filename : "<<pname<<endl;
       break;
 
+    case 'p':
+      pname = optarg;
+      cout<<"input param filename : "<<pname<<endl;
+      break;      
     case 's':
       ifname = optarg;
       cout<<"input root filename : "<<ifname<<endl;      
@@ -865,7 +1009,7 @@ int main(int argc, char** argv){
       break;
 
       
-   case 'b':
+    case 'b':
       cout<<"BACH MODE!"<<endl;
       break;
       
@@ -893,7 +1037,9 @@ int main(int argc, char** argv){
 
   string name_LAcc ="./param/accept/LHRS_accept.param";
   string name_RAcc ="./param/accept/RHRS_accept.param";
-  
+
+  //  simc_mode =true;
+  simc_mode =false;
   TApplication *theApp =new TApplication("App",&argc,argv);
   gSystem->Load("libMinuit");
 
@@ -904,7 +1050,8 @@ int main(int argc, char** argv){
   //  XS->SetRAccept(name_RAcc);
   XS->Calc_XS();
   // double test=  XS->PhaseShift();
-  XS -> SetBranch(ifname);
+  if(simc_mode)    XS -> SetBranch_SIMC(ifname);
+  else             XS -> SetBranch(ifname);
   XS -> NewRoot(ofname);
   XS -> Loop();
   gSystem->Exit(1);
@@ -931,8 +1078,9 @@ double calc_kaon_survival_ratio(TLorentzVector R_v, double pathL){
   double kaon_lifetime = 1.238e-8; // [sec]
   double c             = 2.99792458e8;  // [sec] speed of light
   double ctau          = kaon_lifetime*c; // [m]
-  double gamma_K = R_v.Gamma();  
-  double survival_ratio = exp(-pathL/ctau/gamma_K) ;
+  double gamma_K = R_v.Gamma();
+  double beta_K  = R_v.Beta();
+  double survival_ratio = exp(-pathL/ctau/gamma_K/beta_K) ;
 
   return survival_ratio ; 
   

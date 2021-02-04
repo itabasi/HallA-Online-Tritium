@@ -12,7 +12,8 @@ Initial mode: 0
 tuning order: 4
 iteration: 3
 #Input Run List: 
-Input Root: ../rootfiles/momcalib/momcalib_init/Lambda_small_OleH_all.root
+#Input Root: ../rootfiles/momcalib/momcalib_init/Lambda_small_OleH_all.root
+Input Root: ../rootfiles/momcalib/initial_nmr_small/Lambda_small_OleH_all.root
 Input matrix: matrix/momcalib_matrix_3rd.list
 Output matrix: matrix/2021/momcalib_4th_0126
 Output Root: ../rootfiles/momcalib/2021/momcalib_4th_0126.root

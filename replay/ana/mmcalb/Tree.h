@@ -157,7 +157,7 @@ public:
   double R_tr_r_x[MAX], R_tr_r_y[MAX], R_tr_r_th[MAX], R_tr_r_ph[MAX];           // x, y, theta, phi at Rot-Coordinate
   double R_tr_x[MAX], R_tr_y[MAX], R_tr_th[MAX], R_tr_ph[MAX];                   // x, y, theta, phi
   double R_tr_time[MAX];                                                         // theta, time@RF
-  double R_tr_p[MAX], R_tr_pathl[MAX], R_tr_px[MAX], R_tr_py[MAX], R_tr_pz[MAX]; // mom(unit 10GeV?), length(TtoP), momx, momy, momz
+  double R_tr_p[MAX], R_tr_pathl[MAX], R_s2_path[MAX], R_tr_px[MAX], R_tr_py[MAX], R_tr_pz[MAX]; // mom(unit 10GeV?), length(TtoP), momx, momy, momz
   double R_tr_tg_dp[MAX], R_tr_tg_y[MAX], R_tr_tg_th[MAX], R_tr_tg_ph[MAX];      // dp, y, theta, phi at target
   double R_tr_vx[MAX], R_tr_vy[MAX], R_tr_vz[MAX]; // vertex X, Y, Z
 
@@ -239,7 +239,7 @@ public:
   double L_tr_r_x[MAX], L_tr_r_y[MAX], L_tr_r_th[MAX], L_tr_r_ph[MAX];           // x, y, theta, phi at Rot-Coordinate
   double L_tr_x[MAX], L_tr_y[MAX], L_tr_th[MAX], L_tr_ph[MAX];                   // x, y, theta, phi
   double L_tr_time[MAX];                                                         // theta, time@RF
-  double L_tr_p[MAX], L_tr_pathl[MAX], L_tr_px[MAX], L_tr_py[MAX], L_tr_pz[MAX]; // mom, length(TtoP), momx, momy, momz
+  double L_tr_p[MAX], L_tr_pathl[MAX], L_s2_path[MAX], L_tr_px[MAX], L_tr_py[MAX], L_tr_pz[MAX]; // mom, length(TtoP), momx, momy, momz
   double L_tr_tg_dp[MAX], L_tr_tg_y[MAX], L_tr_tg_th[MAX], L_tr_tg_ph[MAX];      // dp, y, theta, phi at target
   double L_tr_vx[MAX], L_tr_vy[MAX], L_tr_vz[MAX]; // vertex X, Y, Z
 

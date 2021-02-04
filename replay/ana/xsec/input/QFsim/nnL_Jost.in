@@ -6,9 +6,11 @@
 # 2 nnLambda SIMC ROOT File Name
 # 3 OutPut ROOT File Name
 ###########################################################
-0 ../rootfiles/mmass/ana_Lambda/best/nnL_small_Ole_all.root
+#0 ../rootfiles/mmass/ana_Lambda/best/nnL_small_Ole_all.root
+0 ../rootfiles/mmass/ana_Lambda/mmcalib_nmr_small/nnL_small_Ole_all.root
 1 ../rootfiles/fsi/mmass/Lam_2MeVBin.root
-#2 ../rootfiles/fsi/mmass/nnL_2MeVBin.root
-#2 ../rootfiles/fsi/mmass/nnL_Tcal.root
-2 ../rootfiles/fsi/mmass/nnL_Jl0.root
-3 ../rootfiles/fsi/QFsim/nnL_QFsim_Jost.root
+2 ../rootfiles/fsi/mmass/nnL_2MeVBin.root
+3 ../rootfiles/fsi/mmass/Lam_10keVBin.root
+4 ../rootfiles/fsi/mmass/nnL_10keVBin.root
+5 ../rootfiles/fsi/mmass/nnL_exp_hist.root
+6 ../rootfiles/fsi/QFsim/nnL_QFsim_Jost.root

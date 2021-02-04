@@ -1340,8 +1340,11 @@ void fsi::SetHist(){
   double max_mm =  200.;
   int bin_mm = (int)(max_mm-min_mm)/2;  // 2 MeV bin
   //  bin_mm = (int)(max_mm-min_mm)/1;  // 1 MeV bin
-  // bin_mm = (int)(max_mm-min_mm)/5; // 5 MeV bin
+  //  bin_mm = (int)(max_mm-min_mm)/5;   // 5 MeV bin
+  bin_mm =(int)(max_mm-min_mm)*100;     // 10 keV bin
+  
   int bin_size = (int)(max_mm - min_mm)/bin_mm;
+  
   hmm = new TH1F("hmm",Form("Missing Mass w/o FSI ; -B_{#Lambda} [MeV] ; Counts/%d MeV",bin_size),bin_mm,min_mm,max_mm);
 
   hmm ->SetLineColor(8);

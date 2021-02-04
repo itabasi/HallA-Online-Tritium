@@ -56,6 +56,9 @@ const int nParamTp=21;
 
 const int nParamTp2=nParamTp*2;
 const int nParamTc2=nParamTc*2;
+
+//const int nParamTc_off =32;
+const int nParamTc_off =16;
 ///==== MTtuning =====//
 
 
@@ -73,7 +76,7 @@ double OptPar2[nParamT];
 double Pct_R[nParamTc];
 double Pct_L[nParamTc];
 double Pct[nParamTc2];
-
+double par_off[nParamTc_off+1];
 //const int nParamT2 = 4; 
 //double parRaster[nParamT2];
 //double Opt_Par[nParamT2];
@@ -134,8 +137,14 @@ double Kaon_nev=0.0,Pion_nev=0.0;
 
 const double hrs_ang = 13.2 * 3.14159 / 180.;
 
-
-
+// Event Selection (T0 calibration)
+int rs2_pad[nmax],ls2_pad[nmax];
+//double ct[nmax];
+double rs2_cor[nmax], ls2_cor[nmax];
+double beta_r[nmax], beta_l[nmax];
+double RF1_t[nmax],RF1_b[nmax],LF1_t[nmax],LF1_b[nmax],RF1_ref[nmax],LF1_ref[nmax];
+double tdc_time[nmax];
+int event_num[nmax];
 //const double tdc_time =56.0e-3;//[ns]
 const double RHRS_pathl=29.0; //[m]
 const double LHRS_pathl=28.9; //[m]

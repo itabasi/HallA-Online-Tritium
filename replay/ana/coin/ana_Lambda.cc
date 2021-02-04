@@ -532,21 +532,17 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   convertF1TDCR(param);
   convertF1TDCL(param);
   PathCalib(rhit,lhit);
-
-
   
   double Beta_R=R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+MK*MK);
   double Beta_L=L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);
+  
 
-  
-  double R_PATH = R_pathl;
-  double L_PATH = L_pathl;
-  
-  double tof_r  = RS2_F1time[RS2_seg]   - R_PATH/(Beta_R*LightVelocity);
-  double tof_l  = LS2_F1time[LS2_seg]   - L_PATH/(Beta_L*LightVelocity);
-  double tof_rc = RS2_F1time_c[RS2_seg] - R_PATH/(Beta_R*LightVelocity);
-  double tof_lc = LS2_F1time_c[LS2_seg] - L_PATH/(Beta_L*LightVelocity);
-  double tof_lg = LS2_F1time_g[LS2_seg] - L_PATH/(Beta_L*LightVelocity);
+  double tof_r  = RS2_F1time[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
+  double tof_l  = LS2_F1time[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
+  double tof_rc = RS2_F1time_c[RS2_seg] - R_pathl/(Beta_R*LightVelocity);
+  double tof_lc = LS2_F1time_c[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
+
+  double tof_lg = LS2_F1time_g[LS2_seg] - L_pathl/(Beta_L*LightVelocity);
 
   
     tr.RS2T_ref=RF1Ref[0];
@@ -784,8 +780,8 @@ double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
   
   double beta_R  = R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+Mpi*Mpi);
   double beta_L  = L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);  
-  double LenL  = L_tr_pathl[lhit];
-  double LenR  = R_tr_pathl[rhit];
+  double LenL  = L_tr_pathl[lhit];// - L_s2_trpath[lhit];
+  double LenR  = R_tr_pathl[rhit];// - R_s2_trpath[rhit];
   double cor_L = (LenL - L_s2_trpath[lhit])/(beta_L*LightVelocity);
   double cor_R = (LenR - R_s2_trpath[rhit])/(beta_R*LightVelocity);
 
@@ -798,8 +794,8 @@ double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
 
 
   
-  double meantime_L =                                    cor_L - LS2_off[RS2_seg];
-  double meantime_R = tref_R - (time_Rt + time_Rb)/2.0 + cor_R - RS2_off[LS2_seg];
+  double meantime_L =                                    cor_L - RS2_off[RS2_seg];
+  double meantime_R = tref_R - (time_Rt + time_Rb)/2.0 + cor_R - LS2_off[LS2_seg];
   double ctime_offset = - 440; // H1 Offset
   //  double ctime_offset = 33.0; // H1 Offset
   double ctime = + meantime_R - meantime_L + ctime_offset;
@@ -864,17 +860,19 @@ double ana::CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit){
 void ana::PathCalib(int rhit, int lhit){
 
 
+  R_pathl=0.0;
+  L_pathl=0.0;
+    
+  R_pathl= R_tr_pathl[rhit] ;// + R_s2_trpath[rhit];
+  L_pathl= L_tr_pathl[lhit] ;// + L_s2_trpath[lhit];
 
-  R_pathl =0.0;
-  L_pathl =0.0;
 
-  double R_path_FP = R_tr_pathl[rhit] - R_s2_trpath[rhit]; // Target To FP Path Length [m]
-  double L_path_FP = L_tr_pathl[lhit] - L_s2_trpath[lhit]; // Target To FP Path Length [m]
+
   
 
 
-  R_path_FP       = (R_path_FP - PaRm )/PaRr;
-  L_path_FP       = (L_path_FP - PaLm )/PaLr;  
+  R_pathl       = (R_pathl - PaRm )/PaRr;
+  L_pathl       = (L_pathl - PaLm )/PaLr;  
   
   R_tr_x[rhit]  = (R_tr_x[rhit]-XFPm)/XFPr;
   R_tr_th[rhit] = (R_tr_th[rhit]-XpFPm)/XpFPr;
@@ -892,8 +890,8 @@ void ana::PathCalib(int rhit, int lhit){
   
   //==== Calc Path Length =========//
 
-  if(MT_p[10])  R_path_FP = calcf_pathl(Ppl  ,R_tr_x[rhit],R_tr_th[rhit],R_tr_y[rhit],R_tr_ph[rhit],R_tr_vz[rhit]); // ns
-  if(MT_p[11])  L_path_FP = calcf_pathl(Ppl_L,L_tr_x[lhit],L_tr_th[lhit],L_tr_y[lhit],L_tr_ph[lhit],L_tr_vz[lhit]); // ns
+  if(MT_p[10])  R_pathl = calcf_pathl(Ppl  ,R_tr_x[rhit],R_tr_th[rhit],R_tr_y[rhit],R_tr_ph[rhit],R_tr_vz[rhit]); // ns
+  if(MT_p[11])  L_pathl = calcf_pathl(Ppl_L,L_tr_x[lhit],L_tr_th[lhit],L_tr_y[lhit],L_tr_ph[lhit],L_tr_vz[lhit]); // ns
 
   
   R_tr_x[rhit]  = R_tr_x[rhit] * XFPr + XFPm;
@@ -908,17 +906,13 @@ void ana::PathCalib(int rhit, int lhit){
   L_tr_ph[lhit] = L_tr_ph[lhit] * YpFPr   + YpFPm;
   L_tr_vz[lhit] = L_tr_vz[lhit] * Ztr + Ztm;
   
-  R_path_FP = R_path_FP * PaRr + PaRm;
-  L_path_FP = L_path_FP * PaLr + PaLm;
-
-
-  R_pathl  =  R_path_FP +  R_s2_trpath[rhit] ;
-  L_pathl  =  L_path_FP +  L_s2_trpath[lhit] ;
-  
-  tr.Rpathl_c = R_pathl;
-  tr.Lpathl_c = L_pathl;
+  R_pathl = R_pathl * PaRr + PaRm + R_s2_trpath[rhit] ;
+  L_pathl = L_pathl * PaLr + PaLm + L_s2_trpath[lhit] ;
 
   
+  tr.Rpathl = R_pathl;
+  tr.Lpathl = L_pathl;
+
 
 
 }
@@ -2280,22 +2274,24 @@ void ana::Loop_c(){
 	  bool track_flag  = false;
 	  bool pathl_flag  = false;
 
-
+	  tr.Rpathl   = 0.0;
+	  tr.Lpathl   = 0.0;
 	  int L_s2pad = (int)L_s2_trpad[lt];
 	  int R_s2pad = (int)R_s2_trpad[rt];
 	  int L_s2tpad = (int) L_s2_t_pads[lt];
 	  int R_s2tpad = (int) R_s2_t_pads[rt];
-	  
-	  double Lpathl = L_tr_pathl[lt]; // + L_s2_trpath[lt];
-	  double Rpathl = R_tr_pathl[rt]; // + R_s2_trpath[rt];
-
-	  
+	  double Lpathl = L_tr_pathl[lt] + L_s2_trpath[lt];
+	  double Rpathl = R_tr_pathl[rt] + R_s2_trpath[rt];
+	  tr.Rpathl    = Rpathl;
+	  tr.Lpathl    = Lpathl;
 	  if(L_s2pad <= 10 || runnum>111369) padcut = true; 
 	  if(R_s2pad == R_s2tpad && L_s2pad == L_s2tpad) track_flag =true;
 	  if(rpathl_cutmin< Rpathl && Rpathl < rpathl_cutmax) Rpathl_flag =true;
 	  if(lpathl_cutmin< Lpathl && Lpathl < lpathl_cutmax) Lpathl_flag =true;
 	  if(Rpathl_flag && Lpathl_flag)pathl_flag =true;
 		  
+	  //	  pathl_flag =true; // as a test 
+	  //	  track_flag =true; // as a test
 	  for(int pad=0;pad<16;pad++){
 	    tr.Rs2ra_p[pad]= -1000.;
 	    tr.Rs2la_p[pad]= -1000.;
@@ -2407,9 +2403,7 @@ void ana::Loop_c(){
 	    tr.mm_mixed_all[i] = -10000.;
 	  }
 	  tr.Rpathl=-100.; tr.Lpathl=-100.;
-	  tr.Rs2pathl=-100.; tr.Ls2pathl=-100.;
 	  tr.Rpathl_c=-100.; tr.Lpathl_c=-100.;
-	  
 	  ct=-1000.0;
 	  tr.AC1_npe_sum=0.0;
 	  tr.AC2_npe_sum=0.0;
@@ -2448,8 +2442,7 @@ void ana::Loop_c(){
 	  tr.RYpFP=R_tr_ph[rt];
 	  tr.RXt=R_tr_vx[rt];
 	  tr.RYt=R_tr_vy[rt];
-	  tr.Rpathl   =  R_tr_pathl[rt];
-	  tr.Rs2pathl =  R_s2_trpath[rt];
+	  
       
 	    //-------- Tree Branch LHRS ------------//
 	  tr.Ls2_pad[lt] =(int)L_s2_trpad[lt];
@@ -2463,8 +2456,6 @@ void ana::Loop_c(){
 	  tr.LYpFP=L_tr_ph[lt];
 	  tr.LXt=L_tr_vx[lt];
 	  tr.LYt=L_tr_vy[lt];
-	  tr.Lpathl   =  L_tr_pathl[lt];
-	  tr.Ls2pathl =  L_s2_trpath[lt];	  
 
 
 
@@ -2805,11 +2796,11 @@ void ana::Loop_c(){
 
 	       
                 h_mm_L    ->Fill( mm_L );
-                h_mm_L_ec ->Fill( mass_pc);		
+                h_mm_L_ec    ->Fill( mass_pc);		
                 h_mm_nnL  ->Fill( mm_nnL );
 		h_mm_H3L  ->Fill( mm_H3L );
-                h_ct_wK_z ->Fill( ct );                
-		h_mm_10keV ->Fill( mm_nnL );
+                h_ct_wK_z->Fill( ct );                
+
 		
 	      }
 	    
@@ -3192,7 +3183,6 @@ void ana::Draw(){
     //    h_mm_Al       ->Draw();
     //    h_mm_Al_acc   ->Draw("same");
     //    h_peak_Al     ->Draw("same");
-	h_mm_10keV->Draw("same");
     c14->cd(7)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_peak_nnL    ->Draw();
     c14->cd(8)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_peak_L      ->Draw();
     c14->cd(9)->SetMargin(0.15,0.15,0.15,0.10); gPad->SetLogy(0); h_peak_mm     ->Draw();
@@ -3373,10 +3363,6 @@ void ana::MakeHist(){
   tree_out->Branch("dpk"     ,&tr.dpk   ,"dpk/D"  );
   tree_out->Branch("Rpathl"     ,&tr.Rpathl   ,"Rpathl/D"  );
   tree_out->Branch("Lpathl"     ,&tr.Lpathl   ,"Lpathl/D"  );
-  tree_out->Branch("Rpathl_c"     ,&tr.Rpathl_c   ,"Rpathl_c/D"  );
-  tree_out->Branch("Lpathl_c"     ,&tr.Lpathl_c   ,"Lpathl_c/D"  );  
-  tree_out->Branch("Rs2pathl"     ,&tr.Rs2pathl   ,"Rs2pathl/D"  );
-  tree_out->Branch("Ls2pathl"     ,&tr.Ls2pathl   ,"Ls2pathl/D"  );  
 // Hist name is defined by "h + LorR + variable" for TH1.
 //                         "h + LorR + variableY + variableX" for TH2.
 /////////////
@@ -3645,9 +3631,6 @@ void ana::MakeHist(){
   h_peak_nnL_c     = new TH1D("h_peak_nnL_c"      ,"h_peak_nnL_c"      , bin_mm,min_mm,max_mm); //nnLambda mass range bin=2 MeV
   
 
-  h_mm_10keV      = new TH1D("h_mm_10keV"     ,"h_mm_10keV"      , int(max_mm-min_mm)*100,min_mm,max_mm);  //range bin=2 MeV
-
-  
   h_Rz     = new TH1D("h_Rz", "h_Rz",1000,-0.2,0.2);
   h_Rz_c   = new TH1D("h_Rz_c", "h_Rz_c",1000,-0.2,0.2);
   h_Rz_cut   = new TH1D("h_Rz_cut", "h_Rz_cut",1000,-0.2,0.2);

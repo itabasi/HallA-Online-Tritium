@@ -96,7 +96,7 @@ void t0calib::EventSelection(){
     
     if(fabs(ctime)<2.0) coin_cut = true;
     
-    if(coin_cut && ituned<nmax && ev.LS2_seg==8 ){
+    if(coin_cut && ituned<nmax && ev.RS2_seg ){
 
       rs2_pad[ituned] = ev.RS2_seg;
       ls2_pad[ituned] = ev.LS2_seg;
@@ -176,8 +176,8 @@ void t0calib::SetHist(){
     hct_RS2[i] = new TH1D(Form("hct_RS2_%d",i),"hist ",bin_ct,min_ct,max_ct);									       hct_LS2[i] = new TH1D(Form("hct_LS2_%d",i),"hist ",bin_ct,min_ct,max_ct);
     hct_RS2[i] ->SetLineColor(1);
     hct_LS2[i] ->SetLineColor(1);
-    fct_RS2[i] =new TF1(Form("fct_RS2_%d",i),"gausn(0)",min_ct,max_ct);
-    fct_LS2[i] =new TF1(Form("fct_LS2_%d",i),"gausn(0)",min_ct,max_ct);
+    fct_RS2[i] =new TF1(Form("fct_RS2_%d",i),"gansn(0)",min_ct,max_ct);
+    fct_LS2[i] =new TF1(Form("fct_LS2_%d",i),"gansn(0)",min_ct,max_ct);
     fct_RS2[i] ->SetLineColor(2);
     fct_LS2[i] ->SetLineColor(2);
 
@@ -203,6 +203,7 @@ void t0calib::Fill(){
 
   double ls2_off[16]={2.98,2.6,1.255,2.15,0.282,0.75,0.51,-0.92,-1.41,-0.33,-0.73,3.3,1.916, 1.278,-0.71,0.0};
 
+  double ls2_off[16]={};
   
   for(int nev=0;nev<ENum;nev++){
 
@@ -271,12 +272,6 @@ void t0calib::Fill(){
   hct_ev->Write();
   hct_select->Write();
   hct_select_c->Write();
-  for(int i=0;i<nS2;i++){
-    hct_LS2[i]->Write();
-    hct_RS2[i]->Write();
-    }
-  //    if(ev.RS2_seg==8)hct_LS2[ev.LS2_seg]->Fill(ctime);
-  //    if(ev.LS2_seg==8)hct_RS2[ev.RS2_seg]->Fill(ctime);
 }
 
 
@@ -315,18 +310,26 @@ void t0calib::Tuning(string ofname){
 
     sprintf(tempc,"%s_%d.dat",ofname.c_str(),i);
     ofparam = new ofstream(tempc);
-    chi_sq[i] = tune(par_off, i);
-    
+    //    rhrs =false;
+    //    if(i%2==0)rhrs =true;
+    //       else rhrs =false;
+    // rhrs =true; // RS2 T0 calibraiton mode
+      chi_sq[i] = tune(par_off, i);
+
     cout<<"i "<<i<<" / "<<niter<<" chi "<<chi_sq[i]<<endl;
     *ofparam <<"# RS2 flag : seg : offset "<<endl;
-    for(int j=0;j<nParamTc_off;j++)
-      *ofparam <<1<<" "<<j<<" "<<par_off[j]<<endl;
-    
-    *ofparam<<"coin offset "<<par_off[nParamTc_off]<<endl;
+    for(int j=0;j<nParamTc_off;j++){
+      //      cout<<"j "<<j<<" par_off "<<par_off[j]<<endl;
+      if(j<16) *ofparam <<1<<" "<<j<<" "<<par_off[j]<<endl;
+      else if(16<=j && j <32) *ofparam <<0<<" "<<j-16<<" "<<par_off[j]<<endl;
+    }
+    *ofparam<<"coin offset "<<par_off[32]<<endl;
+;
     ofparam -> close();
-
-    
+    //    ofparam -> clear();
   } // end niter
+
+  
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -339,7 +342,7 @@ double t0calib::tune(double *pa, int j){
   int allparam = nParamTc_off+1;
 
   TMinuit* minuit = new TMinuit(allparam);
-  minuit -> SetFCN(fcn2);
+  minuit -> SetFCN(fcn);
 
   double start[allparam];
   double step[allparam];
@@ -361,12 +364,12 @@ double t0calib::tune(double *pa, int j){
     ULim[i]  = pa[i] + 1000.0;
     if(i==nParamTc_off){
       start[i]= -441.;
-      step[i]  = 0.1;
-      LLim[i]  = pa[i] - 1000.0;
-      ULim[i]  = pa[i] + 1000.0;
+    step[i]  = 0.01;
+    LLim[i]  = pa[i] - 1000.0;
+    ULim[i]  = pa[i] + 1000.0;
     }
     minuit -> mnparm(i,pname,start[i],step[i],LLim[i],ULim[i],ierflg);
-    
+   
   }
 
   // ~~~~ Strategy ~~~~
@@ -394,7 +397,8 @@ n
   for(int i=0 ; i<allparam ; i++){ 
     minuit -> GetParameter(i,pa[i],er);
     minuit -> GetParameter(i,par_off[i],er);
-
+    //    cout<<"i "<<par_off[i]<<endl;
+    //    par_off[i]=0.0; //test
   }
 
 
@@ -457,8 +461,8 @@ int main(int argc, char** argv){
       t0 -> SetRoot(ifname);
       t0 -> SetHist();
       t0 -> NewRoot(ofrname);
-      t0 -> EventSelection();
-      t0 -> Tuning(ofpname);
+      //      t0 -> EventSelection();
+      //      t0 -> Tuning(ofpname);
       t0 -> Fill();
       
       gSystem->Exit(1);
@@ -596,15 +600,10 @@ void fcn2(int &nPar, double* /*grad*/, double &fval, double* param,
   int nev_R[16],nev_L[16];
 
 
-  rhrs =true; //test
 
-  for(int i=0;i<16;i++){
   if(rhrs) RS2_off[i] = param[i];
   else     LS2_off[i] = param[i];
-  }
 
-
-  
   double  coin_offset= param[nParamTc_off];
   double time_Rt,time_Rb,time_Lt,time_Lb;
   double meantime_R,meantime_L;
@@ -612,6 +611,7 @@ void fcn2(int &nPar, double* /*grad*/, double &fval, double* param,
   double ctime;
   double chi2 =0.0;
   double ctime_pi=0.0;
+  //  double ctime_pi=3.0;
   double sigma = 0.3; // 300 ps
 
   
@@ -630,10 +630,9 @@ void fcn2(int &nPar, double* /*grad*/, double &fval, double* param,
 
 
       ctime = meantime_R - meantime_L + coin_offset;
+
       chi2 += ctime*ctime/sigma/sigma/(double)ntuned_event;
 
-
-      
   
     }
 

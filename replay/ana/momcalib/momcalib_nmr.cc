@@ -84,7 +84,7 @@ extern double expgaus_mean(double *x, double *par);
 extern double expgaus_sigma(double *x, double *par);
 extern double Get_expgaus_mean(double * par);
 extern double Get_expgaus_sigma(double * par, double mean);
-
+//extern double Scale_Lp(double* Lp_cent, )
 
 
 void momcalib::nmatrix(int n){
@@ -935,14 +935,12 @@ void momcalib::MTParam(string mtparam){
     ploss_f = false;  // Energy Loss
     
   }else{
-
     
     MT[8] = true; // RHRS momentum correction  
     MT[9] = true; // LHRS momentum correction  
     ploss = true;  // Energy Loss 
     
     //-------- momentum calibration ---------//
-    
     //    MT_f[0] = true;  // RHRS z correction
     //    MT_f[1] = true;  // RHRS raster correction
     //    MT_f[2] = true;  // RHRS theta correction

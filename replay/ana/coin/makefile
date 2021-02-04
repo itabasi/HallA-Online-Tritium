@@ -20,12 +20,13 @@ TARGET1= coincalib
 OBJS1=   coincalib.o Setting.o Tree.o ParamMan.o
 TARGET2= t0corr
 OBJS2=   t0corr.o Setting.o Tree.o ParamMan.o
-
+TARGET3= t0calib
+OBJS3=   t0calib.o Setting.o Tree.o ParamMan.o
 
 .PHONY: all
 all: $(TARGET1)\
-     $(TARGET2)
-
+     $(TARGET2)\
+     $(TARGET3)
 $(LIBDIR)/%.o : %.cc
 	$(CXX) $(CFLAGS) -c -o $@ $< -MMD $(CXXFLAGS)
 
@@ -33,7 +34,8 @@ $(TARGET1): $(patsubst %,$(LIBDIR)/%,$(OBJS1))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 $(TARGET2): $(patsubst %,$(LIBDIR)/%,$(OBJS2))
 	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
-
+$(TARGET3): $(patsubst %,$(LIBDIR)/%,$(OBJS3))
+	$(CXX) $(CFLAGS) -o $(BINDIR)/$@ $^ $(CXXLIBS) $(CXXFLAGS)
 
 .PHONY: clean
 clean:
