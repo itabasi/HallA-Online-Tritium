@@ -18,7 +18,7 @@ string ofroot("output.root");
 
 #define F1TDC
 
-
+extern double s2f1_off(int i,char const* ARM,char const* MODE, int KINE);
 extern double Calc_ras(double a,double b,double c){return  a *b + c;};  
 extern double calcf2t_ang(double* P,double xf, double xpf, double yf, double fpf,double z);
 extern double calcf2t_zt(double* P, double xf, double xpf, double yf, double ypf);
@@ -602,24 +602,22 @@ void ana::CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit){
   tr.ct_gb=-1000.;
   tr.ct_g_wo_cor=-1000.;
   tr.ct_g=CoinCalc_gogami(RS2_seg,LS2_seg,rhit,lhit);
-
+  tr.ct_g_c=CoinCalc_gogami_c(RS2_seg,LS2_seg,rhit,lhit);
   
 }
 
 
 ////////////////////////////////////////////////////////////////////////////
 
-/*
+
 
 double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
-
-
 
   double beta_R  = R_tr_p[rhit]/sqrt(R_tr_p[rhit]*R_tr_p[rhit]+Mpi*Mpi);
   double beta_L  = L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);  
 
-  double LenL  = L_tr_pathl[lhit];// - L_s2_trpath[lhit];
-  double LenR  = R_tr_pathl[rhit];// - R_s2_trpath[rhit];
+  double LenL  = L_tr_pathl[lhit] - L_s2_trpath[lhit];
+  double LenR  = R_tr_pathl[rhit] - R_s2_trpath[rhit];
   
   double cor_L = (LenL-3.18)/(beta_L*LightVelocity);
   double cor_R = (LenR- R_s2_trpath[rhit])/(beta_R*LightVelocity);
@@ -631,15 +629,15 @@ double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
 
   
   //  double rf      = LTDC_F1FirstHit[47]       * tdc_time;
-  //  double rf_R    = RTDC_F1FirstHit[15]        * tdc_time;
+  //  double rf_R    = RTDC_F1FirstHit[15]       * tdc_time;
 
 
   // HRS-L S2 TDC //
  double timeL_R = RTDC_F1FirstHit[RS2_seg+16] * tdc_time;
  double timeL_L = LTDC_F1FirstHit[LS2_seg] * tdc_time;
  
- // double timeR_R = RTDC_F1FirstHit[RS2_seg+48] * tdc_time; 
- // double timeR_L = LTDC_F1FirstHit[LS2_seg+48] * tdc_time; 
+ double timeR_R = RTDC_F1FirstHit[RS2_seg+48] * tdc_time; 
+ double timeR_L = LTDC_F1FirstHit[LS2_seg+48] * tdc_time; 
 
 
  double toffset_R = -364.6-150.; // for H2_1
@@ -647,14 +645,18 @@ double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
 
  double meantime_L = tref_L - (timeL_L+timeR_L)/2.0 + toffset_L + cor_L;
  
- // double meantime_R = tref_R - (timeL_R+timeR_R)/2.0 + toffset_R + cor_R;
+ double meantime_R = tref_R - (timeL_R+timeR_R)/2.0 + toffset_R + cor_R;
 
  // meantime_R=100;RS2_seg=7;LS2_seg=7;
 
+ 
 
  double s2_tzero_R[16]={0,-1.02037,0.0046854,0.0534834,-0.534372,-0.60597,0.343139,-0.293262,0.267898,-0.666823,0.272364,0.0969059,-0.893806,-1.01129,-1.13495,-0.784991};
  double s2_tzero_L[16]={0,2.005,0.654413,1.34976,0.0290891,0.187557,0.00499421,-0.914343,-1.24058,-0.535878,-0.77564,2.22918,0.804909,0.607826,-0.635764,0};
 
+
+
+ 
  meantime_R= meantime_R - s2_tzero_R[RS2_seg] -s2_tzero_L[LS2_seg];
 
  double yfp_cor_R =R_tr_y[rhit]*-0.182869 +R_tr_ph[rhit]*-0.0211276;
@@ -714,6 +716,7 @@ double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
 
  tr.ctimecorR=ctimecorR;
  tr.ctimecorL=ctimecorL;
+ 
  // double time_rf = rf - meantime;
  // double time_rf_R = rf - meantime_R -tref_R;
  // double ctime = - meantime_R + mean_time - kcenter;
@@ -744,15 +747,13 @@ double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
 
 }
 
-*/
+
 
 /////////////////////////////////////////////////////////////////////////////
 
 
-double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
 
-
-
+double ana::CoinCalc_gogami_c(int RS2_seg, int LS2_seg,int rhit, int lhit){
 
   
   
@@ -778,6 +779,8 @@ double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
   // RHRS S2 TDC //
 
 
+
+
   
 
   // after momentum calibration -> beta
@@ -786,8 +789,11 @@ double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
   double beta_L  = L_tr_p[lhit]/sqrt(L_tr_p[lhit]*L_tr_p[lhit]+Me*Me);  
   double LenL  = L_tr_pathl[lhit];
   double LenR  = R_tr_pathl[rhit];
+  // Path Length Target -> FP
   double cor_L = (LenL - L_s2_trpath[lhit])/(beta_L*LightVelocity);
   double cor_R = (LenR - R_s2_trpath[rhit])/(beta_R*LightVelocity);
+
+
 
 
   
@@ -800,8 +806,22 @@ double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
   
   double meantime_L =                                    cor_L - LS2_off[RS2_seg];
   double meantime_R = tref_R - (time_Rt + time_Rb)/2.0 + cor_R - RS2_off[LS2_seg];
-  double ctime_offset = - 440; // H1 Offset
-  //  double ctime_offset = 33.0; // H1 Offset
+
+
+
+  // double s2_tzero_R[16]={0,-1.02037,0.0046854,0.0534834,-0.534372,-0.60597,0.343139,-0.293262,0.267898,-0.666823,0.272364,0.0969059,-0.893806,-1.01129,-1.13495,-0.784991};
+  double s2_tzero_R[16]={0,-1.02037,0.0046854,0.0534834,-0.534372,-0.60597,0.343139,-0.293262,0.267898,-0.666823,0.272364,-75.0969059,-0.893806,-1.01129,-1.13495,-0.784991};
+ double s2_tzero_L[16]={0,2.005,0.654413,1.34976,0.0290891,0.187557,0.00499421,-0.914343,-1.24058,-0.535878,-0.77564,2.22918,0.804909,0.607826,-0.635764,0};
+
+
+
+ 
+ meantime_R= meantime_R - s2_tzero_R[RS2_seg] -s2_tzero_L[LS2_seg];
+
+
+  
+  //  double ctime_offset = - 440; // H1 Offset
+  double ctime_offset = 33.0; // H1 Offset
   double ctime = + meantime_R - meantime_L + ctime_offset;
 
   
@@ -814,6 +834,7 @@ double ana::CoinCalc_gogami(int RS2_seg, int LS2_seg,int rhit, int lhit){
 
 
 }
+
 
 
 
@@ -2377,6 +2398,7 @@ void ana::Loop_c(){
 	  tr.dpk  = -1000.;
 	  tr.ct_c = -1000.;
 	  tr.ct_g = -1000.;
+	  tr.ct_g_c = -1000.;
 	  tr.pid_cut = 0;
 	  tr.ct_cut  = 0;
 	  tr.z_cut   = 0;
@@ -3290,6 +3312,7 @@ void ana::MakeHist(){
   tree_out ->Branch("ct_c",&tr.ct_c ,"ct_c/D");
   tree_out ->Branch("cointime",tr.cointime ,"cointime[50][50]/D");
   tree_out ->Branch("ct_g",&tr.ct_g ,"ct_g/D");
+  tree_out ->Branch("ct_g_c",&tr.ct_g_c ,"ct_g_c/D");
   tree_out ->Branch("yp_cor",&tr.yp_cor ,"yp_cor/D");
   tree_out ->Branch("ctimecorR",&tr.ctimecorR ,"ctimecorR/D");
   tree_out ->Branch("ctimecorL",&tr.ctimecorL ,"ctimecorL/D");
@@ -4353,3 +4376,40 @@ double calcf2t_3rd(double* P, double xf, double xpf,
   return Y; 
   
 }
+
+
+//################################################################
+
+double s2f1_off(int i,char const* ARM,char const* MODE, int KINE){
+
+
+
+
+  double RS2_offset[16],LS2_offset[16];
+  if(*MODE=='H' && KINE==2){
+
+    double  RS2_off_H2[16]={-16911.4,-16864.3,-16900,-16897,-16873.8,-16868.4,-16901.1,-16876.8,-16895.4,-16860.9,-16893.1,-16884.4,-16847.3,-16842.7,-16836.9,-16882.6};
+    double  LS2_off_H2[16]={-25336.9,-25386.6,-25367.5,-25392.3,-25391.1,-25386.2,-25422,-25428.9,-25417.3,-25426.8,-25438.7,-25383.4,-25396,-25418.5,-25436.4,-26082.1};
+
+    LS2_offset[i]=LS2_off_H2[i];
+    RS2_offset[i]=RS2_off_H2[i];
+  }
+
+
+  double  RS2_off_H1[16]={-16828.7,-16863,-16894,-16893.3,-16870.9,-16867.2,-16900.3,-16876.8,-16895.6,-16861.6,-16895,-16890.7,-16854.6,-16852.9,-16850.5,-16861.9};
+  double  LS2_off_H1[16]={-25335,-25385.6,-25367,-25392.1,-25391.7,-25386.4,-25422.1,-25428.9,-25414.9,-25424.7,-25436.9, -25381.2,-25390,-25413.4,-25428.7,-26640.8};
+  LS2_offset[i]=LS2_off_H1[i];
+  RS2_offset[i]=RS2_off_H1[i];
+
+
+double s2f1_offset;
+if(*ARM=='R')s2f1_offset=RS2_offset[i];
+ else  if(*ARM=='L')s2f1_offset=LS2_offset[i];
+ else {s2f1_offset=0.;cout<<"false read out !!"<<endl;}
+
+return s2f1_offset;
+  
+}
+
+
+//############################################################

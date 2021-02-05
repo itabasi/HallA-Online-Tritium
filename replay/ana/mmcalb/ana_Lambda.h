@@ -48,7 +48,7 @@ struct TreeBranch{
   double ctimecorR,ctimecorL;
   double ct_acc,ct_b,ct_c;
   double cointime[MAX][MAX];
-  double ct_g,ct_gb,ct_g_wo_cor;
+  double ct_g,ct_gb,ct_g_wo_cor,ct_g_c;
   double Rs0ra_p,Rs0la_p,Rs0a_p;
   double Rs2ra_p[16],Rs2la_p[16],Rs2a_p[16];
   double Ls2ra_p[16],Ls2la_p[16],Ls2a_p[16];
@@ -136,6 +136,7 @@ class ana : public Tree
     double Eloss(double yp,double z,char* arm);
     void CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
     double CoinCalc_gogami(int RS2_seg, int LS2_seg, int rhit, int lhit);
+  double CoinCalc_gogami_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
   //    double CoinCalc(int RS2_seg, int LS2_seg, int rhit, int lhit);
   double CoinCalc_c(int RS2_seg, int LS2_seg, int rhit, int lhit);
   void MixedEvent(int rt, int lt);
