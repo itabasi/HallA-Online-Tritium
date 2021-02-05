@@ -57,8 +57,8 @@ const int nParamTp=21;
 const int nParamTp2=nParamTp*2;
 const int nParamTc2=nParamTc*2;
 
-//const int nParamTc_off =32;
-const int nParamTc_off =16;
+const int nParamTc_off =32;
+//const int nParamTc_off =16;
 ///==== MTtuning =====//
 
 

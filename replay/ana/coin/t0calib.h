@@ -59,12 +59,15 @@ class t0calib : public Tree
   
  public:
   void SetRoot(string ifname);
+  void SetParam(string ifpname);
   void EventSelection();
   double tune(double *pa, int j);
   void Tuning(string ofname);
   void SetHist();
   void Fill();
   void NewRoot(string ofrname);
+  void Fitting(bool RHRS);
+
   //--------------------------------//
   //--------< Parameters > ---------//
   //--------------------------------//
@@ -74,7 +77,6 @@ class t0calib : public Tree
   TFile* ofr;
   TTree* T;
   
-  double RS2_off[16],LS2_off[16],coin_offset;
   double momR,momL;
   double Rpathl, Lpathl;
   int Rs2_pad, Ls2_pad;
@@ -86,13 +88,25 @@ class t0calib : public Tree
   TH1D* hct_select;
   TH1D* hct_ev;
   TH1D* hct_select_c;
+  TH1D* hct;
   TH1D* hct_c;
 
   TH1D* hct_RS2[nS2];
   TH1D* hct_LS2[nS2];
+  TH1D* hct_RS2_c[nS2];
+  TH1D* hct_LS2_c[nS2];
+  TH2D* hct_LS2seg;
+  TH2D* hct_RS2seg;
+  TH2D* hct_LS2seg_c;
+  TH2D* hct_RS2seg_c; 
   TF1*  fct_RS2[nS2];
   TF1*  fct_LS2[nS2];
-  
+
+
+
+  // offset
+  double RS2_off[nS2],LS2_off[nS2];
+  double coin_off;
 };
 
 t0calib::t0calib(){
