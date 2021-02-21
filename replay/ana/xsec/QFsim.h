@@ -18,7 +18,7 @@ public:
   void FitQFnnL();
   void FitQFnnL_new();
   void Write();
-  void CalcPS(TH1D* hmm);
+  void CalcPS(TH1D* hexp);
   void CalcPS_c(TH1D* hexp, TH1D* hsim, int model);
   
   TFile* fH_sim;
@@ -46,9 +46,26 @@ public:
   TGraph* g_val[100];
   TGraph* g_ps[100];  
 
+  TGraph* g_s_orig;
+  TGraph* g_n_orig;
+  TGraph* g_val_orig;
+  TGraph* g_ps_orig;    
+
+  
   TGraph* g_ps_sig[100];
   TGraph* g_val_sig[100];
   TGraph* g_mm_sig[100];
+
+  TH2D* hPS[100];
+  TH2D* hPval[100];
+
+  TH2D* hPS_orig;
+  TH2D* hPval_orig;
+  
+  // --- CalcPS Paramters----//
+  int Nsig=10;
+  double min_sigma = 1.0;
+  double max_sigma = 2.0;
   
   const int nvp=4;
   TH1D* hexp;

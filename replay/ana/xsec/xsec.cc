@@ -452,6 +452,17 @@ double xsec::NTarget(string mode){
   
   NT = Na * thickness / A;
 
+  //====== Beam Current Correction =======//
+
+  TF1* fb = new TF1("fb","[0]*x*x + [1]*x + [2]",0,30); // Correction function
+
+  fb->SetParameters(1.7e-4,-9.0e-3,1.0); // Okuyama Fitting (By master's thesis)
+  
+
+  double Fac = fb->Eval(22.5);  //x =22.5 muA
+  NT *= Fac;  
+  cout<<"NT "<<NT<<" fac "<<Fac<<endl;
+  
   return NT;
 
   

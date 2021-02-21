@@ -1,0 +1,19 @@
+###########################################################
+###### Input file in QFsim.cc code (Author K. Itabashi)
+###### Rootfiles List
+###### Gcoin Cut w/o mom cut
+# 0 Experimental ROOT File Name  (2 MeV Bin)
+# 1 Lambda SIMC ROOT File Name   (2 MeV Bin)
+# 2 nnLambda SIMC ROOT File Name (2 MeV Bin)
+# 3 Lambda SIMC ROOT File Name   (10keV Bin)
+# 4 nnLambda SIMC ROOT File Name (10keV Bin)
+# 5 Experimental ROOT File Name  (10keV Bin)
+# 6 Output ROOT File Name
+###########################################################
+0 ../rootfiles/fsi/mmass/nnL_exp_coin_hist.root
+1 ../rootfiles/fsi/mmass/Lam_Jl0.root
+2 ../rootfiles/fsi/mmass/nnL_Jl0.root
+3 ../rootfiles/fsi/mmass/Lam_10keVBin.root
+4 ../rootfiles/fsi/mmass/nnL_10keVBin.root
+5 ../rootfiles/fsi/mmass/nnL_exp_coin_10keV_hist.root
+6 ../rootfiles/fsi/QFsim/nnL_Jost_coin.root
